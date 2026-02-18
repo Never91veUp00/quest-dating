@@ -1,0 +1,80 @@
+{
+  "name": "quest-dating",
+  "version": "1.0.0",
+  "description": "Quest Dating - Marketplace for romantic quest templates",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "cd server && npm run dev",
+    "client:dev": "cd client && npm run dev",
+    "server": "cd server && npm start",
+    "client": "cd client && npm run dev",
+    "build": "npm run client:build && npm run server:build",
+    "client:build": "cd client && npm run build",
+    "server:build": "cd server && npm run build",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "clean": "rm -rf node_modules server/node_modules client/node_modules",
+    "clean:install": "npm run clean && npm run install:all",
+    "lint": "eslint . --ext .js,.vue --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .js,.vue --fix --ignore-path .gitignore",
+    "format": "prettier --write \"**/*.{js,vue,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,vue,json,css,md}\"",
+    "db:init": "cd server && npm run db:init",
+    "db:seed": "cd server && npm run db:seed",
+    "db:migrate": "cd server && npm run db:migrate",
+    "db:reset": "cd server && npm run db:reset",
+    "docker:dev": "docker-compose up -d",
+    "docker:prod": "docker-compose --profile production up -d",
+    "docker:down": "docker-compose down",
+    "docker:clean": "docker-compose down -v",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install || echo 'Husky not installed'"
+  },
+  "keywords": [
+    "quest",
+    "dating",
+    "marketplace",
+    "romantic",
+    "adventure",
+    "templates"
+  ],
+  "author": "Quest Dating Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/quest-dating.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5"
+  },
+  "lint-staged": {
+    "*.{js,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.4",
+    "pg": "^8.18.0"
+  }
+}

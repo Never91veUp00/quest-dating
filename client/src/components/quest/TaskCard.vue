@@ -1,76 +1,119 @@
 <template>
-  <div class="task-card" :class="{ completed: isCompleted }">
+  <div class="task-card" :class="{ completed: task.completed }">
+    <!-- Заголовок задания -->
     <div class="task-header">
-      <div class="task-number">Задание {{ index + 1 }}</div>
-      <div v-if="isCompleted" class="task-completed-badge">✓ Выполнено</div>
+      <div class="task-icon">
+        {{ getTaskIcon(task.type) }}
+      </div>
+      <div class="task-meta">
+        <h4 class="task-title">{{ task.title }}</h4>
+        <span class="task-type">{{ getTaskTypeName(task.type) }}</span>
+      </div>
+      <div v-if="task.completed" class="task-check">✓</div>
     </div>
 
-    <h3 class="task-title">{{ task.title }}</h3>
-    <p class="task-description">{{ task.description }}</p>
+    <!-- Описание -->
+    <div class="task-body">
+      <p class="task-description">{{ task.description }}</p>
 
-    <!-- Разные типы заданий -->
-    <div class="task-content">
       <!-- Загадка -->
-      <div v-if="task.type === 'riddle'" class="task-riddle">
-        <div class="riddle-question">{{ task.question }}</div>
-        <input
-          v-model="userAnswer"
-          type="text"
-          placeholder="Введите ответ..."
-          class="riddle-input"
-          :disabled="isCompleted"
-          @keyup.enter="checkAnswer"
-        />
-        <div v-if="showHint" class="hint">
-          💡 Подсказка: {{ task.hint }}
+      <div v-if="task.type === 'riddle' && !task.completed" class="task-riddle">
+        <div class="riddle-question">
+          <p class="riddle-text">{{ task.question }}</p>
         </div>
-        <div v-if="attempts > 0 && !isCompleted" class="attempts">
-          Попыток: {{ attempts }}
+
+        <div class="riddle-answer">
+          <input
+            v-model="userAnswer"
+            type="text"
+            class="answer-input"
+            placeholder="Ваш ответ..."
+            @keyup.enter="checkAnswer"
+            :disabled="task.completed"
+          />
+          <button 
+            @click="checkAnswer"
+            class="btn-check-answer"
+            :disabled="!userAnswer || task.completed"
+          >
+            Проверить
+          </button>
+        </div>
+
+        <!-- Подсказка -->
+        <div v-if="task.hint && !hintUsed" class="riddle-hint">
+          <button @click="showHint" class="btn-hint">
+            💡 Показать подсказку (-{{ hintPenalty }} баллов)
+          </button>
+        </div>
+
+        <div v-if="hintUsed" class="hint-text">
+          <strong>Подсказка:</strong> {{ task.hint }}
         </div>
       </div>
 
-      <!-- Фото задание -->
-      <div v-else-if="task.type === 'photo'" class="task-photo">
-        <p>{{ task.instruction }}</p>
+      <!-- Фото-задание -->
+      <div v-if="task.type === 'photo' && !task.completed" class="task-photo">
+        <p class="photo-instruction">{{ task.instruction || 'Сделайте фото по заданию' }}</p>
+        
         <input
+          ref="photoInput"
           type="file"
           accept="image/*"
+          capture="environment"
+          class="photo-input-hidden"
           @change="handlePhotoUpload"
-          :disabled="isCompleted"
-          class="photo-input"
         />
-        <div v-if="uploadedPhoto" class="photo-preview">
-          <img :src="uploadedPhoto" alt="Uploaded" />
+
+        <div v-if="!photoPreview" class="photo-upload-area" @click="triggerPhotoInput">
+          <div class="upload-icon">📷</div>
+          <p class="upload-text">Нажмите, чтобы сделать фото</p>
         </div>
+
+        <div v-else class="photo-preview">
+          <img :src="photoPreview" alt="Preview" />
+          <button @click="removePhoto" class="btn-remove-photo">✕</button>
+        </div>
+
+        <button 
+          v-if="photoPreview"
+          @click="submitPhoto"
+          class="btn-submit-photo"
+        >
+          Отправить фото
+        </button>
       </div>
 
-      <!-- Простое задание -->
-      <div v-else class="task-simple">
-        <p>{{ task.instruction }}</p>
+      <!-- Простое задание (чекбокс) -->
+      <div v-if="task.type === 'simple' && !task.completed" class="task-simple">
+        <label class="simple-checkbox">
+          <input
+            type="checkbox"
+            v-model="taskCompleted"
+            @change="completeSimpleTask"
+          />
+          <span>Задание выполнено</span>
+        </label>
       </div>
+
+      <!-- Результат проверки -->
+      <transition name="result">
+        <div v-if="showResult" class="task-result" :class="resultClass">
+          <div class="result-icon">{{ resultIcon }}</div>
+          <p class="result-text">{{ resultMessage }}</p>
+        </div>
+      </transition>
     </div>
 
-    <div class="task-actions">
-      <button
-        v-if="!isCompleted && task.hint"
-        @click="showHint = true"
-        class="btn btn-hint"
-        :disabled="showHint"
-      >
-        {{ showHint ? 'Подсказка показана' : 'Показать подсказку' }}
-      </button>
-
-      <button
-        v-if="!isCompleted"
-        @click="handleComplete"
-        class="btn btn-complete"
-      >
-        {{ task.type === 'riddle' ? 'Проверить ответ' : 'Отметить выполненным' }}
-      </button>
-    </div>
-
-    <div v-if="errorMessage" class="error-message">
-      {{ errorMessage }}
+    <!-- Футер с баллами -->
+    <div class="task-footer">
+      <div class="task-points">
+        <span class="points-label">Награда:</span>
+        <span class="points-value">{{ task.points || 100 }} 🏆</span>
+      </div>
+      <div v-if="task.completed" class="completion-time">
+        Выполнено: {{ formatTime(task.completedAt) }}
+      </div>
     </div>
   </div>
 </template>
@@ -82,207 +125,379 @@ const props = defineProps({
   task: {
     type: Object,
     required: true
-  },
-  index: {
-    type: Number,
-    required: true
   }
 })
 
-const emit = defineEmits(['complete'])
+const emit = defineEmits(['complete-task', 'use-hint'])
 
-const isCompleted = ref(false)
 const userAnswer = ref('')
-const showHint = ref(false)
-const attempts = ref(0)
-const errorMessage = ref('')
-const uploadedPhoto = ref(null)
+const hintUsed = ref(false)
+const hintPenalty = ref(20)
+const showResult = ref(false)
+const resultCorrect = ref(false)
+const photoPreview = ref(null)
+const photoFile = ref(null)
+const photoInput = ref(null)
+const taskCompleted = ref(false)
+
+const getTaskIcon = (type) => {
+  const icons = {
+    riddle: '🧩',
+    photo: '📷',
+    simple: '✓',
+    puzzle: '🧠',
+    code: '🔢'
+  }
+  return icons[type] || '📝'
+}
+
+const getTaskTypeName = (type) => {
+  const names = {
+    riddle: 'Загадка',
+    photo: 'Фото-задание',
+    simple: 'Задание',
+    puzzle: 'Головоломка',
+    code: 'Код'
+  }
+  return names[type] || 'Задание'
+}
+
+const resultClass = computed(() => {
+  return resultCorrect.value ? 'result-correct' : 'result-incorrect'
+})
+
+const resultIcon = computed(() => {
+  return resultCorrect.value ? '🎉' : '❌'
+})
+
+const resultMessage = computed(() => {
+  return resultCorrect.value 
+    ? 'Правильно! Задание выполнено!' 
+    : 'Неверно. Попробуйте еще раз.'
+})
 
 const checkAnswer = () => {
-  if (props.task.type === 'riddle') {
-    attempts.value++
-    
-    const correctAnswers = props.task.correctAnswers || []
-    const isCorrect = correctAnswers.some(answer => 
-      answer.toLowerCase().trim() === userAnswer.value.toLowerCase().trim()
-    )
+  if (!userAnswer.value) return
 
-    if (isCorrect) {
-      handleComplete()
-    } else {
-      errorMessage.value = 'Неправильный ответ. Попробуйте ещё раз!'
-      setTimeout(() => {
-        errorMessage.value = ''
-      }, 3000)
-    }
+  const correctAnswers = props.task.correctAnswers || []
+  const isCorrect = correctAnswers.some(answer => 
+    answer.toLowerCase().trim() === userAnswer.value.toLowerCase().trim()
+  )
+
+  resultCorrect.value = isCorrect
+  showResult.value = true
+
+  if (isCorrect) {
+    const points = hintUsed.value 
+      ? (props.task.points || 100) - hintPenalty.value
+      : (props.task.points || 100)
+    
+    setTimeout(() => {
+      emit('complete-task', {
+        taskId: props.task.id,
+        points,
+        answer: userAnswer.value
+      })
+    }, 1500)
+  } else {
+    setTimeout(() => {
+      showResult.value = false
+    }, 2000)
   }
+}
+
+const showHint = () => {
+  hintUsed.value = true
+  emit('use-hint', props.task.id)
+}
+
+const triggerPhotoInput = () => {
+  photoInput.value?.click()
 }
 
 const handlePhotoUpload = (event) => {
   const file = event.target.files[0]
   if (file) {
+    photoFile.value = file
     const reader = new FileReader()
     reader.onload = (e) => {
-      uploadedPhoto.value = e.target.result
+      photoPreview.value = e.target.result
     }
     reader.readAsDataURL(file)
   }
 }
 
-const handleComplete = () => {
-  if (props.task.type === 'riddle') {
-    checkAnswer()
-    if (errorMessage.value) return
+const removePhoto = () => {
+  photoPreview.value = null
+  photoFile.value = null
+  if (photoInput.value) {
+    photoInput.value.value = ''
   }
-
-  isCompleted.value = true
-  
-  const points = calculatePoints()
-  
-  emit('complete', {
-    taskId: props.task.id,
-    points,
-    attempts: attempts.value,
-    usedHint: showHint.value
-  })
 }
 
-const calculatePoints = () => {
-  let basePoints = props.task.points || 100
-  
-  // Штраф за подсказку
-  if (showHint.value) {
-    basePoints -= 20
+const submitPhoto = () => {
+  if (photoFile.value) {
+    resultCorrect.value = true
+    showResult.value = true
+    
+    setTimeout(() => {
+      emit('complete-task', {
+        taskId: props.task.id,
+        points: props.task.points || 100,
+        photo: photoFile.value
+      })
+    }, 1500)
   }
-  
-  // Бонус за быстрое выполнение
-  if (attempts.value === 1) {
-    basePoints += 50
-  } else if (attempts.value === 2) {
-    basePoints += 25
+}
+
+const completeSimpleTask = () => {
+  if (taskCompleted.value) {
+    resultCorrect.value = true
+    showResult.value = true
+    
+    setTimeout(() => {
+      emit('complete-task', {
+        taskId: props.task.id,
+        points: props.task.points || 100
+      })
+    }, 1000)
   }
-  
-  return Math.max(basePoints, 50) // Минимум 50 очков
+}
+
+const formatTime = (timestamp) => {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('ru-RU', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
 }
 </script>
 
 <style scoped>
 .task-card {
   background: white;
-  border: 3px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 40px;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
   transition: all 0.3s;
-  position: relative;
 }
 
 .task-card:hover {
-  border-color: #667eea;
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .task-card.completed {
-  background: rgba(72, 187, 120, 0.05);
+  background: linear-gradient(to bottom, #f0fdf4 0%, white 100%);
   border-color: #48bb78;
 }
 
 .task-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
-.task-number {
+.task-icon {
+  width: 56px;
+  height: 56px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
 }
 
-.task-completed-badge {
+.task-card.completed .task-icon {
   background: #48bb78;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
+}
+
+.task-meta {
+  flex: 1;
 }
 
 .task-title {
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #2d3748;
-  margin-bottom: 12px;
+  margin: 0 0 4px 0;
+}
+
+.task-type {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #edf2f7;
+  color: #4a5568;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.task-check {
+  width: 40px;
+  height: 40px;
+  background: #48bb78;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.task-body {
+  margin-bottom: 20px;
 }
 
 .task-description {
-  font-size: 1.1rem;
   color: #4a5568;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin: 0 0 20px 0;
+  font-size: 1rem;
 }
 
-.task-content {
-  margin-bottom: 32px;
+.task-riddle {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .riddle-question {
-  background: #f7fafc;
-  padding: 24px;
-  border-radius: 12px;
-  font-size: 1.15rem;
-  color: #2d3748;
   margin-bottom: 20px;
-  border-left: 4px solid #667eea;
 }
 
-.riddle-input {
-  width: 100%;
-  padding: 16px;
+.riddle-text {
+  font-size: 1.05rem;
+  color: #2d3748;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.riddle-answer {
+  display: flex;
+  gap: 12px;
+}
+
+.answer-input {
+  flex: 1;
+  padding: 12px 16px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  transition: all 0.3s;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
-.riddle-input:focus {
+.answer-input:focus {
   outline: none;
   border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.riddle-input:disabled {
-  background: #f7fafc;
+.btn-check-answer {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-check-answer:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-check-answer:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.hint {
+.riddle-hint {
   margin-top: 16px;
-  padding: 16px;
-  background: #fef5e7;
-  border-left: 4px solid #f39c12;
+  text-align: center;
+}
+
+.btn-hint {
+  padding: 8px 16px;
+  background: #fef3c7;
+  border: 2px solid #fbbf24;
   border-radius: 8px;
-  color: #856404;
+  color: #78350f;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.attempts {
-  margin-top: 12px;
-  text-align: right;
+.btn-hint:hover {
+  background: #fde68a;
+}
+
+.hint-text {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fffbeb;
+  border-left: 4px solid #fbbf24;
+  border-radius: 4px;
+  color: #78350f;
+  font-size: 0.95rem;
+}
+
+.task-photo {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.photo-instruction {
+  margin: 0 0 16px 0;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.photo-input-hidden {
+  display: none;
+}
+
+.photo-upload-area {
+  border: 3px dashed #cbd5e0;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.photo-upload-area:hover {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.upload-text {
   color: #718096;
-  font-size: 0.9rem;
-}
-
-.photo-input {
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .photo-preview {
-  margin-top: 16px;
+  position: relative;
   border-radius: 12px;
   overflow: hidden;
+  margin-bottom: 16px;
 }
 
 .photo-preview img {
@@ -291,59 +506,169 @@ const calculatePoints = () => {
   display: block;
 }
 
-.task-actions {
-  display: flex;
-  gap: 12px;
+.btn-remove-photo {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.btn {
-  flex: 1;
-  padding: 14px 24px;
+.btn-remove-photo:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.btn-submit-photo {
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.btn-hint {
-  background: #fef5e7;
-  color: #856404;
-}
-
-.btn-hint:hover:not(:disabled) {
-  background: #fdebd0;
-}
-
-.btn-hint:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-complete {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-complete:hover {
+.btn-submit-photo:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.error-message {
-  margin-top: 16px;
-  padding: 12px;
-  background: #fee;
-  border-left: 4px solid #f56565;
-  border-radius: 8px;
-  color: #c53030;
-  animation: shake 0.5s;
+.task-simple {
+  padding: 20px;
+  background: #f7fafc;
+  border-radius: 12px;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  75% { transform: translateX(10px); }
+.simple-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.simple-checkbox input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.task-result {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-result.result-correct {
+  background: linear-gradient(to right, #d1fae5 0%, #a7f3d0 100%);
+  border: 2px solid #48bb78;
+}
+
+.task-result.result-incorrect {
+  background: linear-gradient(to right, #fee2e2 0%, #fecaca 100%);
+  border: 2px solid #f56565;
+}
+
+.result-icon {
+  font-size: 2rem;
+}
+
+.result-text {
+  flex: 1;
+  font-weight: 600;
+  margin: 0;
+}
+
+.result-correct .result-text {
+  color: #065f46;
+}
+
+.result-incorrect .result-text {
+  color: #991b1b;
+}
+
+.result-enter-active,
+.result-leave-active {
+  transition: all 0.3s;
+}
+
+.result-enter-from,
+.result-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.task-points {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.points-label {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.points-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.completion-time {
+  font-size: 0.85rem;
+  color: #48bb78;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .task-card {
+    padding: 20px 16px;
+  }
+
+  .riddle-answer {
+    flex-direction: column;
+  }
+
+  .task-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
 }
 </style>

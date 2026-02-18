@@ -1,249 +1,286 @@
-# Quest Dating Platform 🎯💝
+# 🎯 Quest Dating
 
-Платформа для создания персонализированных квестов-свиданий с геймификацией, загадками и интерактивными заданиями.
+Маркетплейс готовых шаблонов квестов для романтических свиданий.
 
-## 🚀 Возможности
+## 📖 Описание
 
-- 🎮 **Геймификация**: Загадки, пазлы, головоломки, система достижений
-- 🗺️ **Интерактивные карты**: GPS-навигация по локациям
-- 💝 **Персонализация**: Каждый квест создается индивидуально
-- 📱 **Мобильный формат**: Работает на любых устройствах без установки
-- ⚡ **Быстрое создание**: От идеи до готового квеста за 24 часа
-- 🎨 **Красивый дизайн**: Современный UI с анимациями
+Quest Dating — это платформа, которая объединяет профессиональных авторов квестов и влюбленные пары, желающие создать незабываемое свидание. Авторы создают уникальные шаблоны квестов, а клиенты могут выбрать подходящий квест и заказать его персонализацию.
 
-## 📋 Требования
+## ✨ Возможности
 
-- Node.js 20.x или выше
-- PostgreSQL 12 или выше
-- npm или yarn
+### Для клиентов:
+- 📝 Каталог из 150+ готовых шаблонов квестов
+- 🔍 Удобные фильтры по категориям, сложности, длительности
+- ⭐ Рейтинги и отзывы других пользователей
+- 🎨 Персонализация квестов под ваши пожелания
+- 📧 Получение готового квеста на email в течение 24 часов
+- 🎮 Интерактивное прохождение квеста через веб-интерфейс
 
-## 🛠️ Быстрый старт (локальная разработка)
+### Для авторов:
+- 💰 Заработок 70% от стоимости каждого заказа
+- 📊 Статистика продаж и аналитика
+- 🎨 Полная творческая свобода
+- 🤝 Поддержка команды платформы
+- ⚡ Удобные инструменты для создания квестов
 
-### 1. Клонирование репозитория
+## 🛠 Технологический стек
+
+### Frontend
+- **Vue 3** - Progressive JavaScript Framework
+- **Vue Router** - Официальный роутер
+- **Pinia** - State Management
+- **Axios** - HTTP клиент
+- **Vite** - Build tool
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express** - Web framework
+- **PostgreSQL** - База данных
+- **JWT** - Аутентификация
+- **Multer** - Загрузка файлов
+- **Bcrypt** - Хеширование паролей
+
+## 🚀 Быстрый старт
+
+### Требования
+- Node.js >= 18.0.0
+- npm >= 9.0.0
+- PostgreSQL >= 14 (или Docker)
+
+### Установка
+
+1. **Клонируйте репозиторий:**
 ```bash
-git clone https://github.com/your-username/quest-dating.git
+git clone https://github.com/yourusername/quest-dating.git
 cd quest-dating
 ```
 
-### 2. Установка зависимостей
+2. **Установите все зависимости:**
 ```bash
-# Backend
-cd server
-npm install
-
-# Frontend
-cd ../client
-npm install
+npm run install:all
 ```
 
-### 3. Настройка базы данных
-```bash
-# Установите PostgreSQL (если ещё не установлен)
-# Ubuntu/Debian:
-sudo apt install postgresql postgresql-contrib
+3. **Настройте переменные окружения:**
 
-# macOS:
-brew install postgresql
+Создайте файлы `.env` в директориях `server` и `client`:
 
-# Windows: скачайте с postgresql.org
+**server/.env:**
+```env
+NODE_ENV=development
+PORT=5000
 
-# Создайте базу данных
-sudo -u postgres psql
-```
-```sql
-CREATE DATABASE quest_dating;
-CREATE USER quest_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE quest_dating TO quest_user;
-\q
-```
-```bash
-# Импортируйте схему
-psql -U quest_user -d quest_dating < database/schema.sql
-```
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=quest_dating
+DB_USER=quest_user
+DB_PASSWORD=quest_password
 
-### 4. Настройка переменных окружения
-```bash
-# Backend
-cd server
-cp .env.example .env
-# Отредактируйте .env с вашими настройками
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
 
-# Frontend
-cd ../client
-cp .env.example .env
+# Upload
+MAX_FILE_SIZE=5242880
+ALLOWED_FILE_TYPES=image/jpeg,image/png,image/webp
 ```
 
-### 5. Запуск приложения
-```bash
-# Backend (терминал 1)
-cd server
-npm run dev
+**client/.env:**
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_APP_NAME=Quest Dating
+VITE_APP_VERSION=1.0.0
+```
 
-# Frontend (терминал 2)
-cd client
+4. **Инициализируйте базу данных:**
+```bash
+npm run db:init
+npm run db:seed
+```
+
+5. **Запустите проект:**
+```bash
 npm run dev
 ```
 
-Приложение будет доступно на `http://localhost:3000`
+Приложение будет доступно по адресам:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
+- API: http://localhost:5000/api
 
-## 🌐 Развертывание на production сервере
+## 🐳 Docker
 
-Подробная инструкция находится в файле [SETUP.md](SETUP.md)
-
-Краткая версия:
+### Разработка с Docker
 ```bash
-# 1. Установите зависимости на сервере
-sudo apt update
-sudo apt install -y nodejs postgresql nginx certbot
+# Запуск всех сервисов
+npm run docker:dev
 
-# 2. Настройте базу данных
-sudo -u postgres psql < database/schema.sql
+# Остановка
+npm run docker:down
 
-# 3. Установите PM2
-sudo npm install -g pm2
+# Просмотр логов
+npm run docker:logs
 
-# 4. Соберите frontend
-cd client
-npm run build
+# Полная очистка (включая volumes)
+npm run docker:clean
+```
 
-# 5. Запустите backend
-cd ../server
-pm2 start src/server.js --name quest-dating-api
+### Production с Docker
+```bash
+# Сборка и запуск
+npm run docker:prod
 
-# 6. Настройте Nginx
-sudo nano /etc/nginx/sites-available/quest-dating
-# (см. конфигурацию в SETUP.md)
-
-# 7. Получите SSL сертификат
-sudo certbot --nginx -d yourdomain.com
+# Остановка
+npm run docker:down
 ```
 
 ## 📁 Структура проекта
 ```
 quest-dating/
-├── client/                 # Vue.js Frontend
+├── client/                 # Frontend приложение
+│   ├── public/            # Статические файлы
 │   ├── src/
-│   │   ├── components/    # Компоненты
-│   │   ├── views/         # Страницы
-│   │   ├── store/         # Pinia store
+│   │   ├── assets/        # Стили, изображения
+│   │   ├── components/    # Vue компоненты
+│   │   ├── composables/   # Composition API
 │   │   ├── router/        # Vue Router
-│   │   └── services/      # API клиент
-│   └── package.json
+│   │   ├── services/      # API сервисы
+│   │   ├── store/         # Pinia stores
+│   │   ├── utils/         # Утилиты
+│   │   ├── views/         # Страницы
+│   │   ├── App.vue        # Корневой компонент
+│   │   └── main.js        # Entry point
+│   ├── .env.example       # Пример env файла
+│   ├── index.html         # HTML template
+│   ├── package.json       # Зависимости
+│   └── vite.config.js     # Vite конфигурация
 │
-├── server/                # Node.js Backend
-│   ├── src/
-│   │   ├── config/       # Конфигурация
-│   │   ├── models/       # Модели данных
-│   │   ├── routes/       # API роуты
-│   │   ├── controllers/  # Контроллеры
-│   │   ├── middleware/   # Middleware
-│   │   └── server.js     # Точка входа
-│   └── package.json
+├── server/                # Backend приложение
+│   ├── config/            # Конфигурация
+│   ├── controllers/       # Контроллеры
+│   ├── database/          # SQL скрипты
+│   ├── middleware/        # Express middleware
+│   ├── models/            # Модели данных
+│   ├── routes/            # API роуты
+│   ├── services/          # Бизнес-логика
+│   ├── uploads/           # Загруженные файлы
+│   ├── utils/             # Утилиты
+│   ├── .env.example       # Пример env файла
+│   ├── index.js           # Entry point
+│   └── package.json       # Зависимости
 │
-├── database/
-│   └── schema.sql        # SQL схема
-│
-├── SETUP.md              # Подробная инструкция по развертыванию
-└── README.md             # Этот файл
+├── nginx/                 # Nginx конфигурация (production)
+├── .eslintrc.js          # ESLint конфигурация
+├── .gitignore            # Git ignore правила
+├── .prettierrc           # Prettier конфигурация
+├── docker-compose.yml    # Docker compose файл
+├── package.json          # Root package.json
+└── README.md             # Документация
 ```
 
-## 🔧 Технологии
+## 🔧 Доступные команды
 
-### Frontend
-- **Vue.js 3** - Прогрессивный JavaScript фреймворк
-- **Vite** - Быстрый сборщик
-- **Pinia** - State management
-- **Vue Router** - Роутинг
-- **Axios** - HTTP клиент
-- **Canvas Confetti** - Анимации конфетти
-- **GSAP** - Анимации
+### Разработка
+```bash
+npm run dev              # Запуск frontend + backend
+npm run client:dev       # Только frontend
+npm run server:dev       # Только backend
+```
 
-### Backend
-- **Node.js** - Runtime
-- **Express** - Web фреймворк
-- **PostgreSQL** - Реляционная БД
-- **pg** - PostgreSQL клиент
+### Сборка
+```bash
+npm run build           # Сборка всего проекта
+npm run client:build    # Сборка frontend
+npm run server:build    # Сборка backend
+```
 
-## 📝 API Endpoints
+### База данных
+```bash
+npm run db:init         # Инициализация базы данных
+npm run db:seed         # Заполнение тестовыми данными
+npm run db:migrate      # Применение миграций
+npm run db:reset        # Сброс и переинициализация
+```
 
-### Публичные
-- `GET /api/dates/:slug` - Получить квест по slug
+### Линтинг и форматирование
+```bash
+npm run lint            # Проверка кода
+npm run lint:fix        # Исправление ошибок
+npm run format          # Форматирование кода
+npm run format:check    # Проверка форматирования
+```
+
+### Docker
+```bash
+npm run docker:dev      # Запуск в dev режиме
+npm run docker:prod     # Запуск в prod режиме
+npm run docker:down     # Остановка контейнеров
+npm run docker:clean    # Очистка всего
+npm run docker:logs     # Просмотр логов
+npm run docker:build    # Пересборка образов
+```
+
+## 🌐 API Документация
+
+### Основные эндпоинты
+
+#### Templates
 - `GET /api/templates` - Список шаблонов
-- `POST /api/orders` - Создать заказ
+- `GET /api/templates/:slug` - Детали шаблона
+- `GET /api/templates/popular` - Популярные шаблоны
+- `GET /api/templates/featured` - Избранные шаблоны
 
-### Служебные
-- `GET /health` - Health check
+#### Categories
+- `GET /api/categories` - Список категорий
+- `GET /api/categories/:slug` - Детали категории
 
-## 🎯 Использование
+#### Authors
+- `GET /api/authors` - Список авторов
+- `GET /api/authors/:username` - Профиль автора
+- `GET /api/authors/top` - Топ авторов
 
-### Для клиентов
+#### Orders
+- `POST /api/orders` - Создание заказа
+- `GET /api/orders/:id` - Детали заказа
 
-1. Перейдите на сайт
-2. Выберите шаблон или опишите свою идею
-3. Заполните форму заказа
-4. Получите ссылку на квест через 24 часа
-5. Поделитесь ссылкой с вашей второй половинкой
+#### Reviews
+- `GET /api/reviews/template/:id` - Отзывы шаблона
+- `POST /api/reviews` - Создание отзыва
 
-### Для администраторов
-
-(В разработке) Админ-панель для:
-- Управления заказами
-- Создания квестов
-- Просмотра статистики
+Полная документация API доступна по адресу: http://localhost:5000/api-docs (в разработке)
 
 ## 🧪 Тестирование
 ```bash
-# Backend тесты (будут добавлены)
-cd server
-npm test
-
-# Frontend тесты (будут добавлены)
-cd client
+# Запуск тестов (в разработке)
 npm test
 ```
 
-## 📊 Мониторинг
-```bash
-# Логи PM2
-pm2 logs quest-dating-api
+## 📝 Переменные окружения
 
-# Статус процессов
-pm2 status
+### Server
+| Переменная | Описание | По умолчанию |
+|-----------|----------|--------------|
+| `NODE_ENV` | Режим работы | development |
+| `PORT` | Порт сервера | 5000 |
+| `DB_HOST` | Хост БД | localhost |
+| `DB_PORT` | Порт БД | 5432 |
+| `DB_NAME` | Имя БД | quest_dating |
+| `DB_USER` | Пользователь БД | quest_user |
+| `DB_PASSWORD` | Пароль БД | quest_password |
+| `JWT_SECRET` | Секретный ключ JWT | - |
+| `JWT_EXPIRES_IN` | Время жизни токена | 7d |
 
-# Мониторинг ресурсов
-pm2 monit
-```
+### Client
+| Переменная | Описание | По умолчанию |
+|-----------|----------|--------------|
+| `VITE_API_URL` | URL API | http://localhost:5000/api |
+| `VITE_APP_NAME` | Название приложения | Quest Dating |
 
-## 🔒 Безопасность
+## 🤝 Контрибьюция
 
-- Все пароли хранятся в .env файлах (не коммитятся в Git)
-- HTTPS обязателен для production
-- SQL инъекции предотвращены через параметризованные запросы
-- CORS настроен только для разрешенных доменов
-- Rate limiting на критичных endpoints (в планах)
+Мы приветствуем вклад в развитие проекта!
 
-## 🐛 Известные проблемы
-
-- [ ] Админ-панель в разработке
-- [ ] Email уведомления не реализованы
-- [ ] Платежная система в планах
-
-## 📈 Roadmap
-
-- [ ] Админ-панель для управления квестами
-- [ ] Email уведомления клиентам
-- [ ] Интеграция платежной системы
-- [ ] Мобильное приложение (React Native)
-- [ ] AI-генерация квестов
-- [ ] Интеграция с картами (Google Maps API)
-- [ ] Система отзывов
-- [ ] Реферальная программа
-
-## 🤝 Контрибьюции
-
-Вклад приветствуется! Пожалуйста:
-
-1. Fork репозиторий
+1. Fork репозитория
 2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
 4. Push в branch (`git push origin feature/AmazingFeature`)
@@ -251,24 +288,25 @@ pm2 monit
 
 ## 📄 Лицензия
 
-MIT License - см. файл [LICENSE](LICENSE)
+Этот проект лицензирован под MIT License - см. файл [LICENSE](LICENSE) для деталей.
 
 ## 👥 Авторы
 
-- **Ваше имя** - [GitHub](https://github.com/yourusername)
+Quest Dating Team
 
-## 📞 Поддержка
+## 📞 Контакты
 
-- Email: support@questdating.com
+- Email: hello@questdating.ru
 - Telegram: @questdating
-- Документация: [docs.questdating.com](https://docs.questdating.com)
+- Website: https://questdating.ru
 
 ## 🙏 Благодарности
 
-- Vue.js команде за отличный фреймворк
-- PostgreSQL за надежную БД
-- Всем контрибьюторам и тестировщикам
+- Всем авторам квестов
+- Сообществу Vue.js
+- Команде Express.js
+- Всем контрибьюторам
 
 ---
 
-**Сделано с ❤️ для незабываемых свиданий**
+Made with ❤️ by Quest Dating Team

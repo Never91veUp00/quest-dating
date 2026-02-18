@@ -1,63 +1,94 @@
 # Dependencies
 node_modules/
-/.pnp
-.pnp.js
-
-# Testing
-/coverage
-
-# Production
-/build
-/dist
-client/dist/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+*/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# OS
-.DS_Store
-Thumbs.db
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+*.env
 
-# IDE
-.vscode/
+# Production builds
+dist/
+dist-ssr/
+build/
+*/dist/
+*/build/
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.npm/
+.yarn/
+.pnp/
+.pnp.js
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 *.swp
 *.swo
 *~
 
+# OS files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
 # Uploads
-uploads/
-*.upload
-
-# Backups
-backups/
-*.backup
-*.sql
-*.sql.gz
-
-# PM2
-.pm2/
-ecosystem.config.js
+server/uploads/*
+!server/uploads/.gitkeep
 
 # Temporary files
 tmp/
 temp/
 *.tmp
+*.temp
 
-# SSL Certificates (если хранятся локально)
-*.pem
-*.key
-*.crt
+# Docker
+.docker/
+*.pid
+*.seed
+*.pid.lock
+
+# Misc
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test

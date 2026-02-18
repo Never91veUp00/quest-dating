@@ -1,30 +1,59 @@
 <template>
-  <header class="header" :class="{ 'header-scrolled': isScrolled }">
+  <header class="header" :class="{ scrolled: isScrolled }">
     <div class="container">
-      <router-link to="/" class="logo">
-        <span class="logo-icon">🎯</span>
-        <span class="logo-text">Quest Dating</span>
-      </router-link>
-
-      <nav class="nav" :class="{ 'nav-open': mobileMenuOpen }">
-        <router-link 
-          v-for="link in navLinks" 
-          :key="link.path"
-          :to="link.path"
-          class="nav-link"
-          @click="closeMobileMenu"
-        >
-          {{ link.label }}
+      <div class="header-content">
+        <!-- Логотип -->
+        <router-link to="/" class="logo">
+          <span class="logo-icon">🎯</span>
+          <span class="logo-text">Quest Dating</span>
         </router-link>
-        <router-link to="/order" class="btn btn-primary-small" @click="closeMobileMenu">
-          Создать квест
-        </router-link>
-      </nav>
 
-      <button class="mobile-menu-toggle" @click="toggleMobileMenu">
-        <span class="hamburger" :class="{ 'hamburger-open': mobileMenuOpen }"></span>
-      </button>
+        <!-- Навигация Desktop -->
+        <nav class="nav-desktop">
+          <router-link to="/" class="nav-link">Главная</router-link>
+          <router-link to="/templates" class="nav-link">Шаблоны</router-link>
+          <router-link to="/authors" class="nav-link">Авторы</router-link>
+          <router-link to="/about" class="nav-link">О платформе</router-link>
+        </nav>
+
+        <!-- Кнопки действий -->
+        <div class="header-actions">
+          <router-link to="/become-author" class="btn-author">
+            Стать автором
+          </router-link>
+          <button @click="toggleMobileMenu" class="btn-mobile-menu">
+            <span class="hamburger" :class="{ active: mobileMenuOpen }">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- Мобильное меню -->
+    <transition name="mobile-menu">
+      <div v-if="mobileMenuOpen" class="mobile-menu">
+        <nav class="mobile-nav">
+          <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">
+            Главная
+          </router-link>
+          <router-link to="/templates" class="mobile-nav-link" @click="closeMobileMenu">
+            Шаблоны
+          </router-link>
+          <router-link to="/authors" class="mobile-nav-link" @click="closeMobileMenu">
+            Авторы
+          </router-link>
+          <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">
+            О платформе
+          </router-link>
+          <router-link to="/become-author" class="mobile-nav-link highlighted" @click="closeMobileMenu">
+            Стать автором
+          </router-link>
+        </nav>
+      </div>
+    </transition>
   </header>
 </template>
 
@@ -34,20 +63,17 @@ import { ref, onMounted, onUnmounted } from 'vue'
 const isScrolled = ref(false)
 const mobileMenuOpen = ref(false)
 
-const navLinks = [
-  { path: '/', label: 'Главная' },
-  { path: '/about', label: 'О нас' },
-  { path: '/#templates', label: 'Шаблоны' },
-  { path: '/#pricing', label: 'Цены' }
-]
-
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50
 }
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
-  document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : ''
+  if (mobileMenuOpen.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
 }
 
 const closeMobileMenu = () => {
@@ -72,23 +98,26 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: white;
+  border-bottom: 1px solid transparent;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.header-scrolled {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+.header.scrolled {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-bottom-color: #e2e8f0;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+.header-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   height: 80px;
 }
 
@@ -97,14 +126,19 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  font-size: 1.5rem;
   font-weight: 800;
+  font-size: 1.5rem;
   color: #2d3748;
-  transition: transform 0.2s;
+  transition: transform 0.3s;
+  outline: none; /* ← ДОБАВЛЕНО */
 }
 
 .logo:hover {
   transform: scale(1.05);
+}
+
+.logo:focus {
+  outline: none; /* ← ДОБАВЛЕНО */
 }
 
 .logo-icon {
@@ -118,9 +152,8 @@ onUnmounted(() => {
   background-clip: text;
 }
 
-.nav {
+.nav-desktop {
   display: flex;
-  align-items: center;
   gap: 32px;
 }
 
@@ -128,17 +161,19 @@ onUnmounted(() => {
   text-decoration: none;
   color: #4a5568;
   font-weight: 600;
-  transition: color 0.2s;
+  font-size: 1rem;
+  transition: color 0.3s;
   position: relative;
+  outline: none; /* ← ДОБАВЛЕНО */
 }
 
 .nav-link::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: -8px;
   left: 0;
   width: 0;
-  height: 2px;
+  height: 3px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   transition: width 0.3s;
 }
@@ -147,108 +182,152 @@ onUnmounted(() => {
   color: #667eea;
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.router-link-active::after,
+.nav-link:focus::after { /* ← ДОБАВЛЕНО */
   width: 100%;
 }
 
-.nav-link.router-link-active {
+.nav-link.router-link-active,
+.nav-link:focus { /* ← ДОБАВЛЕНО */
   color: #667eea;
 }
 
-.btn-primary-small {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-author {
   padding: 10px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-radius: 8px;
   text-decoration: none;
+  border-radius: 8px;
   font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  outline: none; /* ← ДОБАВЛЕНО */
 }
 
-.btn-primary-small:hover {
+.btn-author:hover,
+.btn-author:focus { /* ← ДОБАВЛЕНО */
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
-.mobile-menu-toggle {
+.btn-mobile-menu {
   display: none;
   background: none;
   border: none;
   cursor: pointer;
   padding: 8px;
+  outline: none; /* ← ДОБАВЛЕНО */
+}
+
+.btn-mobile-menu:focus {
+  outline: none; /* ← ДОБАВЛЕНО */
 }
 
 .hamburger {
-  display: block;
   width: 28px;
-  height: 2px;
-  background: #2d3748;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   position: relative;
-  transition: background 0.3s;
 }
 
-.hamburger::before,
-.hamburger::after {
-  content: '';
-  position: absolute;
-  width: 28px;
-  height: 2px;
+.hamburger span {
+  width: 100%;
+  height: 3px;
   background: #2d3748;
+  border-radius: 2px;
   transition: all 0.3s;
 }
 
-.hamburger::before {
-  top: -8px;
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
 }
 
-.hamburger::after {
-  top: 8px;
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
 }
 
-.hamburger-open {
-  background: transparent;
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
 }
 
-.hamburger-open::before {
-  transform: rotate(45deg);
-  top: 0;
+.mobile-menu {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 999;
+  overflow-y: auto;
 }
 
-.hamburger-open::after {
-  transform: rotate(-45deg);
-  top: 0;
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.mobile-nav-link {
+  padding: 16px 20px;
+  text-decoration: none;
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  transition: all 0.3s;
+  outline: none; /* ← ДОБАВЛЕНО */
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link:focus, /* ← ДОБАВЛЕНО */
+.mobile-nav-link.router-link-active {
+  background: #f7fafc;
+  color: #667eea;
+}
+
+.mobile-nav-link.highlighted {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.mobile-nav-link.highlighted:hover,
+.mobile-nav-link.highlighted:focus { /* ← ДОБАВЛЕНО */
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  color: white;
+}
+
+.mobile-menu-enter-active,
+.mobile-menu-leave-active {
+  transition: opacity 0.3s;
+}
+
+.mobile-menu-enter-from,
+.mobile-menu-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 768px) {
-  .mobile-menu-toggle {
-    display: block;
-  }
-
-  .nav {
-    position: fixed;
-    top: 80px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: white;
-    flex-direction: column;
-    padding: 40px;
-    gap: 24px;
-    transform: translateX(100%);
-    transition: transform 0.3s;
-  }
-
-  .nav-open {
-    transform: translateX(0);
-  }
-
-  .nav-link::after {
+  .nav-desktop {
     display: none;
   }
 
-  .btn-primary-small {
-    width: 100%;
-    text-align: center;
+  .btn-author {
+    display: none;
+  }
+
+  .btn-mobile-menu {
+    display: block;
   }
 }
 </style>

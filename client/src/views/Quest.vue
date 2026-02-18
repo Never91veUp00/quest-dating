@@ -1,315 +1,428 @@
 <template>
   <div class="quest-page">
-    <!-- Loading состояние -->
-    <div v-if="loading" class="quest-loading">
-      <div class="spinner-large"></div>
-      <p>Загружаем ваше приключение...</p>
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-container">
+      <Loader text="Загружаем квест..." size="large" />
     </div>
 
-    <!-- Квест не найден -->
-    <div v-else-if="error" class="quest-error">
-      <div class="error-icon">😞</div>
-      <h1>Квест не найден</h1>
-      <p>{{ error }}</p>
-      <router-link to="/" class="btn btn-primary">
-        Вернуться на главную
-      </router-link>
-    </div>
-
-    <!-- Отображение квеста -->
-    <div v-else-if="quest" class="quest-container">
-      <!-- Заголовок квеста -->
-      <header class="quest-header">
-        <div class="quest-header-bg"></div>
-        <div class="quest-header-content">
-          <h1 class="quest-title">{{ quest.title }}</h1>
-          <p class="quest-subtitle">Ваше приключение начинается прямо сейчас</p>
-          
-          <div class="quest-stats">
-            <div class="stat">
-              <div class="stat-icon">📍</div>
-              <div class="stat-value">{{ totalLocations }}</div>
-              <div class="stat-label">Локаций</div>
-            </div>
-            <div class="stat">
-              <div class="stat-icon">🎯</div>
-              <div class="stat-value">{{ totalTasks }}</div>
-              <div class="stat-label">Заданий</div>
-            </div>
-            <div class="stat">
-              <div class="stat-icon">⭐</div>
-              <div class="stat-value">{{ points }}</div>
-              <div class="stat-label">Очков</div>
-            </div>
-          </div>
-
-          <button v-if="!questStarted" @click="startQuest" class="btn btn-start">
-            Начать квест ✨
-          </button>
-        </div>
-      </header>
-
-      <!-- Прогресс квеста -->
-      <div v-if="questStarted" class="quest-progress-bar">
-        <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
-        <span class="progress-text">{{ completedTasks }}/{{ totalTasks }} заданий</span>
+    <!-- Error State -->
+    <div v-else-if="error" class="error-container">
+      <div class="error-content">
+        <div class="error-icon">😞</div>
+        <h2>Квест не найден</h2>
+        <p>{{ error }}</p>
+        <router-link to="/" class="btn-back">
+          ← На главную
+        </router-link>
       </div>
+    </div>
 
-      <!-- Контент квеста -->
-      <div v-if="questStarted" class="quest-content">
-        <div class="container">
-          <!-- Рендер блоков -->
-          <div 
-            v-for="(block, index) in quest.blocks" 
-            :key="block.id"
-            class="quest-block"
-            :class="`block-type-${block.type}`"
-          >
-            <!-- Intro блок -->
-            <div v-if="block.type === 'intro'" class="block-intro">
-              <div class="block-icon">📜</div>
-              <div class="block-content" v-html="formatContent(block.content.text)"></div>
-            </div>
-
-            <!-- Map блок -->
-            <div v-else-if="block.type === 'map'" class="block-map">
-              <h2 class="block-title">🗺️ Ваш маршрут</h2>
-              <div class="map-placeholder">
-                <p>Интерактивная карта с локациями</p>
-                <div class="map-locations">
-                  <div 
-                    v-for="(location, idx) in block.content.locations" 
-                    :key="idx"
-                    class="map-location"
-                    :class="{ completed: location.completed }"
-                  >
-                    <div class="location-number">{{ idx + 1 }}</div>
-                    <div class="location-info">
-                      <h4>{{ location.title }}</h4>
-                      <p>{{ location.address }}</p>
-                    </div>
-                    <div class="location-status">
-                      {{ location.completed ? '✓' : '○' }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Task блок -->
-            <div v-else-if="block.type === 'task'" class="block-task">
-              <TaskCard
-                :task="block.content"
-                :index="index"
-                @complete="handleTaskComplete"
+    <!-- Access Code Modal -->
+    <Modal v-model="showAccessCodeModal" size="small" :closable="false">
+      <template #default>
+        <div class="access-code-modal">
+          <h3 class="modal-title">Введите код доступа</h3>
+          <p class="modal-description">
+            Для запуска квеста необходим уникальный код доступа, который вы получили при заказе.
+          </p>
+          <form @submit.prevent="handleAccessCodeSubmit">
+            <div class="form-group">
+              <input
+                v-model="accessCode"
+                type="text"
+                class="code-input"
+                placeholder="XXXX-XXXX-XXXX"
+                maxlength="14"
+                required
               />
             </div>
+            <button type="submit" class="btn-submit" :disabled="!accessCode">
+              Начать квест
+            </button>
+          </form>
+        </div>
+      </template>
+    </Modal>
 
-            <!-- Message блок -->
-            <div v-else-if="block.type === 'message'" class="block-message">
-              <div class="message-card">
-                <div class="message-icon">💌</div>
-                <div class="message-text" v-html="formatContent(block.content.text)"></div>
-              </div>
-            </div>
-
-            <!-- Finale блок -->
-            <div v-else-if="block.type === 'finale'" class="block-finale">
-              <div class="finale-content">
-                <div class="finale-icon">🎉</div>
-                <h2>{{ block.content.title }}</h2>
-                <div v-html="formatContent(block.content.text)"></div>
-                
-                <div v-if="allTasksCompleted" class="completion-stats">
-                  <h3>Ваши достижения:</h3>
-                  <div class="achievements">
-                    <div class="achievement">
-                      <span class="achievement-icon">⭐</span>
-                      <span>{{ points }} очков</span>
-                    </div>
-                    <div class="achievement">
-                      <span class="achievement-icon">⏱️</span>
-                      <span>{{ formatTime(elapsedTime) }}</span>
-                    </div>
-                    <div class="achievement">
-                      <span class="achievement-icon">🏆</span>
-                      <span>{{ completedTasks }}/{{ totalTasks }} заданий</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <!-- Quest Content -->
+    <div v-if="questData && sessionData" class="quest-content">
+      <!-- Quest Header -->
+      <header class="quest-header">
+        <div class="container">
+          <div class="header-content">
+            <h1 class="quest-title">{{ questData.title }}</h1>
+            <div class="quest-meta">
+              <span class="meta-item">{{ questData.category_name }}</span>
+              <span class="separator">•</span>
+              <span class="meta-item">{{ blocks.length }} локаций</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Floating action button -->
-      <button 
-        v-if="questStarted" 
-        class="fab"
-        @click="showProgressModal = true"
-      >
-        📊
-      </button>
-
-      <!-- Модалка прогресса -->
-      <transition name="modal">
-        <div v-if="showProgressModal" class="modal-overlay" @click="showProgressModal = false">
-          <div class="modal-content" @click.stop>
-            <h2>Ваш прогресс</h2>
-            <div class="progress-details">
-              <div class="progress-item">
-                <span>Выполнено заданий:</span>
-                <strong>{{ completedTasks }} / {{ totalTasks }}</strong>
-              </div>
-              <div class="progress-item">
-                <span>Набрано очков:</span>
-                <strong>{{ points }}</strong>
-              </div>
-              <div class="progress-item">
-                <span>Время в квесте:</span>
-                <strong>{{ formatTime(elapsedTime) }}</strong>
-              </div>
-            </div>
-            <button @click="showProgressModal = false" class="btn btn-primary">
-              Продолжить
+          <div class="header-actions">
+            <button @click="showExitConfirm = true" class="btn-exit">
+              Завершить квест
             </button>
           </div>
         </div>
-      </transition>
+      </header>
+
+      <!-- Progress Section -->
+      <section class="progress-section">
+        <div class="container">
+          <ProgressBar
+            :completed-tasks="completedTasksCount"
+            :total-tasks="totalTasks"
+            :current-points="points"
+            :max-points="questData.max_points"
+            :hints-used="hintsUsed"
+          />
+        </div>
+      </section>
+
+      <!-- Main Content -->
+      <section class="quest-main">
+        <div class="container">
+          <div class="quest-layout">
+            <!-- Map Sidebar -->
+            <aside class="quest-sidebar">
+              <QuestMap
+                :locations="questData.blocks || []"
+                :current-location="currentBlockIndex"
+              />
+              <QuestTimer
+                mode="stopwatch"
+                :auto-start="true"
+                label="Время в пути"
+                :show-progress="false"
+              />
+            </aside>
+
+            <!-- Tasks Area -->
+            <main class="quest-tasks">
+              <div v-if="currentBlock" class="current-block">
+                <div class="block-header">
+                  <h2 class="block-title">{{ currentBlock.title }}</h2>
+                  <p v-if="currentBlock.description" class="block-description">
+                    {{ currentBlock.description }}
+                  </p>
+                </div>
+
+                <!-- Tasks -->
+                <div class="tasks-list">
+                  <TaskCard
+                    v-for="task in currentBlock.tasks"
+                    :key="task.id"
+                    :task="task"
+                    @complete-task="handleCompleteTask"
+                    @use-hint="handleUseHint"
+                  />
+                </div>
+
+                <!-- Navigation -->
+                <div class="block-navigation">
+                  <button
+                    v-if="currentBlockIndex > 0"
+                    @click="previousBlock"
+                    class="btn-nav btn-prev"
+                  >
+                    ← Предыдущая локация
+                  </button>
+                  <button
+                    v-if="canProceed && currentBlockIndex < totalBlocks - 1"
+                    @click="nextBlock"
+                    class="btn-nav btn-next"
+                  >
+                    Следующая локация →
+                  </button>
+                  <button
+                    v-if="canProceed && isLastBlock"
+                    @click="showFinishConfirm = true"
+                    class="btn-finish"
+                  >
+                    🎉 Завершить квест
+                  </button>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </section>
+
+      <!-- Achievement Popup -->
+      <AchievementPopup
+        v-if="currentAchievement"
+        :achievement="currentAchievement"
+        :show="showAchievement"
+        @close="handleAchievementClose"
+      />
+
+      <!-- Exit Confirmation Modal -->
+      <Modal v-model="showExitConfirm" size="small">
+        <template #default>
+          <div class="confirm-modal">
+            <h3 class="confirm-title">Завершить квест?</h3>
+            <p class="confirm-message">
+              Вы уверены, что хотите завершить квест? Ваш прогресс будет сохранен.
+            </p>
+            <div class="confirm-actions">
+              <button @click="showExitConfirm = false" class="btn-cancel">
+                Отмена
+              </button>
+              <button @click="handleExit" class="btn-confirm">
+                Завершить
+              </button>
+            </div>
+          </div>
+        </template>
+      </Modal>
+
+      <!-- Finish Confirmation Modal -->
+      <Modal v-model="showFinishConfirm" size="medium">
+        <template #default>
+          <div class="finish-modal">
+            <div class="finish-icon">🎉</div>
+            <h3 class="finish-title">Поздравляем!</h3>
+            <p class="finish-message">
+              Вы прошли все локации квеста! Готовы завершить приключение?
+            </p>
+            <div class="finish-stats">
+              <div class="finish-stat">
+                <div class="stat-label">Выполнено заданий</div>
+                <div class="stat-value">{{ completedTasksCount }} / {{ totalTasks }}</div>
+              </div>
+              <div class="finish-stat">
+                <div class="stat-label">Набрано баллов</div>
+                <div class="stat-value">{{ points }}</div>
+              </div>
+              <div class="finish-stat">
+                <div class="stat-label">Использовано подсказок</div>
+                <div class="stat-value">{{ hintsUsed }}</div>
+              </div>
+            </div>
+            <div class="finish-actions">
+              <button @click="showFinishConfirm = false" class="btn-cancel">
+                Отмена
+              </button>
+              <button @click="handleFinish" class="btn-finish-confirm">
+                Завершить квест
+              </button>
+            </div>
+          </div>
+        </template>
+      </Modal>
+
+      <!-- Completion Modal -->
+      <Modal v-model="showCompletionModal" size="large" :closable="false">
+        <template #default>
+          <div class="completion-modal">
+            <div class="completion-header">
+              <div class="completion-icon">🏆</div>
+              <h2 class="completion-title">Квест завершен!</h2>
+            </div>
+
+            <div class="completion-stats">
+              <div class="completion-stat">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ completedTasksCount }}</div>
+                  <div class="stat-label">Заданий выполнено</div>
+                </div>
+              </div>
+              <div class="completion-stat">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ points }}</div>
+                  <div class="stat-label">Баллов заработано</div>
+                </div>
+              </div>
+              <div class="completion-stat">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ formattedElapsedTime }}</div>
+                  <div class="stat-label">Время прохождения</div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="achievements.length > 0" class="completion-achievements">
+              <h3 class="achievements-title">Получено достижений</h3>
+              <div class="achievements-grid">
+                <div
+                  v-for="achievement in achievements"
+                  :key="achievement.id"
+                  class="achievement-badge"
+                >
+                  <div class="badge-icon">{{ achievement.icon }}</div>
+                  <div class="badge-name">{{ achievement.title }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="completion-actions">
+              <router-link to="/" class="btn-home">
+                На главную
+              </router-link>
+              <button @click="shareResults" class="btn-share">
+                📤 Поделиться результатом
+              </button>
+            </div>
+          </div>
+        </template>
+      </Modal>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useQuestStore } from '@/store'
+import { useRoute, useRouter } from 'vue-router'
+import { useQuest } from '@/composables/useQuest'
+import Modal from '@/components/common/Modal.vue'
+import Loader from '@/components/common/Loader.vue'
+import ProgressBar from '@/components/quest/ProgressBar.vue'
+import QuestMap from '@/components/quest/QuestMap.vue'
 import TaskCard from '@/components/quest/TaskCard.vue'
-import confetti from 'canvas-confetti'
+import QuestTimer from '@/components/quest/QuestTimer.vue'
+import AchievementPopup from '@/components/quest/AchievementPopup.vue'
 
 const route = useRoute()
-const questStore = useQuestStore()
+const router = useRouter()
 
-const loading = ref(true)
-const error = ref(null)
-const quest = ref(null)
-const questStarted = ref(false)
-const completedTasks = ref(0)
-const points = ref(0)
-const startTime = ref(null)
-const elapsedTime = ref(0)
-const showProgressModal = ref(false)
+const {
+  quest: questData,
+  session: sessionData,
+  loading,
+  error,
+  currentBlockIndex,
+  completedTasks,
+  achievements,
+  points,
+  hintsUsed,
+  currentBlock,
+  totalBlocks,
+  totalTasks,
+  completedTasksCount,
+  isQuestComplete,
+  formattedElapsedTime,
+  blocks,
+  loadQuest,
+  startQuest,
+  completeTask,
+  useHint,
+  nextBlock,
+  previousBlock,
+  finishQuest
+} = useQuest()
 
-let timerInterval = null
+const showAccessCodeModal = ref(true)
+const accessCode = ref('')
+const showExitConfirm = ref(false)
+const showFinishConfirm = ref(false)
+const showCompletionModal = ref(false)
+const showAchievement = ref(false)
+const currentAchievement = ref(null)
 
-const totalLocations = computed(() => {
-  if (!quest.value?.blocks) return 0
-  const mapBlock = quest.value.blocks.find(b => b.type === 'map')
-  return mapBlock?.content?.locations?.length || 0
+const canProceed = computed(() => {
+  if (!currentBlock.value?.tasks) return false
+  return currentBlock.value.tasks.every(task =>
+    completedTasks.value.includes(task.id)
+  )
 })
 
-const totalTasks = computed(() => {
-  if (!quest.value?.blocks) return 0
-  return quest.value.blocks.filter(b => b.type === 'task').length
+const isLastBlock = computed(() => {
+  return currentBlockIndex.value === totalBlocks.value - 1
 })
 
-const progress = computed(() => {
-  if (totalTasks.value === 0) return 0
-  return (completedTasks.value / totalTasks.value) * 100
-})
-
-const allTasksCompleted = computed(() => {
-  return completedTasks.value === totalTasks.value && totalTasks.value > 0
-})
-
-const startQuest = () => {
-  questStarted.value = true
-  startTime.value = Date.now()
-  startTimer()
-  
-  confetti({
-    particleCount: 100,
-    spread: 70,
-    origin: { y: 0.6 }
-  })
-}
-
-const handleTaskComplete = (taskData) => {
-  completedTasks.value++
-  points.value += taskData.points || 100
-  
-  confetti({
-    particleCount: 50,
-    angle: 60,
-    spread: 55,
-    origin: { x: 0 },
-    colors: ['#667eea', '#764ba2', '#f093fb']
-  })
-  
-  confetti({
-    particleCount: 50,
-    angle: 120,
-    spread: 55,
-    origin: { x: 1 },
-    colors: ['#667eea', '#764ba2', '#f093fb']
-  })
-
-  if (allTasksCompleted.value) {
-    setTimeout(() => {
-      confetti({
-        particleCount: 200,
-        spread: 100,
-        origin: { y: 0.6 }
-      })
-    }, 500)
-  }
-}
-
-const formatContent = (text) => {
-  if (!text) return ''
-  return text.replace(/\n/g, '<br>')
-}
-
-const formatTime = (seconds) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = seconds % 60
-  
-  if (hours > 0) {
-    return `${hours}ч ${minutes}м`
-  }
-  return `${minutes}м ${secs}с`
-}
-
-const startTimer = () => {
-  timerInterval = setInterval(() => {
-    elapsedTime.value = Math.floor((Date.now() - startTime.value) / 1000)
-  }, 1000)
-}
-
-const loadQuest = async () => {
+const handleAccessCodeSubmit = async () => {
   try {
-    loading.value = true
     const slug = route.params.slug
-    
-    const questData = await questStore.fetchQuest(slug)
-    quest.value = questData
+    await loadQuest(slug, accessCode.value)
+
+    // Если квест загружен успешно, создаем сессию
+    if (questData.value) {
+      await startQuest(questData.value.id)
+      showAccessCodeModal.value = false
+    }
   } catch (err) {
-    error.value = 'Квест не найден или ещё не опубликован'
-  } finally {
-    loading.value = false
+    alert('Неверный код доступа. Пожалуйста, проверьте код и попробуйте снова.')
+    console.error('Access code error:', err)
+  }
+}
+
+const handleCompleteTask = (taskData) => {
+  completeTask(taskData.taskId, taskData)
+
+  // Проверяем новые достижения
+  const newAchievements = achievements.value.filter(
+    a => !currentAchievement.value || a.id !== currentAchievement.value.id
+  )
+
+  if (newAchievements.length > 0) {
+    currentAchievement.value = newAchievements[newAchievements.length - 1]
+    showAchievement.value = true
+  }
+}
+
+const handleUseHint = (taskId) => {
+  useHint(taskId)
+}
+
+const handleAchievementClose = () => {
+  showAchievement.value = false
+  setTimeout(() => {
+    currentAchievement.value = null
+  }, 300)
+}
+
+const handleExit = () => {
+  showExitConfirm.value = false
+  router.push('/')
+}
+
+const handleFinish = async () => {
+  try {
+    await finishQuest()
+    showFinishConfirm.value = false
+    showCompletionModal.value = true
+  } catch (err) {
+    console.error('Error finishing quest:', err)
+    alert('Произошла ошибка при завершении квеста')
+  }
+}
+
+const shareResults = () => {
+  if (!questData.value) return
+  
+  const text = `Я прошел квест "${questData.value.title}" и набрал ${points.value} баллов! 🎉`
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Результат квеста',
+      text: text,
+      url: window.location.origin
+    }).catch(err => console.log('Error sharing:', err))
+  } else {
+    // Fallback: копируем в буфер обмена
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Результат скопирован в буфер обмена!')
+    }).catch(err => console.error('Copy error:', err))
+  }
+}
+
+// Предотвращаем случайный выход со страницы
+const handleBeforeUnload = (e) => {
+  if (sessionData.value && !isQuestComplete.value) {
+    e.preventDefault()
+    e.returnValue = ''
   }
 }
 
 onMounted(() => {
-  loadQuest()
+  // Добавляем обработчик beforeunload
+  window.addEventListener('beforeunload', handleBeforeUnload)
 })
 
 onUnmounted(() => {
-  if (timerInterval) {
-    clearInterval(timerInterval)
-  }
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 </script>
 
@@ -319,456 +432,582 @@ onUnmounted(() => {
   background: #f7fafc;
 }
 
-.quest-loading,
-.quest-error {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  text-align: center;
-}
-
-.spinner-large {
-  width: 60px;
-  height: 60px;
-  border: 5px solid #e2e8f0;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.error-icon {
-  font-size: 5rem;
-  margin-bottom: 20px;
-}
-
-.quest-error h1 {
-  font-size: 2rem;
-  color: #2d3748;
-  margin-bottom: 12px;
-}
-
-.quest-error p {
-  color: #718096;
-  margin-bottom: 24px;
-}
-
-.quest-header {
-  position: relative;
-  min-height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  color: white;
-  text-align: center;
-}
-
-.quest-header-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.quest-header-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="60" fill="rgba(255,255,255,0.05)"/><path d="M0 0L60 60M60 0L0 60" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
-  opacity: 0.3;
-}
-
-.quest-header-content {
-  position: relative;
-  z-index: 1;
-  max-width: 800px;
-  padding: 60px 20px;
-}
-
-.quest-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.quest-subtitle {
-  font-size: 1.3rem;
-  opacity: 0.9;
-  margin-bottom: 40px;
-}
-
-.quest-stats {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 40px;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-icon {
-  font-size: 2.5rem;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.btn-start {
-  padding: 18px 48px;
-  background: white;
-  color: #667eea;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.3rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.btn-start:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-}
-
-.quest-progress-bar {
-  position: sticky;
-  top: 80px;
-  background: white;
-  height: 60px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.progress-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.5s ease;
-}
-
-.progress-text {
-  position: relative;
-  z-index: 1;
-  font-weight: 700;
-  color: #2d3748;
-  font-size: 1.1rem;
-}
-
-.quest-content {
-  padding: 60px 0 100px;
-}
-
 .container {
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
-.quest-block {
-  margin-bottom: 60px;
+/* Loading & Error States */
+.loading-container,
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px 20px;
 }
 
-.block-intro,
-.block-message {
-  background: white;
-  border-radius: 20px;
-  padding: 48px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.block-icon {
-  font-size: 4rem;
+.error-content {
   text-align: center;
+  max-width: 500px;
+}
+
+.error-icon {
+  font-size: 5rem;
   margin-bottom: 24px;
 }
 
-.block-content {
-  font-size: 1.15rem;
-  line-height: 1.8;
-  color: #4a5568;
+.error-content h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.error-content p {
+  color: #718096;
+  margin: 0 0 32px 0;
+}
+
+.btn-back {
+  display: inline-block;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Access Code Modal */
+.access-code-modal {
+  text-align: center;
+  padding: 20px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.modal-description {
+  color: #718096;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.code-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: border-color 0.3s;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Quest Header */
+.quest-header {
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.quest-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.quest-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.quest-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #718096;
+  font-size: 0.95rem;
+}
+
+.meta-item {
+  display: inline-block;
+}
+
+.separator {
+  color: #cbd5e0;
+}
+
+.header-actions {
+  flex-shrink: 0;
+}
+
+.btn-exit {
+  padding: 10px 24px;
+  background: transparent;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  color: #718096;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-exit:hover {
+  border-color: #f56565;
+  color: #f56565;
+}
+
+/* Progress Section */
+.progress-section {
+  padding: 24px 0;
+}
+
+/* Quest Main */
+.quest-main {
+  padding: 32px 0 80px;
+}
+
+.quest-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 32px;
+}
+
+.quest-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 140px;
+  align-self: flex-start;
+}
+
+.quest-tasks {
+  min-width: 0;
+}
+
+.current-block {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.block-header {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .block-title {
   font-size: 2rem;
   font-weight: 800;
   color: #2d3748;
-  margin-bottom: 24px;
-  text-align: center;
+  margin: 0 0 12px 0;
 }
 
-.block-map {
-  background: white;
-  border-radius: 20px;
-  padding: 48px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.map-placeholder {
-  background: #f7fafc;
-  border-radius: 16px;
-  padding: 40px;
-  text-align: center;
+.block-description {
   color: #718096;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 1.05rem;
 }
 
-.map-locations {
-  margin-top: 32px;
-  display: grid;
-  gap: 16px;
-}
-
-.map-location {
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px;
+.tasks-list {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.block-navigation {
+  display: flex;
   gap: 16px;
+  justify-content: space-between;
+  padding-top: 24px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.btn-nav,
+.btn-finish {
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.3s;
+  border: none;
+  font-size: 1rem;
 }
 
-.map-location:hover {
-  border-color: #667eea;
+.btn-prev {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
 }
 
-.map-location.completed {
-  background: rgba(72, 187, 120, 0.1);
-  border-color: #48bb78;
+.btn-prev:hover {
+  background: #f7fafc;
 }
 
-.location-number {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.btn-next {
+  background: #667eea;
   color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  flex-shrink: 0;
+  margin-left: auto;
 }
 
-.location-info {
-  flex: 1;
-  text-align: left;
+.btn-next:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
 }
 
-.location-info h4 {
+.btn-finish {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  margin-left: auto;
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.btn-finish:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(72, 187, 120, 0.5);
+}
+
+/* Modals */
+.confirm-modal,
+.finish-modal {
+  text-align: center;
+  padding: 20px;
+}
+
+.confirm-title,
+.finish-title {
+  font-size: 1.5rem;
   font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.confirm-message,
+.finish-message {
+  color: #718096;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.finish-icon {
+  font-size: 5rem;
+  margin-bottom: 16px;
+}
+
+.finish-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f7fafc;
+  border-radius: 12px;
+}
+
+.finish-stat {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.confirm-actions,
+.finish-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-cancel,
+.btn-confirm,
+.btn-finish-confirm {
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.btn-cancel {
+  background: #f7fafc;
+  color: #718096;
+  border: 2px solid #e2e8f0;
+}
+
+.btn-cancel:hover {
+  background: #edf2f7;
+}
+
+.btn-confirm {
+  background: #f56565;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background: #e53e3e;
+}
+
+.btn-finish-confirm {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+.btn-finish-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+/* Completion Modal */
+.completion-modal {
+  padding: 40px 20px;
+}
+
+.completion-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.completion-icon {
+  font-size: 6rem;
+  margin-bottom: 20px;
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.completion-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.completion-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.completion-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  background: #f7fafc;
+  border-radius: 12px;
+}
+
+.stat-icon {
+  font-size: 3rem;
+}
+
+.stat-content {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 900;
   color: #2d3748;
   margin-bottom: 4px;
 }
 
-.location-info p {
-  font-size: 0.9rem;
-  color: #718096;
+.completion-achievements {
+  margin-bottom: 40px;
 }
 
-.location-status {
+.achievements-title {
   font-size: 1.5rem;
-  color: #48bb78;
-}
-
-.message-card {
-  text-align: center;
-}
-
-.message-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-}
-
-.message-text {
-  font-size: 1.2rem;
-  line-height: 1.8;
-  color: #4a5568;
-}
-
-.block-finale {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 20px;
-  padding: 60px 48px;
-  text-align: center;
-}
-
-.finale-icon {
-  font-size: 5rem;
-  margin-bottom: 24px;
-}
-
-.finale-content h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 20px;
-}
-
-.completion-stats {
-  margin-top: 40px;
-  padding-top: 40px;
-  border-top: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.completion-stats h3 {
-  font-size: 1.5rem;
-  margin-bottom: 24px;
-}
-
-.achievements {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  flex-wrap: wrap;
-}
-
-.achievement {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.achievement-icon {
-  font-size: 2.5rem;
-}
-
-.fab {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s;
-  z-index: 500;
-}
-
-.fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  background: white;
-  border-radius: 24px;
-  padding: 48px;
-  max-width: 500px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.modal-content h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #2d3748;
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.progress-details {
-  display: grid;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.progress-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px;
-  background: #f7fafc;
-  border-radius: 12px;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
+  color: #2d3748;
+  text-align: center;
+  margin: 0 0 24px 0;
 }
 
-.btn-primary:hover {
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.achievement-badge {
+  text-align: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff5eb 0%, #ffe9cc 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+}
+
+.badge-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.badge-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #78350f;
+}
+
+.completion-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.btn-home,
+.btn-share {
+  padding: 14px 32px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  font-size: 1rem;
+}
+
+.btn-home {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: inline-block;
+}
+
+.btn-home:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-share {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-share:hover {
+  background: #f7fafc;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .quest-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-sidebar {
+    position: static;
+  }
 }
 
 @media (max-width: 768px) {
   .quest-title {
-    font-size: 2.5rem;
+    font-size: 1.25rem;
   }
 
-  .quest-stats {
+  .quest-header .container {
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
+    align-items: flex-start;
   }
 
-  .block-intro,
-  .block-message,
-  .block-map,
-  .block-finale {
-    padding: 32px 24px;
+  .completion-stats,
+  .finish-stats {
+    grid-template-columns: 1fr;
   }
 
-  .fab {
-    bottom: 20px;
-    right: 20px;
+  .completion-actions,
+  .finish-actions {
+    flex-direction: column;
+  }
+
+  .btn-home,
+  .btn-share {
+    width: 100%;
   }
 }
 </style>

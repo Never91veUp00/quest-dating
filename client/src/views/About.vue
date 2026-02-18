@@ -1,92 +1,300 @@
 <template>
   <div class="about-page">
-    <section class="hero-about">
+    <!-- Hero Section -->
+    <section class="hero">
       <div class="container">
-        <h1 class="page-title">О Quest Dating</h1>
-        <p class="page-subtitle">
-          Мы превращаем свидания в незабываемые истории
+        <h1 class="hero-title">О платформе Quest Dating</h1>
+        <p class="hero-description">
+          Маркетплейс готовых шаблонов квестов для романтических свиданий
         </p>
       </div>
     </section>
 
-    <section class="story">
+    <!-- Mission Section -->
+    <section class="mission-section">
       <div class="container">
-        <div class="story-grid">
-          <div class="story-text">
-            <h2>Наша история</h2>
-            <p>
-              Всё началось с простой идеи: свидания не должны быть скучными. 
-              В 2023 году наш основатель создал первый квест-свидание для своей 
-              девушки, и её реакция была настолько восторженной, что стало понятно — 
-              это нужно людям.
+        <div class="mission-content">
+          <div class="mission-text">
+            <h2 class="section-title">Наша миссия</h2>
+            <p class="mission-description">
+              Мы верим, что каждое свидание должно быть особенным и незабываемым. 
+              Quest Dating создан для того, чтобы помочь влюбленным парам создавать 
+              уникальные приключения и укреплять отношения через совместные квесты.
             </p>
-            <p>
-              Сегодня мы помогли более чем 500 парам создать особенные моменты. 
-              От первых свиданий до предложений руки и сердца — мы знаем, как 
-              сделать каждую встречу волшебной.
-            </p>
-            <p>
-              Наша миссия — показать, что любовь — это приключение, которое 
-              стоит переживать с азартом и радостью.
+            <p class="mission-description">
+              Наша платформа объединяет талантливых авторов, которые создают 
+              профессиональные шаблоны квестов, и влюбленных людей, которые хотят 
+              удивить свою вторую половинку незабываемым свиданием.
             </p>
           </div>
-          <div class="story-visual">
-            <div class="visual-card">
-              <div class="visual-icon">💝</div>
-              <h3>500+</h3>
-              <p>Созданных квестов</p>
-            </div>
-            <div class="visual-card">
-              <div class="visual-icon">⭐</div>
-              <h3>4.9/5</h3>
-              <p>Средняя оценка</p>
-            </div>
-            <div class="visual-card">
-              <div class="visual-icon">❤️</div>
-              <h3>15</h3>
-              <p>Предложений</p>
-            </div>
+          <div class="mission-image">
+            <img src="/images/mission-illustration.svg" alt="Our Mission" />
           </div>
         </div>
       </div>
     </section>
 
-    <section class="values">
+    <!-- Values Section -->
+    <section class="values-section">
       <div class="container">
         <h2 class="section-title">Наши ценности</h2>
         <div class="values-grid">
-          <div v-for="(value, index) in values" :key="index" class="value-card">
-            <div class="value-icon">{{ value.icon }}</div>
-            <h3>{{ value.title }}</h3>
-            <p>{{ value.description }}</p>
+          <div class="value-card">
+            <div class="value-icon">❤️</div>
+            <h3 class="value-title">Любовь к деталям</h3>
+            <p class="value-description">
+              Каждый квест тщательно проработан и адаптирован под пожелания клиента
+            </p>
+          </div>
+
+          <div class="value-card">
+            <div class="value-icon">🎨</div>
+            <h3 class="value-title">Творческий подход</h3>
+            <p class="value-description">
+              Мы поддерживаем уникальность и креативность каждого автора
+            </p>
+          </div>
+
+          <div class="value-card">
+            <div class="value-icon">⭐</div>
+            <h3 class="value-title">Качество</h3>
+            <p class="value-description">
+              Строгая модерация и проверка каждого шаблона перед публикацией
+            </p>
+          </div>
+
+          <div class="value-card">
+            <div class="value-icon">🤝</div>
+            <h3 class="value-title">Честность</h3>
+            <p class="value-description">
+              Прозрачное ценообразование и гарантия возврата средств
+            </p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="team">
+    <!-- How It Works Section -->
+    <section class="how-it-works-section">
       <div class="container">
-        <h2 class="section-title">Команда мечтателей</h2>
-        <p class="section-subtitle">
-          Мы верим в силу романтики и креативности
+        <h2 class="section-title">Как мы работаем</h2>
+        <div class="process-timeline">
+          <div class="timeline-item">
+            <div class="timeline-number">1</div>
+            <div class="timeline-content">
+              <h3 class="timeline-title">Выбираете квест</h3>
+              <p class="timeline-description">
+                Просматриваете каталог готовых шаблонов от профессиональных авторов 
+                и выбираете подходящий для вашего свидания
+              </p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-number">2</div>
+            <div class="timeline-content">
+              <h3 class="timeline-title">Оформляете заказ</h3>
+              <p class="timeline-description">
+                Указываете детали: локацию, дату, особые пожелания. 
+                Автор адаптирует квест специально для вас
+              </p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-number">3</div>
+            <div class="timeline-content">
+              <h3 class="timeline-title">Получаете квест</h3>
+              <p class="timeline-description">
+                В течение 24 часов получаете персональный квест со всеми 
+                необходимыми материалами на email
+              </p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-number">4</div>
+            <div class="timeline-content">
+              <h3 class="timeline-title">Наслаждаетесь</h3>
+              <p class="timeline-description">
+                Проводите незабываемое свидание и создаете особенные 
+                воспоминания вместе со своей второй половинкой
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">150+</div>
+            <div class="stat-label">Шаблонов квестов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">50+</div>
+            <div class="stat-label">Профессиональных авторов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">1000+</div>
+            <div class="stat-label">Довольных пар</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">4.9</div>
+            <div class="stat-label">Средний рейтинг</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+      <div class="container">
+        <h2 class="section-title">Наша команда</h2>
+        <p class="section-description">
+          Небольшая, но страстная команда профессионалов
         </p>
         <div class="team-grid">
-          <div v-for="(member, index) in team" :key="index" class="team-member">
-            <div class="member-avatar">{{ member.avatar }}</div>
-            <h3>{{ member.name }}</h3>
-            <p class="member-role">{{ member.role }}</p>
-            <p class="member-bio">{{ member.bio }}</p>
+          <div class="team-member">
+            <div class="member-avatar">
+              <img src="/images/team/member1.jpg" alt="Александр Иванов" />
+            </div>
+            <h3 class="member-name">Александр Иванов</h3>
+            <div class="member-role">CEO & Founder</div>
+            <p class="member-bio">
+              Организатор квестов с 10-летним опытом. Создал Quest Dating, 
+              чтобы сделать романтические свидания доступными для всех.
+            </p>
+          </div>
+
+          <div class="team-member">
+            <div class="member-avatar">
+              <img src="/images/team/member2.jpg" alt="Мария Петрова" />
+            </div>
+            <h3 class="member-name">Мария Петрова</h3>
+            <div class="member-role">Head of Content</div>
+            <p class="member-bio">
+              Отвечает за качество шаблонов и работу с авторами. 
+              Проверяет каждый квест перед публикацией.
+            </p>
+          </div>
+
+          <div class="team-member">
+            <div class="member-avatar">
+              <img src="/images/team/member3.jpg" alt="Дмитрий Сидоров" />
+            </div>
+            <h3 class="member-name">Дмитрий Сидоров</h3>
+            <div class="member-role">Lead Developer</div>
+            <p class="member-bio">
+              Разрабатывает и поддерживает платформу. Делает так, 
+              чтобы всё работало быстро и удобно.
+            </p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="cta-about">
+    <!-- Contact Section -->
+    <section class="contact-section">
       <div class="container">
-        <h2>Готовы начать своё приключение?</h2>
-        <p>Создайте квест-свидание, которое запомнится навсегда</p>
-        <router-link to="/order" class="btn btn-primary-large">
-          Создать квест
+        <h2 class="section-title">Свяжитесь с нами</h2>
+        <div class="contact-content">
+          <div class="contact-info">
+            <div class="contact-item">
+              <div class="contact-icon">📧</div>
+              <div class="contact-details">
+                <div class="contact-label">Email</div>
+                <a href="mailto:hello@questdating.ru" class="contact-value">
+                  hello@questdating.ru
+                </a>
+              </div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">💬</div>
+              <div class="contact-details">
+                <div class="contact-label">Telegram</div>
+                <a href="https://t.me/questdating" target="_blank" class="contact-value">
+                  @questdating
+                </a>
+              </div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">📱</div>
+              <div class="contact-details">
+                <div class="contact-label">Телефон</div>
+                <a href="tel:+79991234567" class="contact-value">
+                  +7 999 123-45-67
+                </a>
+              </div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">📍</div>
+              <div class="contact-details">
+                <div class="contact-label">Адрес</div>
+                <div class="contact-value">
+                  Москва, Россия
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-form">
+            <form @submit.prevent="handleSubmit">
+              <div class="form-group">
+                <input
+                  v-model="formData.name"
+                  type="text"
+                  placeholder="Ваше имя"
+                  class="form-input"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <input
+                  v-model="formData.email"
+                  type="email"
+                  placeholder="Email"
+                  class="form-input"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <textarea
+                  v-model="formData.message"
+                  rows="5"
+                  placeholder="Ваше сообщение"
+                  class="form-textarea"
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" class="btn-submit" :disabled="submitting">
+                {{ submitting ? 'Отправка...' : 'Отправить сообщение' }}
+              </button>
+            </form>
+
+            <div v-if="showSuccess" class="success-message">
+              ✅ Сообщение отправлено! Мы свяжемся с вами в ближайшее время.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="container">
+        <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
+        <p class="cta-description">
+          Выберите один из 150+ готовых шаблонов квестов
+        </p>
+        <router-link to="/templates" class="btn-cta">
+          🎯 Выбрать квест
         </router-link>
       </div>
     </section>
@@ -94,83 +302,47 @@
 </template>
 
 <script setup>
-const values = [
-  {
-    icon: '🎨',
-    title: 'Креативность',
-    description: 'Каждый квест — это уникальная история, созданная специально для вас'
-  },
-  {
-    icon: '💝',
-    title: 'Эмоции',
-    description: 'Мы создаём не просто квесты, а моменты, которые останутся в сердце'
-  },
-  {
-    icon: '🎯',
-    title: 'Внимание к деталям',
-    description: 'Продумываем каждую мелочь, чтобы всё прошло идеально'
-  },
-  {
-    icon: '🤝',
-    title: 'Партнёрство',
-    description: 'Мы работаем с вами вместе, слушаем ваши идеи и воплощаем мечты'
-  }
-]
+import { ref, reactive } from 'vue'
 
-const team = [
-  {
-    name: 'Александр',
-    role: 'Основатель & Главный квестмейкер',
-    avatar: '👨‍💻',
-    bio: 'Создал более 200 квестов. Любит детективы и романтические комедии.'
-  },
-  {
-    name: 'Мария',
-    role: 'Сценарист',
-    avatar: '👩‍🎨',
-    bio: 'Пишет истории, которые заставляют сердце биться быстрее.'
-  },
-  {
-    name: 'Дмитрий',
-    role: 'Разработчик',
-    avatar: '👨‍💼',
-    bio: 'Воплощает идеи в красивые интерактивные веб-квесты.'
-  },
-  {
-    name: 'Анна',
-    role: 'Дизайнер',
-    avatar: '👩‍🎨',
-    bio: 'Создаёт визуальную магию для каждого квеста.'
+const formData = reactive({
+  name: '',
+  email: '',
+  message: ''
+})
+
+const submitting = ref(false)
+const showSuccess = ref(false)
+
+const handleSubmit = async () => {
+  submitting.value = true
+
+  try {
+    // TODO: Отправка на сервер
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    showSuccess.value = true
+    
+    // Сброс формы
+    formData.name = ''
+    formData.email = ''
+    formData.message = ''
+
+    // Скрыть сообщение через 5 секунд
+    setTimeout(() => {
+      showSuccess.value = false
+    }, 5000)
+  } catch (error) {
+    console.error('Error sending message:', error)
+    alert('Произошла ошибка. Попробуйте снова.')
+  } finally {
+    submitting.value = false
   }
-]
+}
 </script>
 
 <style scoped>
 .about-page {
-  padding-top: 80px;
-}
-
-.hero-about {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 100px 0;
-  text-align: center;
-}
-
-.page-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin-bottom: 20px;
-}
-
-.page-subtitle {
-  font-size: 1.5rem;
-  opacity: 0.9;
-}
-
-.story {
-  padding: 100px 0;
-  background: white;
+  min-height: 100vh;
 }
 
 .container {
@@ -179,68 +351,66 @@ const team = [
   padding: 0 20px;
 }
 
-.story-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
-  align-items: center;
-}
-
-.story-text h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 24px;
-  color: #2d3748;
-}
-
-.story-text p {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: #4a5568;
-  margin-bottom: 20px;
-}
-
-.story-visual {
-  display: grid;
-  gap: 20px;
-}
-
-.visual-card {
+/* Hero Section */
+.hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 32px;
-  border-radius: 16px;
+  padding: 100px 0;
   text-align: center;
 }
 
-.visual-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0 0 24px 0;
 }
 
-.visual-card h3 {
+.hero-description {
+  font-size: 1.5rem;
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* Mission Section */
+.mission-section {
+  padding: 100px 0;
+  background: white;
+}
+
+.mission-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.section-title {
   font-size: 2.5rem;
   font-weight: 800;
-  margin-bottom: 8px;
+  color: #2d3748;
+  margin: 0 0 32px 0;
 }
 
-.values {
+.mission-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #4a5568;
+  margin: 0 0 24px 0;
+}
+
+.mission-image img {
+  width: 100%;
+  height: auto;
+}
+
+/* Values Section */
+.values-section {
   padding: 100px 0;
   background: #f7fafc;
 }
 
-.section-title {
+.values-section .section-title {
   text-align: center;
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 60px;
-  color: #2d3748;
-}
-
-.section-subtitle {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #718096;
   margin-bottom: 60px;
 }
 
@@ -255,40 +425,150 @@ const team = [
   padding: 40px 32px;
   border-radius: 16px;
   text-align: center;
-  transition: transform 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
 }
 
 .value-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .value-icon {
-  font-size: 3.5rem;
-  margin-bottom: 20px;
+  font-size: 4rem;
+  margin-bottom: 24px;
 }
 
-.value-card h3 {
-  font-size: 1.5rem;
+.value-title {
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 12px;
   color: #2d3748;
+  margin: 0 0 16px 0;
 }
 
-.value-card p {
+.value-description {
   color: #718096;
   line-height: 1.6;
+  margin: 0;
 }
 
-.team {
+/* How It Works */
+.how-it-works-section {
   padding: 100px 0;
   background: white;
 }
 
+.how-it-works-section .section-title {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.process-timeline {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 60px;
+  width: 2px;
+  height: calc(100% + 20px);
+  background: #e2e8f0;
+}
+
+.timeline-number {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-content {
+  flex: 1;
+  padding-top: 8px;
+}
+
+.timeline-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.timeline-description {
+  color: #718096;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Stats Section */
+.stats-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 48px;
+}
+
+.stat-card {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 4rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.stat-label {
+  font-size: 1.1rem;
+  opacity: 0.95;
+}
+
+/* Team Section */
+.team-section {
+  padding: 100px 0;
+  background: white;
+}
+
+.team-section .section-title {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.section-description {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #718096;
+  margin: 0 0 60px 0;
+}
+
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 48px;
 }
 
 .team-member {
@@ -296,83 +576,237 @@ const team = [
 }
 
 .member-avatar {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 24px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 4rem;
+  overflow: hidden;
+  border: 4px solid #e2e8f0;
 }
 
-.team-member h3 {
-  font-size: 1.5rem;
+.member-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-name {
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 8px;
   color: #2d3748;
+  margin: 0 0 8px 0;
 }
 
 .member-role {
   color: #667eea;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
 }
 
 .member-bio {
   color: #718096;
   line-height: 1.6;
+  margin: 0;
 }
 
-.cta-about {
+/* Contact Section */
+.contact-section {
+  padding: 100px 0;
+  background: #f7fafc;
+}
+
+.contact-section .section-title {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.contact-item {
+  display: flex;
+  gap: 20px;
+}
+
+.contact-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.contact-details {
+  flex: 1;
+}
+
+.contact-label {
+  font-size: 0.85rem;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.contact-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-decoration: none;
+}
+
+.contact-value:hover {
+  color: #667eea;
+}
+
+.contact-form {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-textarea {
+  resize: vertical;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 16px 32px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 100px 0;
-  text-align: center;
-}
-
-.cta-about h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-}
-
-.cta-about p {
-  font-size: 1.2rem;
-  margin-bottom: 32px;
-  opacity: 0.9;
-}
-
-.btn-primary-large {
-  padding: 18px 40px;
-  background: white;
-  color: #667eea;
-  border-radius: 12px;
-  font-size: 1.2rem;
+  border: none;
+  border-radius: 10px;
   font-weight: 700;
-  text-decoration: none;
-  display: inline-block;
+  font-size: 1.1rem;
+  cursor: pointer;
   transition: all 0.3s;
 }
 
-.btn-primary-large:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success-message {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: linear-gradient(to right, #d1fae5 0%, #a7f3d0 100%);
+  border: 2px solid #48bb78;
+  border-radius: 8px;
+  color: #065f46;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* CTA Section */
+.cta-section {
+  padding: 100px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.cta-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin: 0 0 16px 0;
+}
+
+.cta-description {
+  font-size: 1.25rem;
+  margin: 0 0 32px 0;
+  opacity: 0.95;
+}
+
+.btn-cta {
+  display: inline-block;
+  padding: 18px 48px;
+  background: white;
+  color: #667eea;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .mission-content,
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
 }
 
 @media (max-width: 768px) {
-  .page-title {
+  .hero-title {
     font-size: 2.5rem;
   }
 
-  .story-grid {
+  .hero-description {
+    font-size: 1.1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .team-grid {
     grid-template-columns: 1fr;
   }
 
-  .team-grid,
-  .values-grid {
-    grid-template-columns: 1fr;
+  .cta-title {
+    font-size: 2rem;
   }
 }
 </style>
