@@ -68,8 +68,16 @@ DB_USER=quest_user
 DB_PASSWORD=quest_password
 
 # JWT
-JWT_SECRET=04149622e9a516a8c510729075fb4d1c2c14051273dc8b58f1f81f0c4dea7889
+JWT_SECRET=your_random_32_char_secret_here
 JWT_EXPIRES_IN=7d
+
+# Telegram
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+TELEGRAM_CHAT_ID=your_telegram_chat_id_here
+
+# Admin
+ADMIN_USERNAME=your_admin_username
+ADMIN_PASSWORD_HASH=your_bcrypt_hash_here
 
 # Upload
 MAX_FILE_SIZE=5242880
