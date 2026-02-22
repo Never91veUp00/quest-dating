@@ -14,7 +14,7 @@ export const sendOrderConfirmation = async (orderData) => {
     Мы свяжемся с вами в течение 2 часов.
     
     С уважением,
-    Команда Quest Marketplace
+    Влад — Quest Dating
   `
   
   return {

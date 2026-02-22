@@ -126,7 +126,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'update:selectedFeatures'])
+const emit = defineEmits(['update:modelValue', 'update:selectedFeatures', 'update:featuresData'])
 
 const localCustomization = ref({ ...props.modelValue })
 const localFeatures = ref([...props.selectedFeatures])
@@ -189,7 +189,14 @@ const updateCustomization = () => {
 }
 
 const updateFeatures = () => {
+  // Эмитим коды для v-model (внутренняя логика)
   emit('update:selectedFeatures', [...localFeatures.value])
+  
+  // Эмитим полные объекты для отображения и расчёта цены
+  const fullFeatures = localFeatures.value.map(code =>
+    availableFeatures.find(f => f.value === code)
+  ).filter(Boolean)
+  emit('update:featuresData', fullFeatures)
 }
 
 watch(() => props.modelValue, (newValue) => {

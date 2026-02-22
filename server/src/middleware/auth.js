@@ -1,60 +1,39 @@
 import jwt from 'jsonwebtoken'
 
-// Middleware для проверки JWT токена (для будущей авторизации)
-export const authenticate = (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1] // Bearer TOKEN
+export const requireAdmin = (req, res, next) => {
+  const authHeader = req.headers['authorization']
 
-    if (!token) {
-      return res.status(401).json({
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: 'Токен не предоставлен'
+    })
+  }
+
+  const token = authHeader.split(' ')[1]
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({
         success: false,
-        message: 'Требуется авторизация'
+        message: 'Недостаточно прав'
       })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = decoded
+    req.admin = decoded
     next()
   } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Токен истёк'
+      })
+    }
     return res.status(401).json({
       success: false,
-      message: 'Недействительный токен'
+      message: 'Невалидный токен'
     })
-  }
-}
-
-// Middleware для проверки роли автора
-export const authorizeAuthor = (req, res, next) => {
-  if (req.user?.role !== 'author' && req.user?.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Доступ запрещен. Требуются права автора.'
-    })
-  }
-  next()
-}
-
-// Middleware для проверки роли администратора
-export const authorizeAdmin = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Доступ запрещен. Требуются права администратора.'
-    })
-  }
-  next()
-}
-
-// Генерация JWT токена
-export const generateToken = (payload, expiresIn = '7d') => {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn })
-}
-
-// Проверка токена
-export const verifyToken = (token) => {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET)
-  } catch (error) {
-    return null
   }
 }

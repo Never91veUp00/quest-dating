@@ -42,11 +42,11 @@ export const getQuestBySlug = async (req, res, next) => {
       })
     }
 
-    // Увеличить счетчик просмотров
-    await pool.query(
+    // Увеличить счетчик просмотров — не блокируем ответ
+    pool.query(
       'UPDATE created_quests SET views_count = views_count + 1 WHERE id = $1',
       [quest.id]
-    )
+    ).catch(err => console.error('Ошибка обновления views_count:', err))
 
     res.json({
       success: true,
@@ -68,11 +68,11 @@ export const createQuestSession = async (req, res, next) => {
       RETURNING *
     `, [questId])
 
-    // Увеличить счетчик начатых квестов
-    await pool.query(
+    // Увеличить счетчик начатых квестов — не блокируем ответ
+    pool.query(
       'UPDATE created_quests SET started_count = started_count + 1 WHERE id = $1',
       [questId]
-    )
+    ).catch(err => console.error('Ошибка обновления started_count:', err))
 
     res.status(201).json({
       success: true,
@@ -155,11 +155,11 @@ export const completeQuest = async (req, res, next) => {
 
     const session = result.rows[0]
 
-    // Увеличить счетчик завершенных квестов
-    await pool.query(
+    // Увеличить счетчик завершенных квестов — не блокируем ответ
+    pool.query(
       'UPDATE created_quests SET completed_count = completed_count + 1 WHERE id = $1',
       [session.created_quest_id]
-    )
+    ).catch(err => console.error('Ошибка обновления completed_count:', err))
 
     res.json({
       success: true,

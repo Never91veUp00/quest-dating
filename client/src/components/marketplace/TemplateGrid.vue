@@ -36,8 +36,8 @@
 
     <!-- Quick View Modal -->
     <QuickViewModal
-      v-if="showQuickView"
       :template="selectedTemplate"
+      :is-open="showQuickView"
       @close="showQuickView = false"
     />
   </div>

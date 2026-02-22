@@ -5,20 +5,34 @@ import dotenv from 'dotenv'
 import apiRoutes from './routes/api.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { sanitizeQuery } from './middleware/validator.js'
+import { generalLimiter } from './middleware/rateLimiter.js'
 
 dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
 
 // Middleware
 app.use(helmet())
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  origin: (origin, callback) => {
+    // Разрешаем запросы без origin (мобильные приложения, Postman, curl)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    // В dev режиме разрешаем localhost
+    if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+      return callback(null, true)
+    }
+    callback(new Error(`CORS: origin ${origin} not allowed`))
+  },
   credentials: true
 }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Rate limiting
+app.use('/api', generalLimiter)
 
 // Санитизация query параметров
 app.use(sanitizeQuery)
@@ -41,7 +55,7 @@ app.get('/health', (req, res) => {
 // Корневой endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'Quest Marketplace API',
+    message: 'Quest Dating API',
     version: '2.0.0',
     documentation: '/api'
   })

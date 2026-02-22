@@ -15,10 +15,11 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
+    "axios": "^1.6.8",
+    "dompurify": "^3.3.1",
     "pinia": "^2.1.7",
-    "axios": "^1.6.8"
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
@@ -26,8 +27,8 @@
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.23.0",
     "prettier": "^3.2.5",
-    "vite": "^5.2.0",
-    "terser": "^5.29.2"
+    "terser": "^5.29.2",
+    "vite": "^5.2.0"
   },
   "engines": {
     "node": ">=18.0.0",

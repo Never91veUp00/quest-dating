@@ -99,6 +99,7 @@
           :template="template"
           v-model="formData.customization"
           v-model:selected-features="formData.selected_features"
+          @update:featuresData="featuresData = $event; emit('update:featuresData', $event)"
         />
       </div>
 
@@ -186,8 +187,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import CustomizationOptions from './CustomizationOptions.vue'
+import { useToast } from '@/composables/useToast'
 
 const props = defineProps({
   template: {
@@ -196,10 +198,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit', 'update:features', 'update:customization', 'update:featuresData'])
+const toast = useToast()
 
 const currentStep = ref(1)
 const submitting = ref(false)
+const submitted = ref(false)
+const featuresData = ref([])
 
 const steps = ['Контакты', 'Настройка', 'Детали']
 
@@ -217,9 +222,18 @@ const formData = reactive({
   newsletter: false
 })
 
+// Всплываем изменения фич и кастомизации в реальном времени
+watch(() => formData.selected_features, (val) => {
+  emit('update:features', val)
+}, { deep: true })
+
+watch(() => formData.customization, (val) => {
+  emit('update:customization', val)
+}, { deep: true })
+
 const minDate = computed(() => {
   const today = new Date()
-  today.setDate(today.getDate() + 1) // Минимум завтра
+  today.setDate(today.getDate() + 1)
   return today.toISOString().split('T')[0]
 })
 
@@ -237,42 +251,43 @@ const previousStep = () => {
 
 const validateCurrentStep = () => {
   if (currentStep.value === 1) {
-    if (!formData.client_name || !formData.client_email) {
-      alert('Пожалуйста, заполните обязательные поля')
+    if (!formData.client_name.trim()) {
+      toast.error('Пожалуйста, введите ваше имя')
       return false
     }
-    // Проверка email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.client_email)) {
-      alert('Пожалуйста, введите корректный email')
+      toast.error('Пожалуйста, введите корректный email')
       return false
     }
   }
-  
+
   if (currentStep.value === 3) {
     if (formData.description.length < 50) {
-      alert('Описание должно содержать минимум 50 символов')
+      toast.error('Описание должно содержать минимум 50 символов')
       return false
     }
     if (!formData.agree_terms) {
-      alert('Необходимо согласиться с условиями использования')
+      toast.error('Необходимо согласиться с условиями использования')
       return false
     }
   }
-  
+
   return true
 }
 
 const handleSubmit = async () => {
   if (!validateCurrentStep()) return
-  
+  if (submitting.value || submitted.value) return
+
   submitting.value = true
-  
+
   try {
-    emit('submit', formData)
+    await emit('submit', formData)
+    submitted.value = true
   } catch (error) {
     console.error('Error submitting order:', error)
-    alert('Произошла ошибка. Пожалуйста, попробуйте снова.')
+    toast.error(error.message || 'Произошла ошибка. Пожалуйста, попробуйте снова.')
   } finally {
     submitting.value = false
   }
@@ -337,10 +352,12 @@ const handleSubmit = async () => {
   background: #48bb78;
   border-color: #48bb78;
   color: white;
+  font-size: 0;
 }
 
 .progress-step.completed .step-number::after {
   content: '✓';
+  font-size: 1rem;
 }
 
 .step-label {

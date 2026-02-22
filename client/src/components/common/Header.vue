@@ -2,7 +2,7 @@
   <header class="header" :class="{ scrolled: isScrolled }">
     <div class="container">
       <div class="header-content">
-        <!-- Логотип -->
+
         <router-link to="/" class="logo">
           <span class="logo-icon">🎯</span>
           <span class="logo-text">Quest Dating</span>
@@ -11,15 +11,15 @@
         <!-- Навигация Desktop -->
         <nav class="nav-desktop">
           <router-link to="/" class="nav-link">Главная</router-link>
-          <router-link to="/templates" class="nav-link">Шаблоны</router-link>
-          <router-link to="/authors" class="nav-link">Авторы</router-link>
-          <router-link to="/about" class="nav-link">О платформе</router-link>
+          <router-link to="/templates" class="nav-link">Квесты</router-link>
+          <router-link to="/about" class="nav-link">О создателе</router-link>
+          <!-- ❌ Удалено: /authors, /about (О платформе) -->
         </nav>
 
-        <!-- Кнопки действий -->
         <div class="header-actions">
-          <router-link to="/become-author" class="btn-author">
-            Стать автором
+          <!-- ❌ Было: /become-author "Стать автором" -->
+          <router-link to="/templates" class="btn-author">
+            Заказать квест
           </router-link>
           <button @click="toggleMobileMenu" class="btn-mobile-menu">
             <span class="hamburger" :class="{ active: mobileMenuOpen }">
@@ -40,16 +40,15 @@
             Главная
           </router-link>
           <router-link to="/templates" class="mobile-nav-link" @click="closeMobileMenu">
-            Шаблоны
-          </router-link>
-          <router-link to="/authors" class="mobile-nav-link" @click="closeMobileMenu">
-            Авторы
+            Квесты
           </router-link>
           <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">
-            О платформе
+            О создателе
           </router-link>
-          <router-link to="/become-author" class="mobile-nav-link highlighted" @click="closeMobileMenu">
-            Стать автором
+          <!-- ❌ Удалено: /authors -->
+          <!-- ❌ Было: /become-author "Стать автором" -->
+          <router-link to="/templates" class="mobile-nav-link highlighted" @click="closeMobileMenu">
+            Заказать квест
           </router-link>
         </nav>
       </div>

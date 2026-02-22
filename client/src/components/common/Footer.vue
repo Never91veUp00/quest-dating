@@ -25,20 +25,8 @@
           <h4 class="footer-title">Навигация</h4>
           <ul class="footer-links">
             <li><router-link to="/">Главная</router-link></li>
-            <li><router-link to="/templates">Шаблоны</router-link></li>
-            <li><router-link to="/authors">Авторы</router-link></li>
-            <li><router-link to="/about">О платформе</router-link></li>
-          </ul>
-        </div>
-
-        <!-- Для авторов -->
-        <div class="footer-column">
-          <h4 class="footer-title">Для авторов</h4>
-          <ul class="footer-links">
-            <li><router-link to="/become-author">Стать автором</router-link></li>
-            <li><a href="#">Условия размещения</a></li>
-            <li><a href="#">Гайд по созданию</a></li>
-            <li><a href="#">FAQ</a></li>
+            <li><router-link to="/templates">Квесты</router-link></li>
+            <li><router-link to="/about">О создателе</router-link></li>
           </ul>
         </div>
 
@@ -48,11 +36,11 @@
           <ul class="footer-contacts">
             <li>
               <span class="contact-icon">📧</span>
-              <a href="mailto:info@questdating.com">info@questdating.com</a>
+              <a href="mailto:vp.vlad00@mail.ru">vp.vlad00@mail.ru</a>
             </li>
             <li>
               <span class="contact-icon">💬</span>
-              <a href="#">Поддержка в Telegram</a>
+              <a href="https://t.me/vinatian00">@vinatian00</a>
             </li>
             <li>
               <span class="contact-icon">📍</span>
@@ -66,7 +54,7 @@
       <div class="footer-newsletter">
         <div class="newsletter-content">
           <h4 class="newsletter-title">Подпишитесь на новости</h4>
-          <p class="newsletter-text">Получайте новые шаблоны и специальные предложения</p>
+          <p class="newsletter-text">Новые квесты и идеи для романтических свиданий</p>
         </div>
         <form @submit.prevent="handleSubscribe" class="newsletter-form">
           <input 
@@ -76,8 +64,8 @@
             class="newsletter-input"
             required
           />
-          <button type="submit" class="newsletter-button">
-            Подписаться
+          <button type="submit" class="newsletter-button" :disabled="subscribing">
+            {{ subscribing ? 'Подписываем...' : 'Подписаться' }}
           </button>
         </form>
       </div>
@@ -101,15 +89,26 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useToast } from '@/composables/useToast'
 
 const email = ref('')
+const subscribing = ref(false)
 const currentYear = computed(() => new Date().getFullYear())
+const toast = useToast()
 
-const handleSubscribe = () => {
-  if (email.value) {
-    // TODO: Отправка email на сервер
-    alert('Спасибо за подписку!')
+const handleSubscribe = async () => {
+  if (!email.value) return
+
+  subscribing.value = true
+  try {
+    // TODO: подключить реальный API подписки
+    await new Promise(resolve => setTimeout(resolve, 500)) // имитация запроса
+    toast.success('Спасибо! Будем присылать только самое интересное 💌')
     email.value = ''
+  } catch {
+    toast.error('Не удалось подписаться. Попробуйте позже.')
+  } finally {
+    subscribing.value = false
   }
 }
 </script>
@@ -130,7 +129,7 @@ const handleSubscribe = () => {
 
 .footer-content {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  grid-template-columns: 2fr 1fr 1.5fr;
   gap: 40px;
   padding-bottom: 48px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

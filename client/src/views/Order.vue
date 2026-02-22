@@ -43,6 +43,9 @@
               <OrderForm
                 :template="template"
                 @submit="handleOrderSubmit"
+                @update:features="selectedFeatures = $event"
+                @update:customization="customization = $event"
+                @update:featuresData="featuresData = $event"
               />
             </div>
 
@@ -51,6 +54,7 @@
               <OrderSummary
                 :template="template"
                 :selected-features="selectedFeatures"
+                :features-data="featuresData"
                 :customization="customization"
               />
             </aside>
@@ -65,21 +69,32 @@
           <h2 class="success-title">Заказ успешно оформлен!</h2>
           <p class="success-message">
             Мы получили ваш заказ и уже начали работу над квестом. 
-            В течение 24 часов вы получите на email {{ orderEmail }} готовый квест 
+            В течение нескольких дней вы получите на email {{ orderEmail }} готовый квест 
             со всеми необходимыми материалами.
           </p>
           <div class="success-details">
             <div class="detail-item">
               <span class="detail-label">Номер заказа:</span>
-              <span class="detail-value">{{ orderId }}</span>
+              <span class="detail-value">#{{ orderId }}</span>
             </div>
             <div class="detail-item">
-              <span class="detail-label">Шаблон:</span>
+              <span class="detail-label">Квест:</span>
               <span class="detail-value">{{ template.title }}</span>
             </div>
-            <div class="detail-item">
-              <span class="detail-label">Стоимость:</span>
-              <span class="detail-value">{{ formatPrice(template.base_price) }}</span>
+
+            <!-- Выбранные фичи -->
+            <div v-if="orderFeatures.length > 0" class="detail-item detail-features">
+              <span class="detail-label">Дополнительно:</span>
+              <span class="detail-value features-list">
+                <span v-for="f in orderFeatures" :key="f.value" class="feature-chip">
+                  {{ f.icon }} {{ f.name }} +{{ f.price }} ₽
+                </span>
+              </span>
+            </div>
+
+            <div class="detail-item detail-total">
+              <span class="detail-label">Итого:</span>
+              <span class="detail-value total-highlight">{{ formatPrice(orderTotal || template.base_price) }}</span>
             </div>
           </div>
           <div class="success-actions">
@@ -101,6 +116,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuestStore } from '@/store'
 import { formatPrice } from '@/utils/formatters'
+import { useToast } from '@/composables/useToast'
 import Breadcrumbs from '@/components/common/Breadcrumbs.vue'
 import Loader from '@/components/common/Loader.vue'
 import Modal from '@/components/common/Modal.vue'
@@ -109,15 +125,19 @@ import OrderSummary from '@/components/order/OrderSummary.vue'
 
 const route = useRoute()
 const questStore = useQuestStore()
+const toast = useToast()
 
 const template = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const selectedFeatures = ref([])
+const featuresData = ref([])  // полные объекты с name и price
 const customization = ref({})
 const showSuccessModal = ref(false)
 const orderId = ref(null)
 const orderEmail = ref('')
+const orderTotal = ref(0)
+const orderFeatures = ref([])
 
 const breadcrumbs = computed(() => [
   { label: 'Главная', to: '/' },
@@ -148,24 +168,22 @@ const loadTemplate = async () => {
 
 const handleOrderSubmit = async (orderData) => {
   try {
-    // Добавляем ID шаблона
     const completeOrderData = {
       ...orderData,
       template_id: template.value.id
     }
 
-    // Создаем заказ
     const response = await questStore.createOrder(completeOrderData)
 
-    // Сохраняем данные для модального окна
     orderId.value = response.id
     orderEmail.value = orderData.client_email
+    orderTotal.value = parseFloat(response.total_price)
+    orderFeatures.value = featuresData.value
 
-    // Показываем модальное окно успеха
     showSuccessModal.value = true
   } catch (err) {
     console.error('Error creating order:', err)
-    alert('Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте снова.')
+    toast.error(err.message || 'Произошла ошибка при оформлении заказа. Попробуйте снова.')
   }
 }
 
@@ -338,6 +356,38 @@ onMounted(() => {
 .detail-value {
   color: #2d3748;
   font-weight: 700;
+}
+
+.detail-features {
+  align-items: flex-start;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.feature-chip {
+  font-size: 0.85rem;
+  color: #48bb78;
+  font-weight: 600;
+}
+
+.detail-total {
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.total-highlight {
+  font-size: 1.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .success-actions {

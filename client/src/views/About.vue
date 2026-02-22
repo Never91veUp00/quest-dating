@@ -3,9 +3,9 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
-        <h1 class="hero-title">О платформе Quest Dating</h1>
+        <h1 class="hero-title">О создателе</h1>
         <p class="hero-description">
-          Маркетплейс готовых шаблонов квестов для романтических свиданий
+          Влад — создаю персональные квесты для романтических свиданий
         </p>
       </div>
     </section>
@@ -15,16 +15,16 @@
       <div class="container">
         <div class="mission-content">
           <div class="mission-text">
-            <h2 class="section-title">Наша миссия</h2>
+            <h2 class="section-title">Моя история</h2>
             <p class="mission-description">
-              Мы верим, что каждое свидание должно быть особенным и незабываемым. 
-              Quest Dating создан для того, чтобы помочь влюбленным парам создавать 
-              уникальные приключения и укреплять отношения через совместные квесты.
+              Я верю, что каждое свидание может стать настоящим приключением. 
+              Quest Dating я создал потому, что сам однажды хотел удивить свою жену — 
+              и понял, что ничего подходящего просто не существует.
             </p>
             <p class="mission-description">
-              Наша платформа объединяет талантливых авторов, которые создают 
-              профессиональные шаблоны квестов, и влюбленных людей, которые хотят 
-              удивить свою вторую половинку незабываемым свиданием.
+              С тех пор я создаю персональные квесты для пар. Каждый сценарий 
+              пишу с нуля под конкретных людей — с учётом вашего города, 
+              ваших интересов и вашей истории.
             </p>
           </div>
           <div class="mission-image">
@@ -37,21 +37,13 @@
     <!-- Values Section -->
     <section class="values-section">
       <div class="container">
-        <h2 class="section-title">Наши ценности</h2>
+        <h2 class="section-title">Мои принципы</h2>
         <div class="values-grid">
-          <div class="value-card">
-            <div class="value-icon">❤️</div>
-            <h3 class="value-title">Любовь к деталям</h3>
-            <p class="value-description">
-              Каждый квест тщательно проработан и адаптирован под пожелания клиента
-            </p>
-          </div>
-
           <div class="value-card">
             <div class="value-icon">🎨</div>
             <h3 class="value-title">Творческий подход</h3>
             <p class="value-description">
-              Мы поддерживаем уникальность и креативность каждого автора
+              Каждый квест — уникальный сценарий, написанный специально для вас, а не шаблон из каталога
             </p>
           </div>
 
@@ -59,7 +51,15 @@
             <div class="value-icon">⭐</div>
             <h3 class="value-title">Качество</h3>
             <p class="value-description">
-              Строгая модерация и проверка каждого шаблона перед публикацией
+              Я лично прорабатываю каждую деталь — локации, задания, финальный сюрприз
+            </p>
+          </div>
+
+          <div class="value-card">
+            <div class="value-icon">⏱️</div>
+            <h3 class="value-title">Быстро и чётко</h3>
+            <p class="value-description">
+              Готовый квест за 24–48 часов. Всегда на связи и отвечаю на вопросы
             </p>
           </div>
 
@@ -84,8 +84,8 @@
             <div class="timeline-content">
               <h3 class="timeline-title">Выбираете квест</h3>
               <p class="timeline-description">
-                Просматриваете каталог готовых шаблонов от профессиональных авторов 
-                и выбираете подходящий для вашего свидания
+                Просматриваете каталог готовых шаблонов и выбираете 
+                подходящий стиль для вашего свидания
               </p>
             </div>
           </div>
@@ -96,7 +96,7 @@
               <h3 class="timeline-title">Оформляете заказ</h3>
               <p class="timeline-description">
                 Указываете детали: локацию, дату, особые пожелания. 
-                Автор адаптирует квест специально для вас
+                Я адаптирую квест специально под вас двоих
               </p>
             </div>
           </div>
@@ -106,7 +106,7 @@
             <div class="timeline-content">
               <h3 class="timeline-title">Получаете квест</h3>
               <p class="timeline-description">
-                В течение 24 часов получаете персональный квест со всеми 
+                Получаете персональный квест со всеми 
                 необходимыми материалами на email
               </p>
             </div>
@@ -131,16 +131,16 @@
       <div class="container">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-number">150+</div>
-            <div class="stat-label">Шаблонов квестов</div>
+            <div class="stat-number">10+</div>
+            <div class="stat-label">Готовых шаблонов</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">50+</div>
-            <div class="stat-label">Профессиональных авторов</div>
+            <div class="stat-number">от 24ч</div>
+            <div class="stat-label">Срок выполнения</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">1000+</div>
-            <div class="stat-label">Довольных пар</div>
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Персональных квестов</div>
           </div>
           <div class="stat-card">
             <div class="stat-number">4.9</div>
@@ -153,44 +153,20 @@
     <!-- Team Section -->
     <section class="team-section">
       <div class="container">
-        <h2 class="section-title">Наша команда</h2>
+        <h2 class="section-title">Создатель</h2>
         <p class="section-description">
-          Небольшая, но страстная команда профессионалов
+          Один человек — полная ответственность за каждый квест
         </p>
-        <div class="team-grid">
+        <div class="team-grid" style="max-width: 400px; margin: 0 auto;">
           <div class="team-member">
             <div class="member-avatar">
-              <img src="/images/team/member1.jpg" alt="Александр Иванов" />
+              <img src="/images/avatars/author1.jpg" alt="Влад" />
             </div>
-            <h3 class="member-name">Александр Иванов</h3>
-            <div class="member-role">CEO & Founder</div>
+            <h3 class="member-name">Влад</h3>
+            <div class="member-role">Создатель квестов</div>
             <p class="member-bio">
-              Организатор квестов с 10-летним опытом. Создал Quest Dating, 
-              чтобы сделать романтические свидания доступными для всех.
-            </p>
-          </div>
-
-          <div class="team-member">
-            <div class="member-avatar">
-              <img src="/images/team/member2.jpg" alt="Мария Петрова" />
-            </div>
-            <h3 class="member-name">Мария Петрова</h3>
-            <div class="member-role">Head of Content</div>
-            <p class="member-bio">
-              Отвечает за качество шаблонов и работу с авторами. 
-              Проверяет каждый квест перед публикацией.
-            </p>
-          </div>
-
-          <div class="team-member">
-            <div class="member-avatar">
-              <img src="/images/team/member3.jpg" alt="Дмитрий Сидоров" />
-            </div>
-            <h3 class="member-name">Дмитрий Сидоров</h3>
-            <div class="member-role">Lead Developer</div>
-            <p class="member-bio">
-              Разрабатывает и поддерживает платформу. Делает так, 
-              чтобы всё работало быстро и удобно.
+              Создаю персональные романтические квесты с 2024 года. 
+              Каждый сценарий пишу сам — от первой подсказки до финального сюрприза.
             </p>
           </div>
         </div>
@@ -207,8 +183,8 @@
               <div class="contact-icon">📧</div>
               <div class="contact-details">
                 <div class="contact-label">Email</div>
-                <a href="mailto:hello@questdating.ru" class="contact-value">
-                  hello@questdating.ru
+                <a href="mailto:vp.vlad00@mail.ru" class="contact-value">
+                  vp.vlad00@mail.ru
                 </a>
               </div>
             </div>
@@ -217,8 +193,8 @@
               <div class="contact-icon">💬</div>
               <div class="contact-details">
                 <div class="contact-label">Telegram</div>
-                <a href="https://t.me/questdating" target="_blank" class="contact-value">
-                  @questdating
+                <a href="https://t.me/vinatian00" target="_blank" class="contact-value">
+                  @vinatian00
                 </a>
               </div>
             </div>
@@ -227,8 +203,8 @@
               <div class="contact-icon">📱</div>
               <div class="contact-details">
                 <div class="contact-label">Телефон</div>
-                <a href="tel:+79991234567" class="contact-value">
-                  +7 999 123-45-67
+                <a href="tel:+79035101495" class="contact-value">
+                  +7 903 510-14-95
                 </a>
               </div>
             </div>
@@ -291,7 +267,7 @@
       <div class="container">
         <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
         <p class="cta-description">
-          Выберите один из 150+ готовых шаблонов квестов
+          Выберите шаблон — и я создам квест специально для вас
         </p>
         <router-link to="/templates" class="btn-cta">
           🎯 Выбрать квест
@@ -777,6 +753,28 @@ const handleSubmit = async () => {
 .btn-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Focus styles — единообразно с Header.vue */
+.contact-value:focus {
+  outline: none;
+}
+
+.btn-submit:focus {
+  outline: none;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-cta:focus {
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea; /* уже есть, просто убеждаемся */
 }
 
 /* Responsive */

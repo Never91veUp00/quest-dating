@@ -16,17 +16,6 @@ export const useQuestStore = defineStore('quest', {
       pages: 0
     },
 
-    // Authors
-    authors: [],
-    topAuthors: [],
-    currentAuthor: null,
-    authorsPagination: {
-      page: 1,
-      limit: 12,
-      total: 0,
-      pages: 0
-    },
-
     // Categories
     categories: [],
     currentCategory: null,
@@ -46,12 +35,15 @@ export const useQuestStore = defineStore('quest', {
       duration: null,
       locationType: null,
       search: '',
-      sortBy: 'newest',
+      sort_by: 'newest',
       order: 'desc'
     },
 
-    // UI State
-    loading: false,
+    // UI State — раздельные загрузки чтобы не перетирать друг друга
+    loadingTemplates: false,
+    loadingCategories: false,
+    loadingTags: false,
+    loadingOrder: false,
     error: null
   }),
 
@@ -128,7 +120,7 @@ export const useQuestStore = defineStore('quest', {
       filtered.sort((a, b) => {
         let aValue, bValue
 
-        switch (state.filters.sortBy) {
+        switch (state.filters.sort_by) {
           case 'rating':
             aValue = parseFloat(a.rating) || 0
             bValue = parseFloat(b.rating) || 0
@@ -179,11 +171,6 @@ export const useQuestStore = defineStore('quest', {
         state.filters.search !== ''
     },
 
-    // Authors
-    authorByUsername: (state) => (username) => {
-      return state.authors.find(a => a.username === username)
-    },
-
     // Categories
     categoryBySlug: (state) => (slug) => {
       return state.categories.find(c => c.slug === slug)
@@ -194,7 +181,7 @@ export const useQuestStore = defineStore('quest', {
     // ========== TEMPLATES ACTIONS ==========
     
     async fetchTemplates(params = {}) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
@@ -215,12 +202,12 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching templates:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     async fetchPopularTemplates(limit = 6) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
@@ -235,12 +222,12 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching popular templates:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     async fetchFeaturedTemplates(limit = 6) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
@@ -255,18 +242,18 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching featured templates:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     async fetchNewestTemplates(limit = 6) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
         const response = await api.getTemplates({ 
           limit, 
-          sortBy: 'published_at',
+          sort_by: 'newest',
           order: 'desc'
         })
         
@@ -279,12 +266,12 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching newest templates:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     async fetchTemplate(slug) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
@@ -301,12 +288,12 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching template:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     async fetchSimilarTemplates(slug, limit = 4) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
@@ -321,88 +308,14 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching similar templates:', error)
         return []
       } finally {
-        this.loading = false
-      }
-    },
-
-    // ========== AUTHORS ACTIONS ==========
-    
-    async fetchAuthors(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await api.getAuthors({
-          page: this.authorsPagination.page,
-          limit: this.authorsPagination.limit,
-          ...params
-        })
-
-        if (response.success) {
-          this.authors = response.data || []
-          this.authorsPagination = response.pagination || this.authorsPagination
-        }
-
-        return response
-      } catch (error) {
-        this.error = error.message || 'Ошибка загрузки авторов'
-        console.error('Error fetching authors:', error)
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async fetchTopAuthors(limit = 10) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await api.getAuthors({ 
-          limit, 
-          sortBy: 'rating',
-          order: 'desc'
-        })
-        
-        if (response.success) {
-          this.topAuthors = response.data || []
-          return response.data
-        }
-      } catch (error) {
-        this.error = error.message || 'Ошибка загрузки топ авторов'
-        console.error('Error fetching top authors:', error)
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async fetchAuthor(username) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await api.getAuthor(username)
-        
-        if (response.success) {
-          this.currentAuthor = response.data
-          return response.data
-        } else {
-          throw new Error(response.message || 'Автор не найден')
-        }
-      } catch (error) {
-        this.error = error.message || 'Автор не найден'
-        console.error('Error fetching author:', error)
-        throw error
-      } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     // ========== CATEGORIES ACTIONS ==========
     
     async fetchCategories() {
-      this.loading = true
+      this.loadingCategories = true
       this.error = null
 
       try {
@@ -417,12 +330,12 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching categories:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingCategories = false
       }
     },
 
     async fetchCategory(slug) {
-      this.loading = true
+      this.loadingCategories = true
       this.error = null
 
       try {
@@ -439,14 +352,14 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching category:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingCategories = false
       }
     },
 
     // ========== TAGS ACTIONS ==========
     
     async fetchTags() {
-      this.loading = true
+      this.loadingTags = true
       this.error = null
 
       try {
@@ -461,12 +374,12 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching tags:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTags = false
       }
     },
 
     async fetchPopularTags(limit = 20) {
-      this.loading = true
+      this.loadingTags = true
       this.error = null
 
       try {
@@ -481,14 +394,14 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error fetching popular tags:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTags = false
       }
     },
 
     // ========== REVIEWS ACTIONS ==========
     
     async addReview(reviewData) {
-      this.loading = true
+      this.loadingTemplates = true
       this.error = null
 
       try {
@@ -504,14 +417,14 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error adding review:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingTemplates = false
       }
     },
 
     // ========== ORDERS ACTIONS ==========
     
     async createOrder(orderData) {
-      this.loading = true
+      this.loadingOrder = true
       this.error = null
 
       try {
@@ -527,7 +440,7 @@ export const useQuestStore = defineStore('quest', {
         console.error('Error creating order:', error)
         throw error
       } finally {
-        this.loading = false
+        this.loadingOrder = false
       }
     },
 
@@ -548,7 +461,7 @@ export const useQuestStore = defineStore('quest', {
         duration: null,
         locationType: null,
         search: '',
-        sortBy: 'newest',
+        sort_by: 'newest',
         order: 'desc'
       }
     },
@@ -559,18 +472,10 @@ export const useQuestStore = defineStore('quest', {
       this.templatesPagination.page = page
     },
 
-    setAuthorsPage(page) {
-      this.authorsPagination.page = page
-    },
-
     // ========== CLEAR ACTIONS ==========
     
     clearCurrentTemplate() {
       this.currentTemplate = null
-    },
-
-    clearCurrentAuthor() {
-      this.currentAuthor = null
     },
 
     clearCurrentCategory() {

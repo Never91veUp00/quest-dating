@@ -45,12 +45,12 @@
       <h4 class="section-title">Дополнительно</h4>
       <ul class="summary-list">
         <li 
-          v-for="(feature, index) in selectedFeatures"
-          :key="index"
+          v-for="feature in featuresData"
+          :key="feature.value"
           class="summary-item"
         >
-          <span class="item-icon">✓</span>
-          <span class="item-value">{{ feature }}</span>
+          <span class="item-label">{{ feature.icon }} {{ feature.name }}</span>
+          <span class="item-value">+{{ feature.price }} ₽</span>
         </li>
       </ul>
     </div>
@@ -113,6 +113,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  featuresData: {
+    type: Array,
+    default: () => []
+  },
   customization: {
     type: Object,
     default: () => ({})
@@ -127,7 +131,7 @@ const basePrice = computed(() => {
 
 const additionalCosts = computed(() => {
   // TODO: Рассчитать дополнительные расходы на основе выбранных опций
-  return props.selectedFeatures.length * 50000 // 500 руб за опцию (в копейках)
+  return props.featuresData.reduce((sum, f) => sum + (f.price * 100), 0) // цены в копейках
 })
 
 const totalPrice = computed(() => {

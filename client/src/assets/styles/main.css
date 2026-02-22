@@ -87,9 +87,16 @@ a:hover {
   color: var(--color-primary-dark);
 }
 
-a:focus {
+/* Глобальные focus стили — убираем системный outline везде,
+   заменяем на красивый только при навигации с клавиатуры */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Lists */

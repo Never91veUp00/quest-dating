@@ -8,38 +8,37 @@
             Превратите свидание в <span class="gradient-text">незабываемое приключение</span>
           </h1>
           <p class="hero-description">
-            Готовые шаблоны квестов от профессиональных авторов. 
-            Выберите, настройте под себя и удивите свою вторую половинку!
+            Создам персональный квест специально для вас и вашей второй половинки — 
+            уникальный сценарий, живые эмоции, готовится от 24 часов.
           </p>
           <div class="hero-actions">
             <router-link to="/templates" class="btn-primary">
               🎯 Выбрать квест
             </router-link>
             <router-link to="/about" class="btn-secondary">
-              Узнать больше
+              О создателе
             </router-link>
           </div>
 
           <!-- Быстрая статистика -->
           <div class="hero-stats">
             <div class="stat">
-              <div class="stat-number">150+</div>
+              <div class="stat-number">10+</div>
               <div class="stat-label">Шаблонов квестов</div>
             </div>
             <div class="stat">
-              <div class="stat-number">50+</div>
-              <div class="stat-label">Авторов</div>
+              <div class="stat-number">от 24ч</div>
+              <div class="stat-label">Срок выполнения</div>
             </div>
             <div class="stat">
-              <div class="stat-number">1000+</div>
-              <div class="stat-label">Довольных пар</div>
+              <div class="stat-number">100%</div>
+              <div class="stat-label">Персональный подход</div>
             </div>
           </div>
         </div>
 
         <div class="hero-image">
-          <!-- <img src="/images/hero-illustration.svg" alt="Quest Dating" /> -->
-          <img src="/images/placeholder.svg" alt="Hero">
+          <img src="/images/Love is in the air-bro.svg" alt="Quest Dating — романтический квест" />
         </div>
       </div>
     </section>
@@ -70,24 +69,14 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">✨ Избранные квесты</h2>
-            <p class="section-description">Лучшие шаблоны от наших авторов</p>
+            <p class="section-description">Мои лучшие сценарии — каждый можно персонализировать</p>
           </div>
           <router-link to="/templates?featured=true" class="link-more">
             Смотреть все →
           </router-link>
         </div>
 
-        <div v-if="featuredLoading" class="loading-state">
-          <Loader text="Загружаем квесты..." />
-        </div>
-
-        <div v-else class="templates-grid">
-          <TemplateCard
-            v-for="template in featuredTemplates"
-            :key="template.id"
-            :template="template"
-          />
-        </div>
+        <TemplateGrid :templates="featuredTemplates" :loading="featuredLoading" />
       </div>
     </section>
 
@@ -97,24 +86,14 @@
         <div class="section-header">
           <div>
             <h2 class="section-title">🔥 Популярные квесты</h2>
-            <p class="section-description">Что заказывают чаще всего</p>
+            <p class="section-description">Квесты, которые чаще всего выбирают пары</p>
           </div>
           <router-link to="/templates?sort_by=orders" class="link-more">
             Смотреть все →
           </router-link>
         </div>
 
-        <div v-if="popularLoading" class="loading-state">
-          <Loader text="Загружаем квесты..." />
-        </div>
-
-        <div v-else class="templates-grid">
-          <TemplateCard
-            v-for="template in popularTemplates"
-            :key="template.id"
-            :template="template"
-          />
-        </div>
+        <TemplateGrid :templates="popularTemplates" :loading="popularLoading" />
       </div>
     </section>
 
@@ -148,7 +127,7 @@
             <div class="step-icon">⏱️</div>
             <h3 class="step-title">Получите за 24 часа</h3>
             <p class="step-description">
-              Мы подготовим персональный квест и отправим вам все необходимые материалы
+              Я подготовлю персональный квест и отправлю вам все необходимые материалы на email
             </p>
           </div>
 
@@ -168,7 +147,7 @@
     <section class="testimonials-section">
       <div class="container">
         <h2 class="section-title">💬 Что говорят наши клиенты</h2>
-        <p class="section-description">Реальные отзывы от довольных пар</p>
+        <p class="section-description">Реальные отзывы от пар, которые уже прошли квест</p>
 
         <div class="testimonials-grid">
           <TestimonialCard
@@ -186,7 +165,7 @@
         <div class="cta-content">
           <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
           <p class="cta-description">
-            Более 150 готовых шаблонов квестов ждут вас
+            Выберите шаблон — и я адаптирую его специально под вас
           </p>
           <router-link to="/templates" class="btn-cta">
             🎯 Выбрать квест сейчас
@@ -200,12 +179,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useQuestStore } from '@/store'
-import TemplateCard from '@/components/marketplace/TemplateCard.vue'
+import TemplateGrid from '@/components/marketplace/TemplateGrid.vue'
 import CategoryCard from '@/components/marketplace/CategoryCard.vue'
 import TestimonialCard from '@/components/marketplace/TestimonialCard.vue'
 import Loader from '@/components/common/Loader.vue'
+import { useToast } from '@/composables/useToast'
 
 const questStore = useQuestStore()
+const toast = useToast()
 
 const categories = ref([])
 const featuredTemplates = ref([])
@@ -220,45 +201,53 @@ const testimonials = ref([
   {
     id: 1,
     rating: 5,
-    text: 'Это было лучшее свидание в моей жизни! Квест был идеально продуман, каждая локация - сюрприз. Моя девушка была в восторге!',
+    text: 'Это было лучшее свидание в моей жизни! Квест был идеально продуман, каждая локация — сюрприз. Моя девушка была в восторге!',
     author: 'Алексей',
     template: 'Романтический детектив'
   },
   {
     id: 2,
     rating: 5,
-    text: 'Заказали квест на годовщину отношений. Организация на высшем уровне, все прошло гладко. Очень рекомендую!',
+    text: 'Заказали квест на годовщину отношений. Влад учёл все детали, которые мы указали в форме. Всё прошло идеально!',
     author: 'Мария',
     template: 'Тайна старого города'
   },
   {
     id: 3,
     rating: 5,
-    text: 'Впервые пробовали такой формат свидания. Получили море эмоций и впечатлений! Уже планируем следующий квест.',
+    text: 'Впервые пробовали такой формат свидания. Получили море эмоций! Уже планируем следующий квест.',
     author: 'Дмитрий',
     template: 'Приключение в парке'
   }
 ])
 
 const loadData = async () => {
-  try {
-    // Загружаем категории
-    categoriesLoading.value = true
-    categories.value = await questStore.fetchCategories()
-    categoriesLoading.value = false
+  categoriesLoading.value = true
+  featuredLoading.value = true
+  popularLoading.value = true
 
-    // Загружаем избранные шаблоны
-    featuredLoading.value = true
-    featuredTemplates.value = await questStore.fetchFeaturedTemplates(6)
-    featuredLoading.value = false
+  const [cats, featured, popular] = await Promise.allSettled([
+    questStore.fetchCategories(),
+    questStore.fetchFeaturedTemplates(6),
+    questStore.fetchPopularTemplates(6)
+  ])
 
-    // Загружаем популярные шаблоны
-    popularLoading.value = true
-    popularTemplates.value = await questStore.fetchPopularTemplates(6)
-    popularLoading.value = false
-  } catch (error) {
-    console.error('Error loading home page data:', error)
+  if (cats.status === 'fulfilled') {
+    categories.value = cats.value || []
+  } else {
+    toast.error('Не удалось загрузить категории')
   }
+  categoriesLoading.value = false
+
+  if (featured.status === 'fulfilled') {
+    featuredTemplates.value = featured.value || []
+  }
+  featuredLoading.value = false
+
+  if (popular.status === 'fulfilled') {
+    popularTemplates.value = popular.value || []
+  }
+  popularLoading.value = false
 }
 
 onMounted(() => {

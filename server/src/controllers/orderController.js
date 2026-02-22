@@ -1,6 +1,7 @@
 import pool from '../config/database.js'
 import { validationResult } from 'express-validator'
-import { ORDER_STATUS } from '../config/constants.js'
+import { ORDER_STATUS, FEATURE_PRICES } from '../config/constants.js'
+import { notifyNewOrder, notifyOrderStatusChange } from '../services/notificationService.js'
 
 // Получить все заказы (для админки в будущем)
 export const getAllOrders = async (req, res, next) => {
@@ -46,13 +47,19 @@ export const getAllOrders = async (req, res, next) => {
     const result = await pool.query(query, params)
 
     // Подсчет общего количества
-    const countQuery = `
-      SELECT COUNT(*) as total FROM orders
-      WHERE 1=1
-      ${status ? `AND status = '${status}'` : ''}
-      ${template_id ? `AND template_id = ${template_id}` : ''}
-    `
-    const countResult = await pool.query(countQuery)
+    const countParams = []
+    let countQuery = 'SELECT COUNT(*) as total FROM orders WHERE 1=1'
+
+    if (status) {
+      countParams.push(status)
+      countQuery += ` AND status = $${countParams.length}`
+    }
+    if (template_id) {
+      countParams.push(template_id)
+      countQuery += ` AND template_id = $${countParams.length}`
+    }
+
+    const countResult = await pool.query(countQuery, countParams)
     const total = parseInt(countResult.rows[0].total)
 
     res.json({
@@ -108,8 +115,13 @@ export const createOrder = async (req, res, next) => {
 
     const base_price = templateResult.rows[0].base_price
 
-    // TODO: Расчет дополнительных расходов на основе customization
-    const additional_costs = 0
+    // Считаем стоимость выбранных фич
+    const features = Array.isArray(selected_features) ? selected_features : []
+    const additional_costs = features.reduce((sum, featureCode) => {
+      const priceInRubles = FEATURE_PRICES[featureCode] || 0
+      return sum + (priceInRubles * 100) // храним в копейках как base_price
+    }, 0)
+
     const total_price = base_price + additional_costs
 
     const result = await pool.query(`
@@ -151,12 +163,22 @@ export const createOrder = async (req, res, next) => {
       [template_id]
     )
 
-    // TODO: Отправить email-уведомление клиенту и администратору
+    const order = result.rows[0]
 
+    // Уведомление в Telegram — не блокируем ответ клиенту
+    notifyNewOrder(order, templateResult.rows[0].title).catch(
+      err => console.error('Ошибка уведомления о заказе:', err)
+    )
+    
     res.status(201).json({
       success: true,
       message: 'Заказ успешно создан',
-      data: result.rows[0]
+      data: {
+        ...order,
+        base_price: parseFloat(order.base_price),
+        additional_costs: parseFloat(order.additional_costs),
+        total_price: parseFloat(order.total_price)
+      }
     })
   } catch (error) {
     next(error)
@@ -189,9 +211,15 @@ export const getOrderById = async (req, res, next) => {
       })
     }
 
+    const order = result.rows[0]
     res.json({
       success: true,
-      data: result.rows[0]
+      data: {
+        ...order,
+        base_price: parseFloat(order.base_price),
+        additional_costs: parseFloat(order.additional_costs),
+        total_price: parseFloat(order.total_price)
+      }
     })
   } catch (error) {
     next(error)
@@ -226,7 +254,10 @@ export const updateOrderStatus = async (req, res, next) => {
       })
     }
 
-    // TODO: Отправить email-уведомление об изменении статуса
+    // Уведомление в Telegram
+    notifyOrderStatusChange(result.rows[0], status).catch(
+      err => console.error('Ошибка уведомления о статусе:', err)
+    )
 
     res.json({
       success: true,

@@ -64,7 +64,7 @@
                 </div>
                 <div class="stat-separator">•</div>
                 <div class="stat-item">
-                  <span class="stat-icon">🛒</span>
+                  <span class="stat-icon">✅</span>
                   <span class="stat-text">{{ template.orders_count || 0 }} заказов</span>
                 </div>
                 <div class="stat-separator">•</div>
@@ -191,6 +191,7 @@ import RatingStars from '@/components/marketplace/RatingStars.vue'
 import DifficultyBadge from '@/components/marketplace/DifficultyBadge.vue'
 import TagBadge from '@/components/marketplace/TagBadge.vue'
 import PriceTag from '@/components/marketplace/PriceTag.vue'
+import DOMPurify from 'dompurify'
 
 const route = useRoute()
 const questStore = useQuestStore()
@@ -238,8 +239,8 @@ const breadcrumbs = computed(() => {
 
 const formattedDescription = computed(() => {
   if (!template.value?.description) return ''
-  // Простое форматирование: конвертируем переносы строк в <br>
-  return template.value.description.replace(/\n/g, '<br>')
+  const withBreaks = template.value.description.replace(/\n/g, '<br>')
+  return DOMPurify.sanitize(withBreaks)
 })
 
 const getLocationType = (type) => {

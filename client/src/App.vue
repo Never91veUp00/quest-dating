@@ -27,6 +27,9 @@
       </button>
     </transition>
 
+    <!-- Global Toast Notifications -->
+    <Toast ref="toastRef" />
+
     <!-- Global Loader (для глобальных операций) -->
     <transition name="fade">
       <div v-if="globalLoading" class="global-loader">
@@ -43,6 +46,8 @@ import { useQuestStore } from '@/store'
 import Header from '@/components/common/Header.vue'
 import Footer from '@/components/common/Footer.vue'
 import Loader from '@/components/common/Loader.vue'
+import Toast from '@/components/common/Toast.vue'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const questStore = useQuestStore()
@@ -50,6 +55,14 @@ const questStore = useQuestStore()
 const mobileMenuOpen = ref(false)
 const showScrollTop = ref(false)
 const globalLoading = ref(false)
+
+const toastRef = ref(null)
+const toast = useToast()
+
+// Регистрируем ref чтобы composable мог его использовать
+watch(toastRef, (val) => {
+  if (val) toast.setRef(val)
+}, { immediate: true })
 
 // Обработка мобильного меню
 const handleMobileMenuToggle = (isOpen) => {
@@ -102,7 +115,7 @@ onMounted(() => {
   preloadData()
   
   // Устанавливаем мета-теги по умолчанию
-  document.title = 'Quest Dating - Маркетплейс шаблонов квестов для свиданий'
+  document.title = 'Quest Dating — персональные квесты для романтических свиданий'
 })
 
 onUnmounted(() => {

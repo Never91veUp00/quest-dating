@@ -8,9 +8,9 @@
     <!-- Header -->
     <section class="page-header">
       <div class="container">
-        <h1 class="page-title">Все шаблоны квестов</h1>
+        <h1 class="page-title">Квесты для свиданий</h1>
         <p class="page-description">
-          Найдите идеальный квест для вашего свидания среди {{ totalTemplates }} шаблонов
+          Выберите шаблон — я адаптирую его специально под вас
         </p>
 
         <!-- Search Bar -->
@@ -66,7 +66,7 @@
             <!-- Sorting -->
             <div class="templates-toolbar">
               <div class="results-count">
-                Найдено шаблонов: <strong>{{ filteredTemplates.length }}</strong>
+                Квестов: <strong>{{ filteredTemplates.length }}</strong>
               </div>
               <div class="sorting">
                 <label for="sort">Сортировка:</label>
@@ -184,18 +184,14 @@ const formatFilterValue = (filter) => {
 
 const loadData = async () => {
   loading.value = true
-
   try {
-    // Загружаем шаблоны
-    await questStore.fetchTemplates()
-
-    // Загружаем категории
-    categories.value = await questStore.fetchCategories()
-
-    // Загружаем популярные теги
-    popularTags.value = await questStore.fetchPopularTags()
-
-    // Применяем фильтры из URL
+    const [, cats, tags] = await Promise.all([
+      questStore.fetchTemplates(),
+      questStore.fetchCategories(),
+      questStore.fetchPopularTags()
+    ])
+    categories.value = cats || []
+    popularTags.value = tags || []
     applyFiltersFromUrl()
   } catch (error) {
     console.error('Error loading templates:', error)
@@ -252,7 +248,7 @@ const removeFilter = (filterName) => {
 }
 
 const handleSortChange = () => {
-  filters.value.sortBy = sortBy.value
+  filters.value.sort_by = sortBy.value
   currentPage.value = 1
   updateUrl()
 }

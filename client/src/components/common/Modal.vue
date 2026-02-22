@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { watch } from 'vue'
+import { watch, onUnmounted } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -79,6 +79,12 @@ watch(() => props.modelValue, (newValue) => {
   } else {
     document.body.style.overflow = ''
   }
+})
+
+// Гарантированно снимаем блокировку при размонтировании
+// (например когда router-link уводит со страницы пока модалка открыта)
+onUnmounted(() => {
+  document.body.style.overflow = ''
 })
 </script>
 

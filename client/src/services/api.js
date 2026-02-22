@@ -56,33 +56,24 @@ apiClient.interceptors.response.use(
       // Специфичная обработка некоторых статусов
       switch (status) {
         case 401:
-          // Неавторизован - удаляем токен и редирект на логин
           localStorage.removeItem('auth_token')
-          if (window.location.pathname !== '/login') {
-            // window.location.href = '/login'
-          }
           break
-
         case 403:
-          // Доступ запрещен
           console.error('Access forbidden')
           break
-
         case 404:
-          // Не найдено
-          console.error('Resource not found')
+          // Не показываем toast — 404 обрабатывается на уровне компонентов
           break
-
-        case 422:
-          // Ошибки валидации
-          console.error('Validation errors:', data.errors)
-          break
-
+        case 429:
+          // Rate limit — это важно показать пользователю
+          return Promise.reject({
+            status,
+            message: data.message || 'Слишком много запросов. Подождите немного.',
+            errors: data.errors || {}
+          })
         case 500:
-          // Ошибка сервера
           console.error('Internal server error')
           break
-
         default:
           console.error('API error:', data.message)
       }
@@ -93,13 +84,11 @@ apiClient.interceptors.response.use(
         errors: data.errors || {}
       })
     } else if (error.request) {
-      // Запрос был отправлен, но ответ не получен
       console.error('[API No Response]', error.request)
       return Promise.reject({
         message: 'Сервер не отвечает. Проверьте подключение к интернету.'
       })
     } else {
-      // Ошибка при настройке запроса
       console.error('[API Request Setup Error]', error.message)
       return Promise.reject({
         message: error.message || 'Ошибка при выполнении запроса'
@@ -180,29 +169,6 @@ const api = {
    */
   getPopularTags(params = {}) {
     return apiClient.get('/tags/popular', { params })
-  },
-
-  // ========== АВТОРЫ ==========
-  
-  /**
-   * Получить всех авторов
-   */
-  getAuthors(params = {}) {
-    return apiClient.get('/authors', { params })
-  },
-
-  /**
-   * Получить автора по username
-   */
-  getAuthor(username) {
-    return apiClient.get(`/authors/${username}`)
-  },
-
-  /**
-   * Получить шаблоны автора
-   */
-  getAuthorTemplates(username, params = {}) {
-    return apiClient.get(`/authors/${username}/templates`, { params })
   },
 
   // ========== ОТЗЫВЫ ==========

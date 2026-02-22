@@ -1,36 +1,32 @@
 <template>
   <div class="template-author">
-    <h3 class="section-title">Об авторе</h3>
+    <h3 class="section-title">О создателе</h3>
     
     <div class="author-card">
       <!-- Аватар -->
       <div class="author-header">
-        <router-link :to="`/author/${author.username}`" class="author-avatar-link">
+        <router-link to="/about" class="author-avatar-link">
           <img 
             :src="author.avatar_url || '/images/avatars/default.jpg'" 
             :alt="author.display_name"
             class="author-avatar"
           />
-          <div v-if="author.is_verified" class="verified-badge" title="Верифицированный автор">
-            ✓
-          </div>
         </router-link>
 
         <div class="author-info">
-          <router-link :to="`/author/${author.username}`" class="author-name">
+          <router-link to="/about" class="author-name">
             {{ author.display_name }}
           </router-link>
-          <div class="author-username">@{{ author.username }}</div>
           
-          <!-- Статистика автора -->
+          <!-- Статистика создателя -->
           <div class="author-quick-stats">
             <div class="stat">
-              <RatingStars :rating="author.average_rating" size="small" />
-              <span class="stat-text">{{ parseFloat(author.average_rating || 0).toFixed(1) || 'Нет' }}</span>
+              <span class="stat-number">{{ author.total_templates || 0 }}</span>
+              <span class="stat-text">квестов создано</span>
             </div>
             <div class="stat">
-              <span class="stat-number">{{ author.total_templates || 0 }}</span>
-              <span class="stat-text">шаблонов</span>
+              <span class="stat-number">100%</span>
+              <span class="stat-text">персонально</span>
             </div>
           </div>
         </div>
@@ -87,10 +83,10 @@
 
       <!-- Кнопка профиля -->
       <router-link 
-        :to="`/author/${author.username}`"
+        to="/about"
         class="btn-view-profile"
       >
-        Все шаблоны автора →
+        Узнать обо мне →
       </router-link>
     </div>
   </div>
@@ -98,7 +94,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import RatingStars from '../marketplace/RatingStars.vue'
 
 const props = defineProps({
   author: {
