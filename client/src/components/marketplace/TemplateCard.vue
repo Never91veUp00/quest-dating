@@ -46,18 +46,14 @@
 
       <!-- Автор -->
       <div class="card-author">
-        <router-link 
-          :to="`/author/${template.author_username}`"
-          class="author-link"
-          @click.stop
-        >
+        <div class="author-info">
           <img 
             :src="template.author_avatar || '/images/avatars/default.jpg'" 
             :alt="template.author_name"
             class="author-avatar"
           />
           <span class="author-name">{{ template.author_name }}</span>
-        </router-link>
+        </div>
       </div>
 
       <!-- Теги -->
@@ -110,6 +106,7 @@ import DifficultyBadge from './DifficultyBadge.vue'
 import TagBadge from './TagBadge.vue'
 import RatingStars from './RatingStars.vue'
 import PriceTag from './PriceTag.vue'
+import { formatDuration, formatNumber } from '@/utils/formatters'
 
 const props = defineProps({
   template: {
@@ -137,24 +134,6 @@ const navigateToTemplate = () => {
 
 const showQuickView = () => {
   emit('quickView', props.template)
-}
-
-const formatDuration = (minutes) => {
-  if (!minutes) return 'Не указано'
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  if (hours > 0) {
-    return mins > 0 ? `${hours}ч ${mins}м` : `${hours}ч`
-  }
-  return `${mins}м`
-}
-
-const formatNumber = (num) => {
-  if (!num) return 0
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}k`
-  }
-  return num
 }
 </script>
 
@@ -316,16 +295,14 @@ const formatNumber = (num) => {
   border-top: 1px solid #e2e8f0;
 }
 
-.author-link {
+.author-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  text-decoration: none;
   color: #4a5568;
-  transition: color 0.3s;
 }
 
-.author-link:hover {
+.author-info:hover {
   color: #667eea;
 }
 

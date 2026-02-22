@@ -276,6 +276,13 @@ const hasSocialLinks = computed(() => {
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
+.author-avatar-link:focus,
+.author-name:focus,
+.social-link:focus,
+.btn-view-profile:focus {
+  outline: none;
+}
+
 @media (max-width: 640px) {
   .template-author {
     padding: 24px 20px;

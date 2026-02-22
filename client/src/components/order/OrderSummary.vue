@@ -93,8 +93,8 @@
     <!-- Контакты -->
     <div class="summary-contact">
       <p class="contact-text">Есть вопросы?</p>
-      <a href="mailto:support@questdating.com" class="contact-link">
-        📧 support@questdating.com
+      <a href="mailto:vp.vlad00@mail.ru" class="contact-link">
+        📧 vp.vlad00@mail.ru
       </a>
     </div>
   </div>

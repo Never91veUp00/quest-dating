@@ -110,6 +110,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { FEATURE_PRICES } from '@/config/constants'
 
 const props = defineProps({
   template: {
@@ -147,41 +148,11 @@ const colorSchemes = [
 ]
 
 const availableFeatures = [
-  {
-    value: 'background_music',
-    name: 'Фоновая музыка',
-    description: 'Атмосферная музыка на фоне',
-    icon: '🎵',
-    price: 500
-  },
-  {
-    value: 'video_messages',
-    name: 'Видео-послания',
-    description: 'Запишем ваши видео-поздравления',
-    icon: '🎥',
-    price: 1000
-  },
-  {
-    value: 'custom_photos',
-    name: 'Ваши фотографии',
-    description: 'Добавим ваши фото в квест',
-    icon: '📸',
-    price: 500
-  },
-  {
-    value: 'qr_codes',
-    name: 'QR-коды',
-    description: 'Физические QR-коды для локаций',
-    icon: '📱',
-    price: 800
-  },
-  {
-    value: 'partner_surprises',
-    name: 'Партнерские сюрпризы',
-    description: 'Скидки в кафе и магазинах',
-    icon: '🎁',
-    price: 1500
-  }
+  { value: 'background_music',  name: 'Фоновая музыка',        description: 'Атмосферная музыка на фоне',           icon: '🎵', price: FEATURE_PRICES.background_music },
+  { value: 'video_messages',    name: 'Видео-послания',         description: 'Запишем ваши видео-поздравления',      icon: '🎥', price: FEATURE_PRICES.video_messages },
+  { value: 'custom_photos',     name: 'Ваши фотографии',        description: 'Добавим ваши фото в квест',            icon: '📸', price: FEATURE_PRICES.custom_photos },
+  { value: 'qr_codes',          name: 'QR-коды',                description: 'Физические QR-коды для локаций',       icon: '📱', price: FEATURE_PRICES.qr_codes },
+  { value: 'partner_surprises', name: 'Партнерские сюрпризы',   description: 'Скидки в кафе и магазинах',           icon: '🎁', price: FEATURE_PRICES.partner_surprises }
 ]
 
 const updateCustomization = () => {

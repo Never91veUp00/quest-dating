@@ -61,8 +61,8 @@ export function useFilters(initialFilters = {}) {
       filters.value.search = urlParams.search
     }
 
-    if (urlParams.sortBy) {
-      filters.value.sortBy = urlParams.sortBy
+    if (urlParams.sort_by) {
+      filters.value.sortBy = urlParams.sort_by
     }
 
     if (urlParams.order) {
@@ -107,14 +107,14 @@ export function useFilters(initialFilters = {}) {
     }
 
     if (filters.value.sortBy && filters.value.sortBy !== 'newest') {
-      query.sortBy = filters.value.sortBy
+      query.sort_by = filters.value.sortBy
     }
 
     if (filters.value.order && filters.value.order !== 'desc') {
       query.order = filters.value.order
     }
 
-    router.push({ query })
+    router.replace({ query })
   }
 
   // Установить фильтр
