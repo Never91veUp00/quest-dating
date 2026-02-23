@@ -6,6 +6,7 @@ import reviewsRoutes from './reviews.js'
 import ordersRoutes from './orders.js'
 import questsRoutes from './quests.js'
 import authRoutes from './auth.js'
+import adminRoutes from './admin.js'
 
 const router = express.Router()
 
@@ -17,6 +18,7 @@ router.use('/reviews', reviewsRoutes)
 router.use('/orders', ordersRoutes)
 router.use('/quests', questsRoutes)
 router.use('/auth', authRoutes)
+router.use('/admin', adminRoutes)
 
 // Базовый endpoint для проверки API
 router.get('/', (req, res) => {

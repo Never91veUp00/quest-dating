@@ -236,4 +236,5 @@ const api = {
   }
 }
 
+export { apiClient }
 export default api

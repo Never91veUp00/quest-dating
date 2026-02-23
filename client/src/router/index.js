@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Импорт компонентов страниц
 import Home from '@/views/Home.vue'
 import Templates from '@/views/Templates.vue'
 import TemplateDetail from '@/views/TemplateDetail.vue'
 import Category from '@/views/Category.vue'
 import Order from '@/views/Order.vue'
-import Quest from '@/views/Quest.vue'
+import QuestPlayer from '@/views/QuestPlayer.vue'
 import About from '@/views/About.vue'
 import NotFound from '@/views/NotFound.vue'
 
@@ -47,17 +46,14 @@ const routes = [
     path: '/order/:templateSlug',
     name: 'Order',
     component: Order,
-    meta: {
-      title: 'Оформление заказа — Quest Dating',
-      requiresConsent: true
-    },
+    meta: { title: 'Оформление заказа — Quest Dating', requiresConsent: true },
     props: true
   },
   {
     path: '/quest/:slug',
-    name: 'Quest',
-    component: Quest,
-    meta: { title: 'Прохождение квеста — Quest Dating' },
+    name: 'QuestPlayer',
+    component: QuestPlayer,
+    meta: { title: 'Квест — Quest Dating', hideNav: true },
     props: true
   },
   {
@@ -70,7 +66,34 @@ const routes = [
     }
   },
 
-  // Редиректы со старых маршрутов — чтобы не было 404
+  // ── Админка ──────────────────────────────────────────────────
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: () => import('@/views/AdminLogin.vue'),
+    meta: { title: 'Вход — Admin', hideNav: true }
+  },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: () => import('@/views/AdminDashboard.vue'),
+    meta: { title: 'Дашборд — Admin', hideNav: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/quest/new',
+    name: 'QuestNew',
+    component: () => import('@/views/QuestEditor.vue'),
+    meta: { title: 'Новый квест — Admin', hideNav: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/quest/:id/edit',
+    name: 'QuestEdit',
+    component: () => import('@/views/QuestEditor.vue'),
+    meta: { title: 'Редактировать квест — Admin', hideNav: true, requiresAdmin: true },
+    props: true
+  },
+
+  // Редиректы
   { path: '/authors', redirect: '/about' },
   { path: '/author/:username', redirect: '/about' },
   { path: '/become-author', redirect: '/' },
@@ -106,6 +129,15 @@ router.beforeEach((to, from, next) => {
     }
     tag.setAttribute('content', to.meta.description)
   }
+
+  // Auth guard для админки
+  if (to.meta.requiresAdmin) {
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      return next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+    }
+  }
+
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('config', 'GA_MEASUREMENT_ID', {
       page_path: to.path,

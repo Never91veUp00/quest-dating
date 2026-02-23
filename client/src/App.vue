@@ -1,7 +1,7 @@
 <template>
   <div id="app" :class="{ 'mobile-menu-open': mobileMenuOpen }">
-    <!-- Header -->
-    <Header @toggle-mobile-menu="handleMobileMenuToggle" />
+    <!-- Header — скрываем на странице квеста -->
+    <Header v-if="!route.meta.hideNav" @toggle-mobile-menu="handleMobileMenuToggle" />
 
     <!-- Main Content -->
     <main class="main-content">
@@ -12,13 +12,13 @@
       </router-view>
     </main>
 
-    <!-- Footer -->
-    <Footer />
+    <!-- Footer — скрываем на странице квеста -->
+    <Footer v-if="!route.meta.hideNav" />
 
-    <!-- Scroll to Top Button -->
+    <!-- Scroll to Top Button — скрываем на странице квеста -->
     <transition name="fade">
       <button
-        v-if="showScrollTop"
+        v-if="showScrollTop && !route.meta.hideNav"
         @click="scrollToTop"
         class="scroll-to-top"
         aria-label="Scroll to top"

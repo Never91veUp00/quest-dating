@@ -1,118 +1,40 @@
 import { defineStore } from 'pinia'
+import { apiClient } from '@/services/api'
 
-// Заготовка для будущей авторизации
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
+    token: localStorage.getItem('auth_token') || null,
+    isAuthenticated: !!localStorage.getItem('auth_token'),
     loading: false,
     error: null
   }),
 
   getters: {
-    isAuthor: (state) => {
-      return state.user?.role === 'author' || state.user?.role === 'admin'
-    },
-
-    isAdmin: (state) => {
-      return state.user?.role === 'admin'
-    },
-
-    userName: (state) => {
-      return state.user?.name || state.user?.email || 'Гость'
-    }
+    isAdmin: (state) => state.isAuthenticated
   },
 
   actions: {
-    async login(credentials) {
+    async login(username, password) {
       this.loading = true
       this.error = null
-
       try {
-        // TODO: Реализовать API вызов
-        // const response = await authService.login(credentials)
-        // this.user = response.data.user
-        // this.token = response.data.token
-        // this.isAuthenticated = true
-        
-        // Сохранить токен
-        // localStorage.setItem('auth_token', this.token)
-        
-        console.log('Login:', credentials)
-      } catch (error) {
-        this.error = error.message || 'Ошибка авторизации'
-        console.error('Error logging in:', error)
-        throw error
+        const res = await apiClient.post('/auth/login', { username, password })
+        const token = res.data?.token || res.token
+        this.token = token
+        this.isAuthenticated = true
+        localStorage.setItem('auth_token', token)
+      } catch (err) {
+        this.error = err.message || 'Неверный логин или пароль'
+        throw err
       } finally {
         this.loading = false
       }
     },
 
-    async register(userData) {
-      this.loading = true
-      this.error = null
-
-      try {
-        // TODO: Реализовать API вызов
-        // const response = await authService.register(userData)
-        // this.user = response.data.user
-        // this.token = response.data.token
-        // this.isAuthenticated = true
-        
-        console.log('Register:', userData)
-      } catch (error) {
-        this.error = error.message || 'Ошибка регистрации'
-        console.error('Error registering:', error)
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    async logout() {
-      this.user = null
+    logout() {
       this.token = null
       this.isAuthenticated = false
-      
-      // Удалить токен из localStorage
       localStorage.removeItem('auth_token')
-    },
-
-    async checkAuth() {
-      const token = localStorage.getItem('auth_token')
-      
-      if (!token) {
-        return false
-      }
-
-      try {
-        // TODO: Реализовать проверку токена
-        // const response = await authService.verify(token)
-        // this.user = response.data.user
-        // this.token = token
-        // this.isAuthenticated = true
-        
-        return true
-      } catch (error) {
-        this.logout()
-        return false
-      }
-    },
-
-    clearError() {
-      this.error = null
     }
-  },
-
-  persist: {
-    enabled: true,
-    strategies: [
-      {
-        key: 'auth',
-        storage: localStorage,
-        paths: ['user', 'token', 'isAuthenticated']
-      }
-    ]
   }
 })
