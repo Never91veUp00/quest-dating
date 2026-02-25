@@ -1,294 +1,247 @@
-# Quest Marketplace - Backend API
+# Quest Dating — Backend API
 
-REST API для платформы Quest Marketplace - маркетплейса шаблонов квестов для свиданий.
+REST API для персонального сервиса романтических квестов. Обрабатывает заказы клиентов, хранит квесты, управляет сессиями прохождения и предоставляет защищённый интерфейс для администратора.
 
-## 🚀 Технологии
+## 🛠 Стек
 
-- **Node.js** v18+
-- **Express.js** - Web framework
-- **PostgreSQL** - Реляционная база данных
-- **JWT** - Авторизация (в разработке)
-- **Multer** - Загрузка файлов
+- **Node.js** v18+ / **Express.js**
+- **PostgreSQL** — основная база данных
+- **JWT** — аутентификация администратора
+- **Telegram Bot API** — уведомления о заказах
+- **express-rate-limit** — защита от спама
+- **DOMPurify** — XSS-защита контента
+- **bcrypt** — хеширование паролей
 
 ## 📋 Требования
 
-- Node.js 18.x или выше
-- PostgreSQL 12.x или выше
-- npm или yarn
+- Node.js >= 18
+- PostgreSQL >= 14
+- npm >= 9
 
-## 🛠️ Установка
+## 🚀 Установка и запуск
 
-### 1. Клонирование репозитория
 ```bash
-git clone <repository-url>
-cd server
-```
+# Установить зависимости
+cd server && npm install
 
-### 2. Установка зависимостей
-```bash
-npm install
-```
-
-### 3. Настройка базы данных
-```bash
-# Войдите в PostgreSQL
-sudo -u postgres psql
-
-# Создайте базу данных и пользователя
-CREATE DATABASE quest_dating;
-CREATE USER quest_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE quest_dating TO quest_user;
-\q
-```
-
-### 4. Импорт схемы
-```bash
-psql -U quest_user -d quest_dating -f ../database/schema_v2.sql
-```
-
-### 5. Настройка переменных окружения
-```bash
+# Настроить переменные окружения
 cp .env.example .env
-# Отредактируйте .env файл с вашими настройками
-```
+# Отредактировать .env
 
-### 6. Запуск сервера
-```bash
-# Development режим с hot reload
+# Инициализировать базу данных
+npm run db:init
+npm run db:seed   # опционально — тестовые данные
+
+# Запуск в режиме разработки (hot reload)
 npm run dev
 
-# Production режим
+# Запуск в production
 npm start
 ```
 
-Сервер запустится на `http://localhost:5000`
+Сервер запускается на `http://localhost:5000`
+
+## ⚙️ Переменные окружения
+
+| Переменная | Описание | По умолчанию |
+|---|---|---|
+| `NODE_ENV` | Режим работы | `development` |
+| `PORT` | Порт сервера | `5000` |
+| `DB_HOST` | Хост PostgreSQL | `localhost` |
+| `DB_PORT` | Порт PostgreSQL | `5432` |
+| `DB_NAME` | Имя базы данных | `quest_dating` |
+| `DB_USER` | Пользователь БД | — |
+| `DB_PASSWORD` | Пароль БД | — |
+| `JWT_SECRET` | Секрет для JWT (мин. 32 символа) | — |
+| `JWT_EXPIRES_IN` | Срок жизни токена | `7d` |
+| `TELEGRAM_BOT_TOKEN` | Токен Telegram-бота | — |
+| `TELEGRAM_CHAT_ID` | Chat ID для уведомлений | — |
+| `ADMIN_USERNAME` | Логин администратора | — |
+| `ADMIN_PASSWORD_HASH` | bcrypt-хеш пароля администратора | — |
+| `MAX_FILE_SIZE` | Максимальный размер файла (байт) | `5242880` |
+| `ALLOWED_ORIGINS` | CORS origins (через запятую) | — |
 
 ## 📚 API Endpoints
 
-### Шаблоны (Templates)
+### Публичные
+
+#### Шаблоны квестов
 ```
-GET    /api/templates              # Все шаблоны с фильтрами
-GET    /api/templates/popular      # Популярные шаблоны
-GET    /api/templates/featured     # Избранные шаблоны
-GET    /api/templates/newest       # Новые шаблоны
-GET    /api/templates/:slug        # Детальная информация
-GET    /api/templates/:slug/similar # Похожие шаблоны
+GET  /api/templates                  # Список с фильтрами (category, difficulty, page, limit)
+GET  /api/templates/popular          # Популярные шаблоны
+GET  /api/templates/featured         # Избранные шаблоны
+GET  /api/templates/newest           # Новые шаблоны
+GET  /api/templates/:slug            # Детальная информация о шаблоне
+GET  /api/templates/:slug/similar    # Похожие шаблоны
 ```
 
-### Авторы (Authors)
+#### Категории и теги
 ```
-GET    /api/authors                # Все авторы
-GET    /api/authors/top            # Топ авторы
-GET    /api/authors/:username      # Профиль автора
-POST   /api/authors                # Создать автора
-```
-
-### Категории (Categories)
-```
-GET    /api/categories             # Все категории
-GET    /api/categories/:slug       # Категория по slug
+GET  /api/categories                 # Все категории
+GET  /api/categories/:slug           # Категория по slug
+GET  /api/tags                       # Все теги
+GET  /api/tags/popular               # Популярные теги
 ```
 
-### Теги (Tags)
+#### Отзывы
 ```
-GET    /api/tags                   # Все теги
-GET    /api/tags/popular           # Популярные теги
-```
-
-### Отзывы (Reviews)
-```
-GET    /api/reviews/template/:id   # Отзывы для шаблона
-POST   /api/reviews                # Создать отзыв
-POST   /api/reviews/:id/helpful    # Отметить полезным
+GET  /api/reviews/template/:id       # Отзывы для шаблона
+POST /api/reviews                    # Оставить отзыв
+POST /api/reviews/:id/helpful        # Отметить отзыв полезным
 ```
 
-### Заказы (Orders)
+#### Заказы
 ```
-GET    /api/orders                 # Все заказы
-GET    /api/orders/stats           # Статистика
-GET    /api/orders/:id             # Заказ по ID
-POST   /api/orders                 # Создать заказ
-PATCH  /api/orders/:id/status      # Обновить статус
+POST /api/orders                     # Оформить заказ (rate limited)
 ```
 
-### Квесты (Quests)
+#### Квесты (прохождение)
 ```
-GET    /api/quests/:slug                    # Получить квест
-POST   /api/quests/:id/session              # Создать сессию
-PATCH  /api/quests/session/:id              # Обновить прогресс
-POST   /api/quests/session/:id/complete     # Завершить квест
-GET    /api/quests/session/:id/stats        # Статистика сессии
-```
-
-## 🔒 Авторизация (в разработке)
-
-API использует JWT для авторизации. Для защищенных endpoints:
-```bash
-Authorization: Bearer <token>
+GET    /api/quests/:slug             # Получить квест по slug
+POST   /api/quests/:questId/session  # Создать сессию прохождения
+PATCH  /api/quests/session/:id       # Обновить прогресс сессии
+POST   /api/quests/session/:id/complete # Завершить квест
+GET    /api/quests/session/:id/stats # Статистика сессии
 ```
 
-## 📝 Примеры запросов
-
-### Получить все шаблоны с фильтрами
-```bash
-GET /api/templates?category=romance&difficulty=medium&page=1&limit=12
+#### Аутентификация
+```
+POST /api/auth/login                 # Вход администратора → JWT
+POST /api/auth/logout                # Выход
+GET  /api/auth/me                    # Данные текущего пользователя
 ```
 
-### Создать заказ
-```bash
-POST /api/orders
-Content-Type: application/json
+### Защищённые (требуют JWT: `Authorization: Bearer <token>`)
 
-{
-  "template_id": 1,
-  "client_name": "Иван Иванов",
-  "client_email": "ivan@example.com",
-  "client_phone": "+7 999 123-45-67",
-  "description": "Хочу квест для предложения руки и сердца",
-  "event_date": "2024-03-15",
-  "event_city": "Москва",
-  "customization": {
-    "color_scheme": "romantic",
-    "music": true
-  }
-}
+#### Управление заказами
+```
+GET   /api/orders                    # Все заказы с поиском и фильтрами
+GET   /api/orders/stats              # Статистика и выручка
+GET   /api/orders/:id                # Заказ по ID
+PATCH /api/orders/:id/status         # Изменить статус заказа
 ```
 
-### Добавить отзыв
-```bash
-POST /api/reviews
-Content-Type: application/json
-
-{
-  "template_id": 1,
-  "client_name": "Анна К.",
-  "client_email": "anna@example.com",
-  "rating": 5,
-  "title": "Лучший квест!",
-  "comment": "Всё прошло идеально, спасибо!"
-}
+#### Управление квестами (Admin)
+```
+GET    /api/admin/dashboard          # Статистика дашборда
+GET    /api/admin/quests             # Все созданные квесты
+GET    /api/admin/quests/:id         # Квест по ID
+POST   /api/admin/quests             # Создать квест
+PUT    /api/admin/quests/:id         # Обновить квест
+DELETE /api/admin/quests/:id         # Удалить квест
+GET    /api/admin/templates          # Шаблоны для выбора в редакторе
+POST   /api/admin/templates          # Создать шаблон
 ```
 
-## 🗂️ Структура проекта
+### Системные
+```
+GET /health                          # Health check
+GET /api                             # Версия API и список endpoints
+```
+
+## 🗄 Схема базы данных
+
+Основные таблицы:
+
+| Таблица | Назначение |
+|---|---|
+| `quest_templates` | Шаблоны квестов (витрина для клиентов) |
+| `categories` | Категории шаблонов |
+| `tags` | Теги |
+| `reviews` | Отзывы клиентов |
+| `orders` | Заказы (pending → confirmed → in_progress → completed) |
+| `created_quests` | Готовые квесты, созданные Владом |
+| `quest_sessions` | Сессии прохождения квеста парой |
+
+Схема находится в `../database/schema_v2.sql`.
+
+## 📁 Структура проекта
+
 ```
 server/
 ├── src/
-│   ├── config/          # Конфигурация (БД, константы)
-│   ├── controllers/     # Контроллеры (бизнес-логика)
-│   ├── routes/          # API маршруты
-│   ├── models/          # Модели данных
-│   ├── middleware/      # Middleware (auth, errors)
-│   ├── services/        # Сервисы (email, search)
-│   ├── utils/           # Утилиты
-│   └── server.js        # Точка входа
-├── uploads/             # Загруженные файлы
-├── .env                 # Переменные окружения
+│   ├── config/
+│   │   ├── database.js      # Пул подключений PostgreSQL
+│   │   └── constants.js     # ORDER_STATUS, DIFFICULTY_LEVELS, FEATURE_PRICES...
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── categoryController.js
+│   │   ├── orderController.js
+│   │   ├── questController.js
+│   │   ├── reviewController.js
+│   │   ├── tagController.js
+│   │   └── templateController.js
+│   ├── middleware/
+│   │   ├── auth.js          # JWT-проверка, requireAdmin
+│   │   ├── errorHandler.js  # Централизованная обработка ошибок
+│   │   ├── rateLimiter.js   # Лимиты запросов (orderLimiter и др.)
+│   │   ├── upload.js        # Multer, ограничения типов и размера
+│   │   └── validator.js     # express-validator хелперы
+│   ├── models/
+│   │   ├── Order.js
+│   │   ├── Review.js
+│   │   └── Template.js
+│   ├── routes/
+│   │   ├── api.js           # Корневой роутер — подключает все маршруты
+│   │   ├── admin.js         # Защищённые маршруты для администратора
+│   │   ├── auth.js
+│   │   ├── categories.js
+│   │   ├── orders.js
+│   │   ├── quests.js
+│   │   ├── reviews.js
+│   │   ├── tags.js
+│   │   └── templates.js
+│   ├── services/
+│   │   ├── emailService.js       # Отправка писем клиентам
+│   │   ├── notificationService.js # Telegram-уведомления
+│   │   ├── searchService.js      # Полнотекстовый поиск
+│   │   └── statsService.js       # Агрегированная статистика
+│   ├── utils/
+│   │   ├── imageProcessor.js     # Обработка загружаемых изображений
+│   │   └── slugGenerator.js      # Генерация slug из текста
+│   └── server.js                 # Точка входа, Express app
+├── .env                          # Переменные окружения (не коммитить)
+├── .env.example
 └── package.json
 ```
 
-## 🔧 Конфигурация
+## 🔒 Безопасность
 
-### Переменные окружения
-
-- `PORT` - Порт сервера (по умолчанию: 5000)
-- `NODE_ENV` - Окружение (development/production)
-- `DB_*` - Настройки PostgreSQL
-- `JWT_SECRET` - Секретный ключ для JWT
-- `ALLOWED_ORIGINS` - CORS origins
-
-### База данных
-
-Схема базы данных находится в `../database/schema_v2.sql`
-
-Основные таблицы:
-- `quest_templates` - Шаблоны квестов
-- `authors` - Авторы шаблонов
-- `categories` - Категории
-- `tags` - Теги
-- `reviews` - Отзывы
-- `orders` - Заказы
-- `created_quests` - Созданные квесты
-- `quest_sessions` - Сессии прохождения
+- Все admin-маршруты защищены JWT middleware (`requireAdmin`)
+- Параметризованные SQL-запросы везде — без конкатенации
+- Rate limiting на создание заказов (`orderLimiter`)
+- CORS настроен через `ALLOWED_ORIGINS`
+- Пароль администратора хранится только как bcrypt-хеш
+- Загрузка файлов ограничена по типу (JPEG/PNG/WebP) и размеру (5 MB)
 
 ## 🐛 Отладка
 
-### Логирование
-
-Сервер выводит логи в консоль:
-- ✅ Успешные операции
-- ❌ Ошибки
-- 📧 Email события
-- 🗄️ Запросы к БД
-
-### Проверка здоровья
 ```bash
+# Health check
 GET /health
+# → { "status": "OK", "timestamp": "...", "uptime": 3600 }
+
+# Проверка API
+GET /api
+# → { "version": "2.0.0", "endpoints": { ... } }
 ```
 
-Ответ:
-```json
-{
-  "status": "OK",
-  "timestamp": "2024-02-08T12:00:00.000Z",
-  "uptime": 3600
-}
-```
+Сервер выводит цветные логи в консоль: ✅ успех, ❌ ошибки, 📧 email-события, 🗄️ запросы к БД.
 
-## 🚀 Деплой
+## 🚀 Production
 
-### Production настройки
-
-1. Установите `NODE_ENV=production`
-2. Используйте сильный `JWT_SECRET`
-3. Настройте HTTPS
-4. Используйте PM2 для управления процессом
-5. Настройте регулярные бэкапы БД
-
-### PM2
 ```bash
+# Через PM2
 npm install -g pm2
 pm2 start src/server.js --name quest-api
-pm2 startup
-pm2 save
-```
+pm2 startup && pm2 save
 
-## 📊 Мониторинг
-
-### Метрики
-
-- Количество запросов
-- Время ответа
-- Ошибки
-- Использование памяти
-
-### Логи
-```bash
-# PM2 логи
+# Логи
 pm2 logs quest-api
-
-# Логи БД
-sudo tail -f /var/log/postgresql/postgresql-*.log
 ```
 
-## 🤝 Разработка
-
-### Добавление нового endpoint
-
-1. Создайте контроллер в `src/controllers/`
-2. Добавьте маршрут в `src/routes/`
-3. Подключите роут в `src/routes/api.js`
-4. Обновите документацию
-
-### Добавление middleware
-
-1. Создайте файл в `src/middleware/`
-2. Подключите в нужном роуте или глобально в `server.js`
-
-## 📄 Лицензия
-
-MIT
-
-## 👥 Контакты
-
-- Email: support@questdating.com
-- GitHub: [repository-url]
+Обязательно для production:
+1. Установить `NODE_ENV=production`
+2. Использовать сильный `JWT_SECRET` (32+ случайных символа)
+3. Настроить HTTPS (через nginx или облачный балансировщик)
+4. Настроить регулярные бэкапы PostgreSQL
