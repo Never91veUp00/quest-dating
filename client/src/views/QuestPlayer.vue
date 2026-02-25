@@ -27,6 +27,14 @@
 
     <template v-else-if="questData">
 
+      <!-- ── ЗАСТАВКА ── -->
+      <QuestIntro
+        v-if="showIntro"
+        :theme="themeObj"
+        :questData="questData"
+        @done="showIntro = false"
+      />
+
       <!-- ── СПЛЭШ ── -->
       <transition name="splash-out">
         <QuestSplash
@@ -130,6 +138,7 @@ import { useRoute } from 'vue-router'
 import { questService } from '@/services/questService'
 import { getTheme, themeToCssVars } from '@/components/quest/themes.js'
 import QuestSplash from '@/components/quest/QuestSplash.vue'
+import QuestIntro  from '@/components/quest/QuestIntro.vue'
 import QuestBlock  from '@/components/quest/QuestBlock.vue'
 import QuestFinish from '@/components/quest/QuestFinish.vue'
 
@@ -147,6 +156,7 @@ const codeError    = ref('')
 
 // ─── Quest state ──────────────────────────────────────────────
 const started      = ref(false)
+const showIntro    = ref(false)   // станет true после загрузки если квест имеет заставку
 const isComplete   = ref(false)
 const blockIdx     = ref(0)
 const completedIds = ref([])
@@ -193,6 +203,7 @@ const loadQuest = async (accessCode = null) => {
     const params = accessCode ? { access_code: accessCode } : {}
     const res = await questService.getBySlug(slug.value, params)
     questData.value = res.data ?? res
+    showIntro.value = questData.value.show_intro !== false
     requiresCode.value = false
   } catch (err) {
     if (err.status === 403) {

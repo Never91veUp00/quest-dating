@@ -1,5 +1,6 @@
 <template>
   <div class="qe">
+
     <!-- Header -->
     <header class="qe-header">
       <button class="qe-back" @click="$router.push('/admin')">← Назад</button>
@@ -19,396 +20,46 @@
     </header>
 
     <div class="qe-body">
-      <!-- ══ Левая колонка: мета-данные ══════════════════════ -->
-      <aside class="qe-meta">
-        <div class="qe-section">
-          <div class="qe-section__title">Основные данные</div>
 
-          <div class="qe-field">
-            <label>Имя клиента <span class="req">*</span></label>
-            <input v-model="form.client_name" placeholder="Лиза" @input="autoSlug" />
-          </div>
+      <!-- ══ Левая колонка ══ -->
+      <EditorMeta
+        :form="form"
+        :templates="templates"
+        :selectedTemplate="selectedTemplate"
+        :origin="origin"
+        @auto-slug="autoSlug"
+        @load-template="onLoadTemplate"
+      />
 
-          <div class="qe-field">
-            <label>Название квеста <span class="req">*</span></label>
-            <input v-model="form.title" placeholder="Дело о пропавшем подарке" />
-          </div>
-
-          <div class="qe-field">
-            <label>Slug (URL) <span class="req">*</span></label>
-            <div class="qe-slug-row">
-              <span class="qe-slug-prefix">/quest/</span>
-              <input v-model="form.slug" placeholder="anna-ivan-2024" class="qe-slug-input" />
-            </div>
-            <div v-if="form.slug" class="qe-slug-link">
-              {{ origin }}/quest/{{ form.slug }}
-            </div>
-          </div>
-
-          <div class="qe-field">
-            <label>Тема оформления</label>
-            <div class="qe-themes">
-              <button
-                v-for="t in themes"
-                :key="t.id"
-                class="qe-theme-btn"
-                :class="{ active: form.theme === t.id }"
-                @click="form.theme = t.id"
-              >
-                <span>{{ t.icon }}</span>
-                <span>{{ t.label }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="qe-field">
-            <label>Код доступа</label>
-            <input v-model="form.access_code" placeholder="Необязательно" />
-            <div class="qe-hint">Если заполнен — клиент должен ввести его перед стартом</div>
-          </div>
-
-          <div class="qe-field">
-            <label>Финальное послание</label>
-            <textarea
-              v-model="form.final_message"
-              placeholder="Лиза, ты — лучшее, что случилось в моей жизни ❤️"
-              rows="4"
-            ></textarea>
-            <div class="qe-hint">Показывается клиенту на экране завершения</div>
-          </div>
-        </div>
-
-        <!-- Шаблон -->
-        <div class="qe-section">
-          <div class="qe-section__title">Шаблон</div>
-          <select v-model="selectedTemplate" class="qe-select" @change="loadTemplate">
-            <option value="">— Начать с нуля —</option>
-            <option v-for="t in templates" :key="t.id" :value="t">
-              {{ t.title }}
-            </option>
-          </select>
-          <div v-if="selectedTemplate" class="qe-hint">
-            Блоки шаблона будут загружены ниже. Можно редактировать.
-          </div>
-        </div>
-      </aside>
-
-      <!-- ══ Правая колонка: блоки ════════════════════════════ -->
+      <!-- ══ Правая колонка: блоки ══ -->
       <div class="qe-editor">
         <div class="qe-editor__head">
           <span class="qe-section__title">Блоки квеста</span>
           <span class="qe-editor__count">{{ form.blocks.length }} {{ pluralBlock(form.blocks.length) }}</span>
         </div>
 
-        <!-- Список блоков -->
         <div class="qe-blocks">
-          <div
+          <EditorBlock
             v-for="(block, bi) in form.blocks"
             :key="block.id"
-            class="qe-block"
-            :class="{ 'qe-block--open': openBlocks.includes(block.id) }"
-          >
-            <!-- Заголовок блока -->
-            <div class="qe-block__header" @click="toggleBlock(block.id)">
-              <div class="qe-block__num">{{ bi + 1 }}</div>
-              <div class="qe-block__info">
-                <span class="qe-block__name">{{ block.title || 'Блок без названия' }}</span>
-                <span v-if="block.location" class="qe-block__loc">📍 {{ block.location }}</span>
-                <span class="qe-block__tasks-count">{{ block.tasks.length }} заданий</span>
-              </div>
-              <div class="qe-block__tools">
-                <button class="qe-icon-btn" @click.stop="moveBlock(bi, -1)" :disabled="bi === 0" title="Вверх">↑</button>
-                <button class="qe-icon-btn" @click.stop="moveBlock(bi, 1)" :disabled="bi === form.blocks.length - 1" title="Вниз">↓</button>
-                <button class="qe-icon-btn qe-icon-btn--danger" @click.stop="removeBlock(bi)" title="Удалить блок">✕</button>
-                <span class="qe-block__chevron">{{ openBlocks.includes(block.id) ? '▲' : '▼' }}</span>
-              </div>
-            </div>
-
-            <!-- Тело блока -->
-            <div v-if="openBlocks.includes(block.id)" class="qe-block__body">
-              <div class="qe-block__fields">
-                <div class="qe-field">
-                  <label>Название блока</label>
-                  <input v-model="block.title" placeholder="Улика №1 — Прихожая" />
-                </div>
-                <div class="qe-field">
-                  <label>Локация</label>
-                  <input v-model="block.location" placeholder="Прихожая, у зеркала" />
-                </div>
-                <div class="qe-field qe-field--full">
-                  <label>Описание блока</label>
-                  <textarea v-model="block.description" rows="2" placeholder="Вводный текст для этой локации..."></textarea>
-                </div>
-              </div>
-
-              <!-- Задания -->
-              <div class="qe-tasks">
-                <div class="qe-tasks__head">Задания</div>
-
-                <div
-                  v-for="(task, ti) in block.tasks"
-                  :key="task.id"
-                  class="qe-task"
-                >
-                  <div class="qe-task__header">
-                    <div class="qe-task__type-badge" :data-type="task.type">
-                      {{ typeLabel(task.type) }}
-                    </div>
-                    <span class="qe-task__name">{{ task.title || 'Новое задание' }}</span>
-                    <div class="qe-task__tools">
-                      <button class="qe-icon-btn" @click="moveTask(block, ti, -1)" :disabled="ti === 0">↑</button>
-                      <button class="qe-icon-btn" @click="moveTask(block, ti, 1)" :disabled="ti === block.tasks.length - 1">↓</button>
-                      <button class="qe-icon-btn qe-icon-btn--danger" @click="removeTask(block, ti)">✕</button>
-                    </div>
-                  </div>
-
-                  <div class="qe-task__fields">
-                    <div class="qe-task__row">
-                      <div class="qe-field">
-                        <label>Тип</label>
-                        <select v-model="task.type" class="qe-select qe-select--sm">
-                          <option value="simple">✓ Простое</option>
-                          <option value="riddle">? Загадка</option>
-                          <option value="photo">📷 Фото</option>
-                        </select>
-                      </div>
-                      <div class="qe-field">
-                        <label>Очки</label>
-                        <input v-model.number="task.points" type="number" min="0" max="1000" class="qe-input--sm" />
-                      </div>
-                    </div>
-
-                    <div class="qe-field">
-                      <label>Заголовок задания</label>
-                      <input v-model="task.title" placeholder="Найти записку у зеркала" />
-                    </div>
-
-                    <div class="qe-field">
-                      <label>Описание / текст задания</label>
-                      <textarea v-model="task.description" rows="2" placeholder="Что должен сделать клиент..."></textarea>
-                    </div>
-
-                    <!-- ── SIMPLE ── -->
-                    <template v-if="task.type === 'simple'">
-                      <div class="qe-field">
-                        <label>Подсказка</label>
-                        <input v-model="task.hint" placeholder="Необязательная подсказка" />
-                      </div>
-                    </template>
-
-                    <!-- ── RIDDLE ── -->
-                    <template v-if="task.type === 'riddle'">
-                      <div class="qe-field">
-                        <label>Вопрос</label>
-                        <input v-model="task.question" placeholder="Куда ведёт эта подсказка?" />
-                      </div>
-                      <div class="qe-task__row">
-                        <div class="qe-field">
-                          <label>Правильный ответ <span class="req">*</span></label>
-                          <input v-model="task.answer" placeholder="ванная" />
-                          <div class="qe-hint">Регистр и пробелы не важны</div>
-                        </div>
-                        <div class="qe-field">
-                          <label>Подсказка</label>
-                          <input v-model="task.hint" placeholder="Где умываются каждое утро?" />
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- ── CODE_PHYSICAL ── -->
-                    <template v-if="task.type === 'code_physical'">
-                      <div class="qe-field">
-                        <label>Правильный код <span class="req">*</span></label>
-                        <input v-model="task.answer" placeholder="LOVE" class="qe-input--mono" />
-                        <div class="qe-hint">Что должен ввести клиент после сбора букв</div>
-                      </div>
-                      <div class="qe-field">
-                        <label>Как найти код (описание предметов)</label>
-                        <input v-model="task.code_hint" placeholder="На книге, чашке и магните — первые буквы" />
-                      </div>
-                      <div class="qe-field">
-                        <label>Подсказка</label>
-                        <input v-model="task.hint" placeholder="Посмотри внимательно на предметы рядом" />
-                      </div>
-                    </template>
-
-                    <!-- ── LOCATION ── -->
-                    <template v-if="task.type === 'location'">
-                      <div class="qe-field">
-                        <label>Описание места <span class="req">*</span></label>
-                        <textarea v-model="task.location_desc" rows="2" placeholder="Иди к большому зеркалу в прихожей. Смотри под ковриком." />
-                      </div>
-                      <div class="qe-field">
-                        <label>Подсказка если не могут найти</label>
-                        <input v-model="task.location_hint" placeholder="Это место где встречают гостей" />
-                      </div>
-                    </template>
-
-                    <!-- ── SELFIE ── -->
-                    <template v-if="task.type === 'selfie'">
-                      <div class="qe-task__row">
-                        <div class="qe-field">
-                          <label>Условие <span class="req">*</span></label>
-                          <input v-model="task.selfie_condition" placeholder="Покажи язык и подмигни" />
-                        </div>
-                        <div class="qe-field">
-                          <label>Emoji</label>
-                          <input v-model="task.selfie_emoji" placeholder="🤳" class="qe-input--sm" maxlength="4" />
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- ── PHOTO ── -->
-                    <template v-if="task.type === 'photo'">
-                      <div class="qe-field">
-                        <label>Инструкция</label>
-                        <input v-model="task.instruction" placeholder="Сфотографируйся у этого места" />
-                      </div>
-                    </template>
-
-                    <!-- ── TEXT_ANSWER ── -->
-                    <template v-if="task.type === 'text_answer'">
-                      <div class="qe-field">
-                        <label>Вопрос партнёру <span class="req">*</span></label>
-                        <textarea v-model="task.question" rows="2" placeholder="Расскажи о нашем самом смешном совместном воспоминании" />
-                      </div>
-                      <div class="qe-field">
-                        <label>Плейсхолдер в поле ввода</label>
-                        <input v-model="task.placeholder" placeholder="Напиши своими словами..." />
-                      </div>
-                    </template>
-
-                    <!-- ── MEDIA ── -->
-                    <template v-if="task.type === 'media'">
-                      <div class="qe-task__row">
-                        <div class="qe-field">
-                          <label>Тип медиа</label>
-                          <select v-model="task.media_type" class="qe-select qe-select--sm">
-                            <option value="video">🎥 Видео (ссылка)</option>
-                            <option value="audio">🎵 Аудио (ссылка)</option>
-                            <option value="youtube">▶️ YouTube</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="qe-field">
-                        <label>URL <span class="req">*</span></label>
-                        <input v-model="task.media_url" placeholder="https://youtube.com/watch?v=... или ссылка на файл" />
-                      </div>
-                    </template>
-
-                    <!-- ── QR ── -->
-                    <template v-if="task.type === 'qr'">
-                      <div class="qe-field">
-                        <label>Секретный код (спрятан в QR) <span class="req">*</span></label>
-                        <div class="qe-qr-row">
-                          <input v-model="task.answer" placeholder="SECRET42" class="qe-input--mono" />
-                          <button class="qe-qr-btn" @click="generateQR(task)" :disabled="!task.answer">
-                            📄 Распечатать QR
-                          </button>
-                        </div>
-                        <div class="qe-hint">Клиент сканирует QR и вводит этот код. Распечатай и спрячь.</div>
-                      </div>
-                      <div class="qe-field">
-                        <label>Инструкция для клиента</label>
-                        <input v-model="task.qr_instruction" placeholder="Найди конверт под диваном и отсканируй QR" />
-                      </div>
-                      <!-- QR превью -->
-                      <div v-if="task.qr_preview" class="qe-qr-preview">
-                        <img :src="task.qr_preview" alt="QR" />
-                        <a :href="task.qr_preview" download="quest-qr.png" class="qe-qr-download">⬇ Скачать PNG</a>
-                      </div>
-                    </template>
-
-                    <!-- ── MINI_GAME ── -->
-                    <template v-if="task.type === 'mini_game'">
-                      <div class="qe-field">
-                        <label>Тип игры</label>
-                        <select v-model="task.game_type" class="qe-select qe-select--sm">
-                          <option value="quiz">❓ Угадайка (4 варианта)</option>
-                          <option value="pairs">🃏 Найди пары</option>
-                        </select>
-                      </div>
-
-                      <!-- Quiz -->
-                      <template v-if="task.game_type === 'quiz'">
-                        <div class="qe-field">
-                          <label>Вопрос <span class="req">*</span></label>
-                          <input v-model="task.game_question" placeholder="В каком городе мы познакомились?" />
-                        </div>
-                        <div class="qe-game-options">
-                          <div
-                            v-for="(_, i) in 4"
-                            :key="i"
-                            class="qe-game-option"
-                            :class="{ correct: task.game_correct === i }"
-                          >
-                            <span class="qe-game-option__letter" @click="task.game_correct = i" title="Отметить правильным">{{ 'АБВГ'[i] }}</span>
-                            <input
-                              v-model="task.game_options[i]"
-                              :placeholder="`Вариант ${i + 1}`"
-                              class="qe-game-option__input"
-                            />
-                            <span v-if="task.game_correct === i" class="qe-game-option__check">✓</span>
-                          </div>
-                        </div>
-                        <div class="qe-hint">Кликни на букву чтобы отметить правильный ответ</div>
-                      </template>
-
-                      <!-- Pairs -->
-                      <template v-if="task.game_type === 'pairs'">
-                        <div class="qe-game-pairs">
-                          <div
-                            v-for="(pair, pi) in (task.game_pairs || [{a:'',b:''}])"
-                            :key="pi"
-                            class="qe-game-pair"
-                          >
-                            <input v-model="pair.a" :placeholder="`Карточка A${pi+1}`" />
-                            <span class="qe-game-pair__arrow">↔</span>
-                            <input v-model="pair.b" :placeholder="`Карточка B${pi+1}`" />
-                            <button class="qe-icon-btn qe-icon-btn--danger" @click="removePair(task, pi)">✕</button>
-                          </div>
-                        </div>
-                        <button class="qe-add-task__btn" @click="addPair(task)">+ Добавить пару</button>
-                        <div class="qe-hint">Максимум 6 пар (12 карточек на экране)</div>
-                      </template>
-                    </template>
-
-                  </div>
-                </div>
-
-                <!-- Добавить задание -->
-                <div class="qe-add-task">
-                  <div class="qe-add-task__group">
-                    <span class="qe-add-task__label">Базовые</span>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'simple')">✓ Простое</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'riddle')">? Загадка</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'photo')">📷 Фото</button>
-                  </div>
-                  <div class="qe-add-task__group">
-                    <span class="qe-add-task__label">Офлайн</span>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'location')">📍 Место</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'code_physical')">🔢 Код</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'selfie')">🤳 Селфи</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'qr')">◻️ QR</button>
-                  </div>
-                  <div class="qe-add-task__group">
-                    <span class="qe-add-task__label">Интерактив</span>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'text_answer')">✍️ Вопрос</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'media')">🎬 Медиа</button>
-                    <button class="qe-add-task__btn" @click="addTask(block, 'mini_game')">🎮 Игра</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            :block="block"
+            :index="bi"
+            :isOpen="openBlocks.includes(block.id)"
+            :isLast="bi === form.blocks.length - 1"
+            @toggle="toggleBlock"
+            @move="moveBlock"
+            @remove="removeBlock"
+            @add-task="addTask"
+            @remove-task="removeTask"
+            @move-task="moveTask"
+            @generate-qr="generateQR"
+            @add-pair="addPair"
+            @remove-pair="removePair"
+          />
         </div>
 
-        <!-- Добавить блок -->
-        <button class="qe-add-block" @click="addBlock">
-          + Добавить блок
-        </button>
+        <button class="qe-add-block" @click="addBlock">+ Добавить блок</button>
 
-        <!-- Ошибки -->
         <div v-if="errors.length" class="qe-errors">
           <div class="qe-errors__title">Исправь перед публикацией:</div>
           <ul>
@@ -417,315 +68,42 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast -->
+    <transition name="qe-toast-slide">
+      <div v-if="toast" class="qe-toast" :class="`qe-toast--${toast.type}`">
+        {{ toast.msg }}
+      </div>
+    </transition>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { apiClient } from '@/services/api'
+import EditorMeta  from '@/components/editor/EditorMeta.vue'
+import EditorBlock from '@/components/editor/EditorBlock.vue'
+import { useQuestEditor } from '@/composables/useQuestEditor'
 
-const router = useRouter()
-const route  = useRoute()
+const {
+  form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,
+  addBlock, removeBlock, moveBlock, toggleBlock,
+  addTask, removeTask, moveTask,
+  generateQR, addPair, removePair,
+  loadTemplate, autoSlug,
+  save, previewQuest,
+} = useQuestEditor()
 
-const isEdit = computed(() => !!route.params.id)
-const origin = window.location.origin
-
-// ─── Form ─────────────────────────────────────────────────────
-const form = ref({
-  title:         '',
-  client_name:   '',
-  slug:          '',
-  theme:         'detective',
-  access_code:   '',
-  final_message: '',
-  is_public:     false,
-  order_id:      null,
-  template_id:   null,
-  blocks:        []
-})
-
-const themes = [
-  { id: 'detective', icon: '🕵️', label: 'Детектив' },
-  { id: 'romantic',  icon: '❤️',  label: 'Романтик' },
-  { id: 'city',      icon: '🏙️', label: 'Город' },
-  { id: 'mystery',   icon: '🔮',  label: 'Мистика' },
-]
-
-// ─── State ────────────────────────────────────────────────────
-const saving         = ref(false)
-const errors         = ref([])
-const openBlocks     = ref([])
-const templates      = ref([])
-const selectedTemplate = ref('')
-
-// ─── Init ─────────────────────────────────────────────────────
-onMounted(async () => {
-  // Загружаем список шаблонов
-  try {
-    const res = await apiClient.get('/admin/templates')
-    templates.value = res.data
-  } catch {}
-
-  // Если редактирование — загружаем квест
-  if (isEdit.value) {
-    try {
-      const res = await apiClient.get(`/admin/quests/${route.params.id}`)
-      const q = res.data
-      form.value = {
-        title:         q.title,
-        client_name:   q.client_name,
-        slug:          q.slug,
-        theme:         q.theme || 'detective',
-        access_code:   q.access_code || '',
-        final_message: q.final_message || '',
-        is_public:     q.is_public,
-        order_id:      q.order_id,
-        template_id:   q.template_id,
-        blocks:        q.blocks || []
-      }
-      // Открываем первый блок
-      if (form.value.blocks.length) {
-        openBlocks.value = [form.value.blocks[0].id]
-      }
-    } catch {
-      alert('Квест не найден')
-      router.push('/admin')
-    }
-    return
-  }
-
-  // Если создание из заказа — подставляем данные из query
-  if (route.query.client_name) {
-    form.value.client_name = route.query.client_name
-    form.value.order_id    = route.query.order_id ? Number(route.query.order_id) : null
-    form.value.template_id = route.query.template_id ? Number(route.query.template_id) : null
-    autoSlug()
-  }
-
-  // Если задан template_id — загружаем шаблон сразу
-  if (form.value.template_id) {
-    const tpl = templates.value.find(t => t.id === form.value.template_id)
-    if (tpl) {
-      selectedTemplate.value = tpl
-      applyTemplate(tpl)
-    }
-  }
-
-  // Начинаем с одним пустым блоком
-  if (!form.value.blocks.length) {
-    addBlock()
-  }
-})
-
-// ─── Auto slug ────────────────────────────────────────────────
-const autoSlug = () => {
-  if (isEdit.value) return
-  const name = form.value.client_name
-    .toLowerCase()
-    .replace(/[^a-zа-яё0-9\s]/gi, '')
-    .trim()
-    .replace(/\s+/g, '-')
-  const translit = cyrillicToLatin(name)
-  const date = new Date().getFullYear()
-  form.value.slug = translit ? `${translit}-${date}` : ''
-  if (!form.value.title && form.value.client_name) {
-    form.value.title = `Квест для ${form.value.client_name}`
-  }
+// Шаблон приходит по id из select — находим объект и передаём в composable
+const onLoadTemplate = (id) => {
+  if (!id) { selectedTemplate.value = ''; return }
+  const tpl = templates.value.find(t => String(t.id) === String(id))
+  if (tpl) { selectedTemplate.value = tpl; loadTemplate() }
 }
 
-const cyrillicToLatin = (str) => {
-  const map = { а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'yo',ж:'zh',з:'z',и:'i',й:'y',
-    к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',
-    ц:'ts',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya' }
-  return str.split('').map(c => map[c] || c).join('')
-}
-
-// ─── Template ─────────────────────────────────────────────────
-const loadTemplate = () => {
-  if (!selectedTemplate.value) return
-  if (form.value.blocks.length > 1 || (form.value.blocks.length === 1 && form.value.blocks[0].tasks.length)) {
-    if (!confirm('Заменить текущие блоки блоками шаблона?')) {
-      selectedTemplate.value = ''
-      return
-    }
-  }
-  applyTemplate(selectedTemplate.value)
-}
-
-const applyTemplate = (tpl) => {
-  if (!tpl.structure) return
-  // Клонируем блоки с новыми id чтобы не было конфликтов
-  const blocks = JSON.parse(JSON.stringify(tpl.structure))
-  blocks.forEach((b, bi) => {
-    b.id = `block-${Date.now()}-${bi}`
-    b.tasks = (b.tasks || []).map((t, ti) => ({
-      ...t,
-      id: `task-${Date.now()}-${bi}-${ti}`
-    }))
-  })
-  form.value.blocks = blocks
-  form.value.template_id = tpl.id
-  openBlocks.value = blocks.length ? [blocks[0].id] : []
-}
-
-// ─── Blocks ───────────────────────────────────────────────────
-const addBlock = () => {
-  const id = `block-${Date.now()}`
-  form.value.blocks.push({
-    id,
-    title:       '',
-    description: '',
-    location:    '',
-    tasks:       []
-  })
-  openBlocks.value = [id]
-}
-
-const removeBlock = (idx) => {
-  if (!confirm('Удалить этот блок?')) return
-  const id = form.value.blocks[idx].id
-  form.value.blocks.splice(idx, 1)
-  openBlocks.value = openBlocks.value.filter(x => x !== id)
-}
-
-const moveBlock = (idx, dir) => {
-  const arr = form.value.blocks
-  const to = idx + dir
-  if (to < 0 || to >= arr.length) return
-  ;[arr[idx], arr[to]] = [arr[to], arr[idx]]
-}
-
-const toggleBlock = (id) => {
-  if (openBlocks.value.includes(id)) {
-    openBlocks.value = openBlocks.value.filter(x => x !== id)
-  } else {
-    openBlocks.value.push(id)
-  }
-}
-
-// ─── Tasks ────────────────────────────────────────────────────
-const addTask = (block, type) => {
-  const defaults = {
-    simple:        { points: 10, hint: '' },
-    riddle:        { points: 30, question: '', answer: '', hint: '' },
-    code_physical: { points: 30, answer: '', code_hint: '', hint: '' },
-    location:      { points: 15, location_desc: '', location_hint: '' },
-    selfie:        { points: 25, selfie_condition: '', selfie_emoji: '🤳' },
-    photo:         { points: 20, instruction: '' },
-    text_answer:   { points: 15, question: '', placeholder: '' },
-    media:         { points: 10, media_type: 'youtube', media_url: '' },
-    qr:            { points: 35, answer: '', qr_instruction: '', qr_preview: null },
-    mini_game:     { points: 40, game_type: 'quiz', game_question: '', game_options: ['','','',''], game_correct: 0, game_pairs: [{a:'',b:''}] },
-  }
-  block.tasks.push({
-    id:          `task-${Date.now()}`,
-    type,
-    title:       '',
-    description: '',
-    ...(defaults[type] || {})
-  })
-}
-
-// QR-генератор через Google Charts API (не нужен бэкенд)
-const generateQR = (task) => {
-  const content = task.answer
-  const url = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(content)}&choe=UTF-8`
-  task.qr_preview = url
-}
-
-const addPair    = (task) => { task.game_pairs = [...(task.game_pairs || []), { a: '', b: '' }] }
-const removePair = (task, idx) => { task.game_pairs.splice(idx, 1) }
-
-const removeTask = (block, idx) => {
-  block.tasks.splice(idx, 1)
-}
-
-const moveTask = (block, idx, dir) => {
-  const arr = block.tasks
-  const to = idx + dir
-  if (to < 0 || to >= arr.length) return
-  ;[arr[idx], arr[to]] = [arr[to], arr[idx]]
-}
-
-// ─── Validation ───────────────────────────────────────────────
-const validate = () => {
-  const errs = []
-  if (!form.value.client_name.trim()) errs.push('Укажи имя клиента')
-  if (!form.value.title.trim())       errs.push('Укажи название квеста')
-  if (!form.value.slug.trim())        errs.push('Укажи slug')
-  if (!form.value.blocks.length)      errs.push('Добавь хотя бы один блок')
-
-  form.value.blocks.forEach((b, bi) => {
-    if (!b.title.trim()) errs.push(`Блок ${bi + 1}: укажи название`)
-    b.tasks.forEach((t, ti) => {
-      if (!t.title.trim()) errs.push(`Блок ${bi + 1}, задание ${ti + 1}: укажи заголовок`)
-      if (t.type === 'riddle' && !t.answer.trim())
-        errs.push(`Блок ${bi + 1}, задание ${ti + 1}: укажи правильный ответ`)
-    })
-  })
-  return errs
-}
-
-// ─── Save ─────────────────────────────────────────────────────
-const save = async (publish) => {
-  errors.value = []
-
-  if (publish) {
-    errors.value = validate()
-    if (errors.value.length) return
-  }
-
-  saving.value = true
-  try {
-    const payload = {
-      ...form.value,
-      is_public: publish
-    }
-
-    let res
-    if (isEdit.value) {
-      res = await apiClient.put(`/admin/quests/${route.params.id}`, payload)
-    } else {
-      res = await apiClient.post('/admin/quests', payload)
-    }
-
-    const saved = res.data
-    form.value.slug = saved.slug
-
-    if (publish) {
-      const url = `${origin}/quest/${saved.slug}`
-      await navigator.clipboard.writeText(url).catch(() => {})
-      alert(`✅ Квест опубликован!\n\nСсылка скопирована в буфер:\n${url}`)
-    } else {
-      alert('Черновик сохранён')
-    }
-
-    if (!isEdit.value) {
-      router.replace(`/admin/quest/${saved.id}/edit`)
-    }
-  } catch (e) {
-    if (e.errors) {
-      errors.value = e.errors.map(x => x.msg)
-    } else {
-      errors.value = [e.message || 'Ошибка сохранения']
-    }
-  } finally {
-    saving.value = false
-  }
-}
-
-// ─── Preview ──────────────────────────────────────────────────
-const previewQuest = () => {
-  window.open(`/quest/${form.value.slug}`, '_blank')
-}
-
-// ─── Helpers ──────────────────────────────────────────────────
-const typeLabel = (t) => ({ simple: '✓ Простое', riddle: '? Загадка', photo: '📷 Фото' }[t] || t)
 const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'блоков'
 </script>
 
-<style scoped>
+<style>
 /* ── Root ─────────────────────────────────────────────────────── */
 .qe {
   min-height: 100vh;
@@ -818,6 +196,30 @@ const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'бло
 
 /* Themes */
 .qe-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+/* ── Intro selector ─────────────────────────────────────────── */
+.qe-intro-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.qe-intro-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px; padding: 14px 10px; cursor: pointer;
+  transition: all .18s; text-align: center;
+}
+.qe-intro-opt:hover { border-color: rgba(255,255,255,.2); }
+.qe-intro-opt.active { border-color: #667eea; background: rgba(102,126,234,.1); }
+.qe-intro-opt__icon  { font-size: 1.6rem; line-height: 1; }
+.qe-intro-opt__label { font-size: .82rem; color: #fff; font-weight: 600; }
+.qe-intro-opt__sub   { font-size: .68rem; color: #4a5568; }
+.qe-intro-preview {
+  margin-top: 8px; background: rgba(102,126,234,.06);
+  border: 1px solid rgba(102,126,234,.18); border-radius: 8px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.qe-intro-preview__badge {
+  font-size: .8rem; color: #a0aec0; font-weight: 500;
+}
+
 .qe-theme-btn {
   display: flex; align-items: center; gap: 6px;
   background: #0f1117; border: 1px solid rgba(255,255,255,0.1);
@@ -944,6 +346,23 @@ const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'бло
 .qe-game-option__check { color: #48bb78; font-size: .9rem; flex-shrink: 0; }
 
 .qe-game-pairs { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Puzzle editor ───────────────────────────────────────────── */
+.qe-photo-drop {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.03); border: 2px dashed rgba(255,255,255,.12);
+  border-radius: 10px; padding: 28px 16px; cursor: pointer; text-align: center;
+  font-size: .88rem; color: #718096; transition: border-color .2s;
+}
+.qe-photo-drop:hover { border-color: #667eea; color: #a0aec0; }
+.qe-photo-drop__icon { font-size: 2rem; }
+.qe-puzzle-preview { position: relative; display: inline-block; }
+.qe-puzzle-preview__img { max-width: 100%; max-height: 200px; border-radius: 8px; display: block; }
+.qe-puzzle-preview__rm {
+  margin-top: 8px; background: rgba(245,101,101,.12); border: 1px solid rgba(245,101,101,.3);
+  border-radius: 6px; color: #f56565; font-size: .78rem; padding: 5px 12px; cursor: pointer;
+}
+.qe-hint--ok { color: #48bb78; background: rgba(72,187,120,.08); border-radius: 6px; padding: 8px 12px; }
 .qe-game-pair { display: flex; align-items: center; gap: 6px; }
 .qe-game-pair input { flex: 1; }
 .qe-game-pair__arrow { color: #4a5568; font-size: .9rem; flex-shrink: 0; }
@@ -1030,4 +449,21 @@ const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'бло
   .qe-header__actions { gap: 5px; }
   .qe-btn { padding: 8px 10px; font-size: 0.78rem; }
 }
+</style>
+
+<style>
+/* ── Toast ────────────────────────────────────────────────────── */
+.qe-toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; padding: 13px 22px; border-radius: 10px;
+  font-size: .9rem; font-weight: 600; max-width: 500px; text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+.qe-toast--success { background: #276749; color: #9ae6b4; border: 1px solid #276749; }
+.qe-toast--info    { background: #1a365d; color: #90cdf4; border: 1px solid #2b4c7e; }
+.qe-toast--error   { background: #742a2a; color: #feb2b2; border: 1px solid #742a2a; }
+.qe-toast-slide-enter-active { transition: all .3s ease; }
+.qe-toast-slide-leave-active { transition: all .25s ease; }
+.qe-toast-slide-enter-from   { opacity: 0; transform: translateX(-50%) translateY(12px); }
+.qe-toast-slide-leave-to     { opacity: 0; transform: translateX(-50%) translateY(8px); }
 </style>

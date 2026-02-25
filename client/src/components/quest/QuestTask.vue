@@ -155,12 +155,12 @@
           </button>
         </template>
 
-        <!-- ════ MEDIA — видео/аудио послание ════ -->
+        <!-- ════ MEDIA ════ -->
         <template v-else-if="task.type === 'media'">
           <div class="task__media">
 
-            <!-- YouTube embed -->
-            <template v-if="isYoutube">
+            <!-- YouTube -->
+            <template v-if="task.media_type === 'youtube'">
               <div class="task__media__wrap">
                 <iframe
                   :src="youtubeEmbed"
@@ -172,22 +172,28 @@
               </div>
             </template>
 
-            <!-- Нативное видео -->
-            <template v-else-if="task.media_type === 'video'">
-              <video
-                :src="task.media_url"
-                controls
-                playsinline
-                class="task__media__video"
-              ></video>
+            <!-- Telegram видео — открывается в браузере -->
+            <template v-else-if="task.media_type === 'telegram_video'">
+              <a :href="task.media_url" target="_blank" class="task__media__tg-link task__media__tg-link--video">
+                <div class="task__media__tg-icon">📹</div>
+                <div class="task__media__tg-text">
+                  <div class="task__media__tg-title">Видео послание</div>
+                  <div class="task__media__tg-sub">Нажми чтобы открыть в Telegram</div>
+                </div>
+                <div class="task__media__tg-arrow">→</div>
+              </a>
             </template>
 
-            <!-- Аудио -->
-            <template v-else-if="task.media_type === 'audio'">
-              <div class="task__media__audio-wrap">
-                <div class="task__media__audio-icon">🎵</div>
-                <audio :src="task.media_url" controls class="task__media__audio"></audio>
-              </div>
+            <!-- Telegram аудио -->
+            <template v-else-if="task.media_type === 'telegram_audio'">
+              <a :href="task.media_url" target="_blank" class="task__media__tg-link task__media__tg-link--audio">
+                <div class="task__media__tg-icon">🎙️</div>
+                <div class="task__media__tg-text">
+                  <div class="task__media__tg-title">Голосовое послание</div>
+                  <div class="task__media__tg-sub">Нажми чтобы открыть в Telegram</div>
+                </div>
+                <div class="task__media__tg-arrow">→</div>
+              </a>
             </template>
 
           </div>
@@ -281,6 +287,58 @@
             </button>
           </template>
 
+          <!-- ════ PUZZLE — тап→выбор→тап→поставить ════ -->
+          <template v-else-if="task.game_type === 'puzzle'">
+            <div class="task__puzzle">
+
+              <!-- Превью до старта -->
+              <div v-if="!puzzleStarted" class="task__puzzle__intro">
+                <div class="task__puzzle__intro-img-wrap">
+                  <img :src="task.puzzle_image" class="task__puzzle__intro-img" alt="Пазл" />
+                  <div class="task__puzzle__intro-overlay">Запомни картинку</div>
+                </div>
+                <div class="task__puzzle__intro-meta">{{ puzzleTotalPieces }} частей · тапни чтобы выбрать кусок и поставить на место</div>
+                <button class="task__action" @click="initPuzzle">🧩 Начать пазл!</button>
+              </div>
+
+              <!-- Игровое поле -->
+              <template v-else>
+                <!-- Прогресс -->
+                <div class="task__puzzle__progress">
+                  <div class="task__puzzle__progress-bar">
+                    <div class="task__puzzle__progress-fill" :style="{ width: puzzleProgress + '%' }"></div>
+                  </div>
+                  <span class="task__puzzle__progress-txt">{{ puzzlePlaced }}/{{ puzzleTotalPieces }} собрано</span>
+                </div>
+
+                <!-- Поле сборки (сетка слотов) -->
+                <div class="task__puzzle__board" :style="{ gridTemplateColumns: `repeat(${puzzleCols}, 1fr)` }">
+                  <div
+                    v-for="slot in puzzleSlots"
+                    :key="'s' + slot.i"
+                    class="task__puzzle__slot"
+                    :class="{
+                      filled:   slot.pieceIdx !== null,
+                      correct:  slot.pieceIdx === slot.i,
+                      selected: selectedSlot === slot.i,
+                      hint:     hintSlot === slot.i
+                    }"
+                    :style="slotStyle(slot)"
+                    @click="onSlotTap(slot.i)"
+                  ></div>
+                </div>
+
+                <div class="task__puzzle__tip">
+                  <template v-if="selectedSlot === null">👆 Тапни на кусок чтобы выбрать</template>
+                  <template v-else>👇 Тапни куда поставить выбранный кусок</template>
+                </div>
+
+                <div v-if="puzzleComplete" class="task__quiz-result task__quiz-result--right">🎉 Пазл собран!</div>
+                <button v-if="puzzleComplete" class="task__action" @click="$emit('complete', task)">Продолжаем →</button>
+              </template>
+            </div>
+          </template>
+
         </template>
 
       </template><!-- end isActive -->
@@ -355,6 +413,106 @@ onMounted(() => {
 })
 
 let pairsTimer = null
+
+// ── Puzzle ────────────────────────────────────────────────────
+// ── PUZZLE — механика тап→выбор→тап→поставить ───────────────
+const puzzleStarted = ref(false)
+// puzzleSlots[i].pieceIdx — какой кусок стоит в слоте i (null = пусто)
+// Изначально куски расставлены случайно по всем слотам
+const puzzleSlots   = ref([])   // { i, pieceIdx }
+const selectedSlot  = ref(null) // индекс выбранного слота
+const hintSlot      = ref(null) // мигающая подсказка при неправильном выборе
+
+// Конфигурация из задания
+const puzzleCols = computed(() => {
+  const p = props.task.puzzle_pieces || 30
+  // 30→5×6, 35→5×7, 42→6×7
+  if (p === 42) return 6
+  if (p === 35) return 7
+  return 6
+})
+const puzzleRows = computed(() => {
+  const p = props.task.puzzle_pieces || 30
+  if (p === 42) return 7
+  if (p === 35) return 5
+  return 5
+})
+const puzzleTotalPieces = computed(() => puzzleCols.value * puzzleRows.value)
+
+const puzzlePlaced = computed(() =>
+  puzzleSlots.value.filter(s => s.pieceIdx === s.i).length
+)
+const puzzleProgress = computed(() =>
+  puzzleTotalPieces.value ? Math.round(puzzlePlaced.value / puzzleTotalPieces.value * 100) : 0
+)
+const puzzleComplete = computed(() =>
+  puzzleTotalPieces.value > 0 && puzzlePlaced.value === puzzleTotalPieces.value
+)
+
+// Стиль слота — показывает фрагмент изображения
+// Используем background-size + background-position через px
+// чтобы точно показать нужный фрагмент без деления на ноль
+const slotStyle = (slot) => {
+  if (slot.pieceIdx === null || !props.task.puzzle_image) return {}
+  const cols = puzzleCols.value
+  const rows = puzzleRows.value
+  const c = slot.pieceIdx % cols
+  const r = Math.floor(slot.pieceIdx / cols)
+  // background-size: вся картинка растянута на cols×rows ячеек
+  // background-position: смещение в % — каждая ячейка = 1 шаг
+  const posX = cols > 1 ? (c / (cols - 1)) * 100 : 0
+  const posY = rows > 1 ? (r / (rows - 1)) * 100 : 0
+  return {
+    backgroundImage:    `url(${props.task.puzzle_image})`,
+    backgroundSize:     `${cols * 100}% ${rows * 100}%`,
+    backgroundPosition: `${posX}% ${posY}%`,
+  }
+}
+
+const initPuzzle = () => {
+  const total = puzzleTotalPieces.value
+  // Создаём перемешанный массив кусков
+  const shuffled = Array.from({ length: total }, (_, i) => i)
+  for (let i = total - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  // Каждый слот получает случайный кусок
+  puzzleSlots.value = shuffled.map((pieceIdx, i) => ({ i, pieceIdx }))
+  selectedSlot.value = null
+  puzzleStarted.value = true
+}
+
+// Тап по слоту
+const onSlotTap = (slotIdx) => {
+  if (puzzleComplete.value) return
+
+  if (selectedSlot.value === null) {
+    // Первый тап — выбираем
+    selectedSlot.value = slotIdx
+    return
+  }
+
+  if (selectedSlot.value === slotIdx) {
+    // Тап по тому же — снимаем выбор
+    selectedSlot.value = null
+    return
+  }
+
+  // Второй тап — меняем куски местами
+  const a = puzzleSlots.value[selectedSlot.value]
+  const b = puzzleSlots.value[slotIdx]
+  const tmp = a.pieceIdx
+  a.pieceIdx = b.pieceIdx
+  b.pieceIdx = tmp
+
+  // Вибрация если оба правильно встали
+  if (a.pieceIdx === a.i && b.pieceIdx === b.i && 'vibrate' in navigator) {
+    navigator.vibrate(40)
+  }
+
+  selectedSlot.value = null
+}
 const flipCard = (ci) => {
   if (pairsFlipped.value.includes(ci)) return
   if (pairsFlipped.value.length === 2) return
@@ -656,4 +814,92 @@ const youtubeEmbed = computed(() => {
 }
 .task__pairs__card__back { color: var(--accent); font-size: 1.2rem; }
 .task__pairs__card__front { transform: rotateY(180deg); color: var(--text); background: color-mix(in srgb, var(--accent) 8%, var(--bg2)); }
+</style>
+
+<style scoped>
+/* ── Puzzle ───────────────────────────────────────────────────── */
+.task__puzzle { display: flex; flex-direction: column; gap: 12px; }
+
+/* Превью до старта */
+.task__puzzle__intro { display: flex; flex-direction: column; gap: 10px; }
+.task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
+.task__puzzle__intro-img { width: 100%; display: block; max-height: 220px; object-fit: cover; }
+.task__puzzle__intro-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.35); color: #fff; font-size: .9rem; font-weight: 700;
+  letter-spacing: .05em; pointer-events: none;
+}
+.task__puzzle__intro-meta { font-size: .8rem; color: var(--dim); text-align: center; }
+
+/* Прогресс */
+.task__puzzle__progress { display: flex; align-items: center; gap: 10px; }
+.task__puzzle__progress-bar {
+  flex: 1; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
+}
+.task__puzzle__progress-fill {
+  height: 100%; background: var(--accent); border-radius: 3px;
+  transition: width .3s ease; box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.task__puzzle__progress-txt { font-size: .72rem; color: var(--dim); white-space: nowrap; font-family: var(--font-d); }
+
+/* Игровая доска — CSS grid */
+.task__puzzle__board {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--bord);
+  background: var(--bg2);
+  touch-action: manipulation; /* предотвращаем zoom по двойному тапу */
+}
+
+/* Один слот */
+.task__puzzle__slot {
+  aspect-ratio: 1;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: transform .12s, box-shadow .12s, outline .12s;
+  background-color: color-mix(in srgb, var(--bg2) 60%, transparent);
+  background-repeat: no-repeat;
+  outline: 2px solid transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.task__puzzle__slot:active { transform: scale(.94); }
+
+/* Пустой слот */
+.task__puzzle__slot:not([style*="url"]) {
+  background-color: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.08);
+}
+
+/* Выбранный */
+.task__puzzle__slot.selected {
+  outline: 3px solid var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent);
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+/* Правильно установленный */
+.task__puzzle__slot.correct {
+  outline: 2px solid #3cffb4;
+  cursor: default;
+}
+
+/* Подсказка — мигает при попытке поменять правильный кусок */
+.task__puzzle__slot.hint {
+  animation: puzzle-hint .35s ease 2;
+}
+@keyframes puzzle-hint {
+  0%,100% { outline-color: transparent; }
+  50%      { outline: 3px solid #f87171; }
+}
+
+/* Подсказка под доской */
+.task__puzzle__tip {
+  text-align: center; font-size: .78rem; color: var(--dim);
+  padding: 4px; min-height: 1.4em;
+}
 </style>

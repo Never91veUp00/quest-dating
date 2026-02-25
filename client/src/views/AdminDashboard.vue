@@ -34,15 +34,15 @@
         <template v-else>
           <div class="adm-stats">
             <div class="adm-stat">
-              <div class="adm-stat__n">{{ stats.pending_orders || 0 }}</div>
+              <div class="adm-stat__n">{{ Number(stats.pending_orders || 0) + Number(stats.confirmed_orders || 0) }}</div>
               <div class="adm-stat__l">Новых заказов</div>
             </div>
             <div class="adm-stat">
-              <div class="adm-stat__n">{{ stats.total_orders || 0 }}</div>
+              <div class="adm-stat__n">{{ Number(stats.total_orders || 0) }}</div>
               <div class="adm-stat__l">Всего заказов</div>
             </div>
             <div class="adm-stat">
-              <div class="adm-stat__n">{{ stats.total_quests || 0 }}</div>
+              <div class="adm-stat__n">{{ Number(stats.total_quests || 0) }}</div>
               <div class="adm-stat__l">Квестов создано</div>
             </div>
             <div class="adm-stat adm-stat--accent">
@@ -98,10 +98,29 @@
       <section v-if="activeTab === 'orders'" class="adm-section">
         <div class="adm-section__head">
           <h1>Заказы</h1>
+          <div class="adm-search">
+            <span class="adm-search__icon">🔍</span>
+            <input
+              v-model="ordersSearch"
+              class="adm-search__input"
+              placeholder="Имя, email, телефон, #id..."
+              @keyup.esc="ordersSearch = ''"
+            />
+            <button v-if="ordersSearch" class="adm-search__clear" @click="ordersSearch = ''">✕</button>
+          </div>
+          <div class="adm-filter">
+            <button
+              v-for="f in statusFilters"
+              :key="f.value"
+              class="adm-filter__btn"
+              :class="{ active: statusFilter === f.value }"
+              @click="statusFilter = f.value"
+            >{{ f.label }}<span v-if="f.count" class="adm-filter__count">{{ f.count }}</span></button>
+          </div>
         </div>
 
         <div v-if="ordersLoading" class="adm-loading">Загрузка...</div>
-        <div v-else-if="!orders.length" class="adm-empty-page">Заказов пока нет</div>
+        <div v-else-if="!filteredOrders.length" class="adm-empty-page">Заказов пока нет</div>
         <div v-else class="adm-table-wrap">
           <table class="adm-table">
             <thead>
@@ -117,7 +136,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="o in orders"
+                v-for="o in filteredOrders"
                 :key="o.id"
                 class="adm-table__row"
                 @click="openOrder(o)"
@@ -133,36 +152,22 @@
                 <td class="adm-table__date">{{ formatDate(o.created_at) }}</td>
                 <td>
                   <button
+                    v-if="o.status === 'pending'"
                     class="adm-btn adm-btn--sm adm-btn--primary"
                     @click.stop="createQuestFromOrder(o)"
-                  >
-                    Создать квест
-                  </button>
+                  >✏️ Создать квест</button>
+                  <button
+                    v-else-if="o.status !== 'cancelled'"
+                    class="adm-btn adm-btn--sm adm-btn--warning"
+                    @click.stop="o.created_quest_id ? editQuest(o.created_quest_id) : createQuestFromOrder(o)"
+                  >🔧 Редактировать</button>
+                  <span v-else class="adm-cancelled">Отменён</span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Order detail modal -->
-        <div v-if="selectedOrder" class="adm-modal-overlay" @click.self="selectedOrder = null">
-          <div class="adm-modal">
-            <button class="adm-modal__close" @click="selectedOrder = null">✕</button>
-            <h2 class="adm-modal__title">Заказ #{{ selectedOrder.id }}</h2>
-            <div class="adm-modal__grid">
-              <div class="adm-modal__field"><label>Клиент</label><span>{{ selectedOrder.client_name }}</span></div>
-              <div class="adm-modal__field"><label>Email</label><span>{{ selectedOrder.client_email }}</span></div>
-              <div class="adm-modal__field"><label>Телефон</label><span>{{ selectedOrder.client_phone || '—' }}</span></div>
-              <div class="adm-modal__field"><label>Сумма</label><span>{{ formatRub(selectedOrder.total_price) }}</span></div>
-              <div class="adm-modal__field adm-modal__field--full"><label>Пожелания</label><p>{{ selectedOrder.description || '—' }}</p></div>
-            </div>
-            <div class="adm-modal__actions">
-              <button class="adm-btn adm-btn--primary" @click="createQuestFromOrder(selectedOrder); selectedOrder = null">
-                Создать квест →
-              </button>
-            </div>
-          </div>
-        </div>
       </section>
 
       <!-- ── Квесты ─────────────────────────────── -->
@@ -210,7 +215,36 @@
 
     <!-- Toast -->
     <div v-if="toast" class="adm-toast">{{ toast }}</div>
-  </div>
+    <!-- Order detail modal — глобальный, работает со всех вкладок -->
+  <teleport to="body">
+    <div v-if="selectedOrder" class="adm-modal-overlay" @click.self="selectedOrder = null">
+      <div class="adm-modal">
+        <button class="adm-modal__close" @click="selectedOrder = null">✕</button>
+        <h2 class="adm-modal__title">Заказ #{{ selectedOrder.id }}</h2>
+        <div class="adm-modal__grid">
+          <div class="adm-modal__field"><label>Клиент</label><span>{{ selectedOrder.client_name }}</span></div>
+          <div class="adm-modal__field"><label>Email</label><span>{{ selectedOrder.client_email }}</span></div>
+          <div class="adm-modal__field"><label>Телефон</label><span>{{ selectedOrder.client_phone || '—' }}</span></div>
+          <div class="adm-modal__field"><label>Сумма</label><span>{{ formatRub(selectedOrder.total_price) }}</span></div>
+          <div class="adm-modal__field adm-modal__field--full"><label>Пожелания</label><p>{{ selectedOrder.description || '—' }}</p></div>
+        </div>
+        <div class="adm-modal__actions">
+          <button
+            v-if="selectedOrder.status === 'pending'"
+            class="adm-btn adm-btn--primary"
+            @click="createQuestFromOrder(selectedOrder); selectedOrder = null"
+          >✏️ Создать квест →</button>
+          <button
+            v-else-if="selectedOrder.status !== 'cancelled'"
+            class="adm-btn adm-btn--warning"
+            @click="selectedOrder.created_quest_id ? (editQuest(selectedOrder.created_quest_id), selectedOrder = null) : (createQuestFromOrder(selectedOrder), selectedOrder = null)"
+          >🔧 Редактировать →</button>
+          <span v-else class="adm-cancelled">Заказ отменён</span>
+        </div>
+      </div>
+    </div>
+  </teleport>
+</div>
 </template>
 
 <script setup>
@@ -232,6 +266,39 @@ const tabs = [
 // ─── State ────────────────────────────────────────────────────
 const statsLoading = ref(false)
 const ordersLoading = ref(false)
+const ordersSearch  = ref('')
+const statusFilter  = ref('all')
+
+const STATUS_LABELS = {
+  all: 'Все', pending: 'Новые', confirmed: 'Подтверждённые',
+  in_progress: 'В работе', completed: 'Выполненные', cancelled: 'Отменённые'
+}
+
+const statusFilters = computed(() => {
+  const counts = {}
+  orders.value.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1 })
+  return Object.entries(STATUS_LABELS).map(([value, label]) => ({
+    value,
+    label,
+    count: value === 'all' ? orders.value.length : (counts[value] || 0)
+  }))
+})
+
+const filteredOrders = computed(() => {
+  let list = orders.value
+  if (statusFilter.value !== 'all') {
+    list = list.filter(o => o.status === statusFilter.value)
+  }
+  const q = ordersSearch.value.trim().toLowerCase()
+  if (!q) return list
+  return list.filter(o =>
+    o.client_name?.toLowerCase().includes(q)  ||
+    o.client_email?.toLowerCase().includes(q) ||
+    o.client_phone?.includes(q)               ||
+    String(o.id).includes(q)                  ||
+    o.description?.toLowerCase().includes(q)
+  )
+})
 const questsLoading = ref(false)
 
 const stats        = ref({})
@@ -242,7 +309,7 @@ const quests       = ref([])
 const selectedOrder = ref(null)
 const toast        = ref('')
 
-const pendingCount = computed(() => stats.value.pending_orders || 0)
+const pendingCount = computed(() => Number(stats.value.pending_orders || 0) + Number(stats.value.confirmed_orders || 0))
 
 // ─── Load data ────────────────────────────────────────────────
 const loadDashboard = async () => {
@@ -306,9 +373,8 @@ const createQuestFromOrder = (o) => {
 
 const createNewQuest = () => router.push('/admin/quest/new')
 
-const editQuest = (id) => router.push(`/admin/quest/${id}/edit`)
-
-const openQuest = (slug) => window.open(`/quest/${slug}`, '_blank')
+const editQuest  = (id)   => router.push(`/admin/quest/${id}/edit`)
+const openQuest  = (slug) => window.open(`/quest/${slug}`, '_blank')
 
 const copyLink = (slug) => {
   const url = `${window.location.origin}/quest/${slug}`
@@ -335,7 +401,7 @@ const showToast = (msg) => {
 // ─── Helpers ──────────────────────────────────────────────────
 const formatRub = (v) => v ? `${Math.round(Number(v) / 100).toLocaleString('ru')} ₽` : '—'
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'short' }) : '—'
-const statusLabel = (s) => ({ pending: 'Новый', in_progress: 'В работе', completed: 'Готов', cancelled: 'Отменён' }[s] || s)
+const statusLabel = (s) => ({ pending: 'Новый', confirmed: 'Подтверждён', in_progress: 'В работе', completed: 'Выполнен', cancelled: 'Отменён' }[s] || s)
 const themeIcon   = (t) => ({ detective: '🕵️', romantic: '❤️', city: '🏙️', mystery: '🔮' }[t] || '🕵️')
 
 // ─── Watch tab changes ────────────────────────────────────────
@@ -418,9 +484,46 @@ onMounted(() => {
 
 .adm-section__head {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 28px; gap: 12px; flex-wrap: wrap;
 }
-.adm-section__head h1 { font-size: 1.5rem; font-weight: 800; color: #fff; margin: 0; }
+.adm-section__head h1 { font-size: 1.5rem; font-weight: 800; color: #fff; margin: 0; margin-right: auto; }
+
+/* ── Search ─────────────────────────────────────────────────── */
+.adm-search {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px; padding: 0 4px 0 10px; min-width: 200px;
+  transition: border-color .2s;
+}
+.adm-search:focus-within { border-color: #667eea; }
+.adm-search__icon { font-size: .8rem; opacity: .5; flex-shrink: 0; }
+.adm-search__input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #fff; font-size: .88rem; padding: 8px 4px; min-width: 0;
+}
+.adm-search__input::placeholder { color: #4a5568; }
+.adm-search__clear {
+  background: none; border: none; color: #4a5568;
+  cursor: pointer; padding: 4px 6px; font-size: .75rem; border-radius: 4px;
+  flex-shrink: 0; transition: color .15s;
+}
+.adm-search__clear:hover { color: #fff; }
+
+/* ── Filter ──────────────────────────────────────────────────── */
+.adm-filter { display: flex; gap: 4px; flex-wrap: wrap; }
+.adm-filter__btn {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px; padding: 6px 11px; color: #718096;
+  font-size: .78rem; cursor: pointer; transition: all .15s; white-space: nowrap;
+  display: flex; align-items: center; gap: 5px;
+}
+.adm-filter__btn:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+.adm-filter__btn.active { background: rgba(102,126,234,.15); border-color: #667eea; color: #667eea; }
+.adm-filter__count {
+  background: rgba(255,255,255,.1); border-radius: 10px;
+  padding: 1px 6px; font-size: .7rem; min-width: 18px; text-align: center;
+}
+.adm-filter__btn.active .adm-filter__count { background: rgba(102,126,234,.3); }
 
 /* ── Stats ───────────────────────────────────────────────────── */
 .adm-stats {
@@ -466,6 +569,7 @@ onMounted(() => {
 /* ── Status badges ───────────────────────────────────────────── */
 .adm-status { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
 .adm-status--pending     { background: rgba(237,137,54,.15);  color: #ed8936; }
+.adm-status--confirmed   { background: rgba(246,173,85,.15);  color: #f6ad55; }
 .adm-status--in_progress { background: rgba(102,126,234,.15); color: #667eea; }
 .adm-status--completed   { background: rgba(72,187,120,.15);  color: #48bb78; }
 .adm-status--cancelled   { background: rgba(245,101,101,.15); color: #f56565; }
@@ -532,7 +636,12 @@ onMounted(() => {
 }
 .adm-btn--primary { background: #667eea; color: #fff; }
 .adm-btn--primary:hover { background: #5a67d8; transform: translateY(-1px); }
+.adm-btn--warning { background: #c05621; color: #fff; }
+.adm-btn--warning:hover { background: #9c4221; transform: translateY(-1px); }
+.adm-btn--success { background: #276749; color: #9ae6b4; }
+.adm-btn--success:hover { background: #22543d; transform: translateY(-1px); }
 .adm-btn--sm { padding: 6px 12px; font-size: 0.78rem; }
+.adm-cancelled { font-size: 0.75rem; color: #718096; }
 
 .adm-icon-btn {
   background: rgba(255,255,255,0.05); border: none;
@@ -571,7 +680,15 @@ onMounted(() => {
 .adm-modal__field { display: flex; flex-direction: column; gap: 4px; }
 .adm-modal__field--full { grid-column: 1/-1; }
 .adm-modal__field label { font-size: 0.72rem; color: #718096; text-transform: uppercase; letter-spacing: 0.08em; }
-.adm-modal__field span, .adm-modal__field p { color: #fff; font-size: 0.9rem; margin: 0; line-height: 1.5; }
+.adm-modal__field span, .adm-modal__field p {
+  color: #fff; font-size: 0.9rem; margin: 0; line-height: 1.5;
+  word-break: break-word; overflow-wrap: anywhere;
+}
+.adm-modal__field--full p {
+  max-height: 120px; overflow-y: auto;
+  background: rgba(255,255,255,0.03); border-radius: 6px;
+  padding: 8px 10px;
+}
 .adm-modal__actions { display: flex; justify-content: flex-end; }
 
 /* ── Misc ────────────────────────────────────────────────────── */

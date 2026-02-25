@@ -32,6 +32,7 @@ router.get('/dashboard', async (req, res, next) => {
         SELECT
           (SELECT COUNT(*) FROM orders) as total_orders,
           (SELECT COUNT(*) FROM orders WHERE status = 'pending') as pending_orders,
+          (SELECT COUNT(*) FROM orders WHERE status = 'confirmed') as confirmed_orders,
           (SELECT COUNT(*) FROM created_quests) as total_quests,
           (SELECT COUNT(*) FROM created_quests WHERE completed_count > 0) as completed_quests,
           (SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE status = 'completed') as total_revenue
@@ -85,6 +86,7 @@ router.get('/quests/:id', async (req, res, next) => {
     if (!result.rows.length) {
       return res.status(404).json({ success: false, message: 'Квест не найден' })
     }
+
     res.json({ success: true, data: result.rows[0] })
   } catch (error) {
     next(error)
@@ -96,7 +98,7 @@ router.post('/quests', [
   body('title').trim().notEmpty().withMessage('Название обязательно'),
   body('client_name').trim().notEmpty().withMessage('Имя клиента обязательно'),
   body('slug').trim().notEmpty().withMessage('Slug обязателен'),
-  body('blocks').isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
+  body('blocks').if(body('is_public').equals('true')).isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
   body('theme').optional().isIn(['detective', 'romantic', 'city', 'mystery'])
 ], async (req, res, next) => {
   const errors = validationResult(req)
@@ -109,31 +111,46 @@ router.post('/quests', [
       title, client_name, slug, theme = 'detective',
       final_message, blocks, access_code,
       order_id, template_id, is_public = false,
-      expires_at
+      expires_at, show_intro = true
     } = req.body
 
     // Проверка уникальности slug
     const exists = await pool.query(
-      'SELECT id FROM created_quests WHERE slug = $1', [slug]
+      'SELECT id, title FROM created_quests WHERE slug = $1', [slug]
     )
     if (exists.rows.length) {
-      return res.status(409).json({ success: false, message: 'Slug уже занят' })
+      return res.status(409).json({
+        success: false,
+        message: 'Slug уже занят',
+        existing_id: exists.rows[0].id
+      })
     }
 
     const result = await pool.query(`
       INSERT INTO created_quests
         (title, client_name, slug, theme, final_message, blocks,
-         access_code, order_id, template_id, is_public, expires_at, published_at)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, CASE WHEN $10 THEN NOW() ELSE NULL END)
+         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END)
       RETURNING *
     `, [
       title, client_name, slug, theme, final_message || null,
       JSON.stringify(blocks), access_code || null,
       order_id || null, template_id || null, is_public,
+      show_intro !== false,
       expires_at || null
     ])
 
-    res.status(201).json({ success: true, data: result.rows[0] })
+    const quest = result.rows[0]
+
+    // Обновляем статус заказа на in_progress если order_id указан
+    if (order_id) {
+      await pool.query(
+        "UPDATE orders SET status = 'in_progress', created_quest_id = $1, updated_at = NOW() WHERE id = $2",
+        [quest.id, order_id]
+      )
+    }
+
+    res.status(201).json({ success: true, data: quest })
   } catch (error) {
     next(error)
   }
@@ -143,7 +160,7 @@ router.post('/quests', [
 router.put('/quests/:id', [
   body('title').trim().notEmpty().withMessage('Название обязательно'),
   body('client_name').trim().notEmpty().withMessage('Имя клиента обязательно'),
-  body('blocks').isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
+  body('blocks').if(body('is_public').equals('true')).isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
 ], async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -153,7 +170,7 @@ router.put('/quests/:id', [
   try {
     const {
       title, client_name, theme, final_message,
-      blocks, access_code, is_public, expires_at
+      blocks, access_code, is_public, expires_at, show_intro
     } = req.body
 
     const result = await pool.query(`
@@ -166,14 +183,17 @@ router.put('/quests/:id', [
         access_code   = $6,
         is_public     = $7,
         expires_at    = $8,
+        show_intro    = $9,
         published_at  = CASE WHEN $7 AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at    = NOW()
-      WHERE id = $9
+      WHERE id = $10
       RETURNING *
     `, [
       title, client_name, theme || 'detective', final_message || null,
       JSON.stringify(blocks), access_code || null,
-      is_public, expires_at || null, req.params.id
+      is_public, expires_at || null,
+      show_intro !== false,
+      req.params.id
     ])
 
     if (!result.rows.length) {
@@ -199,9 +219,10 @@ router.delete('/quests/:id', async (req, res, next) => {
 router.get('/orders', async (req, res, next) => {
   try {
     const result = await pool.query(`
-      SELECT o.*, qt.title as template_title
+      SELECT o.*, qt.title as template_title, cq.slug as quest_slug
       FROM orders o
       LEFT JOIN quest_templates qt ON o.template_id = qt.id
+      LEFT JOIN created_quests cq ON o.created_quest_id = cq.id
       ORDER BY o.created_at DESC
     `)
     res.json({ success: true, data: result.rows })

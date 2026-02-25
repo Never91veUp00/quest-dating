@@ -81,7 +81,8 @@ apiClient.interceptors.response.use(
       return Promise.reject({
         status,
         message: data.message || 'Произошла ошибка',
-        errors: data.errors || {}
+        errors: data.errors || {},
+        existing_id: data.existing_id || null
       })
     } else if (error.request) {
       console.error('[API No Response]', error.request)
