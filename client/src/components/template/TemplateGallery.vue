@@ -60,6 +60,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { toAbsoluteUrl } from '@/utils/helpers'
 
 const props = defineProps({
   template: {
@@ -70,12 +71,24 @@ const props = defineProps({
 
 const currentIndex = ref(0)
 
+const toAbsolute = toAbsoluteUrl
+
 const images = computed(() => {
-  const allImages = [props.template.cover_image]
-  if (props.template.gallery && props.template.gallery.length > 0) {
-    allImages.push(...props.template.gallery)
+  const gallery = (props.template.gallery || []).map(toAbsolute).filter(Boolean)
+  const cover   = toAbsolute(props.template.cover_image)
+
+  if (!cover && !gallery.length) return []
+
+  // Дедупликация: собираем уникальные URL, cover первым
+  const seen = new Set()
+  const result = []
+  for (const url of [cover, ...gallery]) {
+    if (url && !seen.has(url)) {
+      seen.add(url)
+      result.push(url)
+    }
   }
-  return allImages
+  return result
 })
 
 const currentImage = computed(() => images.value[currentIndex.value])

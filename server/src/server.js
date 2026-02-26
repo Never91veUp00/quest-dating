@@ -38,7 +38,11 @@ app.use('/api', generalLimiter)
 app.use(sanitizeQuery)
 
 // Статические файлы (загруженные изображения)
-app.use('/uploads', express.static('uploads'))
+// Cross-Origin-Resource-Policy: cross-origin — разрешает загрузку с фронтенда на другом порту
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+  next()
+}, express.static('uploads'))
 
 // API Routes
 app.use('/api', apiRoutes)

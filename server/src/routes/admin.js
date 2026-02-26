@@ -4,6 +4,8 @@ import { requireAdmin } from '../middleware/auth.js'
 import pool from '../config/database.js'
 import { validationResult } from 'express-validator'
 
+import { upload, handleUploadError } from '../middleware/upload.js'
+
 const router = express.Router()
 
 // Все роуты — только для админа
@@ -230,6 +232,33 @@ router.get('/orders', async (req, res, next) => {
     next(error)
   }
 })
+
+
+// ─── POST /api/admin/upload/image (загрузка одного изображения) ───────────────
+router.post('/upload/image',
+  upload.single('image'),
+  handleUploadError,
+  (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Файл не загружен' })
+    }
+    const url = `/uploads/templates/${req.file.filename}`
+    res.json({ success: true, data: { url } })
+  }
+)
+
+// ─── POST /api/admin/upload/images (загрузка нескольких изображений) ──────────
+router.post('/upload/images',
+  upload.array('images', 20),
+  handleUploadError,
+  (req, res) => {
+    if (!req.files?.length) {
+      return res.status(400).json({ success: false, message: 'Файлы не загружены' })
+    }
+    const urls = req.files.map(f => `/uploads/templates/${f.filename}`)
+    res.json({ success: true, data: urls })
+  }
+)
 
 // ─── GET /api/admin/templates (для редактора квестов — только published) ──────
 router.get('/templates', async (req, res, next) => {

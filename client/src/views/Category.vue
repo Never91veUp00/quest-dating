@@ -211,7 +211,7 @@ const loadTemplates = async () => {
 
   try {
     const response = await questStore.fetchTemplates({
-      category: category.value.id
+      category: category.value.slug
     })
     templates.value = response.data
   } catch (err) {

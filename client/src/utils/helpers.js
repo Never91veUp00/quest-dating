@@ -352,3 +352,17 @@ export function capitalize(str) {
   if (!str) return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+/**
+ * Преобразует относительный URL загруженного файла в абсолютный с хостом бэкенда.
+ * /uploads/... → http://localhost:5000/uploads/...
+ * Полные http-ссылки возвращаются без изменений.
+ */
+const _API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+
+export function toAbsoluteUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  // Only prepend backend host for uploaded files; /images/ and /templates/ are frontend public assets
+  if (url.startsWith('/uploads/')) return _API_BASE + url
+  return url
+}

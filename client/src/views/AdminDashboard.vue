@@ -416,11 +416,68 @@
             <div class="adm-tform__hint">Каждая строка — отдельный пункт на карточке шаблона</div>
           </div>
 
-          <!-- Row 6: cover image -->
+          <!-- Row 6: gallery -->
           <div class="adm-tform__field">
-            <label>Обложка (URL изображения)</label>
-            <input v-model="tForm.cover_image" placeholder="https://..." class="adm-tform__input" />
-            <img v-if="tForm.cover_image" :src="tForm.cover_image" class="adm-tform__cover-preview" @error="e => e.target.style.display='none'" />
+            <label>Галерея изображений</label>
+
+            <!-- Drop zone -->
+            <div
+              class="adm-gallery-drop"
+              :class="{ 'adm-gallery-drop--over': galleryDragOver }"
+              @click="$refs.galleryInput.click()"
+              @dragover.prevent="galleryDragOver = true"
+              @dragleave="galleryDragOver = false"
+              @drop.prevent="onGalleryDrop"
+            >
+              <div class="adm-gallery-drop__icon">🖼️</div>
+              <div class="adm-gallery-drop__text">Перетащи фото сюда или нажми для выбора</div>
+              <div class="adm-gallery-drop__hint">JPG, PNG, WEBP · до 5 МБ каждый · можно несколько сразу</div>
+            </div>
+            <input
+              ref="galleryInput"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              style="display:none"
+              @change="onGalleryFileChange"
+            />
+
+            <!-- Upload progress -->
+            <div v-if="galleryUploading" class="adm-gallery-progress">
+              <div class="adm-gallery-progress__bar" :style="{ width: galleryUploadProgress + '%' }"></div>
+              <span>Загрузка {{ galleryUploadProgress }}%...</span>
+            </div>
+
+            <!-- Gallery grid -->
+            <div v-if="tForm.gallery.length" class="adm-gallery-grid">
+              <div
+                v-for="(img, idx) in tForm.gallery"
+                :key="img.url"
+                class="adm-gallery-item"
+                :class="{ 'adm-gallery-item--cover': img.url === tForm.cover_image }"
+                draggable="true"
+                @dragstart="galleryDragStart(idx)"
+                @dragover.prevent
+                @drop.prevent="galleryDragReorder(idx)"
+              >
+                <img :src="imgSrc(img.url)" class="adm-gallery-item__img" @error="e => e.target.src='/placeholder.jpg'" />
+                <div class="adm-gallery-item__overlay">
+                  <button
+                    class="adm-gallery-item__btn"
+                    :class="{ active: img.url === tForm.cover_image }"
+                    title="Сделать обложкой"
+                    @click.stop="setCover(img.url)"
+                  >⭐</button>
+                  <button
+                    class="adm-gallery-item__btn adm-gallery-item__btn--del"
+                    title="Удалить"
+                    @click.stop="removeGalleryItem(idx)"
+                  >✕</button>
+                </div>
+                <div v-if="img.url === tForm.cover_image" class="adm-gallery-item__cover-badge">Обложка</div>
+              </div>
+            </div>
+            <div v-if="tForm.gallery.length" class="adm-tform__hint">⭐ — установить как обложку · ✕ — удалить · перетащи для сортировки</div>
           </div>
         </div>
 
@@ -618,7 +675,7 @@ const emptyTForm = () => ({
   category_id: null, difficulty: 'medium',
   duration_minutes: 60, location_type: 'universal',
   base_price: 0, is_free: false, is_premium: false,
-  featuresText: '', cover_image: '', status: 'draft'
+  featuresText: '', cover_image: '', gallery: [], status: 'draft'
 })
 const tForm = ref(emptyTForm())
 
@@ -649,8 +706,7 @@ const filteredTemplates = computed(() => {
 })
 
 const loadTemplates = async () => {
-  if (templates.value.length) return
-  templatesLoading.value = true
+  if (templates.value.length) return  templatesLoading.value = true
   try {
     const [tRes, cRes] = await Promise.allSettled([
       apiClient.get('/admin/templates/all'),
@@ -671,6 +727,13 @@ const openTemplateForm = async (t) => {
   if (t) {
     editingTemplate.value = t
     const featuresArr = Array.isArray(t.features) ? t.features : (JSON.parse(t.features || '[]'))
+    const galleryRaw = Array.isArray(t.gallery) ? t.gallery : (JSON.parse(t.gallery || '[]'))
+    // Normalize: string → {url}, {url} → {url}, avoid double-wrapping
+    const galleryArr = galleryRaw.map(item => {
+      if (typeof item === 'string') return { url: item }
+      if (typeof item?.url === 'string') return { url: item.url }
+      return { url: '' }
+    }).filter(item => item.url)
     tForm.value = {
       title: t.title || '',
       tagline: t.tagline || '',
@@ -683,7 +746,8 @@ const openTemplateForm = async (t) => {
       is_free: t.is_free || false,
       is_premium: t.is_premium || false,
       featuresText: featuresArr.join('\n'),
-      cover_image: t.cover_image || '',
+      cover_image: t.cover_image || (galleryArr[0]?.url || ''),
+      gallery: galleryArr,
       status: t.status || 'draft'
     }
   } else {
@@ -710,18 +774,22 @@ const saveTemplate = async () => {
       ...tForm.value,
       features: tForm.value.featuresText.split('\n').map(s => s.trim()).filter(Boolean),
       base_price: tForm.value.is_free ? 0 : tForm.value.base_price,
+      gallery: tForm.value.gallery.map(item => item.url),
     }
     delete payload.featuresText
 
     let res
     if (editingTemplate.value) {
       res = await apiClient.put(`/admin/templates/${editingTemplate.value.id}`, payload)
-      const idx = templates.value.findIndex(t => t.id === editingTemplate.value.id)
-      if (idx !== -1) templates.value[idx] = { ...templates.value[idx], ...res.data }
+      // Reload full list to get fresh DB state (gallery as string[])
+      templates.value = []
+      await loadTemplates()
       showToast('Шаблон обновлён')
     } else {
       res = await apiClient.post('/admin/templates/create', payload)
-      templates.value.unshift(res.data)
+      // Reload to get fresh data with correct types
+      templates.value = []
+      await loadTemplates()
       showToast('Шаблон создан')
     }
     closeTemplateForm()
@@ -752,6 +820,95 @@ const deleteTemplate = async (t) => {
   } catch {
     showToast('Ошибка удаления')
   }
+}
+
+
+// ─── Gallery ──────────────────────────────────────────────────
+const galleryDragOver      = ref(false)
+const galleryUploading     = ref(false)
+const galleryUploadProgress = ref(0)
+let galleryDragSrcIdx      = -1
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+
+const imgSrc = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  // Relative path like /uploads/templates/... — prepend backend host
+  return API_BASE + url
+}
+
+const uploadFiles = async (files) => {
+  if (!files.length) return
+  galleryUploading.value = true
+  galleryUploadProgress.value = 0
+
+  try {
+    const formData = new FormData()
+    Array.from(files).forEach(f => formData.append('images', f))
+
+    // Simulate progress
+    const timer = setInterval(() => {
+      if (galleryUploadProgress.value < 85) galleryUploadProgress.value += 15
+    }, 200)
+
+    const res = await apiClient.post('/admin/upload/images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+
+    clearInterval(timer)
+    galleryUploadProgress.value = 100
+
+    // apiClient interceptor returns response.data directly → res = { success, data: [...urls] }
+    const urls = Array.isArray(res.data) ? res.data : (res.data ? [res.data.url] : [])
+    const newItems = urls.map(url => ({ url }))
+    tForm.value.gallery.push(...newItems)
+
+    // Auto-set first uploaded as cover if no cover yet
+    if (!tForm.value.cover_image && newItems.length) {
+      tForm.value.cover_image = newItems[0].url
+    }
+    showToast(`Загружено ${newItems.length} фото`)
+  } catch (e) {
+    showToast('Ошибка загрузки фото')
+  } finally {
+    galleryUploading.value = false
+    setTimeout(() => { galleryUploadProgress.value = 0 }, 600)
+  }
+}
+
+const onGalleryFileChange = (e) => {
+  const files = Array.from(e.target.files || []).filter(f =>
+    ['image/jpeg','image/png','image/webp'].includes(f.type) && f.size <= 5 * 1024 * 1024
+  )
+  if (files.length) uploadFiles(files)
+  e.target.value = ''
+}
+
+const onGalleryDrop = (e) => {
+  galleryDragOver.value = false
+  const files = Array.from(e.dataTransfer.files || []).filter(f =>
+    ['image/jpeg','image/png','image/webp'].includes(f.type) && f.size <= 5 * 1024 * 1024
+  )
+  if (files.length) uploadFiles(files)
+}
+
+const setCover = (url) => { tForm.value.cover_image = url }
+
+const removeGalleryItem = (idx) => {
+  const removed = tForm.value.gallery.splice(idx, 1)[0]
+  if (tForm.value.cover_image === removed.url) {
+    tForm.value.cover_image = tForm.value.gallery[0]?.url || ''
+  }
+}
+
+const galleryDragStart = (idx) => { galleryDragSrcIdx = idx }
+const galleryDragReorder = (targetIdx) => {
+  if (galleryDragSrcIdx === -1 || galleryDragSrcIdx === targetIdx) return
+  const arr = tForm.value.gallery
+  const [moved] = arr.splice(galleryDragSrcIdx, 1)
+  arr.splice(targetIdx, 0, moved)
+  galleryDragSrcIdx = -1
 }
 
 const difficultyLabel = (d) => DIFFICULTY_LABELS[d] || d
@@ -1082,6 +1239,93 @@ onMounted(() => {
 .adm-difficulty--medium { background: rgba(246,173,85,.12);  color: #f6ad55; }
 .adm-difficulty--hard   { background: rgba(252,129,74,.12);  color: #fc814a; }
 .adm-difficulty--expert { background: rgba(245,101,101,.12); color: #f56565; }
+
+/* ── Gallery ─────────────────────────────────────────────────── */
+.adm-gallery-drop {
+  border: 2px dashed rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.adm-gallery-drop:hover,
+.adm-gallery-drop--over {
+  border-color: #667eea;
+  background: rgba(102,126,234,0.06);
+}
+.adm-gallery-drop__icon { font-size: 2rem; line-height: 1; }
+.adm-gallery-drop__text { color: #c8d6ef; font-size: 0.88rem; font-weight: 500; }
+.adm-gallery-drop__hint { color: #4a5568; font-size: 0.75rem; }
+
+.adm-gallery-progress {
+  margin-top: 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  height: 28px;
+  position: relative;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.adm-gallery-progress__bar {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: rgba(102,126,234,0.35);
+  transition: width 0.2s;
+}
+.adm-gallery-progress span {
+  position: relative; z-index: 1;
+  font-size: 0.78rem; color: #a0aec0;
+}
+
+.adm-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.adm-gallery-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  border: 2px solid transparent;
+  cursor: grab;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.adm-gallery-item:hover { transform: scale(1.02); }
+.adm-gallery-item--cover { border-color: #f6ad55; }
+.adm-gallery-item__img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.adm-gallery-item__overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.55);
+  opacity: 0;
+  transition: opacity 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.adm-gallery-item:hover .adm-gallery-item__overlay { opacity: 1; }
+.adm-gallery-item__btn {
+  background: rgba(255,255,255,0.15);
+  border: none; border-radius: 6px;
+  width: 30px; height: 30px;
+  font-size: 0.85rem; cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.adm-gallery-item__btn:hover { background: rgba(255,255,255,0.3); }
+.adm-gallery-item__btn.active { background: rgba(246,173,85,0.6); }
+.adm-gallery-item__btn--del:hover { background: rgba(245,101,101,0.5); }
+.adm-gallery-item__cover-badge {
+  position: absolute; bottom: 4px; left: 0; right: 0;
+  text-align: center;
+  font-size: 0.62rem; font-weight: 700; color: #f6ad55;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 0;
+}
 
 /* ── Template form modal ─────────────────────────────────────── */
 .adm-modal--wide { max-width: 780px; max-height: 90vh; overflow-y: auto; }

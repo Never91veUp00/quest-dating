@@ -52,14 +52,24 @@
                 </button>
               </div>
               <div class="filters-tags">
-                <div
-                  v-for="(filter, index) in activeFilters"
-                  :key="index"
-                  class="filter-tag"
-                >
-                  <span>{{ filter.label }}: {{ formatFilterValue(filter) }}</span>
-                  <button @click="removeFilter(filter.name)" class="btn-remove">✕</button>
-                </div>
+                <template v-for="(filter, index) in activeFilters" :key="index">
+                  <!-- Теги разворачиваем в отдельные чипы -->
+                  <template v-if="filter.name === 'tags'">
+                    <div
+                      v-for="tagId in filter.value"
+                      :key="'tag-' + tagId"
+                      class="filter-tag"
+                    >
+                      <span>{{ getTagName(tagId) }}</span>
+                      <button @click="removeSingleTag(tagId)" class="btn-remove">✕</button>
+                    </div>
+                  </template>
+                  <!-- Все остальные фильтры — один чип -->
+                  <div v-else class="filter-tag">
+                    <span>{{ filter.label }}: {{ formatFilterValue(filter) }}</span>
+                    <button @click="removeFilter(filter.name)" class="btn-remove">✕</button>
+                  </div>
+                </template>
               </div>
             </div>
 
@@ -180,6 +190,15 @@ const formatFilterValue = (filter) => {
     return filter.value.length > 1 ? `${filter.value.length} выбрано` : filter.value[0]
   }
   return filter.value
+}
+
+const getTagName = (tagId) => {
+  const tag = popularTags.value.find(t => t.id === tagId)
+  return tag ? tag.name : `Тег #${tagId}`
+}
+
+const removeSingleTag = (tagId) => {
+  filters.value.tags = filters.value.tags.filter(id => id !== tagId)
 }
 
 const loadData = async () => {

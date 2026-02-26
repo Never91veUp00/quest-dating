@@ -24,7 +24,7 @@
           />
           <span class="option-icon">{{ category.icon }}</span>
           <span class="option-label">{{ category.name }}</span>
-          <span class="option-count">({{ category.templates_count }})</span>
+          <span v-if="Number(category.templates_count) > 0" class="option-count">({{ category.templates_count }})</span>
         </label>
       </div>
     </div>
@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import DifficultyBadge from './DifficultyBadge.vue'
 import TagBadge from './TagBadge.vue'
 
@@ -200,7 +200,7 @@ const locationTypes = [
   { value: 'universal', label: 'Универсальный' }
 ]
 
-const popularTags = ref(props.tags.slice(0, 10))
+const popularTags = computed(() => props.tags.slice(0, 10))
 
 const emitFilters = () => {
   emit('update:filters', { ...localFilters.value })

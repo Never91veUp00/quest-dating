@@ -28,7 +28,7 @@ export const getPopularTags = async (req, res, next) => {
       WHERE usage_count > 0
       ORDER BY usage_count DESC
       LIMIT $1
-    `, [limit])
+    `, [parseInt(limit)])
 
     res.json({
       success: true,

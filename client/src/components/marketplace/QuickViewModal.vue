@@ -5,7 +5,7 @@
       
       <div v-if="template" class="quick-view">
         <div class="quick-view__image">
-          <img :src="template.cover_image || '/images/placeholder.jpg'" :alt="template.title">
+          <img :src="toAbsoluteUrl(template.cover_image) || '/images/placeholder.jpg'" :alt="template.title">
         </div>
         
         <div class="quick-view__info">
@@ -34,6 +34,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { toAbsoluteUrl } from '@/utils/helpers'
 
 const props = defineProps({
   template: Object,

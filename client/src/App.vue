@@ -1,10 +1,10 @@
 <template>
   <div id="app" :class="{ 'mobile-menu-open': mobileMenuOpen }">
-    <!-- Header — скрываем на странице квеста -->
-    <Header v-if="!route.meta.hideNav" @toggle-mobile-menu="handleMobileMenuToggle" />
+    <!-- Header — скрываем на странице квеста и в админке -->
+    <Header v-if="!route.meta.hideNav && !route.path.startsWith('/admin')" @toggle-mobile-menu="handleMobileMenuToggle" />
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" :class="{ 'no-header-offset': route.meta.hideNav || route.path.startsWith('/admin') }">
       <router-view v-slot="{ Component }">
         <transition name="page" mode="out-in">
           <component :is="Component" />
@@ -13,7 +13,7 @@
     </main>
 
     <!-- Footer — скрываем на странице квеста -->
-    <Footer v-if="!route.meta.hideNav" />
+    <Footer v-if="!route.meta.hideNav && !route.path.startsWith('/admin')" />
 
     <!-- Scroll to Top Button — скрываем на странице квеста -->
     <transition name="fade">
@@ -157,6 +157,11 @@ body {
 .main-content {
   flex: 1;
   position: relative;
+  padding-top: 80px;
+}
+
+.main-content.no-header-offset {
+  padding-top: 0;
 }
 
 /* Mobile Menu Open State */

@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { questService } from '@/services/questService'
 import { getTheme, themeToCssVars } from '@/components/quest/themes.js'
@@ -203,8 +203,24 @@ const loadQuest = async (accessCode = null) => {
     const params = accessCode ? { access_code: accessCode } : {}
     const res = await questService.getBySlug(slug.value, params)
     questData.value = res.data ?? res
-    showIntro.value = questData.value.show_intro !== false
     requiresCode.value = false
+
+    // Восстанавливаем сохранённый прогресс
+    const saved = loadPersistedState()
+    if (saved && saved.started) {
+      blockIdx.value     = saved.blockIdx     ?? 0
+      completedIds.value = saved.completedIds ?? []
+      points.value       = saved.points       ?? 0
+      hintsUsed.value    = saved.hintsUsed    ?? 0
+      startTs.value      = saved.startTs      ?? Date.now()
+      started.value      = true
+      showIntro.value    = false
+      // Запускаем таймер с момента сохранения
+      ticker = setInterval(() => { nowTs.value = Date.now() }, 1000)
+      flash('🔄', 'Прогресс восстановлен', `Блок ${(saved.blockIdx ?? 0) + 1}`)
+    } else {
+      showIntro.value = questData.value.show_intro !== false
+    }
   } catch (err) {
     if (err.status === 403) {
       requiresCode.value = true
@@ -286,10 +302,50 @@ const finish = async () => {
   }
   isComplete.value = true
   started.value = false
+  clearPersistedState()
+}
+
+// ─── Persist to localStorage ─────────────────────────────────
+const STORAGE_KEY = computed(() => `quest_progress_${slug.value}`)
+
+const persistState = () => {
+  try {
+    localStorage.setItem(STORAGE_KEY.value, JSON.stringify({
+      blockIdx:     blockIdx.value,
+      completedIds: completedIds.value,
+      points:       points.value,
+      hintsUsed:    hintsUsed.value,
+      startTs:      startTs.value,
+      started:      started.value,
+      savedAt:      Date.now()
+    }))
+  } catch { /* приватный режим */ }
+}
+
+const loadPersistedState = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY.value)
+    if (!raw) return null
+    const state = JSON.parse(raw)
+    // Игнорируем сохранения старше 7 дней
+    if (Date.now() - state.savedAt > 7 * 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(STORAGE_KEY.value)
+      return null
+    }
+    return state
+  } catch { return null }
+}
+
+const clearPersistedState = () => {
+  try { localStorage.removeItem(STORAGE_KEY.value) } catch { }
 }
 
 // ─── Save progress ────────────────────────────────────────────
 const saveProgress = async () => {
+  // Всегда пишем в localStorage — мгновенно и надёжно
+  persistState()
+
+  // Дополнительно синхронизируем с сервером если есть сессия
   if (!sessionData.value) return
   try {
     await questService.updateProgress(sessionData.value.session_id, {
@@ -314,6 +370,12 @@ const share = () => {
   if (navigator.share) navigator.share({ title: 'Quest Dating', text, url: location.href })
   else navigator.clipboard?.writeText(text).then(() => flash('📋', 'Скопировано!', ''))
 }
+
+// ─── Auto-save watcher ───────────────────────────────────────
+// Сохраняем при каждом изменении состояния (навигация, выполнение задач и т.д.)
+watch([blockIdx, completedIds, points], () => {
+  if (started.value) persistState()
+}, { deep: true })
 
 // ─── Lifecycle ────────────────────────────────────────────────
 onMounted(() => loadQuest())

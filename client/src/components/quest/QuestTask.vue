@@ -30,7 +30,10 @@
 
         <!-- ════ SIMPLE — просто нажать ════ -->
         <template v-if="task.type === 'simple'">
-          <HintBlock :task="task" :theme="theme" @hint="$emit('hint', task)" />
+          <template v-if="task.hint">
+          <button v-if="!hintShown" class="task__hint-btn" @click="showHint">{{ theme.copy.hintBtn }}</button>
+          <div v-else class="task__hint">💡 {{ task.hint }}</div>
+        </template>
           <button class="task__action" @click="$emit('complete', task)">
             {{ theme.copy.taskDone }} ✓
           </button>
@@ -52,7 +55,10 @@
             <button class="task__ok" @click="submitAnswer" :disabled="!answerInput.trim()">OK</button>
           </div>
           <div v-if="isWrong" class="task__wrong">Не то, попробуй ещё раз 🤔</div>
-          <HintBlock :task="task" :theme="theme" @hint="$emit('hint', task)" />
+          <template v-if="task.hint">
+          <button v-if="!hintShown" class="task__hint-btn" @click="showHint">{{ theme.copy.hintBtn }}</button>
+          <div v-else class="task__hint">💡 {{ task.hint }}</div>
+        </template>
         </template>
 
         <!-- ════ CODE_PHYSICAL — собрать код с предметов ════ -->
@@ -78,7 +84,10 @@
             <button class="task__ok" @click="submitAnswer" :disabled="!answerInput.trim()">→</button>
           </div>
           <div v-if="isWrong" class="task__wrong">Неверный код, попробуй ещё</div>
-          <HintBlock :task="task" :theme="theme" @hint="$emit('hint', task)" />
+          <template v-if="task.hint">
+          <button v-if="!hintShown" class="task__hint-btn" @click="showHint">{{ theme.copy.hintBtn }}</button>
+          <div v-else class="task__hint">💡 {{ task.hint }}</div>
+        </template>
         </template>
 
         <!-- ════ LOCATION — прийти в место ════ -->
@@ -349,22 +358,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
-// ── Компонент подсказки ──────────────────────────────────────────
-const HintBlock = {
-  props: ['task', 'theme'],
-  emits: ['hint'],
-  setup(props, { emit }) {
-    const shown = ref(false)
-    return { shown, show: () => { shown.value = true; emit('hint', props.task) } }
-  },
-  template: `
-    <template v-if="task.hint">
-      <button v-if="!shown" class="task__hint-btn" @click="show">{{ theme.copy.hintBtn }}</button>
-      <div v-else class="task__hint">💡 {{ task.hint }}</div>
-    </template>
-  `
-}
-
 // ── Props / Emits ────────────────────────────────────────────────
 const props = defineProps({
   task:     { type: Object, required: true },
@@ -377,6 +370,9 @@ const props = defineProps({
 const emit = defineEmits(['complete', 'hint', 'answer-change'])
 
 // ── State ────────────────────────────────────────────────────────
+const hintShown    = ref(false)
+const showHint     = () => { hintShown.value = true; emit('hint', props.task) }
+
 const answerInput  = ref('')
 const isWrong      = ref(false)
 const photoPreview = ref(null)

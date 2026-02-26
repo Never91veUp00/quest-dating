@@ -3,7 +3,7 @@
     <!-- Изображение -->
     <div class="card-image">
       <img 
-        :src="template.cover_image || '/images/placeholder.jpg'" 
+        :src="toAbsoluteUrl(template.cover_image) || '/images/placeholder.jpg'" 
         :alt="template.title"
         loading="lazy"
       />
@@ -107,6 +107,7 @@ import TagBadge from './TagBadge.vue'
 import RatingStars from './RatingStars.vue'
 import PriceTag from './PriceTag.vue'
 import { formatDuration, formatNumber } from '@/utils/formatters'
+import { toAbsoluteUrl } from '@/utils/helpers'
 
 const props = defineProps({
   template: {
