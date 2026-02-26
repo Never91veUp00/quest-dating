@@ -211,6 +211,80 @@
         </div>
       </section>
 
+      <!-- ── Шаблоны ────────────────────────────── -->
+      <section v-if="activeTab === 'templates'" class="adm-section">
+        <div class="adm-section__head">
+          <h1>Шаблоны витрины</h1>
+          <div class="adm-search">
+            <span class="adm-search__icon">🔍</span>
+            <input v-model="templatesSearch" class="adm-search__input" placeholder="Поиск по названию..." @keyup.esc="templatesSearch = ''" />
+            <button v-if="templatesSearch" class="adm-search__clear" @click="templatesSearch = ''">✕</button>
+          </div>
+          <div class="adm-filter">
+            <button v-for="f in templateStatusFilters" :key="f.value" class="adm-filter__btn" :class="{ active: templateStatusFilter === f.value }" @click="templateStatusFilter = f.value">
+              {{ f.label }}<span v-if="f.count" class="adm-filter__count">{{ f.count }}</span>
+            </button>
+          </div>
+          <button class="adm-btn adm-btn--primary" @click="openTemplateForm(null)">+ Новый шаблон</button>
+        </div>
+
+        <div v-if="templatesLoading" class="adm-loading">Загрузка...</div>
+        <div v-else-if="!filteredTemplates.length" class="adm-empty-page">
+          <div class="adm-empty-page__icon">📦</div>
+          <div class="adm-empty-page__text">Шаблонов пока нет</div>
+          <button class="adm-btn adm-btn--primary" @click="openTemplateForm(null)">Создать первый шаблон</button>
+        </div>
+        <div v-else class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Сложность</th>
+                <th>Длительность</th>
+                <th>Цена</th>
+                <th>Статус</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="t in filteredTemplates" :key="t.id" class="adm-table__row" @click="openTemplateForm(t)">
+                <td class="adm-table__id">#{{ t.id }}</td>
+                <td>
+                  <div class="adm-table__name">{{ t.title }}</div>
+                  <div class="adm-table__sub">{{ t.tagline || '—' }}</div>
+                </td>
+                <td>{{ t.category_name || '—' }}</td>
+                <td><span class="adm-difficulty" :class="`adm-difficulty--${t.difficulty}`">{{ difficultyLabel(t.difficulty) }}</span></td>
+                <td>{{ t.duration_minutes }} мин</td>
+                <td class="adm-table__price">{{ t.is_free ? 'Бесплатно' : formatRub(t.base_price) }}</td>
+                <td>
+                  <span class="adm-tstatus" :class="`adm-tstatus--${t.status}`">{{ tStatusLabel(t.status) }}</span>
+                </td>
+                <td @click.stop>
+                  <div style="display:flex;gap:4px;">
+                    <button class="adm-icon-btn" title="Редактировать" @click="openTemplateForm(t)">✏️</button>
+                    <button
+                      v-if="t.status !== 'published'"
+                      class="adm-icon-btn" title="Опубликовать"
+                      @click="quickStatusChange(t, 'published')"
+                    >✅</button>
+                    <button
+                      v-else
+                      class="adm-icon-btn" title="Снять с публикации"
+                      @click="quickStatusChange(t, 'draft')"
+                    >⏸</button>
+                    <button class="adm-icon-btn adm-icon-btn--danger" title="Удалить" @click="deleteTemplate(t)">🗑</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
     </main>
 
     <!-- Toast -->
@@ -244,6 +318,127 @@
       </div>
     </div>
   </teleport>
+  <!-- Template form modal -->
+  <teleport to="body">
+    <div v-if="templateModal" class="adm-modal-overlay" @click.self="closeTemplateForm">
+      <div class="adm-modal adm-modal--wide">
+        <button class="adm-modal__close" @click="closeTemplateForm">✕</button>
+        <h2 class="adm-modal__title">{{ editingTemplate ? 'Редактировать шаблон' : 'Новый шаблон' }}</h2>
+
+        <div class="adm-tform">
+          <!-- Row 1: title + tagline -->
+          <div class="adm-tform__row adm-tform__row--2">
+            <div class="adm-tform__field adm-tform__field--span2">
+              <label>Название <span class="adm-tform__req">*</span></label>
+              <input v-model="tForm.title" placeholder="Городское приключение" class="adm-tform__input" />
+            </div>
+            <div class="adm-tform__field adm-tform__field--span2">
+              <label>Подзаголовок (tagline)</label>
+              <input v-model="tForm.tagline" placeholder="Откройте город с новой стороны" class="adm-tform__input" />
+            </div>
+          </div>
+
+          <!-- Row 2: description -->
+          <div class="adm-tform__field">
+            <label>Описание</label>
+            <textarea v-model="tForm.description" rows="3" placeholder="Полное описание квеста для страницы шаблона..." class="adm-tform__textarea"></textarea>
+          </div>
+
+          <!-- Row 3: meta -->
+          <div class="adm-tform__row adm-tform__row--4">
+            <div class="adm-tform__field">
+              <label>Категория</label>
+              <select v-model="tForm.category_id" class="adm-tform__select">
+                <option :value="null">— Без категории —</option>
+                <option v-for="c in adminCategories" :key="c.id" :value="c.id">{{ c.icon }} {{ c.name }}</option>
+              </select>
+            </div>
+            <div class="adm-tform__field">
+              <label>Сложность <span class="adm-tform__req">*</span></label>
+              <select v-model="tForm.difficulty" class="adm-tform__select">
+                <option value="easy">Лёгкий</option>
+                <option value="medium">Средний</option>
+                <option value="hard">Сложный</option>
+                <option value="expert">Эксперт</option>
+              </select>
+            </div>
+            <div class="adm-tform__field">
+              <label>Длительность (мин) <span class="adm-tform__req">*</span></label>
+              <input v-model.number="tForm.duration_minutes" type="number" min="10" step="15" class="adm-tform__input" />
+            </div>
+            <div class="adm-tform__field">
+              <label>Тип локации</label>
+              <select v-model="tForm.location_type" class="adm-tform__select">
+                <option value="universal">Универсальный</option>
+                <option value="city">Город</option>
+                <option value="indoor">В помещении</option>
+                <option value="park">Парк/природа</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 4: price -->
+          <div class="adm-tform__row adm-tform__row--3">
+            <div class="adm-tform__field">
+              <label>Цена (₽) <span class="adm-tform__req">*</span></label>
+              <input v-model.number="tForm.base_price" type="number" min="0" step="100" class="adm-tform__input" :disabled="tForm.is_free" />
+            </div>
+            <div class="adm-tform__field adm-tform__field--checkbox">
+              <label class="adm-tform__check-label">
+                <input type="checkbox" v-model="tForm.is_free" />
+                <span>Бесплатный</span>
+              </label>
+              <label class="adm-tform__check-label">
+                <input type="checkbox" v-model="tForm.is_premium" />
+                <span>Премиум</span>
+              </label>
+            </div>
+            <div class="adm-tform__field">
+              <label>Статус публикации</label>
+              <select v-model="tForm.status" class="adm-tform__select">
+                <option value="draft">Черновик</option>
+                <option value="published">Опубликован</option>
+                <option value="archived">Архив</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 5: features -->
+          <div class="adm-tform__field">
+            <label>Особенности (по одной на строку)</label>
+            <textarea
+              :value="tForm.featuresText"
+              @input="tForm.featuresText = $event.target.value"
+              rows="4"
+              placeholder="Прогулка по историческому центру&#10;Загадки на основе архитектуры&#10;Финальная локация с видом на реку"
+              class="adm-tform__textarea"
+            ></textarea>
+            <div class="adm-tform__hint">Каждая строка — отдельный пункт на карточке шаблона</div>
+          </div>
+
+          <!-- Row 6: cover image -->
+          <div class="adm-tform__field">
+            <label>Обложка (URL изображения)</label>
+            <input v-model="tForm.cover_image" placeholder="https://..." class="adm-tform__input" />
+            <img v-if="tForm.cover_image" :src="tForm.cover_image" class="adm-tform__cover-preview" @error="e => e.target.style.display='none'" />
+          </div>
+        </div>
+
+        <div v-if="tFormError" class="adm-tform__error">{{ tFormError }}</div>
+
+        <div class="adm-modal__actions" style="justify-content:space-between;">
+          <button v-if="editingTemplate" class="adm-btn adm-btn--danger" @click="deleteTemplate(editingTemplate); closeTemplateForm()">🗑 Удалить</button>
+          <div style="display:flex;gap:8px;margin-left:auto;">
+            <button class="adm-btn" style="background:rgba(255,255,255,.06);color:#aaa;" @click="closeTemplateForm">Отмена</button>
+            <button class="adm-btn adm-btn--primary" :disabled="tFormSaving" @click="saveTemplate">
+              {{ tFormSaving ? 'Сохраняем...' : (editingTemplate ? 'Сохранить' : 'Создать') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </teleport>
+
 </div>
 </template>
 
@@ -261,6 +456,7 @@ const tabs = [
   { id: 'dashboard', icon: '📊', label: 'Дашборд' },
   { id: 'orders',    icon: '📋', label: 'Заказы' },
   { id: 'quests',    icon: '🗺️', label: 'Квесты' },
+  { id: 'templates',  icon: '📦', label: 'Шаблоны' },
 ]
 
 // ─── State ────────────────────────────────────────────────────
@@ -350,6 +546,7 @@ const loadQuests = async () => {
 const watchTab = (tab) => {
   if (tab === 'orders')    loadOrders()
   if (tab === 'quests')    loadQuests()
+  if (tab === 'templates') loadTemplates()
 }
 
 // ─── Actions ──────────────────────────────────────────────────
@@ -403,6 +600,162 @@ const formatRub = (v) => v ? `${Math.round(Number(v) / 100).toLocaleString('ru')
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('ru', { day: 'numeric', month: 'short' }) : '—'
 const statusLabel = (s) => ({ pending: 'Новый', confirmed: 'Подтверждён', in_progress: 'В работе', completed: 'Выполнен', cancelled: 'Отменён' }[s] || s)
 const themeIcon   = (t) => ({ detective: '🕵️', romantic: '❤️', city: '🏙️', mystery: '🔮' }[t] || '🕵️')
+
+
+// ─── Templates ────────────────────────────────────────────────
+const templatesLoading   = ref(false)
+const templates          = ref([])
+const adminCategories    = ref([])
+const templatesSearch    = ref('')
+const templateStatusFilter = ref('all')
+const templateModal      = ref(false)
+const editingTemplate    = ref(null)
+const tFormSaving        = ref(false)
+const tFormError         = ref('')
+
+const emptyTForm = () => ({
+  title: '', tagline: '', description: '',
+  category_id: null, difficulty: 'medium',
+  duration_minutes: 60, location_type: 'universal',
+  base_price: 0, is_free: false, is_premium: false,
+  featuresText: '', cover_image: '', status: 'draft'
+})
+const tForm = ref(emptyTForm())
+
+const TEMPLATE_STATUS_LABELS = { all: 'Все', draft: 'Черновики', published: 'Опубликованы', archived: 'Архив' }
+const DIFFICULTY_LABELS = { easy: 'Лёгкий', medium: 'Средний', hard: 'Сложный', expert: 'Эксперт' }
+
+const templateStatusFilters = computed(() => {
+  const counts = {}
+  templates.value.forEach(t => { counts[t.status] = (counts[t.status] || 0) + 1 })
+  return Object.entries(TEMPLATE_STATUS_LABELS).map(([value, label]) => ({
+    value, label,
+    count: value === 'all' ? templates.value.length : (counts[value] || 0)
+  }))
+})
+
+const filteredTemplates = computed(() => {
+  let list = templates.value
+  if (templateStatusFilter.value !== 'all') {
+    list = list.filter(t => t.status === templateStatusFilter.value)
+  }
+  const q = templatesSearch.value.trim().toLowerCase()
+  if (!q) return list
+  return list.filter(t =>
+    t.title?.toLowerCase().includes(q) ||
+    t.tagline?.toLowerCase().includes(q) ||
+    t.category_name?.toLowerCase().includes(q)
+  )
+})
+
+const loadTemplates = async () => {
+  if (templates.value.length) return
+  templatesLoading.value = true
+  try {
+    const [tRes, cRes] = await Promise.allSettled([
+      apiClient.get('/admin/templates/all'),
+      apiClient.get('/admin/categories')
+    ])
+    if (tRes.status === 'fulfilled') templates.value = tRes.value.data
+    if (cRes.status === 'fulfilled') adminCategories.value = cRes.value.data
+  } finally {
+    templatesLoading.value = false
+  }
+}
+
+const openTemplateForm = async (t) => {
+  tFormError.value = ''
+  if (!adminCategories.value.length) {
+    try { const r = await apiClient.get('/admin/categories'); adminCategories.value = r.data } catch {}
+  }
+  if (t) {
+    editingTemplate.value = t
+    const featuresArr = Array.isArray(t.features) ? t.features : (JSON.parse(t.features || '[]'))
+    tForm.value = {
+      title: t.title || '',
+      tagline: t.tagline || '',
+      description: t.description || '',
+      category_id: t.category_id || null,
+      difficulty: t.difficulty || 'medium',
+      duration_minutes: t.duration_minutes || 60,
+      location_type: t.location_type || 'universal',
+      base_price: t.is_free ? 0 : Math.round(Number(t.base_price) / 100),
+      is_free: t.is_free || false,
+      is_premium: t.is_premium || false,
+      featuresText: featuresArr.join('\n'),
+      cover_image: t.cover_image || '',
+      status: t.status || 'draft'
+    }
+  } else {
+    editingTemplate.value = null
+    tForm.value = emptyTForm()
+  }
+  templateModal.value = true
+}
+
+const closeTemplateForm = () => {
+  templateModal.value = false
+  editingTemplate.value = null
+  tFormError.value = ''
+}
+
+const saveTemplate = async () => {
+  tFormError.value = ''
+  if (!tForm.value.title.trim()) { tFormError.value = 'Укажите название'; return }
+  if (!tForm.value.duration_minutes || tForm.value.duration_minutes < 10) { tFormError.value = 'Укажите длительность (мин. 10)'; return }
+
+  tFormSaving.value = true
+  try {
+    const payload = {
+      ...tForm.value,
+      features: tForm.value.featuresText.split('\n').map(s => s.trim()).filter(Boolean),
+      base_price: tForm.value.is_free ? 0 : tForm.value.base_price,
+    }
+    delete payload.featuresText
+
+    let res
+    if (editingTemplate.value) {
+      res = await apiClient.put(`/admin/templates/${editingTemplate.value.id}`, payload)
+      const idx = templates.value.findIndex(t => t.id === editingTemplate.value.id)
+      if (idx !== -1) templates.value[idx] = { ...templates.value[idx], ...res.data }
+      showToast('Шаблон обновлён')
+    } else {
+      res = await apiClient.post('/admin/templates/create', payload)
+      templates.value.unshift(res.data)
+      showToast('Шаблон создан')
+    }
+    closeTemplateForm()
+  } catch (e) {
+    const msgs = e.response?.data?.errors?.map(x => x.msg).join(', ')
+    tFormError.value = msgs || e.response?.data?.message || 'Ошибка сохранения'
+  } finally {
+    tFormSaving.value = false
+  }
+}
+
+const quickStatusChange = async (t, status) => {
+  try {
+    await apiClient.patch(`/admin/templates/${t.id}/status`, { status })
+    t.status = status
+    showToast(status === 'published' ? 'Шаблон опубликован' : 'Шаблон снят с публикации')
+  } catch {
+    showToast('Ошибка смены статуса')
+  }
+}
+
+const deleteTemplate = async (t) => {
+  if (!confirm(`Удалить шаблон «${t.title}»? Это действие нельзя отменить.`)) return
+  try {
+    await apiClient.delete(`/admin/templates/${t.id}`)
+    templates.value = templates.value.filter(x => x.id !== t.id)
+    showToast('Шаблон удалён')
+  } catch {
+    showToast('Ошибка удаления')
+  }
+}
+
+const difficultyLabel = (d) => DIFFICULTY_LABELS[d] || d
+const tStatusLabel    = (s) => ({ draft: 'Черновик', published: 'Опубликован', archived: 'Архив' }[s] || s)
 
 // ─── Watch tab changes ────────────────────────────────────────
 import { watch } from 'vue'
@@ -717,4 +1070,68 @@ onMounted(() => {
   .adm-sidebar { display: none; }
   .adm-section { padding: 20px; }
 }
+/* ── Template status badges ──────────────────────────────────── */
+.adm-tstatus { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+.adm-tstatus--draft     { background: rgba(113,128,150,.15); color: #718096; }
+.adm-tstatus--published { background: rgba(72,187,120,.15);  color: #48bb78; }
+.adm-tstatus--archived  { background: rgba(245,101,101,.15); color: #f56565; }
+
+/* ── Difficulty badges ───────────────────────────────────────── */
+.adm-difficulty { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+.adm-difficulty--easy   { background: rgba(72,187,120,.12); color: #68d391; }
+.adm-difficulty--medium { background: rgba(246,173,85,.12);  color: #f6ad55; }
+.adm-difficulty--hard   { background: rgba(252,129,74,.12);  color: #fc814a; }
+.adm-difficulty--expert { background: rgba(245,101,101,.12); color: #f56565; }
+
+/* ── Template form modal ─────────────────────────────────────── */
+.adm-modal--wide { max-width: 780px; max-height: 90vh; overflow-y: auto; }
+
+.adm-tform { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.adm-tform__row { display: grid; gap: 12px; }
+.adm-tform__row--2 { grid-template-columns: 1fr 1fr; }
+.adm-tform__row--3 { grid-template-columns: 1fr 1fr 1fr; }
+.adm-tform__row--4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.adm-tform__field { display: flex; flex-direction: column; gap: 6px; }
+.adm-tform__field--span2 { grid-column: 1 / -1; }
+.adm-tform__field--checkbox { flex-direction: row; align-items: center; gap: 16px; padding-top: 24px; }
+.adm-tform__field label:not(.adm-tform__check-label) {
+  font-size: 0.72rem; font-weight: 700; color: #718096;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.adm-tform__req { color: #fc8181; }
+.adm-tform__input, .adm-tform__textarea, .adm-tform__select {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 9px 12px; color: #fff; font-size: 0.88rem;
+  transition: border-color 0.2s; font-family: inherit;
+}
+.adm-tform__input:focus, .adm-tform__textarea:focus, .adm-tform__select:focus {
+  outline: none; border-color: #667eea;
+}
+.adm-tform__input:disabled { opacity: 0.4; cursor: not-allowed; }
+.adm-tform__select option { background: #1a1f2e; }
+.adm-tform__textarea { resize: vertical; min-height: 72px; }
+.adm-tform__hint { font-size: 0.72rem; color: #4a5568; }
+.adm-tform__check-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.88rem; color: #c8d6ef; cursor: pointer;
+}
+.adm-tform__check-label input { accent-color: #667eea; }
+.adm-tform__cover-preview {
+  margin-top: 8px; max-height: 120px; border-radius: 8px;
+  object-fit: cover; border: 1px solid rgba(255,255,255,0.08);
+}
+.adm-tform__error {
+  background: rgba(245,101,101,0.1); border: 1px solid rgba(245,101,101,0.3);
+  border-radius: 8px; padding: 10px 14px; color: #fc8181;
+  font-size: 0.85rem; margin-bottom: 16px;
+}
+.adm-btn--danger { background: rgba(245,101,101,0.15); color: #fc8181; border: 1px solid rgba(245,101,101,0.3); }
+.adm-btn--danger:hover { background: rgba(245,101,101,0.25); }
+
+@media (max-width: 900px) {
+  .adm-tform__row--4 { grid-template-columns: 1fr 1fr; }
+  .adm-tform__row--3 { grid-template-columns: 1fr 1fr; }
+  .adm-tform__row--2 { grid-template-columns: 1fr; }
+}
+
 </style>

@@ -231,7 +231,7 @@ router.get('/orders', async (req, res, next) => {
   }
 })
 
-// ─── GET /api/admin/templates (для выбора шаблона в редакторе)
+// ─── GET /api/admin/templates (для редактора квестов — только published) ──────
 router.get('/templates', async (req, res, next) => {
   try {
     const result = await pool.query(`
@@ -240,6 +240,216 @@ router.get('/templates', async (req, res, next) => {
       WHERE status = 'published'
       ORDER BY title
     `)
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── GET /api/admin/templates/all (все шаблоны для управления витриной) ──────
+router.get('/templates/all', async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        qt.*,
+        c.name as category_name,
+        c.slug as category_slug
+      FROM quest_templates qt
+      LEFT JOIN categories c ON qt.category_id = c.id
+      ORDER BY qt.created_at DESC
+    `)
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── POST /api/admin/templates/create (создать шаблон) ───────────────────────
+router.post('/templates/create', [
+  body('title').trim().notEmpty().withMessage('Название обязательно'),
+  body('difficulty').isIn(['easy', 'medium', 'hard', 'expert']).withMessage('Некорректная сложность'),
+  body('duration_minutes').isInt({ min: 10 }).withMessage('Укажите длительность'),
+  body('base_price').isInt({ min: 0 }).withMessage('Некорректная цена'),
+], async (req, res, next) => {
+  const vErrors = validationResult(req)
+  if (!vErrors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: vErrors.array() })
+  }
+  try {
+    const {
+      title, tagline, description, category_id,
+      difficulty, duration_minutes, location_type = 'universal',
+      base_price, is_free = false, is_premium = false,
+      features, cover_image, gallery, status = 'draft'
+    } = req.body
+
+    const baseSlug = title.toLowerCase()
+      .replace(/[а-яё]/g, c => ({ а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'yo',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya' }[c] || c))
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+    let slug = baseSlug
+    let counter = 1
+    while (true) {
+      const exists = await pool.query('SELECT id FROM quest_templates WHERE slug = $1', [slug])
+      if (!exists.rows.length) break
+      slug = `${baseSlug}-${counter++}`
+    }
+
+    const result = await pool.query(`
+      INSERT INTO quest_templates (
+        title, slug, tagline, description, category_id,
+        difficulty, duration_minutes, location_type,
+        base_price, is_free, is_premium,
+        features, cover_image, gallery, status,
+        published_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
+        CASE WHEN $15 = 'published' THEN NOW() ELSE NULL END)
+      RETURNING *
+    `, [
+      title, slug, tagline || null, description || null,
+      category_id || null, difficulty, parseInt(duration_minutes),
+      location_type, parseInt(base_price) * 100,
+      is_free, is_premium,
+      JSON.stringify(features || []),
+      cover_image || null,
+      JSON.stringify(gallery || []),
+      status
+    ])
+    res.status(201).json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── GET /api/admin/templates/:id (один шаблон для редактирования) ────────────
+router.get('/templates/:id', async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `SELECT qt.*, c.name as category_name
+       FROM quest_templates qt
+       LEFT JOIN categories c ON qt.category_id = c.id
+       WHERE qt.id = $1`,
+      [req.params.id]
+    )
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: 'Шаблон не найден' })
+    }
+    res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── PUT /api/admin/templates/:id (обновить шаблон) ──────────────────────────
+router.put('/templates/:id', [
+  body('title').trim().notEmpty().withMessage('Название обязательно'),
+  body('difficulty').isIn(['easy', 'medium', 'hard', 'expert']).withMessage('Некорректная сложность'),
+  body('duration_minutes').isInt({ min: 10 }).withMessage('Укажите длительность'),
+  body('base_price').isInt({ min: 0 }).withMessage('Некорректная цена'),
+], async (req, res, next) => {
+  const vErrors = validationResult(req)
+  if (!vErrors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: vErrors.array() })
+  }
+  try {
+    const {
+      title, tagline, description, category_id,
+      difficulty, duration_minutes, location_type,
+      base_price, is_free, is_premium,
+      features, cover_image, gallery, status
+    } = req.body
+
+    const existingRes = await pool.query('SELECT status FROM quest_templates WHERE id = $1', [req.params.id])
+    if (!existingRes.rows.length) {
+      return res.status(404).json({ success: false, message: 'Шаблон не найден' })
+    }
+    const becomesPublished = status === 'published' && existingRes.rows[0].status !== 'published'
+
+    const result = await pool.query(`
+      UPDATE quest_templates SET
+        title            = $1,
+        tagline          = $2,
+        description      = $3,
+        category_id      = $4,
+        difficulty       = $5,
+        duration_minutes = $6,
+        location_type    = $7,
+        base_price       = $8,
+        is_free          = $9,
+        is_premium       = $10,
+        features         = $11,
+        cover_image      = $12,
+        gallery          = $13,
+        status           = $14,
+        published_at     = CASE WHEN $15 THEN NOW() ELSE published_at END,
+        updated_at       = NOW()
+      WHERE id = $16
+      RETURNING *
+    `, [
+      title, tagline || null, description || null,
+      category_id || null, difficulty, parseInt(duration_minutes),
+      location_type || 'universal', parseInt(base_price) * 100,
+      is_free || false, is_premium || false,
+      JSON.stringify(features || []),
+      cover_image || null,
+      JSON.stringify(gallery || []),
+      status || 'draft',
+      becomesPublished,
+      req.params.id
+    ])
+    res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── PATCH /api/admin/templates/:id/status (быстрая смена статуса) ────────────
+router.patch('/templates/:id/status', [
+  body('status').isIn(['draft', 'published', 'archived']).withMessage('Некорректный статус'),
+], async (req, res, next) => {
+  const vErrors = validationResult(req)
+  if (!vErrors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: vErrors.array() })
+  }
+  try {
+    const { status } = req.body
+    const result = await pool.query(`
+      UPDATE quest_templates SET
+        status       = $1,
+        published_at = CASE WHEN $1 = 'published' AND published_at IS NULL THEN NOW() ELSE published_at END,
+        updated_at   = NOW()
+      WHERE id = $2
+      RETURNING id, title, status
+    `, [status, req.params.id])
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: 'Шаблон не найден' })
+    }
+    res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── DELETE /api/admin/templates/:id (удалить шаблон) ────────────────────────
+router.delete('/templates/:id', async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM quest_templates WHERE id = $1 RETURNING id, title',
+      [req.params.id]
+    )
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: 'Шаблон не найден' })
+    }
+    res.json({ success: true, message: 'Шаблон удалён' })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── GET /api/admin/categories (для селекта категорий в форме) ────────────────
+router.get('/categories', async (req, res, next) => {
+  try {
+    const result = await pool.query('SELECT id, name, slug, icon FROM categories ORDER BY position, name')
     res.json({ success: true, data: result.rows })
   } catch (error) {
     next(error)
