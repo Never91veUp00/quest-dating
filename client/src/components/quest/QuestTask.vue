@@ -342,6 +342,11 @@
                   <template v-else>👇 Тапни куда поставить выбранный кусок</template>
                 </div>
 
+                <!-- Неявная кнопка пропуска -->
+                <button v-if="!puzzleComplete" class="task__puzzle__skip" @click="emit('skip-task', task)">
+                  Не получается? Пропустить
+                </button>
+
                 <div v-if="puzzleComplete" class="task__quiz-result task__quiz-result--right">🎉 Пазл собран!</div>
                 <button v-if="puzzleComplete" class="task__action" @click="$emit('complete', task)">Продолжаем →</button>
               </template>
@@ -367,7 +372,7 @@ const props = defineProps({
   isActive: { type: Boolean, default: false },
   isLocked: { type: Boolean, default: false },
 })
-const emit = defineEmits(['complete', 'hint', 'answer-change'])
+const emit = defineEmits(['complete', 'hint', 'answer-change', 'skip-task'])
 
 // ── State ────────────────────────────────────────────────────────
 const hintShown    = ref(false)
@@ -897,5 +902,35 @@ const youtubeEmbed = computed(() => {
 .task__puzzle__tip {
   text-align: center; font-size: .78rem; color: var(--dim);
   padding: 4px; min-height: 1.4em;
+}
+
+/* Неявная кнопка пропуска — специально тусклая и маленькая */
+.task__puzzle__skip {
+  display: block; margin: 8px auto 0; background: none; border: none;
+  color: var(--dim); font-size: .68rem; cursor: pointer;
+  opacity: .4; transition: opacity .3s; padding: 6px 12px;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.task__puzzle__skip:hover { opacity: .7; }
+
+/* ── Mobile improvements ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .task { padding: 14px 12px; gap: 10px; }
+  .task__dot { width: 24px; height: 24px; font-size: .65rem; }
+  .task__title { font-size: .9rem; }
+  .task__desc { font-size: .82rem; }
+  .task__action { padding: 13px; font-size: .88rem; min-height: 48px; }
+  .task__ok { min-height: 48px; padding: 0 16px; }
+  .task__input { padding: 12px; font-size: .88rem; min-height: 48px; }
+  .task__textarea { font-size: .88rem; }
+  .task__quiz-options { grid-template-columns: 1fr; gap: 8px; }
+  .task__quiz-opt { padding: 14px; min-height: 48px; }
+  .task__pairs { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .task__photo-zone { padding: 20px 16px; }
+  .task__hint-btn { padding: 10px 12px; }
+  .task__puzzle__board { gap: 1px; }
+  .task__selfie-condition { padding: 10px 12px; font-size: .88rem; }
+  .task__location-card { padding: 12px; }
+  .task__media__tg-link { padding: 14px; }
 }
 </style>

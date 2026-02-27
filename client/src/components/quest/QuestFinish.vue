@@ -45,6 +45,11 @@
       <button class="finish__share" @click="$emit('share')">
         {{ theme.copy.shareBtn }}
       </button>
+
+      <!-- Кнопка начать сначала -->
+      <button class="finish__restart" @click="$emit('restart')">
+        🔄 Пройти ещё раз
+      </button>
     </div>
   </div>
 </template>
@@ -60,7 +65,7 @@ const props = defineProps({
   elapsed:        { type: String, default: '0:00' },
 })
 
-defineEmits(['share'])
+defineEmits(['share', 'restart'])
 
 const trophyIcon = computed(() => ({
   detective: '🗂️',
@@ -177,4 +182,24 @@ const particle = (n) => ({
   font-weight: 600; cursor: pointer; transition: all .25s; letter-spacing: .03em;
 }
 .finish__share:hover { border-color: var(--text); color: var(--text); }
+
+.finish__restart {
+  background: transparent; border: 1px dashed var(--bord);
+  border-radius: 9px; padding: 10px 20px;
+  color: var(--dim); font-family: var(--font-b); font-size: .8rem;
+  cursor: pointer; transition: all .25s; opacity: .6;
+}
+.finish__restart:hover { opacity: 1; border-color: var(--dim); color: var(--text); }
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .finish { padding: 24px 16px; }
+  .finish__trophy { font-size: 4rem; }
+  .finish__title { font-size: clamp(1rem, 5vw, 1.5rem); }
+  .finish__grid { grid-template-columns: repeat(3, 1fr); }
+  .finish__n { font-size: 1.2rem; }
+  .finish__message { padding: 14px 16px; }
+  .finish__message-text { font-size: .88rem; }
+  .finish__share { padding: 14px 20px; min-height: 48px; }
+}
 </style>

@@ -41,6 +41,10 @@ export const useQuestStore = defineStore('quest', {
 
     // UI State — раздельные загрузки чтобы не перетирать друг друга
     loadingTemplates: false,
+    loadingPopular: false,
+    loadingFeatured: false,
+    loadingNewest: false,
+    loadingCurrentTemplate: false,
     loadingCategories: false,
     loadingTags: false,
     loadingOrder: false,
@@ -63,9 +67,20 @@ export const useQuestStore = defineStore('quest', {
     filteredTemplates: (state) => {
       let filtered = [...state.templates]
 
-      // Category filter
+      // Category filter — supports both numeric ID and string slug
       if (state.filters.category) {
-        filtered = filtered.filter(t => t.category_id === state.filters.category)
+        const catFilter = state.filters.category
+        if (typeof catFilter === 'number') {
+          filtered = filtered.filter(t => t.category_id === catFilter)
+        } else {
+          // slug — ищем по категории
+          const cat = state.categories.find(
+            c => c.slug === catFilter || c.name?.toLowerCase() === catFilter.toLowerCase()
+          )
+          if (cat) {
+            filtered = filtered.filter(t => t.category_id === cat.id)
+          }
+        }
       }
 
       // Tags filter
@@ -207,7 +222,7 @@ export const useQuestStore = defineStore('quest', {
     },
 
     async fetchPopularTemplates(limit = 6) {
-      this.loadingTemplates = true
+      this.loadingPopular = true
       this.error = null
 
       try {
@@ -227,7 +242,7 @@ export const useQuestStore = defineStore('quest', {
     },
 
     async fetchFeaturedTemplates(limit = 6) {
-      this.loadingTemplates = true
+      this.loadingFeatured = true
       this.error = null
 
       try {
@@ -247,7 +262,7 @@ export const useQuestStore = defineStore('quest', {
     },
 
     async fetchNewestTemplates(limit = 6) {
-      this.loadingTemplates = true
+      this.loadingNewest = true
       this.error = null
 
       try {
@@ -271,7 +286,7 @@ export const useQuestStore = defineStore('quest', {
     },
 
     async fetchTemplate(slug) {
-      this.loadingTemplates = true
+      this.loadingCurrentTemplate = true
       this.error = null
 
       try {

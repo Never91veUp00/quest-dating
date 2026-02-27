@@ -22,7 +22,7 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected database error:', err)
-  process.exit(-1)
+  // Пул pg автоматически переподключается — не убиваем процесс
 })
 
 // Тестовое подключение

@@ -5,6 +5,11 @@ export const questService = {
     return await apiClient.get(`/quests/${slug}`, { params })
   },
 
+  // Отправить код доступа через POST (безопаснее)
+  async submitAccessCode(slug, accessCode) {
+    return await apiClient.post(`/quests/${slug}/access`, { access_code: accessCode })
+  },
+
   async createSession(questId, sessionData = {}) {
     return await apiClient.post(`/quests/${questId}/session`, sessionData)
   },
@@ -15,6 +20,10 @@ export const questService = {
 
   async completeQuest(sessionId, completionData = {}) {
     return await apiClient.post(`/quests/session/${sessionId}/complete`, completionData)
+  },
+
+  async restartQuest(sessionId) {
+    return await apiClient.post(`/quests/session/${sessionId}/restart`)
   },
 
   async getSessionStats(sessionId) {

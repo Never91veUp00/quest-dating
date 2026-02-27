@@ -416,4 +416,17 @@ const decorItem = (i) => ({
 /* ── Shake ────────────────────────────────────────────────────── */
 .shake { animation: shake .4s ease; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+/* ── Mobile ───────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .splash { padding: 32px 16px; }
+  .splash__icon-wrap { width: 80px; height: 80px; }
+  .splash__icon { font-size: 2.4rem; }
+  .splash__title { font-size: clamp(1.3rem, 6vw, 1.8rem); }
+  .splash__stats { padding: 12px 14px; gap: 10px; }
+  .splash__stat-n { font-size: 1.2rem; }
+  .splash__start { padding: 16px 36px; font-size: .85rem; min-height: 52px; }
+  .splash__code-input { padding: 14px; font-size: 1rem; min-height: 52px; }
+  .splash__code-btn { min-height: 52px; width: 52px; }
+}
 </style>

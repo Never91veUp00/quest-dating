@@ -26,7 +26,10 @@ export function useFilters(initialFilters = {}) {
     const urlParams = route.query
 
     if (urlParams.category) {
-      filters.value.category = parseInt(urlParams.category)
+      const val = parseInt(urlParams.category)
+      // Если это число — сразу используем как ID; если строка (slug) — пока пишем как есть,
+      // Templates.vue резолвит slug → id после загрузки категорий
+      filters.value.category = isNaN(val) ? urlParams.category : val
     }
 
     if (urlParams.tags) {

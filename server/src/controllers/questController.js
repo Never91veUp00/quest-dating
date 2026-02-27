@@ -1,6 +1,6 @@
 import pool from '../config/database.js'
 
-// Получить квест по slug для прохождения
+// Получить квест по slug для прохождения (метаданные)
 export const getQuestBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params
@@ -15,6 +15,7 @@ export const getQuestBySlug = async (req, res, next) => {
         cq.blocks,
         cq.theme,
         cq.final_message,
+        cq.show_intro,
         cq.is_public,
         cq.expires_at,
         cq.views_count,
@@ -47,8 +48,8 @@ export const getQuestBySlug = async (req, res, next) => {
       })
     }
 
-    // Проверка кода доступа — только наличие флага, НЕ сам код
-    const { access_code } = req.query
+    // Проверка кода доступа — из body (POST) или query (обратная совместимость)
+    const access_code = req.body?.access_code || req.query?.access_code
     if (quest.access_code && quest.access_code !== access_code) {
       // Возвращаем метаданные, но не блоки
       return res.status(403).json({
@@ -194,6 +195,37 @@ export const getSessionStats = async (req, res, next) => {
       'SELECT * FROM quest_sessions WHERE session_id = $1',
       [sessionId]
     )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Сессия не найдена' })
+    }
+
+    res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Начать квест сначала — сбросить прогресс сессии
+export const restartQuest = async (req, res, next) => {
+  try {
+    const { sessionId } = req.params
+
+    const result = await pool.query(`
+      UPDATE quest_sessions
+      SET
+        completed_tasks        = '[]',
+        current_block_position = 0,
+        points                 = 0,
+        achievements           = '[]',
+        hints_used             = 0,
+        started_at             = CURRENT_TIMESTAMP,
+        last_activity          = CURRENT_TIMESTAMP,
+        completed_at           = NULL,
+        total_time_seconds     = 0
+      WHERE session_id = $1
+      RETURNING *
+    `, [sessionId])
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Сессия не найдена' })

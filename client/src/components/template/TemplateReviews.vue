@@ -104,6 +104,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuestStore } from '@/store'
 import api from '@/services/api'
+import { reviewService } from '@/services/reviewService'
 import ReviewCard from '../marketplace/ReviewCard.vue'
 import RatingStars from '../marketplace/RatingStars.vue'
 import ReviewFormModal from './ReviewFormModal.vue'
@@ -205,8 +206,7 @@ const loadMore = () => {
 
 const handleMarkHelpful = async (reviewId) => {
   try {
-    await questStore.markReviewHelpful(reviewId)
-    // Обновить локальный счетчик
+    await reviewService.markHelpful(reviewId)
     const review = reviews.value.find(r => r.id === reviewId)
     if (review) {
       review.helpful_count = (review.helpful_count || 0) + 1

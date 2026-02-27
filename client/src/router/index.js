@@ -136,10 +136,21 @@ router.beforeEach((to, from, next) => {
     if (!token) {
       return next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
     }
+    // Проверяем срок действия JWT
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem('auth_token')
+        return next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+      }
+    } catch {
+      localStorage.removeItem('auth_token')
+      return next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+    }
   }
 
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('config', 'GA_MEASUREMENT_ID', {
+  if (typeof window !== 'undefined' && window.gtag && import.meta.env.VITE_GA_ID) {
+    window.gtag('config', import.meta.env.VITE_GA_ID, {
       page_path: to.path,
       page_title: to.meta.title
     })

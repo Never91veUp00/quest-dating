@@ -38,8 +38,8 @@ services:
       DB_NAME: quest_dating
       DB_USER: quest_user
       DB_PASSWORD: quest_password
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      JWT_EXPIRES_IN: 7d
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
     ports:
       - "5000:5000"
     volumes:

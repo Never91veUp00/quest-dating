@@ -246,7 +246,24 @@ export function useQuestEditor() {
     }
   }
 
-  const previewQuest = () => window.open(`/quest/${form.value.slug}`, '_blank')
+  const previewQuest = () => {
+    // Сохраняем текущее состояние формы для предпросмотра
+    const previewData = {
+      id: form.value.id || 0,
+      title: form.value.title,
+      client_name: form.value.client_name,
+      slug: form.value.slug,
+      theme: form.value.theme,
+      show_intro: form.value.show_intro,
+      final_message: form.value.final_message,
+      blocks: form.value.blocks,
+      is_public: form.value.is_public,
+    }
+    try {
+      sessionStorage.setItem('quest_preview', JSON.stringify(previewData))
+    } catch {}
+    window.open(`/quest/${form.value.slug}?preview=1`, '_blank')
+  }
 
   return {
     form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,

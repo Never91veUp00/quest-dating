@@ -14,14 +14,14 @@ export const searchTemplates = async (searchQuery, options = {}) => {
         a.display_name as author_name,
         c.name as category_name,
         ts_rank(
-          to_tsvector('russian', qt.title || ' ' || qt.description || ' ' || qt.tagline),
+          to_tsvector('russian', COALESCE(qt.title,'') || ' ' || COALESCE(qt.description,'') || ' ' || COALESCE(qt.tagline,'')),
           plainto_tsquery('russian', $1)
         ) as rank
       FROM quest_templates qt
       LEFT JOIN authors a ON qt.author_id = a.id
       LEFT JOIN categories c ON qt.category_id = c.id
       WHERE 
-        to_tsvector('russian', qt.title || ' ' || qt.description || ' ' || qt.tagline) 
+        to_tsvector('russian', COALESCE(qt.title,'') || ' ' || COALESCE(qt.description,'') || ' ' || COALESCE(qt.tagline,'')) 
         @@ plainto_tsquery('russian', $1)
         AND qt.status = 'published'
       ORDER BY rank DESC

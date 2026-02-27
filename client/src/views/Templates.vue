@@ -31,7 +31,7 @@
       <div class="container">
         <div class="content-layout">
           <!-- Filters Sidebar -->
-          <aside class="filters-sidebar">
+          <aside class="filters-sidebar" :class="{ 'filters-sidebar--open': filtersOpen }">
             <TemplateFilters
               v-model:filters="filters"
               :categories="categories"
@@ -40,6 +40,14 @@
               @reset="handleFiltersReset"
             />
           </aside>
+
+          <!-- Mobile filter toggle -->
+          <button class="filters-toggle" @click="filtersOpen = !filtersOpen">
+            <span class="filters-toggle__icon">⚙️</span>
+            <span>Фильтры</span>
+            <span v-if="activeFiltersCount" class="filters-toggle__badge">{{ activeFiltersCount }}</span>
+            <span class="filters-toggle__arrow" :class="{ rotated: filtersOpen }">▾</span>
+          </button>
 
           <!-- Templates Grid -->
           <main class="templates-main">
@@ -147,6 +155,7 @@ const searchQuery = ref('')
 const sortBy = ref('newest')
 const currentPage = ref(1)
 const itemsPerPage = 12
+const filtersOpen = ref(false)
 
 const categories = ref([])
 const popularTags = ref([])
@@ -220,8 +229,26 @@ const loadData = async () => {
 }
 
 const applyFiltersFromUrl = () => {
+  // Категория: поддерживаем и slug (detective), и числовой id (3)
+  if (route.query.category) {
+    const raw = route.query.category
+    const asInt = parseInt(raw)
+    if (!isNaN(asInt)) {
+      filters.value.category = asInt
+    } else {
+      // slug → ищем id по slug или name среди загруженных категорий
+      const cat = categories.value.find(
+        c => c.slug === raw || c.name?.toLowerCase() === raw.toLowerCase()
+      )
+      if (cat) {
+        filters.value.category = cat.id
+      }
+    }
+  }
+
   if (route.query.search) {
     searchQuery.value = route.query.search
+    filters.value.search = route.query.search
   }
   if (route.query.sort_by) {
     sortBy.value = route.query.sort_by
@@ -247,6 +274,10 @@ const handleSelectCategory = (category) => {
 const handleFiltersUpdate = () => {
   currentPage.value = 1
   updateUrl()
+  // Закрываем фильтры на мобильном после применения
+  if (window.innerWidth <= 1024) {
+    filtersOpen.value = false
+  }
 }
 
 const handleFiltersReset = () => {
@@ -298,6 +329,19 @@ watch(() => filters.value, () => {
 
 onMounted(() => {
   loadData()
+})
+
+// При навигации с тем же маршрутом, но другими query (например из футера)
+watch(() => route.query, (newQuery, oldQuery) => {
+  // Только если данные уже загружены и query действительно изменился
+  if (!loading.value && JSON.stringify(newQuery) !== JSON.stringify(oldQuery)) {
+    applyFiltersFromUrl()
+    // Обновляем фильтры в store
+    Object.keys(filters.value).forEach(key => {
+      questStore.setFilter(key, filters.value[key])
+    })
+    currentPage.value = 1
+  }
 })
 </script>
 
@@ -536,13 +580,86 @@ onMounted(() => {
 }
 
 /* Responsive */
+
+/* Mobile filter toggle — hidden on desktop */
+.filters-toggle {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .content-layout {
     grid-template-columns: 1fr;
+    position: relative;
   }
 
+  /* Кнопка-таб для фильтров */
+  .filters-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    order: -1;
+    width: 100%;
+    padding: 14px 20px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .filters-toggle:hover {
+    border-color: #667eea;
+    color: #667eea;
+  }
+
+  .filters-toggle__icon {
+    font-size: 1.1rem;
+  }
+
+  .filters-toggle__badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+  }
+
+  .filters-toggle__arrow {
+    margin-left: auto;
+    transition: transform 0.25s;
+    font-size: 0.85rem;
+    color: #a0aec0;
+  }
+
+  .filters-toggle__arrow.rotated {
+    transform: rotate(180deg);
+  }
+
+  /* Сайдбар скрыт по умолчанию, открывается по табу */
   .filters-sidebar {
     position: static;
+    display: none;
+    order: -1;
+  }
+
+  .filters-sidebar--open {
+    display: block;
+    animation: filters-slide 0.25s ease;
+  }
+
+  @keyframes filters-slide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 }
 

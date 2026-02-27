@@ -68,7 +68,7 @@ const props = defineProps({
   isLast:       { type: Boolean, default: false },
 })
 
-defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint'])
+defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint', 'skip-task'])
 
 const isUnlocked = (ti) =>
   ti === 0 || props.completedIds.includes(props.block.tasks[ti - 1]?.id)
@@ -140,5 +140,15 @@ const finishLabel = computed(() => ({
 .block__nav-next:hover, .block__nav-finish:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* ── Mobile ───────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .block__title { font-size: clamp(1.1rem, 5vw, 1.5rem); }
+  .block__desc { font-size: .85rem; }
+  .block__nav { flex-wrap: wrap; }
+  .block__nav-back { padding: 12px 16px; min-height: 48px; }
+  .block__nav-next, .block__nav-finish { padding: 12px 20px; min-height: 48px; }
+  .block__nav-hint { font-size: .72rem; text-align: center; width: 100%; }
 }
 </style>

@@ -1,123 +1,95 @@
 <template>
-  <footer class="footer">
+  <footer class="footer" itemscope itemtype="https://schema.org/LocalBusiness">
     <div class="container">
-      <!-- Основной контент футера -->
       <div class="footer-content">
-        <!-- О компании -->
-        <div class="footer-column">
-          <div class="footer-logo">
+        <!-- О сервисе -->
+        <div class="footer-column footer-column--wide">
+          <div class="footer-logo" itemprop="name">
             <span class="logo-icon">🎯</span>
             <span class="logo-text">Quest Dating</span>
           </div>
-          <p class="footer-description">
-            Создаем незабываемые квесты для свиданий. 
-            Превратите обычное свидание в приключение!
+          <p class="footer-description" itemprop="description">
+            Персональные романтические квесты для свиданий.
+            Каждый квест создаётся вручную — с уникальным сценарием, заданиями на локациях, загадками и сюрпризами, адаптированными под вашу пару.
           </p>
           <div class="footer-social">
-            <a href="#" class="social-link" aria-label="Instagram">📷</a>
-            <a href="#" class="social-link" aria-label="Telegram">✈️</a>
-            <a href="#" class="social-link" aria-label="VK">🔵</a>
+            <a href="https://t.me/vinatian00" target="_blank" rel="noopener noreferrer" class="social-link social-link--tg" aria-label="Telegram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+            </a>
+            <a href="https://vk.com/vinatian00" target="_blank" rel="noopener noreferrer" class="social-link social-link--vk" aria-label="ВКонтакте">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.587-1.496c.6-.188 1.37 1.254 2.185 1.808.617.42 1.085.328 1.085.328l2.18-.03s1.14-.071.6-.97c-.045-.074-.32-.668-1.645-1.89-1.388-1.28-1.202-1.073.47-3.29.996-1.354 1.394-2.18 1.27-2.534-.118-.338-.847-.249-.847-.249l-2.454.015s-.182-.025-.317.056c-.133.08-.218.264-.218.264s-.39 1.04-.91 1.926c-1.1 1.873-1.54 1.972-1.72 1.856-.418-.272-.314-1.092-.314-1.674 0-1.82.275-2.58-.537-2.776-.27-.065-.468-.108-1.155-.115-.882-.01-1.63.003-2.053.21-.281.138-.498.444-.366.461.163.022.532.1.728.364.252.342.244 1.108.244 1.108s.145 2.14-.34 2.405c-.332.183-.788-.19-1.767-1.9-.502-.876-.88-1.843-.88-1.843s-.073-.18-.203-.276C9.16 7.14 8.976 7.1 8.976 7.1l-2.334.015s-.35.01-.478.162C6.04 7.424 6.155 7.7 6.155 7.7s1.83 4.283 3.902 6.444c1.9 1.982 4.058 1.852 4.058 1.852h.978c.32-.032.482-.206.482-.206"/></svg>
+            </a>
+            <a href="mailto:vp.vlad00@mail.ru" class="social-link social-link--email" aria-label="Email">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </a>
           </div>
         </div>
 
         <!-- Навигация -->
-        <div class="footer-column">
+        <nav class="footer-column" aria-label="Навигация по сайту">
           <h4 class="footer-title">Навигация</h4>
           <ul class="footer-links">
             <li><router-link to="/">Главная</router-link></li>
-            <li><router-link to="/templates">Квесты</router-link></li>
+            <li><router-link to="/templates">Каталог квестов</router-link></li>
             <li><router-link to="/about">О создателе</router-link></li>
+          </ul>
+        </nav>
+
+        <!-- Услуги — ключевые слова для SEO -->
+        <div class="footer-column">
+          <h4 class="footer-title">Услуги</h4>
+          <ul class="footer-links">
+            <li><router-link to="/templates">Квест на свидание</router-link></li>
+            <li><router-link to="/templates">Романтический сюрприз</router-link></li>
+            <li><router-link to="/templates">Квест на годовщину</router-link></li>
+            <li><router-link to="/templates">Квест на день рождения</router-link></li>
           </ul>
         </div>
 
         <!-- Контакты -->
-        <div class="footer-column">
+        <div class="footer-column" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
           <h4 class="footer-title">Контакты</h4>
           <ul class="footer-contacts">
             <li>
-              <span class="contact-icon">📧</span>
-              <a href="mailto:vp.vlad00@mail.ru">vp.vlad00@mail.ru</a>
+              <span class="contact-icon">💬</span>
+              <a href="https://t.me/vinatian00" target="_blank" rel="noopener noreferrer">Написать в Telegram</a>
             </li>
             <li>
-              <span class="contact-icon">💬</span>
-              <a href="https://t.me/vinatian00">@vinatian00</a>
+              <span class="contact-icon">📧</span>
+              <a href="mailto:vp.vlad00@mail.ru" itemprop="email">vp.vlad00@mail.ru</a>
             </li>
             <li>
               <span class="contact-icon">📍</span>
-              <span>Москва, Россия</span>
+              <span><span itemprop="addressLocality">Москва</span>, <span itemprop="addressCountry">Россия</span></span>
             </li>
           </ul>
         </div>
-      </div>
-
-      <!-- Подписка на новости -->
-      <div class="footer-newsletter">
-        <div class="newsletter-content">
-          <h4 class="newsletter-title">Подпишитесь на новости</h4>
-          <p class="newsletter-text">Новые квесты и идеи для романтических свиданий</p>
-        </div>
-        <form @submit.prevent="handleSubscribe" class="newsletter-form">
-          <input 
-            v-model="email"
-            type="email" 
-            placeholder="Ваш email"
-            class="newsletter-input"
-            required
-          />
-          <button type="submit" class="newsletter-button" :disabled="subscribing">
-            {{ subscribing ? 'Подписываем...' : 'Подписаться' }}
-          </button>
-        </form>
       </div>
 
       <!-- Нижний футер -->
       <div class="footer-bottom">
         <p class="copyright">
-          © {{ currentYear }} Quest Dating. Все права защищены.
+          © {{ currentYear }} Quest Dating · Влад Пименов · ИП
         </p>
-        <div class="footer-legal">
-          <a href="#">Политика конфиденциальности</a>
-          <span class="separator">•</span>
-          <a href="#">Условия использования</a>
-          <span class="separator">•</span>
-          <a href="#">Договор оферты</a>
-        </div>
+        <p class="footer-made">
+          Сделано с ❤️ для тех, кто любит удивлять
+        </p>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useToast } from '@/composables/useToast'
+import { computed } from 'vue'
 
-const email = ref('')
-const subscribing = ref(false)
 const currentYear = computed(() => new Date().getFullYear())
-const toast = useToast()
-
-const handleSubscribe = async () => {
-  if (!email.value) return
-
-  subscribing.value = true
-  try {
-    // TODO: подключить реальный API подписки
-    await new Promise(resolve => setTimeout(resolve, 500)) // имитация запроса
-    toast.success('Спасибо! Будем присылать только самое интересное 💌')
-    email.value = ''
-  } catch {
-    toast.error('Не удалось подписаться. Попробуйте позже.')
-  } finally {
-    subscribing.value = false
-  }
-}
 </script>
 
 <style scoped>
 .footer {
   background: linear-gradient(to bottom, #2d3748 0%, #1a202c 100%);
   color: white;
-  padding: 60px 0 0;
+  padding: 56px 0 0;
   margin-top: 80px;
 }
 
@@ -129,30 +101,28 @@ const handleSubscribe = async () => {
 
 .footer-content {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr;
-  gap: 40px;
-  padding-bottom: 48px;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 36px;
+  padding-bottom: 40px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-column {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .footer-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-weight: 800;
-  font-size: 1.5rem;
-  margin-bottom: 8px;
+  font-size: 1.4rem;
+  margin-bottom: 4px;
 }
 
-.logo-icon {
-  font-size: 2rem;
-}
+.logo-icon { font-size: 1.8rem; }
 
 .logo-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -162,257 +132,82 @@ const handleSubscribe = async () => {
 }
 
 .footer-description {
-  color: #cbd5e0;
-  line-height: 1.6;
-  font-size: 0.95rem;
+  color: #a0aec0;
+  line-height: 1.65;
+  font-size: 0.9rem;
   margin: 0;
 }
 
 .footer-social {
   display: flex;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .social-link {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
+  width: 38px; height: 38px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #a0aec0;
   text-decoration: none;
-  transition: all 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
+  transition: all 0.25s;
+  outline: none;
 }
-
-.social-link:hover,
-.social-link:focus { /* ← ДОБАВЛЕНО */
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
+.social-link:hover, .social-link:focus { transform: translateY(-2px); }
+.social-link--tg:hover { background: #229ED9; color: #fff; }
+.social-link--vk:hover { background: #0077FF; color: #fff; }
+.social-link--email:hover { background: rgba(102, 126, 234, 0.3); color: #fff; }
 
 .footer-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
+  color: #e2e8f0;
 }
 
 .footer-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
 .footer-links a {
-  color: #cbd5e0;
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: color 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
-  display: inline-block; /* ← ДОБАВЛЕНО для подчеркивания */
-  position: relative; /* ← ДОБАВЛЕНО */
+  color: #a0aec0; text-decoration: none;
+  font-size: 0.9rem; transition: color 0.2s;
+  outline: none;
 }
-
-.footer-links a::after { /* ← ДОБАВЛЕНО */
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: white;
-  transition: width 0.3s;
-}
-
-.footer-links a:hover,
-.footer-links a:focus {
-  color: white;
-}
-
-.footer-links a:hover::after, /* ← ДОБАВЛЕНО */
-.footer-links a:focus::after { /* ← ДОБАВЛЕНО */
-  width: 100%;
-}
+.footer-links a:hover, .footer-links a:focus { color: white; }
 
 .footer-contacts {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
 .footer-contacts li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #cbd5e0;
-  font-size: 0.95rem;
+  display: flex; align-items: center; gap: 8px;
+  color: #a0aec0; font-size: 0.9rem;
 }
 
-.contact-icon {
-  font-size: 1.2rem;
-}
+.contact-icon { font-size: 1.1rem; }
 
 .footer-contacts a {
-  color: #cbd5e0;
-  text-decoration: none;
-  transition: color 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
-  position: relative; /* ← ДОБАВЛЕНО */
+  color: #a0aec0; text-decoration: none;
+  transition: color 0.2s; outline: none;
 }
-
-.footer-contacts a::after { /* ← ДОБАВЛЕНО */
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: white;
-  transition: width 0.3s;
-}
-
-.footer-contacts a:hover,
-.footer-contacts a:focus {
-  color: white;
-}
-
-.footer-contacts a:hover::after, /* ← ДОБАВЛЕНО */
-.footer-contacts a:focus::after { /* ← ДОБАВЛЕНО */
-  width: 100%;
-}
-
-.footer-newsletter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 40px;
-  padding: 48px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.newsletter-content {
-  flex: 1;
-}
-
-.newsletter-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-}
-
-.newsletter-text {
-  color: #cbd5e0;
-  margin: 0;
-}
-
-.newsletter-form {
-  display: flex;
-  gap: 12px;
-  flex: 1;
-  max-width: 500px;
-}
-
-.newsletter-input {
-  flex: 1;
-  padding: 14px 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1rem;
-  transition: all 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.newsletter-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.newsletter-input:focus {
-  border-color: #667eea;
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); /* ← ДОБАВЛЕНО свечение */
-}
-
-.newsletter-button {
-  padding: 14px 28px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.newsletter-button:hover,
-.newsletter-button:focus { /* ← ДОБАВЛЕНО */
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
+.footer-contacts a:hover, .footer-contacts a:focus { color: white; }
 
 .footer-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 0;
-  color: #cbd5e0;
-  font-size: 0.9rem;
+  padding: 20px 0;
+  color: #718096;
+  font-size: 0.85rem;
 }
 
-.copyright {
-  margin: 0;
-}
+.copyright { margin: 0; }
 
-.footer-legal {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.footer-legal a {
-  color: #cbd5e0;
-  text-decoration: none;
-  transition: color 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
-  position: relative; /* ← ДОБАВЛЕНО */
-}
-
-.footer-legal a::after { /* ← ДОБАВЛЕНО */
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: white;
-  transition: width 0.3s;
-}
-
-.footer-legal a:hover,
-.footer-legal a:focus {
-  color: white;
-}
-
-.footer-legal a:hover::after, /* ← ДОБАВЛЕНО */
-.footer-legal a:focus::after { /* ← ДОБАВЛЕНО */
-  width: 100%;
-}
-
-.separator {
-  color: rgba(255, 255, 255, 0.3);
-}
+.footer-made { margin: 0; font-style: italic; }
 
 @media (max-width: 1024px) {
   .footer-content {
@@ -422,29 +217,11 @@ const handleSubscribe = async () => {
 }
 
 @media (max-width: 768px) {
-  .footer-content {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-newsletter {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .newsletter-form {
-    width: 100%;
-    max-width: none;
-  }
-
+  .footer { padding: 40px 0 0; margin-top: 48px; }
+  .footer-content { grid-template-columns: 1fr; gap: 28px; }
   .footer-bottom {
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: column; gap: 8px;
     text-align: center;
-  }
-
-  .footer-legal {
-    flex-wrap: wrap;
-    justify-content: center;
   }
 }
 </style>

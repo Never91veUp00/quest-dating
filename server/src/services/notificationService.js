@@ -1,8 +1,4 @@
 // Уведомления через Telegram Bot API
-//
-// Настройка:
-// 1. Создай бота: напиши @BotFather → /newbot → получи TELEGRAM_BOT_TOKEN
-// 2. Узнай свой chat_id: напиши @userinfobot → скопируй Id → TELEGRAM_CHAT_ID
 
 const sendTelegramMessage = async (text) => {
   if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
@@ -19,7 +15,8 @@ const sendTelegramMessage = async (text) => {
         body: JSON.stringify({
           chat_id: process.env.TELEGRAM_CHAT_ID,
           text,
-          parse_mode: 'HTML'
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
         })
       }
     )
@@ -29,7 +26,6 @@ const sendTelegramMessage = async (text) => {
       console.error('Telegram API error:', err.description)
     }
   } catch (error) {
-    // Не роняем сервер из-за ошибки уведомления
     console.error('Ошибка отправки в Telegram:', error.message)
   }
 }
@@ -42,44 +38,58 @@ export const notifyNewOrder = async (order, templateTitle) => {
       })
     : 'не указана'
 
+  const featureLabels = {
+    background_music: '🎵 Музыка',
+    video_messages: '📹 Видео',
+    custom_photos: '📸 Фото',
+    qr_codes: '📱 QR-коды',
+    partner_surprises: '🎁 Сюрпризы'
+  }
+
   const features = Array.isArray(order.selected_features) && order.selected_features.length
-    ? order.selected_features.join(', ')
+    ? order.selected_features.map(f => featureLabels[f] || f).join(' · ')
     : '—'
 
   const text = [
-    `🎯 <b>Новый заказ #${order.id}</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `🎯  <b>НОВЫЙ ЗАКАЗ #${order.id}</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
     ``,
-    `👤 <b>Клиент:</b> ${order.client_name}`,
-    `📧 <b>Email:</b> ${order.client_email}`,
-    `📱 <b>Телефон:</b> ${order.client_phone || 'не указан'}`,
+    `👤  <b>${order.client_name}</b>`,
+    `📧  ${order.client_email}`,
+    order.client_phone ? `📱  ${order.client_phone}` : null,
     ``,
-    `📦 <b>Квест:</b> ${templateTitle}`,
-    `📅 <b>Дата события:</b> ${dateFormatted}`,
-    `🌆 <b>Город:</b> ${order.event_city || 'не указан'}`,
-    `⚙️ <b>Доп. опции:</b> ${features}`,
-    `💰 <b>Сумма:</b> ${priceFormatted} ₽`,
+    `┌─ Квест ───────────────`,
+    `│  📦  ${templateTitle}`,
+    `│  📅  ${dateFormatted}`,
+    order.event_city ? `│  🏙  ${order.event_city}` : null,
+    `│  💰  <b>${priceFormatted} ₽</b>`,
+    `└────────────────────────`,
     ``,
-    `💬 <b>Пожелания:</b>`,
-    order.description || '—'
-  ].join('\n')
+    features !== '—' ? `⚙️  ${features}` : null,
+    order.description ? `\n💬  <i>${order.description}</i>` : null,
+    ``,
+    `⏱  ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  ].filter(Boolean).join('\n')
 
   await sendTelegramMessage(text)
 }
 
 export const notifyOrderStatusChange = async (order, newStatus) => {
   const statusLabels = {
-    confirmed:   '✅ Подтверждён',
-    in_progress: '🔧 В работе',
-    completed:   '🎉 Выполнен',
-    cancelled:   '❌ Отменён'
+    confirmed:   '✅  Подтверждён',
+    in_progress: '🔨  В работе',
+    completed:   '🎉  Выполнен',
+    cancelled:   '❌  Отменён'
   }
 
   const text = [
-    `📋 <b>Статус заказа #${order.id} изменён</b>`,
+    `🔄  <b>Статус заказа #${order.id}</b>`,
     ``,
-    `👤 ${order.client_name} (${order.client_email})`,
-    `🔄 Новый статус: <b>${statusLabels[newStatus] || newStatus}</b>`
-  ].join('\n')
+    `👤  ${order.client_name} · ${order.client_email}`,
+    `▸  ${statusLabels[newStatus] || newStatus}`,
+    order.admin_notes ? `📝  <i>${order.admin_notes}</i>` : null,
+  ].filter(Boolean).join('\n')
 
   await sendTelegramMessage(text)
 }

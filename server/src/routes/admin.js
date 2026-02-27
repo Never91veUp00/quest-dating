@@ -32,12 +32,13 @@ router.get('/dashboard', async (req, res, next) => {
       `),
       pool.query(`
         SELECT
-          (SELECT COUNT(*) FROM orders) as total_orders,
-          (SELECT COUNT(*) FROM orders WHERE status = 'pending') as pending_orders,
-          (SELECT COUNT(*) FROM orders WHERE status = 'confirmed') as confirmed_orders,
+          COUNT(*) as total_orders,
+          COUNT(*) FILTER (WHERE status = 'pending') as pending_orders,
+          COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed_orders,
           (SELECT COUNT(*) FROM created_quests) as total_quests,
           (SELECT COUNT(*) FROM created_quests WHERE completed_count > 0) as completed_quests,
-          (SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE status = 'completed') as total_revenue
+          COALESCE(SUM(total_price) FILTER (WHERE status = 'completed'), 0) as total_revenue
+        FROM orders
       `)
     ])
 
