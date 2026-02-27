@@ -103,6 +103,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuestStore } from '@/store'
+import api from '@/services/api'
 import ReviewCard from '../marketplace/ReviewCard.vue'
 import RatingStars from '../marketplace/RatingStars.vue'
 import ReviewFormModal from './ReviewFormModal.vue'
@@ -112,16 +113,27 @@ const props = defineProps({
   templateId: {
     type: Number,
     required: true
-  },
-  reviews: {
-    type: Array,
-    default: () => []
   }
 })
 
 const questStore = useQuestStore()
 
-const loading = ref(false)
+const reviews = ref([])
+const loading = ref(true)
+
+const loadReviews = async () => {
+  loading.value = true
+  try {
+    const res = await api.getTemplateReviews(props.templateId)
+    reviews.value = res.data || res || []
+  } catch (e) {
+    console.error('Failed to load reviews:', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadReviews)
 const activeFilter = ref('all')
 const displayCount = ref(5)
 const showReviewForm = ref(false)
@@ -138,15 +150,15 @@ const filters = [
 ]
 
 const averageRating = computed(() => {
-  if (props.reviews.length === 0) return '0.0'
-  const sum = props.reviews.reduce((acc, r) => acc + r.rating, 0)
-  return (sum / props.reviews.length).toFixed(1)
+  if (reviews.value.length === 0) return '0.0'
+  const sum = reviews.value.reduce((acc, r) => acc + r.rating, 0)
+  return (sum / reviews.value.length).toFixed(1)
 })
 
-const totalReviews = computed(() => props.reviews.length)
+const totalReviews = computed(() => reviews.value.length)
 
 const getRatingCount = (stars) => {
-  return props.reviews.filter(r => r.rating === stars).length
+  return reviews.value.filter(r => r.rating === stars).length
 }
 
 const getPercentage = (stars) => {
@@ -155,7 +167,7 @@ const getPercentage = (stars) => {
 }
 
 const filteredReviews = computed(() => {
-  let filtered = [...props.reviews]
+  let filtered = [...reviews.value]
 
   switch (activeFilter.value) {
     case 'verified':
@@ -195,7 +207,7 @@ const handleMarkHelpful = async (reviewId) => {
   try {
     await questStore.markReviewHelpful(reviewId)
     // Обновить локальный счетчик
-    const review = props.reviews.find(r => r.id === reviewId)
+    const review = reviews.value.find(r => r.id === reviewId)
     if (review) {
       review.helpful_count = (review.helpful_count || 0) + 1
     }
@@ -211,9 +223,8 @@ const handleOpenGallery = ({ images, startIndex }) => {
 }
 
 const handleReviewSubmitted = () => {
-  showReviewForm.value = false
-  // Перезагрузить отзывы (в идеале через store)
-  window.location.reload()
+  // Перезагружаем отзывы после успешной отправки
+  loadReviews()
 }
 </script>
 

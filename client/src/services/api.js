@@ -177,15 +177,19 @@ const api = {
   /**
    * Получить отзывы шаблона
    */
+  getFeaturedReviews(limit = 6) {
+    return apiClient.get('/reviews/featured', { params: { limit } })
+  },
+
   getTemplateReviews(templateId, params = {}) {
-    return apiClient.get(`/templates/${templateId}/reviews`, { params })
+    return apiClient.get(`/reviews/template/${templateId}`, { params })
   },
 
   /**
    * Создать отзыв
    */
   createReview(templateId, data) {
-    return apiClient.post(`/templates/${templateId}/reviews`, data)
+    return apiClient.post('/reviews', { ...data, template_id: templateId })
   },
 
   // ========== ЗАКАЗЫ ==========

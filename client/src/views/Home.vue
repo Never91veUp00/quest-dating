@@ -182,6 +182,7 @@ import { useQuestStore } from '@/store'
 import TemplateGrid from '@/components/marketplace/TemplateGrid.vue'
 import CategoryCard from '@/components/marketplace/CategoryCard.vue'
 import TestimonialCard from '@/components/marketplace/TestimonialCard.vue'
+import api from '@/services/api'
 import Loader from '@/components/common/Loader.vue'
 import { useToast } from '@/composables/useToast'
 
@@ -196,32 +197,33 @@ const categoriesLoading = ref(true)
 const featuredLoading = ref(true)
 const popularLoading = ref(true)
 
-// Фейковые отзывы для демонстрации
-const testimonials = ref([
-  {
-    id: 1,
-    rating: 5,
-    text: 'Это было лучшее свидание в моей жизни! Квест был идеально продуман, каждая локация — сюрприз. Моя девушка была в восторге!',
-    author: 'Алексей',
-    template: 'Романтический детектив'
-  },
-  {
-    id: 2,
-    rating: 5,
-    text: 'Заказали квест на годовщину отношений. Влад учёл все детали, которые мы указали в форме. Всё прошло идеально!',
-    author: 'Мария',
-    template: 'Тайна старого города'
-  },
-  {
-    id: 3,
-    rating: 5,
-    text: 'Впервые пробовали такой формат свидания. Получили море эмоций! Уже планируем следующий квест.',
-    author: 'Дмитрий',
-    template: 'Приключение в парке'
+const testimonials = ref([])
+const testimonialsLoading = ref(true)
+
+const AVATARS = ['👫', '💑', '🥰', '💕', '❤️', '✨']
+
+const loadTestimonials = async () => {
+  try {
+    const res = await api.getFeaturedReviews(6)
+    const rows = res.data || res || []
+    testimonials.value = rows.map((r, i) => ({
+      id:       r.id,
+      rating:   r.rating,
+      text:     r.comment,
+      name:     r.client_name,
+      avatar:   AVATARS[i % AVATARS.length],
+      template: r.template_title || null
+    }))
+  } catch {
+    // Fallback — показываем заглушки если API недоступен
+    testimonials.value = []
+  } finally {
+    testimonialsLoading.value = false
   }
-])
+}
 
 const loadData = async () => {
+  loadTestimonials()
   categoriesLoading.value = true
   featuredLoading.value = true
   popularLoading.value = true

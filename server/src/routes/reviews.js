@@ -4,6 +4,9 @@ import * as reviewController from '../controllers/reviewController.js'
 
 const router = express.Router()
 
+// GET /api/reviews/featured - Отзывы для главной страницы
+router.get('/featured', reviewController.getFeaturedReviews)
+
 // GET /api/reviews/template/:templateId - Отзывы для шаблона
 router.get('/template/:templateId', reviewController.getTemplateReviews)
 

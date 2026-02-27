@@ -3,9 +3,30 @@ import { validationResult } from 'express-validator'
 import { RATING_RANGE } from '../config/constants.js'
 
 const ALLOWED_SORT = {
-  newest:  'r.created_at DESC',
-  rating:  'r.rating DESC',
-  helpful: 'r.helpful_count DESC'
+  newest:  'created_at DESC',
+  rating:  'rating DESC',
+  helpful: 'helpful_count DESC'
+}
+
+
+// Получить отзывы для главной страницы (верифицированные, высокий рейтинг)
+export const getFeaturedReviews = async (req, res, next) => {
+  try {
+    const { limit = 6 } = req.query
+    const result = await pool.query(`
+      SELECT r.*, qt.title as template_title
+      FROM reviews r
+      LEFT JOIN quest_templates qt ON r.template_id = qt.id
+      WHERE r.rating >= 4
+        AND LENGTH(r.comment) > 20
+      ORDER BY r.is_verified DESC, r.rating DESC, r.created_at DESC
+      LIMIT $1
+    `, [parseInt(limit)])
+
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    next(error)
+  }
 }
 
 // Получить отзывы для шаблона
