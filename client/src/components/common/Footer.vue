@@ -16,7 +16,7 @@
             <a href="https://t.me/vinatian00" target="_blank" rel="noopener noreferrer" class="social-link social-link--tg" aria-label="Telegram">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
             </a>
-            <a href="https://vk.com/vinatian00" target="_blank" rel="noopener noreferrer" class="social-link social-link--vk" aria-label="ВКонтакте">
+            <a href="https://vk.com/vladislav_petrov2000" target="_blank" rel="noopener noreferrer" class="social-link social-link--vk" aria-label="ВКонтакте">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.587-1.496c.6-.188 1.37 1.254 2.185 1.808.617.42 1.085.328 1.085.328l2.18-.03s1.14-.071.6-.97c-.045-.074-.32-.668-1.645-1.89-1.388-1.28-1.202-1.073.47-3.29.996-1.354 1.394-2.18 1.27-2.534-.118-.338-.847-.249-.847-.249l-2.454.015s-.182-.025-.317.056c-.133.08-.218.264-.218.264s-.39 1.04-.91 1.926c-1.1 1.873-1.54 1.972-1.72 1.856-.418-.272-.314-1.092-.314-1.674 0-1.82.275-2.58-.537-2.776-.27-.065-.468-.108-1.155-.115-.882-.01-1.63.003-2.053.21-.281.138-.498.444-.366.461.163.022.532.1.728.364.252.342.244 1.108.244 1.108s.145 2.14-.34 2.405c-.332.183-.788-.19-1.767-1.9-.502-.876-.88-1.843-.88-1.843s-.073-.18-.203-.276C9.16 7.14 8.976 7.1 8.976 7.1l-2.334.015s-.35.01-.478.162C6.04 7.424 6.155 7.7 6.155 7.7s1.83 4.283 3.902 6.444c1.9 1.982 4.058 1.852 4.058 1.852h.978c.32-.032.482-.206.482-.206"/></svg>
             </a>
             <a href="mailto:vp.vlad00@mail.ru" class="social-link social-link--email" aria-label="Email">
@@ -32,6 +32,11 @@
             <li><router-link to="/">Главная</router-link></li>
             <li><router-link to="/templates">Каталог квестов</router-link></li>
             <li><router-link to="/about">О создателе</router-link></li>
+          </ul>
+          <h4 class="footer-title footer-title--legal">Документы</h4>
+          <ul class="footer-links">
+            <li><router-link to="/terms">Условия использования</router-link></li>
+            <li><router-link to="/privacy">Политика конфиденциальности</router-link></li>
           </ul>
         </nav>
 
@@ -71,6 +76,11 @@
         <p class="copyright">
           © {{ currentYear }} Quest Dating · Влад и Лиза Петровы
         </p>
+        <nav class="footer-legal" aria-label="Правовые документы">
+          <router-link to="/terms">Условия использования</router-link>
+          <span class="footer-legal__sep" aria-hidden="true">·</span>
+          <router-link to="/privacy">Политика конфиденциальности</router-link>
+        </nav>
         <p class="footer-made">
           Сделано с ❤️ для тех, кто любит удивлять
         </p>
@@ -207,6 +217,27 @@ const currentYear = computed(() => new Date().getFullYear())
 
 .copyright { margin: 0; }
 
+.footer-legal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.footer-legal a {
+  color: #718096;
+  text-decoration: none;
+  transition: color 0.2s;
+  outline: none;
+}
+.footer-legal a:hover, .footer-legal a:focus { color: #a0aec0; }
+
+.footer-legal__sep { color: #4a5568; }
+
+.footer-title--legal {
+  margin-top: 8px;
+}
+
 .footer-made { margin: 0; font-style: italic; }
 
 @media (max-width: 1024px) {
@@ -220,8 +251,9 @@ const currentYear = computed(() => new Date().getFullYear())
   .footer { padding: 40px 0 0; margin-top: 48px; }
   .footer-content { grid-template-columns: 1fr; gap: 28px; }
   .footer-bottom {
-    flex-direction: column; gap: 8px;
+    flex-direction: column; gap: 10px;
     text-align: center;
   }
+  .footer-legal { justify-content: center; flex-wrap: wrap; }
 }
 </style>
