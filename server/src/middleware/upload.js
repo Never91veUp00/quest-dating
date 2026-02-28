@@ -6,7 +6,7 @@ import { ALLOWED_FILE_TYPES } from '../config/constants.js'
 
 // Абсолютный путь к корню сервера (папка server/)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const SERVER_ROOT = path.resolve(__dirname, '../../..')
+const SERVER_ROOT = path.resolve(__dirname, '../..')
 
 // Создаём папки при инициализации
 const UPLOAD_DIRS = {

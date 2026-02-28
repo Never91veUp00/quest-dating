@@ -12,7 +12,7 @@ import { generalLimiter } from './middleware/rateLimiter.js'
 dotenv.config()
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
+const UPLOADS_DIR = path.resolve(__dirname, '../../server/uploads')
 
 const app = express()
 const PORT = process.env.PORT || 5000
