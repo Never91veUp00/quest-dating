@@ -1,4 +1,4 @@
-import api from './api'
+import { apiClient } from './api'
 
 export const reviewService = {
   /**
@@ -8,7 +8,7 @@ export const reviewService = {
    * @returns {Promise} - Список отзывов
    */
   async getByTemplate(templateId, params = {}) {
-    return await api.get(`/reviews/template/${templateId}`, { params })
+    return await apiClient.get(`/reviews/template/${templateId}`, { params })
   },
 
   /**
@@ -17,7 +17,7 @@ export const reviewService = {
    * @returns {Promise} - Созданный отзыв
    */
   async create(reviewData) {
-    return await api.post('/reviews', reviewData)
+    return await apiClient.post('/reviews', reviewData)
   },
 
   /**
@@ -26,7 +26,7 @@ export const reviewService = {
    * @returns {Promise} - Обновленный отзыв
    */
   async markHelpful(reviewId) {
-    return await api.post(`/reviews/${reviewId}/helpful`)
+    return await apiClient.post(`/reviews/${reviewId}/helpful`)
   },
 
   /**
@@ -36,7 +36,7 @@ export const reviewService = {
    * @returns {Promise} - Обновленный отзыв
    */
   async update(reviewId, updates) {
-    return await api.patch(`/reviews/${reviewId}`, updates)
+    return await apiClient.patch(`/reviews/${reviewId}`, updates)
   },
 
   /**
@@ -45,6 +45,6 @@ export const reviewService = {
    * @returns {Promise} - Результат удаления
    */
   async delete(reviewId) {
-    return await api.delete(`/reviews/${reviewId}`)
+    return await apiClient.delete(`/reviews/${reviewId}`)
   }
 }

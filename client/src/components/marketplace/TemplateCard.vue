@@ -149,6 +149,8 @@ const showQuickView = () => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* ensure card footer always sticks to bottom */
+  justify-content: space-between;
 }
 
 .template-card:hover {
@@ -375,15 +377,42 @@ const showQuickView = () => {
 
 @media (max-width: 640px) {
   .card-image {
-    height: 180px;
+    height: 120px;
   }
 
   .card-content {
-    padding: 16px;
+    padding: 10px;
+    gap: 6px;
   }
 
   .card-title {
-    font-size: 1.1rem;
+    font-size: 0.88rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .card-tagline {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Hide heavy elements on mobile cards in scroll row */
+  .card-author,
+  .card-tags,
+  .card-stats {
+    display: none;
+  }
+
+  .card-footer {
+    padding-top: 8px;
+  }
+
+  .rating-text,
+  .reviews-count {
+    font-size: 0.78rem;
+  }
+
+  .card-meta {
+    font-size: 0.78rem;
   }
 }
 </style>

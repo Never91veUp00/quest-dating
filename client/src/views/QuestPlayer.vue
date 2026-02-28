@@ -60,10 +60,10 @@
             <div class="qp-hud__row">
               <span class="qp-hud__step">{{ blockIdx + 1 }}<span class="qp-hud__step-of">/{{ totalBlocks }}</span></span>
               <span class="qp-hud__name">{{ questData.title }}</span>
-              <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню">⋮</button>
               <span class="qp-hud__time">{{ elapsedStr }}</span>
+              <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню">⋮</button>
             </div>
-            <!-- Dropdown menu -->
+            <!-- Desktop dropdown -->
             <transition name="fade">
               <div v-if="showMenu" class="qp-hud__dropdown">
                 <button class="qp-hud__dropdown-item" @click="confirmRestart">
@@ -71,6 +71,22 @@
                 </button>
               </div>
             </transition>
+            <!-- Mobile bottom sheet (rendered outside header via teleport) -->
+            <teleport to="body">
+              <transition name="sheet">
+                <div v-if="showMenu" class="qp-menu-sheet" @click.self="showMenu = false">
+                  <div class="qp-menu-sheet__panel">
+                    <div class="qp-menu-sheet__handle"></div>
+                    <div class="qp-menu-sheet__title">Меню</div>
+                    <button class="qp-menu-sheet__item" @click="confirmRestart">
+                      <span class="qp-menu-sheet__ico">🔄</span>
+                      <span>Начать сначала</span>
+                    </button>
+                    <button class="qp-menu-sheet__close" @click="showMenu = false">Закрыть</button>
+                  </div>
+                </div>
+              </transition>
+            </teleport>
           </header>
 
           <!-- Блок -->
@@ -452,9 +468,13 @@ watch([blockIdx, completedIds, points], () => {
   if (started.value) persistState()
 }, { deep: true })
 
-// Close menu on outside click (ignore clicks inside dropdown)
+// Close menu on outside click (ignore clicks inside dropdown/sheet)
 const closeMenu = (e) => {
-  if (e.target.closest('.qp-hud__dropdown') || e.target.closest('.qp-hud__menu-btn')) return
+  if (
+    e.target.closest('.qp-hud__dropdown') ||
+    e.target.closest('.qp-menu-sheet__panel') ||
+    e.target.closest('.qp-hud__menu-btn')
+  ) return
   showMenu.value = false
 }
 
@@ -635,6 +655,79 @@ onUnmounted(() => {
 .pop-leave-active  { transition: opacity .2s ease; }
 .pop-enter-from    { opacity: 0; transform: translateY(-10px); }
 .pop-leave-to      { opacity: 0; }
+
+/* ── Mobile bottom sheet menu ─────────────────────────────────── */
+.qp-menu-sheet {
+  display: none; /* hidden on desktop */
+}
+@media (max-width: 480px) {
+  /* Hide desktop dropdown on mobile */
+  .qp-hud__dropdown { display: none !important; }
+
+  /* Show bottom sheet on mobile */
+  .qp-menu-sheet {
+    display: flex;
+    position: fixed; inset: 0; z-index: 400;
+    align-items: flex-end;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(4px);
+  }
+  .qp-menu-sheet__panel {
+    width: 100%;
+    background: var(--surf);
+    border-top: 1px solid var(--bord);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px 32px;
+  }
+  .qp-menu-sheet__handle {
+    width: 40px; height: 4px;
+    background: var(--bord);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .qp-menu-sheet__title {
+    font-family: var(--font-d);
+    font-size: .8rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 12px;
+  }
+  .qp-menu-sheet__item {
+    display: flex; align-items: center; gap: 14px;
+    width: 100%; background: none; border: none;
+    color: var(--text); font-size: 1rem;
+    padding: 16px 8px; cursor: pointer;
+    border-radius: 10px;
+    text-align: left;
+    transition: background .15s;
+  }
+  .qp-menu-sheet__item:hover { background: rgba(255,255,255,.06); }
+  .qp-menu-sheet__ico { font-size: 1.3rem; width: 28px; text-align: center; }
+  .qp-menu-sheet__close {
+    display: block; width: 100%; margin-top: 8px;
+    padding: 14px; background: rgba(255,255,255,.06);
+    border: 1px solid var(--bord); border-radius: 12px;
+    color: var(--dim); font-size: .9rem; cursor: pointer;
+  }
+}
+
+/* ── Sheet transition ─────────────────────────────────────────── */
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity .25s ease;
+}
+.sheet-enter-active .qp-menu-sheet__panel,
+.sheet-leave-active .qp-menu-sheet__panel {
+  transition: transform .3s cubic-bezier(.22,1,.36,1);
+}
+.sheet-leave-active .qp-menu-sheet__panel {
+  transition: transform .2s ease-in;
+}
+.sheet-enter-from,
+.sheet-leave-to { opacity: 0; }
+.sheet-enter-from .qp-menu-sheet__panel,
+.sheet-leave-to .qp-menu-sheet__panel { transform: translateY(100%); }
 
 /* ── Mobile responsive ────────────────────────────────────────── */
 @media (max-width: 480px) {

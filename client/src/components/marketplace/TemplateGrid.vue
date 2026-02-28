@@ -1,12 +1,10 @@
 <template>
   <div class="template-grid-wrapper">
-    <!-- Loader -->
     <div v-if="loading" class="grid-loading">
       <div class="spinner"></div>
       <p>Загружаем шаблоны...</p>
     </div>
 
-    <!-- Empty State -->
     <div v-else-if="!templates || templates.length === 0" class="grid-empty">
       <div class="empty-icon">🔍</div>
       <h3>Шаблоны не найдены</h3>
@@ -16,7 +14,6 @@
       </button>
     </div>
 
-    <!-- Grid -->
     <div v-else class="template-grid">
       <TemplateCard
         v-for="template in templates"
@@ -26,7 +23,6 @@
       />
     </div>
 
-    <!-- Pagination -->
     <Pagination
       v-if="pagination && pagination.pages > 1"
       :current-page="pagination.page"
@@ -34,7 +30,6 @@
       @page-change="handlePageChange"
     />
 
-    <!-- Quick View Modal -->
     <QuickViewModal
       :template="selectedTemplate"
       :is-open="showQuickView"
@@ -50,22 +45,12 @@ import Pagination from '../common/Pagination.vue'
 import QuickViewModal from './QuickViewModal.vue'
 
 defineProps({
-  templates: {
-    type: Array,
-    default: () => []
-  },
-  loading: {
-    type: Boolean,
-    default: false
-  },
-  pagination: {
-    type: Object,
-    default: null
-  }
+  templates: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  pagination: { type: Object, default: null }
 })
 
 const emit = defineEmits(['pageChange', 'resetFilters'])
-
 const showQuickView = ref(false)
 const selectedTemplate = ref(null)
 
@@ -81,18 +66,12 @@ const handlePageChange = (page) => {
 </script>
 
 <style scoped>
-.template-grid-wrapper {
-  width: 100%;
-}
+.template-grid-wrapper { width: 100%; }
 
-.grid-loading {
-  text-align: center;
-  padding: 80px 20px;
-}
+.grid-loading { text-align: center; padding: 80px 20px; }
 
 .spinner {
-  width: 50px;
-  height: 50px;
+  width: 50px; height: 50px;
   border: 4px solid #e2e8f0;
   border-top-color: #667eea;
   border-radius: 50%;
@@ -100,47 +79,19 @@ const handlePageChange = (page) => {
   margin: 0 auto 20px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.grid-empty {
-  text-align: center;
-  padding: 80px 20px;
-}
-
-.empty-icon {
-  font-size: 5rem;
-  margin-bottom: 20px;
-  opacity: 0.5;
-}
-
-.grid-empty h3 {
-  font-size: 1.5rem;
-  color: #2d3748;
-  margin-bottom: 12px;
-}
-
-.grid-empty p {
-  color: #718096;
-  margin-bottom: 24px;
-}
+.grid-empty { text-align: center; padding: 80px 20px; }
+.empty-icon { font-size: 5rem; margin-bottom: 20px; opacity: 0.5; }
+.grid-empty h3 { font-size: 1.5rem; color: #2d3748; margin-bottom: 12px; }
+.grid-empty p { color: #718096; margin-bottom: 24px; }
 
 .btn-reset {
-  padding: 12px 24px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+  padding: 12px 24px; background: #667eea; color: white;
+  border: none; border-radius: 8px; font-weight: 600;
+  cursor: pointer; transition: all 0.3s;
 }
-
-.btn-reset:hover {
-  background: #764ba2;
-  transform: translateY(-2px);
-}
+.btn-reset:hover { background: #764ba2; transform: translateY(-2px); }
 
 .template-grid {
   display: grid;
@@ -149,10 +100,25 @@ const handlePageChange = (page) => {
   margin-bottom: 48px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .template-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow-x: auto;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .template-grid::-webkit-scrollbar { display: none; }
+  .template-grid > * {
+    flex: 0 0 210px;
+    height: auto;
+    align-self: stretch;
+    scroll-snap-align: start;
   }
 }
 </style>

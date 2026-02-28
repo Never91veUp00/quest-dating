@@ -99,4 +99,36 @@ defineProps({
   font-size: 0.9rem;
   color: #718096;
 }
+
+@media (max-width: 640px) {
+  .testimonial-card {
+    padding: 16px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .testimonial-text {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .testimonial-author {
+    gap: 10px;
+    padding-top: 10px;
+  }
+
+  .author-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .author-name {
+    font-size: 0.85rem;
+  }
+
+  .template-name {
+    font-size: 0.75rem;
+  }
+}
 </style>

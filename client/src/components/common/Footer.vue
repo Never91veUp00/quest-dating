@@ -69,7 +69,7 @@
       <!-- Нижний футер -->
       <div class="footer-bottom">
         <p class="copyright">
-          © {{ currentYear }} Quest Dating · Влад Пименов · ИП
+          © {{ currentYear }} Quest Dating · Влад и Лиза Петровы
         </p>
         <p class="footer-made">
           Сделано с ❤️ для тех, кто любит удивлять

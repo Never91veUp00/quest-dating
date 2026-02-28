@@ -67,16 +67,15 @@
     <section class="featured-section">
       <div class="container">
         <div class="section-header">
-          <div>
-            <h2 class="section-title">✨ Избранные квесты</h2>
-            <p class="section-description">Мои лучшие сценарии — каждый можно персонализировать</p>
-          </div>
+          <h2 class="section-title"><span class="title-emoji">✨</span> Избранные квесты</h2>
           <router-link to="/templates?featured=true" class="link-more">
             Смотреть все →
           </router-link>
         </div>
 
-        <TemplateGrid :templates="featuredTemplates" :loading="featuredLoading" />
+        <div class="scroll-fade-wrap">
+          <TemplateGrid :templates="featuredTemplates" :loading="featuredLoading" />
+        </div>
       </div>
     </section>
 
@@ -84,16 +83,15 @@
     <section class="popular-section">
       <div class="container">
         <div class="section-header">
-          <div>
-            <h2 class="section-title">🔥 Популярные квесты</h2>
-            <p class="section-description">Квесты, которые чаще всего выбирают пары</p>
-          </div>
+          <h2 class="section-title"><span class="title-emoji">🔥</span> Популярные квесты</h2>
           <router-link to="/templates?sort_by=orders" class="link-more">
             Смотреть все →
           </router-link>
         </div>
 
-        <TemplateGrid :templates="popularTemplates" :loading="popularLoading" />
+        <div class="scroll-fade-wrap">
+          <TemplateGrid :templates="popularTemplates" :loading="popularLoading" />
+        </div>
       </div>
     </section>
 
@@ -103,6 +101,7 @@
         <h2 class="section-title">Как это работает</h2>
         <p class="section-description">Всего 4 простых шага до вашего идеального свидания</p>
 
+        <div class="scroll-fade-wrap scroll-fade-wrap--dark">
         <div class="steps-grid">
           <div class="step">
             <div class="step-number">1</div>
@@ -140,6 +139,7 @@
             </p>
           </div>
         </div>
+        </div>
       </div>
     </section>
 
@@ -149,12 +149,14 @@
         <h2 class="section-title">💬 Что говорят наши клиенты</h2>
         <p class="section-description">Реальные отзывы от пар, которые уже прошли квест</p>
 
+        <div class="scroll-fade-wrap">
         <div class="testimonials-grid">
           <TestimonialCard
             v-for="testimonial in testimonials"
             :key="testimonial.id"
             :testimonial="testimonial"
           />
+        </div>
         </div>
       </div>
     </section>
@@ -352,24 +354,39 @@ onMounted(() => {
 }
 
 .hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
 .stat {
+  flex: 1;
   text-align: center;
+  padding: 12px 8px;
+  position: relative;
+}
+
+.stat + .stat::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background: rgba(255,255,255,0.3);
 }
 
 .stat-number {
-  font-size: 2.5rem;
+  font-size: 1.6rem;
   font-weight: 900;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  line-height: 1.3;
 }
 
 .hero-image {
@@ -409,7 +426,7 @@ onMounted(() => {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  /* padding: 0 20px; */
 }
 
 .section-title {
@@ -450,6 +467,7 @@ onMounted(() => {
   text-decoration: none;
   font-size: 1.1rem;
   transition: color 0.3s;
+  white-space: nowrap;
 }
 
 .link-more:hover {
@@ -468,6 +486,15 @@ onMounted(() => {
   gap: 24px;
 }
 
+/* Mobile card-stack (cardholder) */
+@media (max-width: 640px) {
+  .categories-grid.stack-mode {
+    display: block;
+    position: relative;
+    /* height set by JS via --stack-height, fallback below */
+  }
+}
+
 .templates-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -483,16 +510,20 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 40px;
+  padding-top: 24px;
 }
 
 .step {
   text-align: center;
   position: relative;
-  padding: 32px 24px;
+  padding: 44px 24px 28px;
   background: white;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .step:hover {
@@ -619,8 +650,35 @@ onMounted(() => {
   }
 
   .hero-stats {
+    gap: 0;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+
+  /* Hero image becomes background on mobile */
+  .hero {
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(102, 126, 234, 0.82) 0%,
+        rgba(118, 75, 162, 0.88) 100%
+      ),
+      url('/images/Love is in the air-bro.svg') center / cover no-repeat;
+    padding: 72px 0 48px;
+  }
+
+  .hero-image {
+    display: none;
+  }
+
+  .hero .container {
     grid-template-columns: 1fr;
-    gap: 24px;
   }
 
   .section-title {
@@ -630,7 +688,25 @@ onMounted(() => {
   .section-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
+    gap: 2px;
+    margin-bottom: 10px;
+  }
+
+  .section-header .section-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .title-emoji {
+    display: none;
+  }
+
+  .link-more {
+    font-size: 0.65rem;
+    opacity: 0.55;
+    letter-spacing: 0.01em;
   }
 
   .templates-grid {
@@ -641,4 +717,145 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  /* ── Section titles ── */
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  .section-description {
+    display: none;
+  }
+
+  /* ── Categories ── */
+  .categories-section {
+    padding: 28px 0;
+  }
+
+  .categories-section .container {
+    padding: 0;
+  }
+
+  .categories-section .section-title,
+  .categories-section .section-description {
+    padding: 0 20px;
+  }
+
+  /* Card-stack / cardholder effect for categories */
+  .categories-grid {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 0;
+  }
+
+  .categories-grid > *:not(:first-child) {
+    margin-top: -18px;
+  }
+
+  /* Each card slightly smaller and more opaque as it goes down */
+  .categories-grid > *:nth-child(1) { z-index: 5; position: relative; transform: rotate(-0.5deg); }
+  .categories-grid > *:nth-child(2) { z-index: 4; position: relative; transform: rotate(0.3deg); }
+  .categories-grid > *:nth-child(3) { z-index: 3; position: relative; transform: rotate(-0.4deg); }
+  .categories-grid > *:nth-child(4) { z-index: 2; position: relative; transform: rotate(0.5deg); }
+  .categories-grid > *:nth-child(5) { z-index: 1; position: relative; transform: rotate(-0.3deg); }
+
+  /* On tap/hover — lift the card */
+  .categories-grid > *:hover,
+  .categories-grid > *:focus-within {
+    transform: translateY(-8px) rotate(0deg) !important;
+    z-index: 10 !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+  }
+
+  /* ── Featured & Popular ── */
+  .featured-section,
+  .popular-section {
+    padding: 28px 0;
+  }
+
+  .featured-section .section-header,
+  .popular-section .section-header {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* Fade: only on the inner template-grid (not wrapper) using sibling trick */
+
+  /* ── How it works ── */
+  .how-it-works {
+    padding: 28px 0;
+  }
+
+  .steps-grid {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -20px;
+    padding-left: 20px;
+  }
+
+  .steps-grid::-webkit-scrollbar { display: none; }
+
+  .step {
+    flex: 0 0 160px;
+    scroll-snap-align: start;
+    padding: 36px 12px 14px;
+    align-self: stretch;
+  }
+
+  .steps-grid {
+    padding-top: 20px;
+  }
+
+  .step-icon {
+    font-size: 1.7rem;
+    margin-bottom: 6px;
+  }
+
+  .step-title {
+    font-size: 0.82rem;
+  }
+
+  .step-description {
+    font-size: 0.73rem;
+  }
+
+  /* ── Testimonials ── */
+  .testimonials-section {
+    padding: 28px 0;
+  }
+
+  .testimonials-grid {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -20px;
+    padding-left: 20px;
+  }
+
+
+  .testimonials-grid::-webkit-scrollbar { display: none; }
+
+
+  .testimonials-grid > * {
+    flex: 0 0 240px;
+    scroll-snap-align: start;
+    align-self: stretch;
+  }
+}
+
+
+
 </style>

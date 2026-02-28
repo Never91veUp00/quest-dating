@@ -44,6 +44,12 @@ const formattedPrice = computed(() => {
   font-size: 1.25rem;
 }
 
+@media (max-width: 640px) {
+  .price-tag {
+    font-size: 0.82rem;
+  }
+}
+
 .price-free {
   color: #48bb78;
 }

@@ -127,15 +127,35 @@ const pluralize = (count, one, few, many) => {
 
 @media (max-width: 640px) {
   .category-card {
-    padding: 24px 20px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    gap: 12px;
+    border-width: 1.5px;
   }
 
   .category-icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 
   .category-name {
-    font-size: 1.25rem;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .category-description {
+    display: none;
+  }
+
+  .category-meta {
+    margin-top: 0;
+  }
+
+  .templates-count {
+    font-size: .8rem;
+  }
+
+  .category-arrow {
+    font-size: 1.1rem;
   }
 }
 </style>
