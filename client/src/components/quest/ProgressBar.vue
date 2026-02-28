@@ -317,8 +317,41 @@ const isCurrentMilestone = (percentage) => {
 }
 
 @media (max-width: 640px) {
+  .progress-bar-container {
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+
+  .progress-header {
+    margin-bottom: 10px;
+  }
+
+  .progress-title {
+    font-size: 0.9rem;
+  }
+
+  .progress-percentage {
+    font-size: 1.1rem;
+  }
+
+  .progress-bar {
+    height: 14px;
+    margin-bottom: 12px;
+  }
+
   .progress-stats {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 0;
+  }
+
+  .stat-item {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  .stat-icon {
+    font-size: 1rem;
   }
 
   .progress-milestones {

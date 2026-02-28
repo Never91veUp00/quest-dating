@@ -96,6 +96,9 @@
       <a href="mailto:vp.vlad00@mail.ru" class="contact-link">
         📧 vp.vlad00@mail.ru
       </a>
+      <a href="https://t.me/vinatian00" target="_blank" class="contact-link">
+        💬 @vinatian00
+      </a>
     </div>
   </div>
 </template>
@@ -380,6 +383,10 @@ onUnmounted(() => {
   padding: 16px;
   background: #f7fafc;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .contact-text {

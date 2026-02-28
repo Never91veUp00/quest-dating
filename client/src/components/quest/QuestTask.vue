@@ -76,7 +76,7 @@
               type="text"
               class="task__input task__input--code"
               :class="{ shake: isWrong }"
-              placeholder="_ _ _ _"
+              :placeholder="task.answer ? task.answer.replace(/\S/g, '_').split('').join(' ') : '_ _ _ _'"
               autocomplete="off" spellcheck="false"
               maxlength="20"
               @keyup.enter="submitAnswer"
@@ -168,38 +168,36 @@
         <template v-else-if="task.type === 'media'">
           <div class="task__media">
 
-            <!-- YouTube -->
-            <template v-if="task.media_type === 'youtube'">
-              <div class="task__media__wrap">
-                <iframe
-                  :src="youtubeEmbed"
-                  frameborder="0"
-                  allow="autoplay; encrypted-media"
-                  allowfullscreen
-                  class="task__media__iframe"
-                ></iframe>
+            <!-- Определяем тип по media_type или по расширению URL -->
+            <template v-if="resolvedMediaType(task) === 'video'">
+              <video
+                :src="mediaFullUrl(task.media_url)"
+                controls
+                playsinline
+                class="task__media__video"
+                preload="metadata"
+              ></video>
+            </template>
+
+            <template v-else-if="resolvedMediaType(task) === 'audio'">
+              <div class="task__media__audio-wrap">
+                <div class="task__media__audio-icon">🎙️</div>
+                <audio
+                  :src="mediaFullUrl(task.media_url)"
+                  controls
+                  class="task__media__audio"
+                  preload="metadata"
+                ></audio>
               </div>
             </template>
 
-            <!-- Telegram видео — открывается в браузере -->
-            <template v-else-if="task.media_type === 'telegram_video'">
+            <!-- Ссылка Telegram (старый формат) -->
+            <template v-else-if="task.media_url">
               <a :href="task.media_url" target="_blank" class="task__media__tg-link task__media__tg-link--video">
-                <div class="task__media__tg-icon">📹</div>
+                <div class="task__media__tg-icon">🎬</div>
                 <div class="task__media__tg-text">
-                  <div class="task__media__tg-title">Видео послание</div>
-                  <div class="task__media__tg-sub">Нажми чтобы открыть в Telegram</div>
-                </div>
-                <div class="task__media__tg-arrow">→</div>
-              </a>
-            </template>
-
-            <!-- Telegram аудио -->
-            <template v-else-if="task.media_type === 'telegram_audio'">
-              <a :href="task.media_url" target="_blank" class="task__media__tg-link task__media__tg-link--audio">
-                <div class="task__media__tg-icon">🎙️</div>
-                <div class="task__media__tg-text">
-                  <div class="task__media__tg-title">Голосовое послание</div>
-                  <div class="task__media__tg-sub">Нажми чтобы открыть в Telegram</div>
+                  <div class="task__media__tg-title">Медиа послание</div>
+                  <div class="task__media__tg-sub">Нажми чтобы открыть</div>
                 </div>
                 <div class="task__media__tg-arrow">→</div>
               </a>
@@ -284,7 +282,10 @@
               >
                 <div class="task__pairs__card__inner">
                   <div class="task__pairs__card__back">?</div>
-                  <div class="task__pairs__card__front">{{ card.value }}</div>
+                  <div class="task__pairs__card__front">
+                    <img v-if="isCardImage(card.value)" :src="card.value" class="task__pairs__card__img" />
+                    <span v-else>{{ card.value }}</span>
+                  </div>
                 </div>
               </button>
             </div>
@@ -404,12 +405,13 @@ const pairsComplete = computed(() =>
 
 onMounted(() => {
   if (props.task.type === 'mini_game' && props.task.game_type === 'pairs') {
-    // Дублируем пары и перемешиваем
-    const pairs = (props.task.game_pairs || []).flatMap((p, i) => [
-      { id: i, value: p.a, pairId: i },
-      { id: i + 100, value: p.b, pairId: i }
+    // Каждое фото дублируется в две карточки, потом перемешиваются
+    const images = props.task.game_images || []
+    const cards = images.flatMap((img, i) => [
+      { id: i,       value: img, pairId: i },
+      { id: i + 100, value: img, pairId: i },
     ])
-    pairsCards.value = pairs.sort(() => Math.random() - 0.5)
+    pairsCards.value = cards.sort(() => Math.random() - 0.5)
   }
 })
 
@@ -514,6 +516,9 @@ const onSlotTap = (slotIdx) => {
 
   selectedSlot.value = null
 }
+
+const isCardImage = (v) => v && (v.startsWith('data:image') || v.startsWith('http'))
+
 const flipCard = (ci) => {
   if (pairsFlipped.value.includes(ci)) return
   if (pairsFlipped.value.length === 2) return
@@ -583,11 +588,22 @@ const isYoutube = computed(() => {
   return url.includes('youtube.com') || url.includes('youtu.be')
 })
 
-const youtubeEmbed = computed(() => {
-  const url = props.task.media_url || ''
-  const id = url.match(/(?:v=|youtu\.be\/)([^&?\s]+)/)?.[1]
-  return id ? `https://www.youtube.com/embed/${id}?rel=0` : ''
-})
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+const mediaFullUrl = (url) => url?.startsWith('http') ? url : API_BASE + url
+
+const resolvedMediaType = (task) => {
+  if (task.media_type === 'video' || task.media_type === 'audio') return task.media_type
+  // fallback по расширению URL
+  const url = task.media_url || ''
+  if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) return 'video'
+  if (/\.(mp3|ogg|wav|m4a)(\?|$)/i.test(url)) return 'audio'
+  // fallback по пути uploads/media
+  if (url.includes('/uploads/media/')) {
+    const ext = url.split('.').pop().toLowerCase()
+    return ['mp4','webm','mov'].includes(ext) ? 'video' : 'audio'
+  }
+  return null
+}
 </script>
 
 <style scoped>
@@ -815,6 +831,7 @@ const youtubeEmbed = computed(() => {
 }
 .task__pairs__card__back { color: var(--accent); font-size: 1.2rem; }
 .task__pairs__card__front { transform: rotateY(180deg); color: var(--text); background: color-mix(in srgb, var(--accent) 8%, var(--bg2)); }
+.task__pairs__card__img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
 </style>
 
 <style scoped>

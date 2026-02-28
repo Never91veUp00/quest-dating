@@ -7,8 +7,19 @@ import ordersRoutes from './orders.js'
 import questsRoutes from './quests.js'
 import authRoutes from './auth.js'
 import adminRoutes from './admin.js'
+import { getPlatformStats } from '../services/statsService.js'
 
 const router = express.Router()
+
+// Публичная статистика платформы
+router.get('/stats', async (req, res, next) => {
+  try {
+    const stats = await getPlatformStats()
+    res.json({ success: true, data: stats })
+  } catch (error) {
+    next(error)
+  }
+})
 
 // Подключение всех маршрутов
 router.use('/templates', templatesRoutes)

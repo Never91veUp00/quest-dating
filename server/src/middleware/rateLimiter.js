@@ -1,9 +1,23 @@
 import rateLimit from 'express-rate-limit'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 // Общий лимит для всех API запросов
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 минут
-  max: 100,
+  max: isProd ? 300 : 1000,  // в dev режиме — без ограничений по сути
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Слишком много запросов, попробуйте позже'
+  }
+})
+
+// Лимит для прохождения квестов (сессии, прогресс)
+export const questLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProd ? 200 : 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

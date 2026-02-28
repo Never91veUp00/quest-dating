@@ -97,7 +97,8 @@ export const createOrder = async (req, res, next) => {
       event_date,
       event_city,
       customization,
-      selected_features
+      selected_features,
+      newsletter
     } = req.body
 
     // Получить информацию о шаблоне для расчета цены
@@ -138,8 +139,9 @@ export const createOrder = async (req, res, next) => {
         base_price,
         additional_costs,
         total_price,
-        status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        status,
+        newsletter_consent
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
     `, [
       template_id,
@@ -154,7 +156,8 @@ export const createOrder = async (req, res, next) => {
       base_price,
       additional_costs,
       total_price,
-      ORDER_STATUS.PENDING
+      ORDER_STATUS.PENDING,
+      newsletter === true
     ])
 
     // Увеличить счетчик заказов шаблона

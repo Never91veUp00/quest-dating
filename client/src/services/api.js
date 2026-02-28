@@ -238,6 +238,13 @@ const api = {
    */
   removeFromFavorites(templateId) {
     return apiClient.delete(`/favorites/${templateId}`)
+  },
+
+  /**
+   * Публичная статистика платформы
+   */
+  getStats() {
+    return apiClient.get('/stats')
   }
 }
 

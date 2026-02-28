@@ -55,8 +55,8 @@
           @move="(dir) => $emit('move-task', block, ti, dir)"
           @remove="$emit('remove-task', block, ti)"
           @generate-qr="$emit('generate-qr', $event)"
-          @add-pair="$emit('add-pair', $event)"
-          @remove-pair="(t, i) => $emit('remove-pair', t, i)"
+          @add-pair-image="(t, url) => $emit('add-pair-image', t, url)"
+          @remove-pair-image="(t, i) => $emit('remove-pair-image', t, i)"
           @puzzle-upload="(task) => taskRefs[task.id]?.triggerPuzzleUpload()"
         />
 
@@ -99,7 +99,7 @@ defineProps({
 defineEmits([
   'toggle', 'move', 'remove',
   'add-task', 'remove-task', 'move-task',
-  'generate-qr', 'add-pair', 'remove-pair',
+  'generate-qr', 'add-pair-image', 'remove-pair-image',
 ])
 
 // Refs на EditorTask — чтобы проксировать puzzle-upload к нужному экземпляру

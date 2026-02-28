@@ -131,7 +131,7 @@
       <div class="container">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-number">10+</div>
+            <div class="stat-number">{{ stats.total_templates ?? '...' }}</div>
             <div class="stat-label">Готовых шаблонов</div>
           </div>
           <div class="stat-card">
@@ -143,7 +143,7 @@
             <div class="stat-label">Персональных квестов</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">4.9</div>
+            <div class="stat-number">{{ stats.average_rating ? parseFloat(stats.average_rating).toFixed(1) : '...' }}</div>
             <div class="stat-label">Средний рейтинг</div>
           </div>
         </div>
@@ -278,7 +278,8 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import api from '@/services/api'
 
 const formData = reactive({
   name: '',
@@ -288,6 +289,16 @@ const formData = reactive({
 
 const submitting = ref(false)
 const showSuccess = ref(false)
+const stats = ref({})
+
+onMounted(async () => {
+  try {
+    const response = await api.getStats()
+    stats.value = response.data || {}
+  } catch (error) {
+    console.error('Failed to load stats:', error)
+  }
+})
 
 const handleSubmit = async () => {
   submitting.value = true
@@ -786,25 +797,181 @@ const handleSubmit = async () => {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
+  /* Hero — компактный */
+  .hero {
+    padding: 32px 0 24px;
+  }
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
   }
-
   .hero-description {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 
+  /* Убираем картинку в секции "Моя история" */
+  .mission-section {
+    padding: 24px 0;
+  }
+  .mission-image {
+    display: none;
+  }
+  .section-title {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+  .mission-description {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  /* Принципы — 2 колонки, компактно */
+  .values-section {
+    padding: 24px 0;
+  }
+  .values-section .section-title {
+    margin-bottom: 16px;
+  }
+  .values-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .value-card {
+    padding: 16px 12px;
+  }
+  .value-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  .value-title {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+  .value-description {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  /* Таймлайн — убираем вертикальные линии, сжимаем */
+  .how-it-works-section {
+    padding: 24px 0;
+  }
+  .how-it-works-section .section-title {
+    margin-bottom: 16px;
+  }
+  .timeline-item {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .timeline-item:not(:last-child)::after {
+    display: none;
+  }
+  .timeline-number {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .timeline-title {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  .timeline-description {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /* Статистика — 2 колонки */
+  .stats-section {
+    padding: 24px 0;
+  }
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .stat-number {
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 0.85rem;
   }
 
-  .team-grid {
+  /* Создатель — компактно */
+  .team-section {
+    padding: 24px 0;
+  }
+  .team-section .section-title {
+    margin-bottom: 4px;
+  }
+  .section-description {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+  .member-avatar {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+  }
+  .member-name {
+    font-size: 1.1rem;
+  }
+  .member-bio {
+    font-size: 0.85rem;
+  }
+
+  /* Контакты — убираем форму, только контакты */
+  .contact-section {
+    padding: 24px 0;
+  }
+  .contact-section .section-title {
+    margin-bottom: 20px;
+  }
+  .contact-content {
     grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .contact-form {
+    display: none;
+  }
+  .contact-info {
+    gap: 16px;
+  }
+  .contact-item {
+    gap: 12px;
+  }
+  .contact-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .contact-label {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+  }
+  .contact-value {
+    font-size: 0.95rem;
   }
 
+  /* CTA — компактный */
+  .cta-section {
+    padding: 28px 0;
+  }
   .cta-title {
-    font-size: 2rem;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+  .cta-description {
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+  .btn-cta {
+    padding: 14px 32px;
+    font-size: 1rem;
   }
 }
 </style>

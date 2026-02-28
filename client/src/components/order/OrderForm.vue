@@ -1,12 +1,13 @@
 <template>
   <div class="order-form">
+
     <!-- Прогресс-бар -->
     <div class="form-progress">
-      <div 
+      <div
         v-for="(step, index) in steps"
         :key="index"
         class="progress-step"
-        :class="{ 
+        :class="{
           active: currentStep === index + 1,
           completed: currentStep > index + 1
         }"
@@ -17,6 +18,7 @@
     </div>
 
     <form @submit.prevent="handleSubmit" class="form-container">
+
       <!-- Шаг 1: Контактная информация -->
       <div v-if="currentStep === 1" class="form-step">
         <h3 class="step-title">Контактная информация</h3>
@@ -48,7 +50,6 @@
               :required="currentStep === 1"
             />
           </div>
-
           <div class="form-group">
             <label for="client_phone" class="form-label">Телефон</label>
             <input
@@ -74,7 +75,6 @@
               :min="minDate"
             />
           </div>
-
           <div class="form-group">
             <label for="event_city" class="form-label">Город</label>
             <input
@@ -118,37 +118,19 @@
             rows="8"
             placeholder="Расскажите о вашем событии, особых пожеланиях, важных деталях..."
             :required="currentStep === 3"
-            minlength="50"
           ></textarea>
-          <span class="char-count">
-            {{ formData.description.length }} / минимум 50 символов
-          </span>
         </div>
 
         <div class="form-group">
-          <label class="checkbox-label">
-            <input 
-              type="checkbox" 
-              name="agree_terms"
-              v-model="formData.agree_terms" 
-              :required="currentStep === 3" 
-            />
+          <label class="checkbox-label" @click="formData.agree_terms = !formData.agree_terms">
+            <div class="checkbox-box" :class="{ checked: formData.agree_terms }">
+              <span v-if="formData.agree_terms" class="checkbox-tick">✓</span>
+            </div>
             <span>
-              Я согласен с 
-              <a href="/terms" target="_blank">условиями использования</a> и 
-              <a href="/privacy" target="_blank">политикой конфиденциальности</a>
+              Я согласен с
+              <a href="/terms" target="_blank" @click.stop>условиями использования</a> и
+              <a href="/privacy" target="_blank" @click.stop>политикой конфиденциальности</a>
             </span>
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input 
-              type="checkbox" 
-              name="newsletter"
-              v-model="formData.newsletter" 
-            />
-            <span>Хочу получать новости и специальные предложения</span>
           </label>
         </div>
       </div>
@@ -182,6 +164,7 @@
           {{ submitting ? 'Отправка...' : 'Отправить заявку' }}
         </button>
       </div>
+
     </form>
   </div>
 </template>
@@ -192,49 +175,39 @@ import CustomizationOptions from './CustomizationOptions.vue'
 import { useToast } from '@/composables/useToast'
 
 const props = defineProps({
-  template: {
-    type: Object,
-    default: null
-  }
+  template: { type: Object, default: null }
 })
 
 const emit = defineEmits(['submit', 'update:features', 'update:customization', 'update:featuresData'])
 const toast = useToast()
 
 const currentStep = ref(1)
-const submitting = ref(false)
-const submitted = ref(false)
+const submitting  = ref(false)
+const submitted   = ref(false)
 const featuresData = ref([])
 
 const steps = ['Контакты', 'Настройка', 'Детали']
 
 const formData = reactive({
-  template_id: props.template?.id || null,
-  client_name: '',
-  client_email: '',
-  client_phone: '',
-  event_date: '',
-  event_city: '',
-  description: '',
-  customization: {},
+  template_id:       props.template?.id || null,
+  client_name:       '',
+  client_email:      '',
+  client_phone:      '',
+  event_date:        '',
+  event_city:        '',
+  description:       '',
+  customization:     {},
   selected_features: [],
-  agree_terms: false,
-  newsletter: false
+  agree_terms:       false
 })
 
-// Всплываем изменения фич и кастомизации в реальном времени
-watch(() => formData.selected_features, (val) => {
-  emit('update:features', val)
-}, { deep: true })
-
-watch(() => formData.customization, (val) => {
-  emit('update:customization', val)
-}, { deep: true })
+watch(() => formData.selected_features, (val) => emit('update:features', val), { deep: true })
+watch(() => formData.customization,     (val) => emit('update:customization', val), { deep: true })
 
 const minDate = computed(() => {
-  const today = new Date()
-  today.setDate(today.getDate() + 1)
-  return today.toISOString().split('T')[0]
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().split('T')[0]
 })
 
 const nextStep = () => {
@@ -255,16 +228,14 @@ const validateCurrentStep = () => {
       toast.error('Пожалуйста, введите ваше имя')
       return false
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.client_email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.client_email)) {
       toast.error('Пожалуйста, введите корректный email')
       return false
     }
   }
-
   if (currentStep.value === 3) {
-    if (formData.description.length < 50) {
-      toast.error('Описание должно содержать минимум 50 символов')
+    if (!formData.description.trim()) {
+      toast.error('Пожалуйста, опишите ваши пожелания')
       return false
     }
     if (!formData.agree_terms) {
@@ -272,16 +243,13 @@ const validateCurrentStep = () => {
       return false
     }
   }
-
   return true
 }
 
 const handleSubmit = async () => {
   if (!validateCurrentStep()) return
   if (submitting.value || submitted.value) return
-
   submitting.value = true
-
   try {
     await emit('submit', formData)
     submitted.value = true
@@ -295,10 +263,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.order-form {
-  max-width: 800px;
-  margin: 0 auto;
-}
+.order-form { max-width: 800px; margin: 0 auto; }
 
 .form-progress {
   display: flex;
@@ -306,258 +271,108 @@ const handleSubmit = async () => {
   margin-bottom: 48px;
   position: relative;
 }
-
 .form-progress::before {
   content: '';
   position: absolute;
-  top: 20px;
-  left: 20px;
-  right: 20px;
+  top: 20px; left: 20px; right: 20px;
   height: 2px;
   background: #e2e8f0;
   z-index: 0;
 }
-
 .progress-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  position: relative; z-index: 1;
 }
-
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   background: white;
   border: 2px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: #718096;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: #718096;
   transition: all 0.3s;
 }
-
 .progress-step.active .step-number {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
-  color: white;
-  transform: scale(1.1);
+  border-color: #667eea; color: white; transform: scale(1.1);
 }
-
 .progress-step.completed .step-number {
-  background: #48bb78;
-  border-color: #48bb78;
-  color: white;
-  font-size: 0;
+  background: #48bb78; border-color: #48bb78; color: white; font-size: 0;
 }
-
-.progress-step.completed .step-number::after {
-  content: '✓';
-  font-size: 1rem;
-}
-
-.step-label {
-  font-size: 0.85rem;
-  color: #718096;
-  font-weight: 600;
-}
-
-.progress-step.active .step-label {
-  color: #667eea;
-}
+.progress-step.completed .step-number::after { content: '✓'; font-size: 1rem; }
+.step-label { font-size: 0.85rem; color: #718096; font-weight: 600; }
+.progress-step.active .step-label { color: #667eea; }
 
 .form-container {
-  background: white;
-  border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  background: white; border-radius: 16px; padding: 40px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
-
-.form-step {
-  animation: fadeIn 0.3s;
-}
-
+.form-step { animation: fadeIn 0.3s; }
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.step-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #2d3748;
-  margin: 0 0 8px 0;
-}
+.step-title { font-size: 1.75rem; font-weight: 800; color: #2d3748; margin: 0 0 8px; }
+.step-description { color: #718096; margin: 0 0 32px; font-size: 1.05rem; }
+.form-group { margin-bottom: 24px; position: relative; }
+.form-label { display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 0.95rem; }
 
-.step-description {
-  color: #718096;
-  margin: 0 0 32px 0;
-  font-size: 1.05rem;
+.form-input, .form-textarea {
+  width: 100%; padding: 12px 16px;
+  border: 2px solid #e2e8f0; border-radius: 8px;
+  font-size: 1rem; transition: border-color 0.3s; font-family: inherit;
 }
-
-.form-group {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.form-label {
-  display: block;
-  font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
-}
-
-.form-input,
-.form-textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  font-family: inherit;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.form-textarea {
-  resize: vertical;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.char-count {
-  position: absolute;
-  right: 12px;
-  bottom: -24px;
-  font-size: 0.85rem;
-  color: #718096;
-}
+.form-input:focus, .form-textarea:focus { outline: none; border-color: #667eea; }
+.form-textarea { resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 .checkbox-label {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  color: #4a5568;
-  line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 12px;
+  cursor: pointer; font-size: 0.95rem; color: #4a5568;
+  line-height: 1.5; user-select: none;
 }
-
-.checkbox-label input[type="checkbox"] {
-  margin-top: 2px;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  flex-shrink: 0;
+.checkbox-box {
+  width: 20px; height: 20px; min-width: 20px;
+  border: 2px solid #cbd5e0; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px; transition: all 0.2s; background: white;
 }
-
-.checkbox-label a {
-  color: #667eea;
-  text-decoration: none;
+.checkbox-box.checked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
 }
-
-.checkbox-label a:hover {
-  text-decoration: underline;
-}
+.checkbox-tick { color: white; font-size: 0.75rem; font-weight: 700; line-height: 1; }
+.checkbox-label:hover .checkbox-box:not(.checked) { border-color: #667eea; }
+.checkbox-label a { color: #667eea; text-decoration: none; }
+.checkbox-label a:hover { text-decoration: underline; }
 
 .form-navigation {
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-  margin-top: 32px;
-  padding-top: 32px;
-  border-top: 2px solid #e2e8f0;
+  display: flex; gap: 16px; justify-content: space-between;
+  margin-top: 32px; padding-top: 32px; border-top: 2px solid #e2e8f0;
 }
-
-.btn-nav,
-.btn-submit {
-  padding: 14px 32px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  border: none;
+.btn-nav, .btn-submit {
+  padding: 14px 32px; border-radius: 10px;
+  font-weight: 600; font-size: 1rem;
+  cursor: pointer; transition: all 0.3s; border: none;
 }
-
-.btn-prev {
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-}
-
-.btn-prev:hover {
-  background: #f7fafc;
-}
-
-.btn-next {
-  background: #667eea;
-  color: white;
-  margin-left: auto;
-}
-
-.btn-next:hover {
-  background: #764ba2;
-  transform: translateY(-2px);
-}
-
+.btn-prev { background: white; color: #667eea; border: 2px solid #667eea; }
+.btn-prev:hover { background: #f7fafc; }
+.btn-next { background: #667eea; color: white; margin-left: auto; }
+.btn-next:hover { background: #764ba2; transform: translateY(-2px); }
 .btn-submit {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  margin-left: auto;
+  color: white; box-shadow: 0 6px 20px rgba(102,126,234,0.4); margin-left: auto;
 }
-
-.btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,0.5); }
+.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
 @media (max-width: 768px) {
-  .form-container {
-    padding: 24px 20px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .step-label {
-    display: none;
-  }
-
-  .form-navigation {
-    flex-direction: column;
-  }
-
-  .btn-next,
-  .btn-submit {
-    margin-left: 0;
-  }
+  .form-container { padding: 24px 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .step-label { display: none; }
+  .form-navigation { flex-direction: column; }
+  .btn-next, .btn-submit { margin-left: 0; }
 }
 </style>

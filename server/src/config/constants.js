@@ -44,7 +44,9 @@ export const PRICE_RANGES = {
 
 export const ALLOWED_FILE_TYPES = {
   IMAGES: ['image/jpeg', 'image/png', 'image/webp'],
-  MAX_SIZE: 5 * 1024 * 1024 // 5MB
+  MEDIA:  ['video/mp4', 'video/webm', 'video/quicktime', 'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp4', 'audio/x-m4a'],
+  MAX_SIZE:       5  * 1024 * 1024, // 5MB для изображений
+  MAX_MEDIA_SIZE: 200 * 1024 * 1024  // 200MB для медиа
 }
 
 export const RATING_RANGE = {

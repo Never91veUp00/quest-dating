@@ -53,8 +53,8 @@
             @remove-task="removeTask"
             @move-task="moveTask"
             @generate-qr="generateQR"
-            @add-pair="addPair"
-            @remove-pair="removePair"
+            @add-pair-image="addPairImage"
+            @remove-pair-image="removePairImage"
           />
         </div>
 
@@ -88,7 +88,7 @@ const {
   form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,
   addBlock, removeBlock, moveBlock, toggleBlock,
   addTask, removeTask, moveTask,
-  generateQR, addPair, removePair,
+  generateQR, addPairImage, removePairImage,
   loadTemplate, autoSlug,
   save, previewQuest,
 } = useQuestEditor()
@@ -192,7 +192,8 @@ const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'бло
 .qe-slug-row { display: flex; align-items: center; background: #0f1117; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; overflow: hidden; }
 .qe-slug-prefix { padding: 9px 0 9px 11px; color: #4a5568; font-size: 0.82rem; white-space: nowrap; }
 .qe-slug-input { border: none !important; border-radius: 0 !important; background: transparent !important; flex: 1; }
-.qe-slug-link { font-size: 0.72rem; color: #667eea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qe-slug-link { font-size: 0.72rem; color: #667eea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; user-select: none; }
+.qe-slug-link:hover { text-decoration: underline; }
 
 /* Themes */
 .qe-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -356,6 +357,42 @@ const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'бло
 }
 .qe-photo-drop:hover { border-color: #667eea; color: #a0aec0; }
 .qe-photo-drop__icon { font-size: 2rem; }
+
+/* ── Media upload ─────────────────────────────────────────────── */
+.qe-media-drop {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.03); border: 2px dashed rgba(255,255,255,.12);
+  border-radius: 10px; padding: 32px 16px; cursor: pointer; text-align: center;
+  font-size: .88rem; color: #718096; transition: border-color .2s;
+}
+.qe-media-drop:hover { border-color: #667eea; color: #a0aec0; }
+.qe-media-drop.uploading { opacity: .7; cursor: not-allowed; }
+.qe-media-drop__icon { font-size: 2.2rem; }
+.qe-media-drop__text { font-size: .9rem; color: rgba(255,255,255,.6); }
+.qe-media-drop__spinner { font-size: .9rem; color: #667eea; }
+
+.qe-media-uploaded {
+  background: rgba(102,126,234,.08); border: 1px solid rgba(102,126,234,.25);
+  border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.qe-media-uploaded__info { display: flex; align-items: center; gap: 10px; }
+.qe-media-uploaded__icon { font-size: 1.4rem; flex-shrink: 0; }
+.qe-media-uploaded__name { font-size: .88rem; color: rgba(255,255,255,.8); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qe-media-uploaded__size { font-size: .78rem; color: rgba(255,255,255,.4); flex-shrink: 0; }
+.qe-media-uploaded__actions { display: flex; gap: 8px; }
+.qe-media-uploaded__preview {
+  flex: 1; padding: 7px; background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1); border-radius: 6px;
+  color: rgba(255,255,255,.6); font-size: .8rem; cursor: pointer;
+}
+.qe-media-uploaded__rm {
+  flex: 1; padding: 7px; background: rgba(229,62,62,.1);
+  border: 1px solid rgba(229,62,62,.3); border-radius: 6px;
+  color: #f56565; font-size: .8rem; cursor: pointer;
+}
+.qe-media-preview-box { margin-top: 4px; border-radius: 8px; overflow: hidden; }
+.qe-media-preview-box__video { width: 100%; max-height: 200px; display: block; border-radius: 8px; }
+.qe-media-preview-box__audio { width: 100%; }
 .qe-puzzle-preview { position: relative; display: inline-block; }
 .qe-puzzle-preview__img { max-width: 100%; max-height: 200px; border-radius: 8px; display: block; }
 .qe-puzzle-preview__rm {
@@ -363,9 +400,72 @@ const pluralBlock = (n) => n === 1 ? 'блок' : n < 5 ? 'блока' : 'бло
   border-radius: 6px; color: #f56565; font-size: .78rem; padding: 5px 12px; cursor: pointer;
 }
 .qe-hint--ok { color: #48bb78; background: rgba(72,187,120,.08); border-radius: 6px; padding: 8px 12px; }
-.qe-game-pair { display: flex; align-items: center; gap: 6px; }
-.qe-game-pair input { flex: 1; }
-.qe-game-pair__arrow { color: #4a5568; font-size: .9rem; flex-shrink: 0; }
+.qe-pairs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.qe-pair-photo {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: border-color 0.2s;
+}
+.qe-pair-photo:hover { border-color: #667eea; }
+.qe-pair-photo__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.qe-pair-photo__rm {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px;
+  background: rgba(229,62,62,0.9); border: none; border-radius: 50%;
+  color: white; font-size: 0.65rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.qe-pair-photo__num {
+  position: absolute; bottom: 4px; left: 6px;
+  font-size: 0.65rem; color: rgba(255,255,255,0.6); font-weight: 700;
+}
+.qe-pair-photo--add {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-style: dashed;
+}
+.qe-pair-photo__add-icon { font-size: 1.4rem; color: rgba(255,255,255,0.3); line-height: 1; }
+.qe-pair-photo__add-hint { font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-top: 4px; }
+.qe-hint--warn { color: #f6ad55; background: rgba(246,173,85,0.08); border-radius: 6px; padding: 8px 12px; }
+
+/* ── Media upload ─────────────────────────────────────────────── */
+.qe-media-drop {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.03); border: 2px dashed rgba(255,255,255,.12);
+  border-radius: 10px; padding: 28px 16px; cursor: pointer; text-align: center;
+  font-size: .88rem; color: #718096; transition: border-color .2s;
+}
+.qe-media-drop:hover, .qe-media-drop.uploading { border-color: #667eea; color: #a0aec0; }
+.qe-media-drop__icon { font-size: 2rem; }
+.qe-media-drop__spinner { font-size: 1rem; color: #667eea; }
+
+.qe-media-uploaded {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.qe-media-uploaded__info { display: flex; align-items: center; gap: 10px; }
+.qe-media-uploaded__icon { font-size: 1.4rem; flex-shrink: 0; }
+.qe-media-uploaded__name { font-size: .88rem; color: #e2e8f0; flex: 1; word-break: break-all; }
+.qe-media-uploaded__size { font-size: .78rem; color: #718096; flex-shrink: 0; }
+.qe-media-uploaded__actions { display: flex; gap: 8px; }
+.qe-media-uploaded__preview, .qe-media-uploaded__rm {
+  padding: 5px 12px; border-radius: 6px; font-size: .78rem; cursor: pointer; border: none;
+}
+.qe-media-uploaded__preview { background: rgba(102,126,234,.15); color: #667eea; }
+.qe-media-uploaded__rm { background: rgba(245,101,101,.12); color: #f56565; }
+.qe-media-preview-box { margin-top: 4px; }
+.qe-media-preview-box__video { width: 100%; border-radius: 8px; max-height: 200px; }
+.qe-media-preview-box__audio { width: 100%; }
 
 /* ── Add task groups ──────────────────────────────────────────── */
 .qe-add-task { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }

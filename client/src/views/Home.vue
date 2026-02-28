@@ -23,7 +23,7 @@
           <!-- Быстрая статистика -->
           <div class="hero-stats">
             <div class="stat">
-              <div class="stat-number">10+</div>
+              <div class="stat-number">{{ stats.total_templates ?? '...' }}</div>
               <div class="stat-label">Шаблонов квестов</div>
             </div>
             <div class="stat">
@@ -74,7 +74,7 @@
         </div>
 
         <div class="scroll-fade-wrap">
-          <TemplateGrid :templates="featuredTemplates" :loading="featuredLoading" />
+          <TemplateGrid :templates="featuredTemplates" :loading="featuredLoading" :scroll="true" />
         </div>
       </div>
     </section>
@@ -90,7 +90,7 @@
         </div>
 
         <div class="scroll-fade-wrap">
-          <TemplateGrid :templates="popularTemplates" :loading="popularLoading" />
+          <TemplateGrid :templates="popularTemplates" :loading="popularLoading" :scroll="true" />
         </div>
       </div>
     </section>
@@ -202,6 +202,8 @@ const popularLoading = ref(true)
 const testimonials = ref([])
 const testimonialsLoading = ref(true)
 
+const stats = ref({})
+
 const AVATARS = ['👫', '💑', '🥰', '💕', '❤️', '✨']
 
 const loadTestimonials = async () => {
@@ -230,10 +232,11 @@ const loadData = async () => {
   featuredLoading.value = true
   popularLoading.value = true
 
-  const [cats, featured, popular] = await Promise.allSettled([
+  const [cats, featured, popular, statsRes] = await Promise.allSettled([
     questStore.fetchCategories(),
     questStore.fetchFeaturedTemplates(6),
-    questStore.fetchPopularTemplates(6)
+    questStore.fetchPopularTemplates(6),
+    api.getStats()
   ])
 
   if (cats.status === 'fulfilled') {
@@ -252,6 +255,10 @@ const loadData = async () => {
     popularTemplates.value = popular.value || []
   }
   popularLoading.value = false
+
+  if (statsRes.status === 'fulfilled') {
+    stats.value = statsRes.value?.data || {}
+  }
 }
 
 onMounted(() => {
@@ -775,6 +782,11 @@ onMounted(() => {
     padding: 28px 0;
   }
 
+  .featured-section .container,
+  .popular-section .container {
+    padding: 0;
+  }
+
   .featured-section .section-header,
   .popular-section .section-header {
     padding-left: 20px;
@@ -788,17 +800,43 @@ onMounted(() => {
     padding: 28px 0;
   }
 
+  .how-it-works .container,
+  .testimonials-section .container {
+    padding: 0;
+  }
+
+  .how-it-works .section-title {
+    padding-left: 20px;
+  }
+
   .steps-grid {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
     gap: 16px;
     padding-bottom: 12px;
+    padding-top: 20px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    margin: 0 -20px;
-    padding-left: 20px;
+  }
+
+  .steps-grid::before {
+    display: none;
+  }
+
+  .steps-grid > .step:first-child {
+    margin-left: 20px;
+  }
+
+  .testimonials-grid > *:first-child {
+    margin-left: 20px;
+  }
+
+  .testimonials-grid > *:not(.scroll-spacer) {
+    flex: 0 0 240px;
+    scroll-snap-align: start;
+    align-self: stretch;
   }
 
   .steps-grid::-webkit-scrollbar { display: none; }
@@ -810,9 +848,6 @@ onMounted(() => {
     align-self: stretch;
   }
 
-  .steps-grid {
-    padding-top: 20px;
-  }
 
   .step-icon {
     font-size: 1.7rem;
@@ -832,6 +867,10 @@ onMounted(() => {
     padding: 28px 0;
   }
 
+  .testimonials-section .section-title {
+    padding-left: 20px;
+  }
+
   .testimonials-grid {
     display: flex;
     flex-direction: row;
@@ -841,19 +880,15 @@ onMounted(() => {
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    margin: 0 -20px;
-    padding-left: 20px;
   }
 
+  .testimonials-grid::before {
+    display: none;
+  }
 
   .testimonials-grid::-webkit-scrollbar { display: none; }
 
 
-  .testimonials-grid > * {
-    flex: 0 0 240px;
-    scroll-snap-align: start;
-    align-self: stretch;
-  }
 }
 
 

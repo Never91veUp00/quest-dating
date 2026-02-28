@@ -4,7 +4,7 @@ import { requireAdmin } from '../middleware/auth.js'
 import pool from '../config/database.js'
 import { validationResult } from 'express-validator'
 
-import { upload, handleUploadError } from '../middleware/upload.js'
+import { upload, uploadMedia, handleUploadError } from '../middleware/upload.js'
 
 const router = express.Router()
 
@@ -258,6 +258,28 @@ router.post('/upload/images',
     }
     const urls = req.files.map(f => `/uploads/templates/${f.filename}`)
     res.json({ success: true, data: urls })
+  }
+)
+
+// ─── POST /api/admin/upload/media (загрузка видео/аудио) ─────────────────────
+router.post('/upload/media',
+  uploadMedia.single('media'),
+  handleUploadError,
+  (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Файл не загружен' })
+    }
+    const url = `/uploads/media/${req.file.filename}`
+    const isVideo = req.file.mimetype.startsWith('video/')
+    res.json({
+      success: true,
+      data: {
+        url,
+        type: isVideo ? 'video' : 'audio',
+        originalName: req.file.originalname,
+        size: req.file.size
+      }
+    })
   }
 )
 

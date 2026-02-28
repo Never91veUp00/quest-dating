@@ -97,6 +97,18 @@ const routes = [
   { path: '/authors', redirect: '/about' },
   { path: '/author/:username', redirect: '/about' },
   { path: '/become-author', redirect: '/' },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('@/views/Terms.vue'),
+    meta: { title: 'Условия использования' }
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('@/views/Privacy.vue'),
+    meta: { title: 'Политика конфиденциальности' }
+  },
 
   {
     path: '/:pathMatch(.*)*',

@@ -25,6 +25,7 @@
         :isLocked="!isUnlocked(ti)"
         @complete="$emit('complete-task', $event)"
         @hint="$emit('use-hint', $event)"
+        @skip-task="$emit('skip-task', $event)"
       />
     </div>
 

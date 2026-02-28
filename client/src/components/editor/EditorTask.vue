@@ -58,18 +58,19 @@
       <EditorTaskFields
         :task="task"
         @generate-qr="$emit('generate-qr', $event)"
-        @add-pair="$emit('add-pair', $event)"
-        @remove-pair="(t, i) => $emit('remove-pair', t, i)"
+        @add-pair-image="(t, url) => $emit('add-pair-image', t, url)"
+        @remove-pair-image="(t, i) => $emit('remove-pair-image', t, i)"
         @puzzle-upload="$emit('puzzle-upload', $event)"
+        @pair-image-upload="handlePairImageUpload"
+        @media-upload="handleMediaUpload"
+        @media-clear="handleMediaClear"
       />
 
-      <!-- Hidden file input для пазла (один на задание) -->
-      <input
-        :ref="el => { puzzleInput = el }"
-        type="file" accept="image/jpeg,image/png,image/webp"
-        style="display:none"
-        @change="onPuzzleFile"
-      />
+      <!-- Hidden inputs -->
+      <input :ref="el => { puzzleInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onPuzzleFile" />
+      <input :ref="el => { pairInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onPairImageFile" />
+      <input :ref="el => { pairReplaceInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onPairReplaceFile" />
+      <input :ref="el => { mediaInput = el }" type="file" accept="video/mp4,video/webm,video/quicktime,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a" style="display:none" @change="onMediaFile" />
     </div>
   </div>
 </template>
@@ -82,11 +83,39 @@ const props = defineProps({
   isFirst: { type: Boolean, default: false },
   isLast:  { type: Boolean, default: false },
 })
-defineEmits(['move', 'remove', 'generate-qr', 'add-pair', 'remove-pair', 'puzzle-upload'])
+const emit = defineEmits(['move', 'remove', 'generate-qr', 'add-pair-image', 'remove-pair-image', 'puzzle-upload'])
 
-let puzzleInput = null
+let puzzleInput      = null
+let pairInput        = null
+let pairReplaceInput = null
+let pairReplaceIdx   = null
+let mediaInput       = null
+let mediaTask        = null
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
 
 const handlePuzzleUpload = () => puzzleInput?.click()
+
+const handlePairImageUpload = (task, idx) => {
+  if (idx === null || idx === undefined) {
+    pairInput?.click()
+  } else {
+    pairReplaceIdx = idx
+    pairReplaceInput?.click()
+  }
+}
+
+const handleMediaUpload = (task) => {
+  mediaTask = task
+  mediaInput?.click()
+}
+
+const handleMediaClear = (task) => {
+  task.media_url = null
+  task.media_type = null
+  task.media_original_name = null
+  task.media_size = null
+}
 
 const onPuzzleFile = (e) => {
   const file = e.target.files[0]
@@ -94,9 +123,71 @@ const onPuzzleFile = (e) => {
   const reader = new FileReader()
   reader.onload = (ev) => { props.task.puzzle_image = ev.target.result }
   reader.readAsDataURL(file)
+  e.target.value = ''
 }
 
-// Expose для EditorBlock — тот перехватывает puzzle-upload и вызывает этот метод
+const onPairImageFile = (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+  const task = props.task
+  e.target.value = ''
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    task.game_images = [...(task.game_images || []), ev.target.result]
+  }
+  reader.readAsDataURL(file)
+}
+
+const onPairReplaceFile = (e) => {
+  const file = e.target.files[0]
+  const idx = pairReplaceIdx
+  if (!file || idx === null) return
+  pairReplaceIdx = null
+  e.target.value = ''
+  const task = props.task
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    if (!task.game_images) return
+    task.game_images[idx] = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const onMediaFile = async (e) => {
+  const file = e.target.files[0]
+  const task = mediaTask
+  if (!file || !task) return
+  e.target.value = ''
+  mediaTask = null
+
+  task._mediaUploading = true
+
+  try {
+    const formData = new FormData()
+    formData.append('media', file)
+
+    const token = localStorage.getItem('auth_token')
+    const res = await fetch(`${API_BASE}/api/admin/upload/media`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData
+    })
+    const json = await res.json()
+
+    if (!json.success) throw new Error(json.message)
+
+    task.media_url = json.data.url
+    task.media_type = json.data.type
+    task.media_original_name = json.data.originalName
+    task.media_size = json.data.size
+  } catch (err) {
+    console.error('Media upload error:', err)
+    alert('Ошибка загрузки: ' + err.message)
+  } finally {
+    task._mediaUploading = false
+  }
+}
+
 defineExpose({ triggerPuzzleUpload: handlePuzzleUpload })
 
 const typeLabel = (t) => ({

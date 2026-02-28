@@ -22,8 +22,9 @@
           <span class="qe-slug-prefix">/quest/</span>
           <input v-model="form.slug" placeholder="liza-ivan-2024" class="qe-slug-input" />
         </div>
-        <div v-if="form.slug" class="qe-slug-link">
-          {{ origin }}/quest/{{ form.slug }}
+        <div v-if="form.slug" class="qe-slug-link" @click="copySlugUrl" title="Нажми чтобы скопировать">
+          <span v-if="slugCopied">✓ Скопировано!</span>
+          <span v-else>{{ origin }}/quest/{{ form.slug }}</span>
         </div>
       </div>
 
@@ -97,7 +98,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   form:             { type: Object, required: true },
@@ -106,6 +107,15 @@ const props = defineProps({
   origin:           { type: String, default: '' },
 })
 defineEmits(['auto-slug', 'load-template'])
+
+const slugCopied = ref(false)
+const copySlugUrl = () => {
+  const url = `${props.origin}/quest/${props.form.slug}`
+  navigator.clipboard.writeText(url).then(() => {
+    slugCopied.value = true
+    setTimeout(() => { slugCopied.value = false }, 2000)
+  })
+}
 
 const THEMES = [
   { id: 'detective', icon: '🕵️', label: 'Детектив' },

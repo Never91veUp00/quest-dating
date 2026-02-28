@@ -1,5 +1,5 @@
 <template>
-  <div class="template-grid-wrapper">
+  <div class="template-grid-wrapper" :class="{ 'template-grid-wrapper--scroll': scroll }">
     <div v-if="loading" class="grid-loading">
       <div class="spinner"></div>
       <p>Загружаем шаблоны...</p>
@@ -47,7 +47,8 @@ import QuickViewModal from './QuickViewModal.vue'
 defineProps({
   templates: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
-  pagination: { type: Object, default: null }
+  pagination: { type: Object, default: null },
+  scroll: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['pageChange', 'resetFilters'])
@@ -101,7 +102,8 @@ const handlePageChange = (page) => {
 }
 
 @media (max-width: 640px) {
-  .template-grid {
+  /* Только с prop :scroll — горизонтальный скролл */
+  .template-grid-wrapper--scroll .template-grid {
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -113,12 +115,22 @@ const handlePageChange = (page) => {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  .template-grid::-webkit-scrollbar { display: none; }
-  .template-grid > * {
+  .template-grid-wrapper--scroll .template-grid::-webkit-scrollbar { display: none; }
+  .template-grid-wrapper--scroll .template-grid > * {
     flex: 0 0 210px;
     height: auto;
     align-self: stretch;
     scroll-snap-align: start;
+  }
+  .template-grid-wrapper--scroll .template-grid > *:first-child {
+    margin-left: 20px;
+  }
+
+  /* Без scroll — обычная вертикальная сетка */
+  .template-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
   }
 }
 </style>

@@ -2,12 +2,17 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import apiRoutes from './routes/api.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { sanitizeQuery } from './middleware/validator.js'
 import { generalLimiter } from './middleware/rateLimiter.js'
 
 dotenv.config()
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -28,8 +33,8 @@ app.use(cors({
   },
   credentials: true
 }))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
 // Rate limiting
 app.use('/api', generalLimiter)
@@ -37,12 +42,12 @@ app.use('/api', generalLimiter)
 // Санитизация query параметров
 app.use(sanitizeQuery)
 
-// Статические файлы (загруженные изображения)
+// Статические файлы (загруженные изображения и медиа)
 // Cross-Origin-Resource-Policy: cross-origin — разрешает загрузку с фронтенда на другом порту
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
   next()
-}, express.static('uploads'))
+}, express.static(UPLOADS_DIR))
 
 // API Routes
 app.use('/api', apiRoutes)

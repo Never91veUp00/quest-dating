@@ -984,30 +984,165 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 768px) {
-  .quest-title {
-    font-size: 1.25rem;
+@media (max-width: 640px) {
+  /* Header — компактный, однострочный */
+  .quest-header {
+    padding: 12px 0;
   }
 
   .quest-header .container {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .quest-title {
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  .quest-meta {
+    font-size: 0.78rem;
+    gap: 6px;
+  }
+
+  .btn-exit {
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* Progress — компактный */
+  .progress-section {
+    padding: 12px 0;
+  }
+
+  /* Сайдбар — карта скрыта на мобиле, таймер компактный */
+  .quest-sidebar {
+    display: none;
+  }
+
+  /* Основной контент */
+  .quest-main {
+    padding: 12px 0 32px;
+  }
+
+  .quest-layout {
+    gap: 0;
+  }
+
+  .current-block {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .block-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .block-title {
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+  }
+
+  .block-description {
+    font-size: 0.9rem;
+  }
+
+  .tasks-list {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Навигация — кнопки на всю ширину */
+  .block-navigation {
     flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    gap: 10px;
+    padding-top: 16px;
   }
 
-  .completion-stats,
+  .btn-nav,
+  .btn-finish {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+
+  .btn-next,
+  .btn-finish {
+    margin-left: 0;
+  }
+
+  /* Модалки */
   .finish-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 16px;
   }
 
-  .completion-actions,
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .confirm-actions,
   .finish-actions {
     flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-confirm,
+  .btn-finish-confirm {
+    width: 100%;
+  }
+
+  .completion-modal {
+    padding: 20px 12px;
+  }
+
+  .completion-icon {
+    font-size: 4rem;
+    margin-bottom: 12px;
+  }
+
+  .completion-title {
+    font-size: 1.8rem;
+  }
+
+  .completion-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .completion-stat {
+    padding: 12px 8px;
+    gap: 6px;
+  }
+
+  .stat-icon {
+    font-size: 1.8rem;
+  }
+
+  .stat-number {
+    font-size: 1.6rem;
+  }
+
+  .completion-actions {
+    flex-direction: column;
+    gap: 10px;
   }
 
   .btn-home,
   .btn-share {
     width: 100%;
+    text-align: center;
+    padding: 12px 16px;
   }
 }
 </style>

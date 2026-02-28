@@ -152,7 +152,7 @@ export function useQuestEditor() {
     qr:            { points: 35,  answer: '', qr_instruction: '', qr_preview: null },
     mini_game:     { points: 40,  game_type: 'quiz', game_question: '',
                      game_options: ['','','',''], game_correct: 0,
-                     game_pairs: [{a:'',b:''}], puzzle_image: null, puzzle_pieces: 30 },
+                     game_images: [], puzzle_image: null, puzzle_pieces: 30 },
   }
 
   const addTask    = (block, type) => block.tasks.push({
@@ -172,8 +172,10 @@ export function useQuestEditor() {
   }
 
   // ─── Pairs ───────────────────────────────────────────────────
-  const addPair    = (task) => { task.game_pairs = [...(task.game_pairs || []), { a: '', b: '' }] }
-  const removePair = (task, idx) => task.game_pairs.splice(idx, 1)
+  const addPairImage    = (task, imageUrl) => {
+    task.game_images = [...(task.game_images || []), imageUrl]
+  }
+  const removePairImage = (task, idx) => task.game_images.splice(idx, 1)
 
   // ─── Validation ──────────────────────────────────────────────
   const validate = () => {
@@ -269,7 +271,7 @@ export function useQuestEditor() {
     form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,
     addBlock, removeBlock, moveBlock, toggleBlock,
     addTask, removeTask, moveTask,
-    generateQR, addPair, removePair,
+    generateQR, addPairImage, removePairImage,
     loadTemplate, autoSlug,
     save, previewQuest, showToast,
   }
