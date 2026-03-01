@@ -49,3 +49,32 @@ export const contactLimiter = rateLimit({
     message: 'Слишком много сообщений. Попробуйте позже или напишите напрямую в Telegram.'
   }
 })
+
+// Лимит для админки — мягкий, т.к. дашборд делает много параллельных запросов.
+// В dev режиме лимит фактически отключён.
+export const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProd ? 2000 : 100000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Слишком много запросов к админке'
+  }
+})
+
+// FIX: Отдельный жёсткий лимит для авторизации — защита от брутфорса.
+// Ранее использовался contactLimiter (3/час) — слишком мягко для login.
+// Теперь: 5 попыток за 15 минут, после чего 15-минутная блокировка.
+// skipSuccessfulRequests: true — успешный вход не засчитывается в лимит.
+export const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 минут
+  max: 5,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Слишком много попыток входа. Подождите 15 минут и попробуйте снова.'
+  }
+})

@@ -30,6 +30,15 @@ const sendTelegramMessage = async (text) => {
   }
 }
 
+// FIX: Маскируем номер телефона в уведомлениях — показываем только последние 4 цифры.
+// Полный номер хранится в БД и доступен в админке — для Telegram достаточно частичного.
+const maskPhone = (phone) => {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length < 4) return phone
+  return '***' + digits.slice(-4)
+}
+
 export const notifyNewOrder = async (order, templateTitle) => {
   const priceFormatted = (order.total_price / 100).toLocaleString('ru-RU')
   const dateFormatted = order.event_date
@@ -57,7 +66,7 @@ export const notifyNewOrder = async (order, templateTitle) => {
     ``,
     `👤  <b>${order.client_name}</b>`,
     `📧  ${order.client_email}`,
-    order.client_phone ? `📱  ${order.client_phone}` : null,
+    order.client_phone ? `📱  ${maskPhone(order.client_phone)}` : null,
     ``,
     `┌─ Квест ───────────────`,
     `│  📦  ${templateTitle}`,
@@ -90,6 +99,23 @@ export const notifyOrderStatusChange = async (order, newStatus) => {
     `▸  ${statusLabels[newStatus] || newStatus}`,
     order.admin_notes ? `📝  <i>${order.admin_notes}</i>` : null,
   ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}
+
+export const notifyContactMessage = async ({ name, phone, message }) => {
+  const text = [
+    `━━━━━━━━━━━━━━━━━━━━`,
+    `✉️  <b>СООБЩЕНИЕ С САЙТА</b>`,
+    `━━━━━━━━━━━━━━━━━━━━`,
+    ``,
+    `👤  <b>${name}</b>`,
+    `📱  ${phone}`,
+    ``,
+    `💬  <i>${message}</i>`,
+    ``,
+    `⏱  ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  ].join('\n')
 
   await sendTelegramMessage(text)
 }

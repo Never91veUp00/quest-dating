@@ -5,6 +5,7 @@ import pool from '../config/database.js'
 import { validationResult } from 'express-validator'
 
 import { upload, uploadMedia, handleUploadError } from '../middleware/upload.js'
+import { processImage } from '../utils/imageProcessor.js'
 
 const router = express.Router()
 
@@ -58,18 +59,29 @@ router.get('/dashboard', async (req, res, next) => {
 // ─── GET /api/admin/quests ────────────────────────────────────
 router.get('/quests', async (req, res, next) => {
   try {
-    const result = await pool.query(`
-      SELECT
-        cq.*,
-        o.client_email,
-        o.client_phone,
-        qt.title as template_title
-      FROM created_quests cq
-      LEFT JOIN orders o ON cq.order_id = o.id
-      LEFT JOIN quest_templates qt ON cq.template_id = qt.id
-      ORDER BY cq.created_at DESC
-    `)
-    res.json({ success: true, data: result.rows })
+    // FIX: Пагинация — без неё при росте данных запрос вернул бы всё
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const offset = (page - 1) * limit
+
+    const [result, countResult] = await Promise.all([
+      pool.query(`
+        SELECT
+          cq.*,
+          o.client_email,
+          o.client_phone,
+          qt.title as template_title
+        FROM created_quests cq
+        LEFT JOIN orders o ON cq.order_id = o.id
+        LEFT JOIN quest_templates qt ON cq.template_id = qt.id
+        ORDER BY cq.created_at DESC
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]),
+      pool.query('SELECT COUNT(*) as total FROM created_quests')
+    ])
+
+    const total = parseInt(countResult.rows[0].total)
+    res.json({ success: true, data: result.rows, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
   } catch (error) {
     next(error)
   }
@@ -221,14 +233,25 @@ router.delete('/quests/:id', async (req, res, next) => {
 // ─── GET /api/admin/orders ────────────────────────────────────
 router.get('/orders', async (req, res, next) => {
   try {
-    const result = await pool.query(`
-      SELECT o.*, qt.title as template_title, cq.slug as quest_slug
-      FROM orders o
-      LEFT JOIN quest_templates qt ON o.template_id = qt.id
-      LEFT JOIN created_quests cq ON o.created_quest_id = cq.id
-      ORDER BY o.created_at DESC
-    `)
-    res.json({ success: true, data: result.rows })
+    // FIX: Пагинация
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.min(100, parseInt(req.query.limit) || 50)
+    const offset = (page - 1) * limit
+
+    const [result, countResult] = await Promise.all([
+      pool.query(`
+        SELECT o.*, qt.title as template_title, cq.slug as quest_slug
+        FROM orders o
+        LEFT JOIN quest_templates qt ON o.template_id = qt.id
+        LEFT JOIN created_quests cq ON o.created_quest_id = cq.id
+        ORDER BY o.created_at DESC
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]),
+      pool.query('SELECT COUNT(*) as total FROM orders')
+    ])
+
+    const total = parseInt(countResult.rows[0].total)
+    res.json({ success: true, data: result.rows, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
   } catch (error) {
     next(error)
   }
@@ -239,11 +262,17 @@ router.get('/orders', async (req, res, next) => {
 router.post('/upload/image',
   upload.single('image'),
   handleUploadError,
-  (req, res) => {
+  async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Файл не загружен' })
     }
-    const url = `/uploads/templates/${req.file.filename}`
+    // Оптимизируем: ресайз до 1200x800, конвертация в WebP
+    const pathMod = await import('path')
+    const result = await processImage(req.file.path, 'cover')
+    const filename = result.success
+      ? pathMod.default.basename(result.outputPath)
+      : req.file.filename
+    const url = `/uploads/templates/${filename}`
     res.json({ success: true, data: { url } })
   }
 )
@@ -343,10 +372,18 @@ router.post('/templates/create', [
 
     let slug = baseSlug
     let counter = 1
-    while (true) {
+    // FIX: Добавлен лимит итераций — защита от бесконечного цикла.
+    // Без лимита при заполнении slug-пространства цикл мог подвесить воркер Node.js.
+    while (counter <= 100) {
       const exists = await pool.query('SELECT id FROM quest_templates WHERE slug = $1', [slug])
       if (!exists.rows.length) break
       slug = `${baseSlug}-${counter++}`
+    }
+    if (counter > 100) {
+      return res.status(409).json({
+        success: false,
+        message: 'Не удалось сгенерировать уникальный slug. Измените название шаблона.'
+      })
     }
 
     const result = await pool.query(`

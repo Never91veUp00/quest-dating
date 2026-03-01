@@ -1,4 +1,5 @@
 <template>
+  <!-- <router-link :to="`/template/${template.slug}`" class="template-card"> -->
   <div class="template-card" @click="navigateToTemplate">
     <!-- Изображение -->
     <div class="card-image">
@@ -96,6 +97,7 @@
         </span>
       </div>
     </div>
+  <!-- </router-link> -->
   </div>
 </template>
 

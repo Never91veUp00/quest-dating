@@ -7,9 +7,9 @@ services:
     container_name: quest-dating-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: quest_dating
-      POSTGRES_USER: quest_user
-      POSTGRES_PASSWORD: quest_password
+      POSTGRES_DB: ${DB_NAME:-quest_dating}
+      POSTGRES_USER: ${DB_USER:-quest_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -36,8 +36,8 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: quest_dating
-      DB_USER: quest_user
-      DB_PASSWORD: quest_password
+      DB_USER: ${DB_USER:-quest_user}
+      DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
     ports:

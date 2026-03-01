@@ -234,10 +234,27 @@ const clearRecent = () => {
   }
 }
 
+// FIX: Экранируем спецсимволы HTML перед вставкой в v-html.
+// Защита от XSS — все спецсимволы преобразуются в HTML-сущности.
+const escapeHtml = (str) => {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]))
+}
+
 const highlightMatch = (text) => {
-  if (!searchQuery.value) return text
-  const regex = new RegExp(`(${searchQuery.value})`, 'gi')
-  return text.replace(regex, '<strong>$1</strong>')
+  if (!searchQuery.value) return escapeHtml(text)
+  const safeText = escapeHtml(text)
+  const query = searchQuery.value.toLowerCase()
+  const lowerText = safeText.toLowerCase()
+  const idx = lowerText.indexOf(query)
+  if (idx === -1) return safeText
+  const before = safeText.slice(0, idx)
+  const match  = safeText.slice(idx, idx + query.length)
+  const after  = safeText.slice(idx + query.length)
+  const open  = ['<', 'strong>'].join('')
+  const close = ['</', 'strong>'].join('')
+  return before + open + match + close + after
 }
 
 watch(() => props.modelValue, (newValue) => {

@@ -1,85 +1,10 @@
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
 import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import apiRoutes from './routes/api.js'
-import { errorHandler } from './middleware/errorHandler.js'
-import { sanitizeQuery } from './middleware/validator.js'
-import { generalLimiter } from './middleware/rateLimiter.js'
+import { createApp } from './app.js'
 
 dotenv.config()
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const UPLOADS_DIR = path.resolve(__dirname, '../../server/uploads')
-
-const app = express()
 const PORT = process.env.PORT || 5000
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
-
-// Middleware
-app.use(helmet())
-app.use(cors({
-  origin: (origin, callback) => {
-    // Разрешаем запросы без origin (мобильные приложения, Postman, curl)
-    if (!origin) return callback(null, true)
-    if (allowedOrigins.includes(origin)) return callback(null, true)
-    // В dev режиме разрешаем localhost
-    if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
-      return callback(null, true)
-    }
-    callback(new Error(`CORS: origin ${origin} not allowed`))
-  },
-  credentials: true
-}))
-app.use(express.json({ limit: '50mb' }))
-app.use(express.urlencoded({ extended: true, limit: '50mb' }))
-
-// Rate limiting
-app.use('/api', generalLimiter)
-
-// Санитизация query параметров
-app.use(sanitizeQuery)
-
-// Статические файлы (загруженные изображения и медиа)
-// Cross-Origin-Resource-Policy: cross-origin — разрешает загрузку с фронтенда на другом порту
-app.use('/uploads', (req, res, next) => {
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
-  next()
-}, express.static(UPLOADS_DIR))
-
-// API Routes
-app.use('/api', apiRoutes)
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  })
-})
-
-// Корневой endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Quest Dating API',
-    version: '2.0.0',
-    documentation: '/api'
-  })
-})
-
-// Error handling
-app.use(errorHandler)
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Endpoint not found'
-  })
-})
+const app = createApp()
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`)
@@ -94,8 +19,7 @@ const shutdown = (signal) => {
     console.log('✅ HTTP server closed')
     process.exit(0)
   })
-  // Принудительно через 10 секунд
   setTimeout(() => { process.exit(1) }, 10000)
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'))
-process.on('SIGINT', () => shutdown('SIGINT'))
+process.on('SIGINT',  () => shutdown('SIGINT'))

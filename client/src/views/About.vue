@@ -233,9 +233,9 @@
               </div>
               <div class="form-group">
                 <input
-                  v-model="formData.email"
-                  type="email"
-                  placeholder="Email"
+                  v-model="formData.phone"
+                  type="tel"
+                  placeholder="Номер телефона (с привязанным Telegram)"
                   class="form-input"
                   required
                 />
@@ -283,7 +283,7 @@ import api from '@/services/api'
 
 const formData = reactive({
   name: '',
-  email: '',
+  phone: '',
   message: ''
 })
 
@@ -304,23 +304,22 @@ const handleSubmit = async () => {
   submitting.value = true
 
   try {
-    // TODO: Отправка на сервер
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const response = await api.sendContact({
+      name: formData.name,
+      phone: formData.phone,
+      message: formData.message
+    })
+
+    if (!response.success) throw new Error(response.message || 'Ошибка отправки')
 
     showSuccess.value = true
-    
-    // Сброс формы
     formData.name = ''
-    formData.email = ''
+    formData.phone = ''
     formData.message = ''
-
-    // Скрыть сообщение через 5 секунд
-    setTimeout(() => {
-      showSuccess.value = false
-    }, 5000)
+    setTimeout(() => { showSuccess.value = false }, 5000)
   } catch (error) {
     console.error('Error sending message:', error)
-    alert('Произошла ошибка. Попробуйте снова.')
+    alert('Произошла ошибка. Напишите нам напрямую в Telegram.')
   } finally {
     submitting.value = false
   }

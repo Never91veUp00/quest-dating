@@ -262,18 +262,25 @@ export const getTemplateBySlug = async (req, res, next) => {
           DISTINCT jsonb_build_object('id', t.id, 'name', t.name, 'slug', t.slug)
         ) FILTER (WHERE t.id IS NOT NULL) as tags,
         (
-          SELECT json_agg(json_build_object(
-            'id',          r.id,
-            'client_name', r.client_name,
-            'rating',      r.rating,
-            'title',       r.title,
-            'comment',     r.comment,
-            'images',      r.images,
-            'is_verified', r.is_verified,
-            'created_at',  r.created_at
-          ) ORDER BY r.created_at DESC)
-          FROM reviews r
-          WHERE r.template_id = qt.id
+          -- FIX: Добавлен LIMIT 20 — без него при сотнях отзывов ответ мог быть огромным.
+          -- Полная пагинация отзывов доступна через /api/reviews/template/:id
+          SELECT json_agg(sub.review)
+          FROM (
+            SELECT json_build_object(
+              'id',          r.id,
+              'client_name', r.client_name,
+              'rating',      r.rating,
+              'title',       r.title,
+              'comment',     r.comment,
+              'images',      r.images,
+              'is_verified', r.is_verified,
+              'created_at',  r.created_at
+            ) AS review
+            FROM reviews r
+            WHERE r.template_id = qt.id
+            ORDER BY r.created_at DESC
+            LIMIT 20
+          ) sub
         ) as reviews
       FROM quest_templates qt
       LEFT JOIN authors       a  ON qt.author_id      = a.id

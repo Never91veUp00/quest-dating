@@ -1,13 +1,15 @@
 import express from 'express'
 import { body } from 'express-validator'
 import { login } from '../controllers/authController.js'
-import { contactLimiter } from '../middleware/rateLimiter.js'
+// FIX: Используем loginLimiter вместо contactLimiter.
+// contactLimiter (3/час) был слишком мягким для защиты от брутфорса.
+// loginLimiter: 5 попыток / 15 минут, skipSuccessfulRequests: true.
+import { loginLimiter } from '../middleware/rateLimiter.js'
 
 const router = express.Router()
 
 // POST /api/auth/login
-// contactLimiter переиспользуем — 3 попытки в час, подходит для защиты от брутфорса
-router.post('/login', contactLimiter, [
+router.post('/login', loginLimiter, [
   body('username').trim().notEmpty(),
   body('password').notEmpty()
 ], login)

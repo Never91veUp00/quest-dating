@@ -363,7 +363,7 @@ const finish = async () => {
   const secs = Math.floor((Date.now() - startTs.value) / 1000)
   clearInterval(ticker)
   if (sessionData.value) {
-    try { await questService.completeQuest(sessionData.value.session_id, { total_time_seconds: secs }) }
+    try { await questService.completeQuest(sessionData.value.session_id, { total_time_seconds: secs, quest_id: questData.value?.id }) }
     catch { }
   }
   isComplete.value = true
@@ -383,7 +383,7 @@ const doRestart = async () => {
 
   // Сбрасываем на сервере если есть сессия
   if (sessionData.value) {
-    try { await questService.restartQuest(sessionData.value.session_id) }
+    try { await questService.restartQuest(sessionData.value.session_id, { quest_id: questData.value?.id }) }
     catch { }
   }
 
@@ -441,6 +441,7 @@ const saveProgress = async () => {
   if (!sessionData.value) return
   try {
     await questService.updateProgress(sessionData.value.session_id, {
+      quest_id: questData.value?.id,
       completed_tasks: completedIds.value,
       current_block_position: blockIdx.value,
       points: points.value,

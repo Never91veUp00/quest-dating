@@ -48,8 +48,10 @@ export const getQuestBySlug = async (req, res, next) => {
       })
     }
 
-    // Проверка кода доступа — из body (POST) или query (обратная совместимость)
-    const access_code = req.body?.access_code || req.query?.access_code
+    // FIX: Код доступа принимаем ТОЛЬКО из тела запроса (POST).
+    // Убрана поддержка req.query.access_code — query-параметры видны в логах сервера,
+    // истории браузера и заголовках прокси.
+    const access_code = req.body?.access_code
     if (quest.access_code && quest.access_code !== access_code) {
       // Возвращаем метаданные, но не блоки
       return res.status(403).json({
@@ -88,6 +90,15 @@ export const createQuestSession = async (req, res, next) => {
   try {
     const { questId } = req.params
 
+    // Проверяем что квест существует перед созданием сессии
+    const questCheck = await pool.query(
+      'SELECT id FROM created_quests WHERE id = $1',
+      [questId]
+    )
+    if (questCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Квест не найден' })
+    }
+
     const result = await pool.query(`
       INSERT INTO quest_sessions (created_quest_id)
       VALUES ($1)
@@ -113,6 +124,9 @@ export const updateSessionProgress = async (req, res, next) => {
   try {
     const { sessionId } = req.params
     const {
+      // FIX: quest_id теперь обязателен — используем для проверки владельца сессии.
+      // Клиент передаёт id квеста, который он проходит — сервер верифицирует связку.
+      quest_id,
       completed_tasks,
       current_block_position,
       points,
@@ -120,6 +134,13 @@ export const updateSessionProgress = async (req, res, next) => {
       hints_used
     } = req.body
 
+    if (!quest_id) {
+      return res.status(400).json({ success: false, message: 'quest_id обязателен' })
+    }
+
+    // FIX: Добавлен AND created_quest_id = $7 — нельзя обновить сессию чужого квеста,
+    // даже зная sessionId. Без этой проверки любой знающий sessionId мог обновить
+    // прогресс другого игрока.
     const result = await pool.query(`
       UPDATE quest_sessions
       SET
@@ -130,6 +151,7 @@ export const updateSessionProgress = async (req, res, next) => {
         hints_used             = $5,
         last_activity          = CURRENT_TIMESTAMP
       WHERE session_id = $6
+        AND created_quest_id = $7
       RETURNING *
     `, [
       JSON.stringify(completed_tasks),
@@ -137,7 +159,8 @@ export const updateSessionProgress = async (req, res, next) => {
       points,
       JSON.stringify(achievements || []),
       hints_used,
-      sessionId
+      sessionId,
+      quest_id
     ])
 
     if (result.rows.length === 0) {
@@ -154,16 +177,23 @@ export const updateSessionProgress = async (req, res, next) => {
 export const completeQuest = async (req, res, next) => {
   try {
     const { sessionId } = req.params
-    const { total_time_seconds } = req.body
+    // FIX: quest_id обязателен для проверки владельца сессии
+    const { total_time_seconds, quest_id } = req.body
 
+    if (!quest_id) {
+      return res.status(400).json({ success: false, message: 'quest_id обязателен' })
+    }
+
+    // FIX: Добавлен AND created_quest_id = $3
     const result = await pool.query(`
       UPDATE quest_sessions
       SET
         completed_at       = CURRENT_TIMESTAMP,
         total_time_seconds = $1
       WHERE session_id = $2
+        AND created_quest_id = $3
       RETURNING *
-    `, [total_time_seconds, sessionId])
+    `, [total_time_seconds, sessionId, quest_id])
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Сессия не найдена' })
@@ -210,7 +240,14 @@ export const getSessionStats = async (req, res, next) => {
 export const restartQuest = async (req, res, next) => {
   try {
     const { sessionId } = req.params
+    // FIX: quest_id обязателен для проверки владельца сессии
+    const { quest_id } = req.body
 
+    if (!quest_id) {
+      return res.status(400).json({ success: false, message: 'quest_id обязателен' })
+    }
+
+    // FIX: Добавлен AND created_quest_id = $2
     const result = await pool.query(`
       UPDATE quest_sessions
       SET
@@ -224,8 +261,9 @@ export const restartQuest = async (req, res, next) => {
         completed_at           = NULL,
         total_time_seconds     = 0
       WHERE session_id = $1
+        AND created_quest_id = $2
       RETURNING *
-    `, [sessionId])
+    `, [sessionId, quest_id])
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Сессия не найдена' })

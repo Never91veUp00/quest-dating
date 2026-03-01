@@ -245,6 +245,10 @@ const api = {
    */
   getStats() {
     return apiClient.get('/stats')
+  },
+
+  sendContact(data) {
+    return apiClient.post('/contact', data)
   }
 }
 

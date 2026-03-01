@@ -17,6 +17,15 @@ const UPLOAD_DIRS = {
 Object.values(UPLOAD_DIRS).forEach(dir => fs.mkdirSync(dir, { recursive: true }))
 
 // ─── Хелпер: mime → расширение ───────────────────────────────
+// FIX: Расширение определяем по mimetype, а не по имени файла.
+// path.extname(file.originalname) небезопасен: имя файла контролирует пользователь
+// и может содержать двойные расширения типа 'shell.php.jpg'.
+const imagesMimeToExt = (mime) => ({
+  'image/jpeg': '.jpg',
+  'image/png':  '.png',
+  'image/webp': '.webp'
+}[mime] || '.jpg')
+
 const mimeToExt = (mime) => ({
   'video/mp4': '.mp4', 'video/webm': '.webm', 'video/quicktime': '.mov',
   'audio/mpeg': '.mp3', 'audio/ogg': '.ogg', 'audio/wav': '.wav',
@@ -30,7 +39,9 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const suffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-    cb(null, file.fieldname + '-' + suffix + path.extname(file.originalname))
+    // FIX: Расширение берём из mimetype, а не из оригинального имени файла
+    const ext = imagesMimeToExt(file.mimetype)
+    cb(null, file.fieldname + '-' + suffix + ext)
   }
 })
 

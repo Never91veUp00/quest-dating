@@ -1,13 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import Home from '@/views/Home.vue'
-import Templates from '@/views/Templates.vue'
-import TemplateDetail from '@/views/TemplateDetail.vue'
-import Category from '@/views/Category.vue'
-import Order from '@/views/Order.vue'
-import QuestPlayer from '@/views/QuestPlayer.vue'
-import About from '@/views/About.vue'
-import NotFound from '@/views/NotFound.vue'
+// FIX: Все страницы переведены на lazy loading — это уменьшает начальный бандл
+// и ускоряет первую загрузку. Каждая страница загружается только при переходе на неё.
+const Home          = () => import('@/views/Home.vue')
+const Templates     = () => import('@/views/Templates.vue')
+const TemplateDetail = () => import('@/views/TemplateDetail.vue')
+const Category      = () => import('@/views/Category.vue')
+const Order         = () => import('@/views/Order.vue')
+const QuestPlayer   = () => import('@/views/QuestPlayer.vue')
+const About         = () => import('@/views/About.vue')
+const NotFound      = () => import('@/views/NotFound.vue')
 
 const routes = [
   {
