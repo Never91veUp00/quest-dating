@@ -65,7 +65,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="event_date" class="form-label">Дата события</label>
+            <label for="event_date" class="form-label">Дата события *</label>
             <input
               id="event_date"
               name="event_date"
@@ -73,6 +73,7 @@
               type="date"
               class="form-input"
               :min="minDate"
+              required
             />
           </div>
           <div class="form-group">
@@ -230,6 +231,10 @@ const validateCurrentStep = () => {
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.client_email)) {
       toast.error('Пожалуйста, введите корректный email')
+      return false
+    }
+    if (!formData.event_date) {
+      toast.error('Пожалуйста, укажите дату события')
       return false
     }
   }

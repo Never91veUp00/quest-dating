@@ -12,27 +12,6 @@
         <div class="feature-text">{{ feature }}</div>
       </div>
     </div>
-
-    <!-- Структура квеста -->
-    <div v-if="template.structure" class="quest-structure">
-      <h4>Структура квеста</h4>
-      <div class="structure-timeline">
-        <div 
-          v-for="(block, index) in structureBlocks"
-          :key="index"
-          class="structure-block"
-        >
-          <div class="block-number">{{ index + 1 }}</div>
-          <div class="block-content">
-            <div class="block-type">{{ getBlockTypeName(block.type) }}</div>
-            <div v-if="block.count" class="block-count">
-              {{ block.count }} заданий
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Кастомизация -->
     <div v-if="hasCustomization" class="customization-section">
       <h4>Возможности кастомизации</h4>

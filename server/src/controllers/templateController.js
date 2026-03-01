@@ -249,12 +249,15 @@ export const getTemplateBySlug = async (req, res, next) => {
         a.avatar_url           as author_avatar,
         a.username             as author_username,
         a.bio                  as author_bio,
+        a.website              as author_website,
+        a.social_links         as author_social_links,
         a.total_templates      as author_total_templates,
         a.average_rating       as author_average_rating,
         c.name                 as category_name,
         c.slug                 as category_slug,
         c.color                as category_color,
         c.icon                 as category_icon,
+        dq.blocks              as demo_blocks,
         ARRAY_AGG(
           DISTINCT jsonb_build_object('id', t.id, 'name', t.name, 'slug', t.slug)
         ) FILTER (WHERE t.id IS NOT NULL) as tags,
@@ -273,13 +276,15 @@ export const getTemplateBySlug = async (req, res, next) => {
           WHERE r.template_id = qt.id
         ) as reviews
       FROM quest_templates qt
-      LEFT JOIN authors       a  ON qt.author_id  = a.id
-      LEFT JOIN categories    c  ON qt.category_id = c.id
-      LEFT JOIN template_tags tt ON qt.id          = tt.template_id
-      LEFT JOIN tags          t  ON tt.tag_id      = t.id
+      LEFT JOIN authors       a  ON qt.author_id      = a.id
+      LEFT JOIN categories    c  ON qt.category_id    = c.id
+      LEFT JOIN created_quests dq ON qt.demo_quest_id = dq.id
+      LEFT JOIN template_tags tt ON qt.id             = tt.template_id
+      LEFT JOIN tags          t  ON tt.tag_id         = t.id
       WHERE qt.slug = $1 AND qt.status = $2
       GROUP BY qt.id, a.id, a.display_name, a.avatar_url, a.username, a.bio,
-               a.total_templates, a.average_rating, c.name, c.slug, c.color, c.icon
+               a.website, a.social_links, a.total_templates, a.average_rating,
+               c.name, c.slug, c.color, c.icon, dq.blocks
     `, [slug, TEMPLATE_STATUS.PUBLISHED])
 
     if (result.rows.length === 0) {

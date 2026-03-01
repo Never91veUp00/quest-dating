@@ -125,8 +125,30 @@ export const createOrder = async (req, res, next) => {
 
     const total_price = base_price + additional_costs
 
-    const result = await pool.query(`
-      INSERT INTO orders (
+    const client = await pool.connect()
+    let order
+    try {
+      await client.query('BEGIN')
+
+      const result = await client.query(`
+        INSERT INTO orders (
+          template_id,
+          client_name,
+          client_email,
+          client_phone,
+          description,
+          event_date,
+          event_city,
+          customization,
+          selected_features,
+          base_price,
+          additional_costs,
+          total_price,
+          status,
+          newsletter_consent
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING *
+      `, [
         template_id,
         client_name,
         client_email,
@@ -134,39 +156,29 @@ export const createOrder = async (req, res, next) => {
         description,
         event_date,
         event_city,
-        customization,
-        selected_features,
+        JSON.stringify(customization || {}),
+        JSON.stringify(selected_features || []),
         base_price,
         additional_costs,
         total_price,
-        status,
-        newsletter_consent
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-      RETURNING *
-    `, [
-      template_id,
-      client_name,
-      client_email,
-      client_phone,
-      description,
-      event_date,
-      event_city,
-      JSON.stringify(customization || {}),
-      JSON.stringify(selected_features || []),
-      base_price,
-      additional_costs,
-      total_price,
-      ORDER_STATUS.PENDING,
-      newsletter === true
-    ])
+        ORDER_STATUS.PENDING,
+        newsletter === true
+      ])
 
-    // Увеличить счетчик заказов шаблона
-    await pool.query(
-      'UPDATE quest_templates SET orders_count = orders_count + 1 WHERE id = $1',
-      [template_id]
-    )
+      // Увеличить счетчик заказов шаблона (в той же транзакции)
+      await client.query(
+        'UPDATE quest_templates SET orders_count = orders_count + 1 WHERE id = $1',
+        [template_id]
+      )
 
-    const order = result.rows[0]
+      await client.query('COMMIT')
+      order = result.rows[0]
+    } catch (txError) {
+      await client.query('ROLLBACK')
+      throw txError
+    } finally {
+      client.release()
+    }
 
     // Уведомление в Telegram — не блокируем ответ клиенту
     notifyNewOrder(order, templateResult.rows[0].title).catch(

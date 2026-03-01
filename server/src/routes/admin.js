@@ -331,8 +331,10 @@ router.post('/templates/create', [
     const {
       title, tagline, description, category_id,
       difficulty, duration_minutes, location_type = 'universal',
+      min_locations, max_locations, demo_video_url,
       base_price, is_free = false, is_premium = false,
-      features, cover_image, gallery, status = 'draft'
+      features, cover_image, gallery, status = 'draft',
+      demo_quest_id, quick_view_description
     } = req.body
 
     const baseSlug = title.toLowerCase()
@@ -349,27 +351,57 @@ router.post('/templates/create', [
 
     const result = await pool.query(`
       INSERT INTO quest_templates (
-        title, slug, tagline, description, category_id,
+        author_id, title, slug, tagline, description, category_id,
         difficulty, duration_minutes, location_type,
+        min_locations, max_locations, demo_video_url,
         base_price, is_free, is_premium,
-        features, cover_image, gallery, status,
+        features, cover_image, gallery, structure,
+        demo_quest_id, quick_view_description, status,
         published_at
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
-        CASE WHEN $15 = 'published' THEN NOW() ELSE NULL END)
+      ) VALUES (
+        (SELECT id FROM authors ORDER BY id LIMIT 1),
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
+        CASE WHEN $22 = 'published' THEN NOW() ELSE NULL END)
       RETURNING *
     `, [
-      title, slug, tagline || null, description || null,
+      title, slug, tagline || null, description || '',
       category_id || null, difficulty, parseInt(duration_minutes),
-      location_type, parseInt(base_price) * 100,
+      location_type,
+      min_locations || null, max_locations || null, demo_video_url || null,
+      parseInt(base_price) * 100,
       is_free, is_premium,
       JSON.stringify(features || []),
       cover_image || null,
       JSON.stringify(gallery || []),
+      JSON.stringify({}),
+      demo_quest_id || null,
+      quick_view_description || null,
+      status,
       status
     ])
+    // Сохраняем теги
+    const tagIds = Array.isArray(req.body.tag_ids) ? req.body.tag_ids : []
+    if (tagIds.length) {
+      const newId = result.rows[0].id
+      const tagValues = tagIds.map((tid, i) => `($1, $${i + 2})`).join(', ')
+      await pool.query(
+        `INSERT INTO template_tags (template_id, tag_id) VALUES ${tagValues}`,
+        [newId, ...tagIds]
+      )
+    }
+
     res.status(201).json({ success: true, data: result.rows[0] })
   } catch (error) {
-    next(error)
+    switch (error.code) {
+      case '23502':
+        return res.status(400).json({ success: false, message: 'Не заполнено обязательное поле: ' + (error.column || error.message) })
+      case '42703':
+        return res.status(400).json({ success: false, message: `Столбец не найден в БД: ${error.message}. Выполните миграцию database/migration_missing_columns.sql` })
+      case '23505':
+        return res.status(409).json({ success: false, message: 'Шаблон с таким slug уже существует' })
+      default:
+        return res.status(500).json({ success: false, message: 'Ошибка создания: ' + error.message })
+    }
   }
 })
 
@@ -377,10 +409,17 @@ router.post('/templates/create', [
 router.get('/templates/:id', async (req, res, next) => {
   try {
     const result = await pool.query(
-      `SELECT qt.*, c.name as category_name
+      `SELECT qt.*, c.name as category_name,
+        COALESCE(
+          json_agg(json_build_object('id', t.id, 'name', t.name, 'slug', t.slug))
+          FILTER (WHERE t.id IS NOT NULL), '[]'
+        ) as tags
        FROM quest_templates qt
        LEFT JOIN categories c ON qt.category_id = c.id
-       WHERE qt.id = $1`,
+       LEFT JOIN template_tags tt ON qt.id = tt.template_id
+       LEFT JOIN tags t ON tt.tag_id = t.id
+       WHERE qt.id = $1
+       GROUP BY qt.id, c.name`,
       [req.params.id]
     )
     if (!result.rows.length) {
@@ -396,8 +435,8 @@ router.get('/templates/:id', async (req, res, next) => {
 router.put('/templates/:id', [
   body('title').trim().notEmpty().withMessage('Название обязательно'),
   body('difficulty').isIn(['easy', 'medium', 'hard', 'expert']).withMessage('Некорректная сложность'),
-  body('duration_minutes').isInt({ min: 10 }).withMessage('Укажите длительность'),
-  body('base_price').isInt({ min: 0 }).withMessage('Некорректная цена'),
+  body('duration_minutes').isInt({ min: 10 }).withMessage('Укажите длительность (мин. 10)'),
+  body('base_price').isNumeric().withMessage('Некорректная цена'),
 ], async (req, res, next) => {
   const vErrors = validationResult(req)
   if (!vErrors.isEmpty()) {
@@ -408,7 +447,9 @@ router.put('/templates/:id', [
       title, tagline, description, category_id,
       difficulty, duration_minutes, location_type,
       base_price, is_free, is_premium,
-      features, cover_image, gallery, status
+      features, cover_image, gallery, structure, demo_quest_id,
+      min_locations, max_locations, demo_video_url,
+      quick_view_description, status
     } = req.body
 
     const existingRes = await pool.query('SELECT status FROM quest_templates WHERE id = $1', [req.params.id])
@@ -419,39 +460,80 @@ router.put('/templates/:id', [
 
     const result = await pool.query(`
       UPDATE quest_templates SET
-        title            = $1,
-        tagline          = $2,
-        description      = $3,
-        category_id      = $4,
-        difficulty       = $5,
-        duration_minutes = $6,
-        location_type    = $7,
-        base_price       = $8,
-        is_free          = $9,
-        is_premium       = $10,
-        features         = $11,
-        cover_image      = $12,
-        gallery          = $13,
-        status           = $14,
-        published_at     = CASE WHEN $15 THEN NOW() ELSE published_at END,
-        updated_at       = NOW()
-      WHERE id = $16
+        title                 = $1,
+        tagline               = $2,
+        description           = $3,
+        category_id           = $4,
+        difficulty            = $5,
+        duration_minutes      = $6,
+        location_type         = $7,
+        min_locations         = $8,
+        max_locations         = $9,
+        demo_video_url        = $10,
+        base_price            = $11,
+        is_free               = $12,
+        is_premium            = $13,
+        features              = $14,
+        cover_image           = $15,
+        gallery               = $16,
+        structure             = $17,
+        demo_quest_id         = $18,
+        quick_view_description= $19,
+        status                = $20,
+        published_at          = CASE WHEN $21 THEN NOW() ELSE published_at END,
+        updated_at            = NOW()
+      WHERE id = $22
       RETURNING *
     `, [
-      title, tagline || null, description || null,
-      category_id || null, difficulty, parseInt(duration_minutes),
-      location_type || 'universal', parseInt(base_price) * 100,
-      is_free || false, is_premium || false,
+      title,
+      tagline || null,
+      description || '',
+      category_id || null,
+      difficulty,
+      parseInt(duration_minutes),
+      location_type || 'universal',
+      min_locations || null,
+      max_locations || null,
+      demo_video_url || null,
+      parseInt(base_price) * 100,
+      is_free || false,
+      is_premium || false,
       JSON.stringify(features || []),
       cover_image || null,
       JSON.stringify(gallery || []),
+      JSON.stringify(structure || {}),
+      demo_quest_id || null,
+      quick_view_description || null,
       status || 'draft',
       becomesPublished,
       req.params.id
     ])
+
+    // Сохраняем теги
+    const tagIds = Array.isArray(req.body.tag_ids) ? req.body.tag_ids : []
+    await pool.query('DELETE FROM template_tags WHERE template_id = $1', [req.params.id])
+    if (tagIds.length) {
+      const tagValues = tagIds.map((tid, i) => `($1, $${i + 2})`).join(', ')
+      await pool.query(
+        `INSERT INTO template_tags (template_id, tag_id) VALUES ${tagValues}`,
+        [req.params.id, ...tagIds]
+      )
+    }
+
     res.json({ success: true, data: result.rows[0] })
   } catch (error) {
-    next(error)
+    switch (error.code) {
+      case '23502': // NOT NULL violation
+        return res.status(400).json({ success: false, message: 'Не заполнено обязательное поле: ' + (error.column || error.message) })
+      case '42703': // undefined column
+        return res.status(400).json({ success: false, message: `Столбец не найден в БД: ${error.message}. Выполните миграцию database/migration_missing_columns.sql` })
+      case '23505': // unique violation
+        return res.status(409).json({ success: false, message: 'Шаблон с таким slug уже существует' })
+      case '22P02': // invalid input syntax
+        return res.status(400).json({ success: false, message: 'Некорректный формат данных: ' + error.message })
+      default:
+        return res.status(500).json({ success: false, message: 'Ошибка сохранения: ' + error.message })
+    }
   }
 })
 
@@ -467,8 +549,8 @@ router.patch('/templates/:id/status', [
     const { status } = req.body
     const result = await pool.query(`
       UPDATE quest_templates SET
-        status       = $1,
-        published_at = CASE WHEN $1 = 'published' AND published_at IS NULL THEN NOW() ELSE published_at END,
+        status       = $1::text,
+        published_at = CASE WHEN $1::text = 'published' AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at   = NOW()
       WHERE id = $2
       RETURNING id, title, status
@@ -493,6 +575,28 @@ router.delete('/templates/:id', async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Шаблон не найден' })
     }
     res.json({ success: true, message: 'Шаблон удалён' })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── PATCH /api/admin/orders/:id/status (смена статуса заказа) ───────────────
+router.patch('/orders/:id/status', [
+  body('status').isIn(['confirmed', 'in_progress', 'completed', 'cancelled']).withMessage('Некорректный статус'),
+], async (req, res, next) => {
+  try {
+    const vErrors = validationResult(req)
+    if (!vErrors.isEmpty()) return res.status(400).json({ success: false, errors: vErrors.array() })
+
+    const { status } = req.body
+    const result = await pool.query(
+      `UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2
+       RETURNING id, status, client_name, client_email, created_quest_id`,
+      [status, req.params.id]
+    )
+    if (!result.rows.length) return res.status(404).json({ success: false, message: 'Заказ не найден' })
+
+    res.json({ success: true, data: result.rows[0] })
   } catch (error) {
     next(error)
   }

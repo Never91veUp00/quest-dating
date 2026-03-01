@@ -99,18 +99,50 @@ export function useQuestEditor() {
   }
 
   const applyTemplate = (tpl) => {
-    if (!tpl.structure) return
-    let raw = tpl.structure
-    if (typeof raw === 'string') { try { raw = JSON.parse(raw) } catch { return } }
-    if (!Array.isArray(raw)) return
-    const blocks = JSON.parse(JSON.stringify(raw))
+    // Структура может быть:
+    // 1. Массив блоков (старый формат)
+    // 2. { phases: [...] } — сохранённые этапы из формы шаблона
+    // 3. null / пустой объект — начинаем с чистого блока
+    let blocks = []
+
+    if (tpl.structure) {
+      let raw = tpl.structure
+      if (typeof raw === 'string') { try { raw = JSON.parse(raw) } catch { raw = null } }
+      if (Array.isArray(raw)) {
+        blocks = raw
+      } else if (raw && Array.isArray(raw.phases) && raw.phases.length) {
+        // Конвертируем phases → blocks
+        blocks = raw.phases.map(p => ({
+          id: '',
+          title: p.title || '',
+          description: p.description || '',
+          location: '',
+          tasks: (p.items || []).map(item => ({
+            id: '',
+            type: 'simple',
+            title: item.text || '',
+            description: '',
+            points: 10, hint: ''
+          }))
+        }))
+      }
+    }
+
+    // Если нет блоков из шаблона — добавляем один пустой
+    if (!blocks.length) {
+      blocks = [{ id: '', title: '', description: '', location: '', tasks: [] }]
+    }
+
+    // Назначаем свежие id
+    blocks = JSON.parse(JSON.stringify(blocks))
     blocks.forEach((b, bi) => {
       b.id = `block-${Date.now()}-${bi}`
       b.tasks = (b.tasks || []).map((t, ti) => ({ ...t, id: `task-${Date.now()}-${bi}-${ti}` }))
     })
+
     form.value.blocks = blocks
     form.value.template_id = tpl.id
-    openBlocks.value = blocks.length ? [blocks[0].id] : []
+    openBlocks.value = [blocks[0].id]
   }
 
   // ─── Blocks ──────────────────────────────────────────────────
