@@ -1,4 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
+import { config } from 'dotenv'
+config() // загружает client/.env если существует
 
 export default defineConfig({
   testDir: './tests/e2e',

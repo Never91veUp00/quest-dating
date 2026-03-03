@@ -28,6 +28,12 @@
         <div class="splash__grid"></div>
         <div class="splash__glow-neon"></div>
       </template>
+
+      <!-- Искатель клада: золотые частицы -->
+      <template v-if="theme.bg_animation === 'particles'">
+        <span v-for="n in 30" :key="n" class="splash__coin" :style="coin(n)">🪙</span>
+        <div class="splash__glow-gold"></div>
+      </template>
     </div>
 
     <!-- Контент -->
@@ -157,6 +163,15 @@ const star = (n) => ({
   opacity:    0.2 + (n % 5) * 0.12,
 })
 
+const coin = (n) => ({
+  '--x':      (n * 3.3) % 100 + '%',
+  '--delay':  (n * 0.2) % 5 + 's',
+  '--speed':  (3 + (n % 4)) + 's',
+  '--size':   (0.9 + (n % 3) * 0.4) + 'rem',
+  '--drift':  (n % 2 === 0 ? 1 : -1) * (15 + n % 25) + 'px',
+  opacity:    0.5 + (n % 4) * 0.15,
+})
+
 const decorItem = (i) => ({
   '--angle': (i * 72) + 'deg',
   '--r':     (120 + (i % 2) * 30) + 'px',
@@ -259,6 +274,29 @@ const decorItem = (i) => ({
   width: 500px; height: 500px; border-radius: 50%;
   background: radial-gradient(circle, rgba(0,245,196,0.1) 0%, transparent 70%);
   animation: breathe 4s ease-in-out infinite;
+}
+
+/* ── Treasure: золотые частицы ────────────────────────────────── */
+.splash__coin {
+  position: absolute;
+  top: -2rem;
+  left: var(--x);
+  font-size: var(--size);
+  animation: coin-fall var(--speed) var(--delay) ease-in infinite;
+}
+@keyframes coin-fall {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: .8; }
+  100% { transform: translateY(110vh) translateX(var(--drift)) rotate(360deg); opacity: 0; }
+}
+
+.splash__glow-gold {
+  position: absolute; top: 40%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 400px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+  animation: breathe 6s ease-in-out infinite;
 }
 
 @keyframes breathe {

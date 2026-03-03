@@ -3,75 +3,87 @@ import { test, expect } from '@playwright/test'
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000'
 
 test.describe('Создание заказа', () => {
-  test('полный флоу: выбрать шаблон → заполнить форму → отправить', async ({ page }) => {
-    // 1. Открываем каталог
+  // Вспомогательная функция: каталог → шаблон → страница заказа
+  async function navigateToOrderPage(page) {
     await page.goto(`${BASE_URL}/templates`)
-    await expect(page).toHaveTitle(/Quest Dating/i)
 
-    // 2. Кликаем на первый шаблон
     const firstCard = page.locator('.template-card').first()
     await firstCard.waitFor({ state: 'visible' })
-    await firstCard.click()
+    await Promise.all([
+      page.waitForURL(/\/template\//, { timeout: 5000 }),
+      firstCard.click()
+    ])
 
-    // 3. Проверяем страницу шаблона — маршрут /template/:slug (без s)
-    await expect(page).toHaveURL(/\/template\//, { timeout: 5000 })
-    await expect(page.locator('h1')).toBeVisible()
+    const orderBtn = page.getByTestId('order-button').first()
+    await orderBtn.waitFor({ state: 'visible', timeout: 5000 })
+    await Promise.all([
+      page.waitForURL(/\/order\//, { timeout: 5000 }),
+      orderBtn.click()
+    ])
+  }
 
-    // 4. Нажимаем "Заказать квест" → переходим на /order/:slug
-    await page.locator('a.btn-order, a:has-text("Заказать квест"), button:has-text("Заказать квест")').first().click()
+  test('полный флоу: выбрать шаблон → заполнить форму → отправить', async ({ page }) => {
+    // Мокируем POST /api/orders — обходим orderLimiter (5 заказов/час)
+    await page.route('**/api/orders', route => route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { id: 999, total_price: 350000, client_email: 'test@example.com' }
+      })
+    }))
 
-    // 5. Ждём страницу заказа
-    await expect(page).toHaveURL(/\/order\//, { timeout: 5000 })
+    await navigateToOrderPage(page)
 
-    // 6. Заполняем форму заказа
-    await page.locator('input[name="client_name"], input[placeholder*="имя" i], input[placeholder*="Имя" i]').first().fill('Александр Тестовый')
-    await page.locator('input[name="client_email"], input[type="email"]').first().fill('test@example.com')
-    await page.locator('input[name="client_phone"], input[type="tel"]').first().fill('+79161234567')
+    // ── Шаг 1: Контакты ──────────────────────────────────────────
+    await page.locator('input[placeholder="Иван Иванов"]').fill('Александр Тестовый')
+    await page.locator('input[placeholder="ivan@example.com"]').fill('test@example.com')
+    await page.locator('input[placeholder="+7 999 123-45-67"]').fill('+79161234567')
 
-    const descriptionArea = page.locator('textarea[name="description"], textarea').first()
-    await descriptionArea.fill(
+    const dateInput = page.locator('input[type="date"]').first()
+    if (await dateInput.isVisible()) {
+      const future = new Date()
+      future.setMonth(future.getMonth() + 3)
+      await dateInput.fill(future.toISOString().split('T')[0])
+    }
+
+    await page.locator('.btn-nav.btn-next').click()
+
+    // ── Шаг 2: Настройка — пропускаем ───────────────────────────
+    await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible' })
+    await page.locator('.btn-nav.btn-next').click()
+
+    // ── Шаг 3: Описание ──────────────────────────────────────────
+    await page.locator('textarea[placeholder*="событии"]').fill(
       'Романтический вечер для двоих. Хотим провести незабываемый квест в честь нашей годовщины свадьбы.'
     )
 
-    // 7. Устанавливаем дату в будущем
-    const futureDate = new Date()
-    futureDate.setMonth(futureDate.getMonth() + 3)
-    const dateStr = futureDate.toISOString().split('T')[0]
-    const dateInput = page.locator('input[type="date"]').first()
-    if (await dateInput.isVisible()) {
-      await dateInput.fill(dateStr)
+    const agreeLabel = page.locator('.checkbox-label').first()
+    if (await agreeLabel.isVisible()) {
+      const isChecked = await page.locator('.checkbox-box.checked').first().isVisible().catch(() => false)
+      if (!isChecked) await agreeLabel.click()
     }
 
-    // 8. Отправляем форму
-    await page.locator('button[type="submit"]').click()
+    // ── Отправляем ───────────────────────────────────────────────
+    await page.locator('button.btn-submit').click()
 
-    // 9. Ждём успешного ответа
-    await expect(
-      page.locator(':text("успешно"), :text("принят"), :text("отправлен"), :text("Спасибо")')
-    ).toBeVisible({ timeout: 10000 })
+    // Успех — модальное окно с классом .success-modal
+    await expect(page.locator('.success-modal')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('.success-title')).toContainText('успешно оформлен')
   })
 
-  test('форма показывает ошибки при пустой отправке', async ({ page }) => {
-    // Идём сразу на страницу заказа первого доступного шаблона
-    await page.goto(`${BASE_URL}/templates`)
-    const firstCard = page.locator('.template-card').first()
-    await firstCard.waitFor({ state: 'visible' })
-    await firstCard.click()
+  test('форма показывает ошибки при пустой отправке шага 1', async ({ page }) => {
+    await navigateToOrderPage(page)
 
-    // Ждём страницу шаблона и нажимаем "Заказать квест"
-    await expect(page).toHaveURL(/\/template\//, { timeout: 5000 })
-    await page.locator('a.btn-order, a:has-text("Заказать квест"), button:has-text("Заказать квест")').first().click()
-    await expect(page).toHaveURL(/\/order\//, { timeout: 5000 })
+    // Пытаемся перейти на шаг 2 без заполнения
+    await page.locator('.btn-nav.btn-next').click()
 
-    // Пытаемся отправить пустую форму
-    const submitBtn = page.locator('button[type="submit"]')
-    if (await submitBtn.isVisible({ timeout: 3000 })) {
-      await submitBtn.click()
-
-      // Ждём ошибки валидации
-      await expect(
-        page.locator('.error, .field-error, [class*="error"], input:invalid').first()
-      ).toBeVisible({ timeout: 3000 })
-    }
+    // Должна появиться валидация — поле имени получит фокус или появится ошибка
+    await expect(
+      page.locator('input[placeholder="Иван Иванов"]:invalid, .field-error, .error-text').first()
+    ).toBeVisible({ timeout: 3000 }).catch(async () => {
+      // Если HTML5 валидация — проверяем что остались на шаге 1
+      await expect(page.locator('input[placeholder="Иван Иванов"]')).toBeVisible()
+    })
   })
 })

@@ -100,6 +100,24 @@
         </div>
       </template>
 
+
+      <!-- Искатель клада: карта и золото -->
+      <template v-else-if="theme.id === 'treasure'">
+        <div class="intro__treasure-bg">
+          <span v-for="n in 25" :key="n" class="intro__coin" :style="treasureCoin(n)">🪙</span>
+        </div>
+        <div class="intro__treasure-body">
+          <div class="intro__treasure-compass">🧭</div>
+          <div class="intro__treasure-title">КАРТА СОКРОВИЩ</div>
+          <div class="intro__treasure-line">Маршрут проложен</div>
+          <div class="intro__treasure-line">Клад ждёт своего искателя</div>
+          <div v-if="questData.client_name" class="intro__treasure-name">
+            Искатель: <span>{{ questData.client_name }}</span>
+          </div>
+          <div class="intro__treasure-map">🗺️</div>
+        </div>
+      </template>
+
       <div class="intro__skip">нажми чтобы пропустить</div>
     </div>
   </transition>
@@ -126,6 +144,7 @@ onMounted(() => {
   if (props.theme.id === 'detective') initDetective()
   if (props.theme.id === 'city')      initCity()
   if (props.theme.id === 'mystery')   initMystery()
+  if (props.theme.id === 'treasure')  initTreasure()
 })
 onUnmounted(() => { clearTimeout(endTimer); cancelAnimationFrame(rafId) })
 
@@ -201,6 +220,21 @@ const initMystery = () => {
     mystLine.value = ++i % mysteryLines.length
   }, 950)
   setTimeout(() => clearInterval(iv), props.duration)
+}
+
+
+/* ── TREASURE ────────────────────────────────────────────────── */
+const treasureCoin = (n) => ({
+  '--x':     (n * 4.1) % 100 + '%',
+  '--delay': (n * 0.18) % 4 + 's',
+  '--speed': (2.5 + (n % 4) * 0.6) + 's',
+  '--drift': (n % 2 === 0 ? 1 : -1) * (10 + n % 20) + 'px',
+  '--size':  (0.9 + (n % 3) * 0.4) + 'rem',
+  opacity:   0.5 + (n % 4) * 0.15,
+})
+
+const initTreasure = () => {
+  // Анимация управляется CSS — JS не нужен
 }
 
 /* ── CITY ────────────────────────────────────────────────────── */
@@ -573,4 +607,74 @@ const initCity = () => {
 .intro__city-target span {
   color: #00f5c4; text-shadow: 0 0 10px rgba(0,245,196,.7);
 }
+
+/* ── TREASURE ────────────────────────────────────────────────── */
+.intro--treasure { background: #0d0a05; }
+
+.intro__treasure-bg { position: absolute; inset: 0; overflow: hidden; }
+
+.intro__coin {
+  position: absolute;
+  top: -2rem;
+  left: var(--x);
+  font-size: var(--size, 1rem);
+  animation: intro-coin var(--speed) var(--delay) ease-in infinite;
+}
+@keyframes intro-coin {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: .7; }
+  100% { transform: translateY(110vh) translateX(var(--drift)) rotate(360deg); opacity: 0; }
+}
+
+.intro__treasure-body {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  text-align: center;
+}
+.intro__treasure-compass {
+  font-size: 3rem;
+  animation: compass-spin 3s ease-in-out infinite alternate;
+}
+@keyframes compass-spin {
+  0%   { transform: rotate(-15deg); }
+  100% { transform: rotate(15deg); }
+}
+.intro__treasure-title {
+  font-family: var(--font-d);
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  color: #f5a623;
+  letter-spacing: .15em;
+  text-shadow: 0 0 20px rgba(245,166,35,.6);
+}
+.intro__treasure-line {
+  font-size: .85rem;
+  color: #e8d5a3;
+  letter-spacing: .08em;
+  opacity: 0;
+  animation: fade-in-up .6s ease forwards;
+}
+.intro__treasure-line:nth-child(3) { animation-delay: .4s; }
+.intro__treasure-line:nth-child(4) { animation-delay: .9s; }
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: .8; transform: translateY(0); }
+}
+.intro__treasure-name {
+  margin-top: 8px;
+  font-size: .9rem;
+  color: #e8d5a3;
+  letter-spacing: .05em;
+}
+.intro__treasure-name span { color: #f5a623; font-weight: 600; }
+.intro__treasure-map {
+  font-size: 2.5rem;
+  margin-top: 8px;
+  animation: map-pulse 2s ease-in-out infinite;
+}
+@keyframes map-pulse {
+  0%,100% { transform: scale(1); opacity: .8; }
+  50%      { transform: scale(1.1); opacity: 1; }
+}
+
 </style>

@@ -47,11 +47,14 @@ apiClient.interceptors.response.use(
       // Сервер ответил с кодом ошибки
       const { status, data } = error.response
 
-      console.error('[API Error Response]', {
-        status,
-        message: data.message || 'Unknown error',
-        errors: data.errors
-      })
+      // 403 с requires_code — штатная ситуация, не ошибка
+      if (!(status === 403 && data.requires_code)) {
+        console.error('[API Error Response]', {
+          status,
+          message: data.message || 'Unknown error',
+          errors: data.errors
+        })
+      }
 
       // Специфичная обработка некоторых статусов
       switch (status) {
@@ -59,7 +62,7 @@ apiClient.interceptors.response.use(
           localStorage.removeItem('auth_token')
           break
         case 403:
-          console.error('Access forbidden')
+          if (!data.requires_code) console.error('Access forbidden')
           break
         case 404:
           // Не показываем toast — 404 обрабатывается на уровне компонентов
@@ -82,7 +85,8 @@ apiClient.interceptors.response.use(
         status,
         message: data.message || 'Произошла ошибка',
         errors: data.errors || {},
-        existing_id: data.existing_id || null
+        existing_id: data.existing_id || null,
+        data: data || null
       })
     } else if (error.request) {
       console.error('[API No Response]', error.request)

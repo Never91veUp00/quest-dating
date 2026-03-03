@@ -5,49 +5,63 @@ const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000'
 test.describe('Форма "Свяжитесь с нами"', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${BASE_URL}/about`)
+    await page.locator('input[placeholder="Ваше имя"]').waitFor({ state: 'visible' })
   })
 
   test('форма отправляется с корректными данными', async ({ page }) => {
-    await page.locator('input[placeholder*="имя" i]').fill('Мария Тестова')
-    await page.locator('input[type="tel"]').fill('+79991234567')
-    await page.locator('textarea').fill('Хочу узнать подробности про романтический квест для двоих')
+    // Мокаем API чтобы обойти contactLimiter (3 запроса/час).
+    // Тест проверяет поведение фронтенда при успешном ответе — не интеграцию с сервером.
+    await page.route('**/api/contact', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        message: 'Сообщение отправлено! Мы свяжемся с вами в ближайшее время.'
+      })
+    }))
 
-    await page.locator('button:has-text("Отправить")').click()
+    await page.locator('input[placeholder="Ваше имя"]').fill('Мария Тестова')
+    await page.locator('input[placeholder="Номер телефона (с привязанным Telegram)"]').fill('+79991234567')
+    await page.locator('textarea[placeholder="Ваше сообщение"]').fill(
+      'Хочу узнать подробности про романтический квест для двоих'
+    )
 
-    // Ждём успешного сообщения
-    await expect(
-      page.locator(':text("отправлено"), :text("Мы свяжемся"), .success-message')
-    ).toBeVisible({ timeout: 8000 })
+    await page.locator('button.btn-submit').click()
+
+    await expect(page.locator('.success-message')).toBeVisible({ timeout: 3000 })
+    await expect(page.locator('.success-message')).toContainText('отправлено')
   })
 
   test('показывает ошибки при пустой отправке', async ({ page }) => {
-    await page.locator('button:has-text("Отправить")').click()
-
-    // Браузерная или кастомная валидация должна сработать
-    const nameInput = page.locator('input[placeholder*="имя" i]')
-    const isRequired = await nameInput.evaluate(el => el.required)
-    if (isRequired) {
-      // HTML5 validation — браузер покажет подсказку, форма не уйдёт
-      await expect(nameInput).toBeFocused()
-    }
+    await page.locator('button.btn-submit').click()
+    await expect(page.locator('input[placeholder="Ваше имя"]')).toBeFocused({ timeout: 2000 })
   })
 
-  test('кнопка заблокирована во время отправки', async ({ page }) => {
-    await page.locator('input[placeholder*="имя" i]').fill('Иван')
-    await page.locator('input[type="tel"]').fill('+79161234567')
-    await page.locator('textarea').fill('Тестовое сообщение для проверки отправки')
+  test('кнопка показывает "Отправка..." во время запроса', async ({ page }) => {
+    await page.locator('input[placeholder="Ваше имя"]').fill('Иван')
+    await page.locator('input[placeholder="Номер телефона (с привязанным Telegram)"]').fill('+79161234567')
+    await page.locator('textarea[placeholder="Ваше сообщение"]').fill(
+      'Тестовое сообщение для проверки состояния кнопки'
+    )
 
-    // Перехватываем запрос чтобы проверить состояние кнопки
     let buttonTextDuringRequest = ''
+
+    // Задержка в моке даёт время поймать текст кнопки
     await page.route('**/api/contact', async (route) => {
-      const btn = page.locator('button:has-text("Отправ")')
-      buttonTextDuringRequest = await btn.textContent()
-      await route.continue()
+      await new Promise(resolve => setTimeout(resolve, 200))
+      buttonTextDuringRequest = await page.locator('button.btn-submit').textContent().catch(() => '')
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true })
+      })
     })
 
-    await page.locator('button:has-text("Отправить")').click()
-    await page.waitForResponse('**/api/contact')
+    await page.locator('button.btn-submit').click()
 
-    expect(buttonTextDuringRequest).toContain('Отправк') // "Отправка..."
+    // Ждём завершения — success-message появляется после ответа
+    await expect(page.locator('.success-message')).toBeVisible({ timeout: 5000 })
+
+    expect(buttonTextDuringRequest).toContain('Отправка')
   })
 })

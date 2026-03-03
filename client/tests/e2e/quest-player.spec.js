@@ -54,7 +54,7 @@ test.describe('Квест с кодом доступа', () => {
     await page.goto(`${BASE_URL}/quest/${protectedSlug}`)
 
     await expect(
-      page.locator('input[type="password"], input[placeholder*="код" i]')
+      page.locator('.splash__code-input')
     ).toBeVisible({ timeout: 5000 })
   })
 })

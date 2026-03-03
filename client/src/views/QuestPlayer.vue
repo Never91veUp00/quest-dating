@@ -258,6 +258,16 @@ const loadQuest = async () => {
     }
 
     const res = await questService.getBySlug(slug.value)
+    // Сервер возвращает { success, data: quest } или { success: false, requires_code: true, data: {...} }
+    // interceptor уже делает response.data, поэтому res = тело ответа
+
+    // Сервер вернул 200 но квест требует код доступа
+    if (res.requires_code) {
+      requiresCode.value = true
+      questData.value = res.data ?? null
+      return
+    }
+
     questData.value = res.data ?? res
     requiresCode.value = false
 
@@ -278,12 +288,7 @@ const loadQuest = async () => {
       showIntro.value = questData.value.show_intro !== false
     }
   } catch (err) {
-    if (err.status === 403) {
-      requiresCode.value = true
-      questData.value = err.data ?? null
-    } else {
-      fatalError.value = err.message || 'Квест не найден'
-    }
+    fatalError.value = err.message || 'Квест не найден'
   } finally {
     loading.value = false
   }

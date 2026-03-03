@@ -137,8 +137,48 @@ export const THEMES = {
   },
 
   // ══════════════════════════════════════════════════════════════
-  // 🏙️ ГОРОД — неон, киберпанк, сетка
+  // 🗺️ ИСКАТЕЛЬ КЛАДА — карта, золото, приключение
   // ══════════════════════════════════════════════════════════════
+  treasure: {
+    id: 'treasure',
+    label: 'Искатель клада',
+    icon: '🗺️',
+
+    accent:     '#f5a623',   // золото
+    accentDim:  '#8a5a00',
+    bg:         '#0d0a05',
+    bg2:        '#150f07',
+    surface:    '#1e1509',
+    border:     'rgba(245,166,35,0.15)',
+    text:       '#e8d5a3',
+    dim:        '#5c3d0a',
+
+    fonts: {
+      display: "'Pirata One', cursive",
+      body:    "'Crimson Text', serif",
+      googleFonts: 'Pirata+One&family=Crimson+Text:wght@400;600'
+    },
+
+    copy: {
+      eyebrow:       'КАРТА СОКРОВИЩ',
+      startBtn:      'Отправиться в путь 🗺️',
+      taskDone:      'Метка найдена!',
+      hintBtn:       '🧭 Подсказка штурмана (-10 очков)',
+      photoZone:     'Сфотографировать находку',
+      finishEyebrow: 'КЛАД НАЙДЕН!',
+      shareBtn:      'Поделиться добычей ⚓',
+      blockPrefix:   'Метка',
+      pointsLabel:   'дублонов',
+    },
+
+    bg_animation: 'particles',  // золотые частицы/монеты
+
+    splash_decor: ['🗺️', '⚓', '💰', '🧭', '☠️'],
+
+    overlay: 'grain',
+  },
+
+
   city: {
     id: 'city',
     label: 'Город',

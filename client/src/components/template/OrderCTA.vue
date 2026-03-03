@@ -11,6 +11,7 @@
       <router-link 
         :to="`/order/${template.slug}`"
         class="btn-order"
+        data-testid="order-button"
       >
         🎯 Заказать квест
       </router-link>

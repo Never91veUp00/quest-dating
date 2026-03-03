@@ -301,7 +301,9 @@ onMounted(async () => {
 })
 
 const handleSubmit = async () => {
+  if (submitting.value) return
   submitting.value = true
+  showSuccess.value = false
 
   try {
     const response = await api.sendContact({
