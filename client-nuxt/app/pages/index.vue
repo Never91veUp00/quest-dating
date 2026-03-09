@@ -4,20 +4,20 @@
       <div class="container">
         <div class="hero-content">
           <h1 class="hero-title">
-            Превратите свидание в <span class="gradient-text">незабываемое приключение</span>
+            Превратите свидание в <span class="gradient-text">незабываемый квест</span>
           </h1>
           <p class="hero-description">
-            Создам персональный квест специально для вас и вашей второй половинки 
-            уникальный сценарий, живые эмоции, готовится от 24 часов.
+            Лиза Петри создаст персональный свидание-квест специально для вас —
+            уникальный сценарий, живые эмоции, готов от 24 часов.
           </p>
           <div class="hero-actions">
             <NuxtLink to="/catalog" class="btn-primary"> Выбрать квест</NuxtLink>
-            <NuxtLink to="/about" class="btn-secondary">О создателе</NuxtLink>
+            <NuxtLink to="/about" class="btn-secondary">О Лизе</NuxtLink>
           </div>
           <div class="hero-stats">
             <div class="stat">
               <div class="stat-number">{{ stats?.total_templates ?? '...' }}</div>
-              <div class="stat-label">Шаблонов квестов</div>
+              <div class="stat-label">Сценариев квестов</div>
             </div>
             <div class="stat">
               <div class="stat-number">от 24ч</div>
@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="hero-image">
-          <img src="/images/love-in-the-air.svg" alt="Quest Dating  романтический квест" />
+          <img src="/images/love-in-the-air.svg" alt="Quest Dating — свидание-квест для двоих" />
         </div>
       </div>
     </section>
@@ -82,13 +82,13 @@
               <div class="step-number">1</div>
               <div class="step-icon"></div>
               <h3 class="step-title">Выберите квест</h3>
-              <p class="step-description">Просмотрите каталог готовых шаблонов и найдите подходящий для вашего свидания</p>
+              <p class="step-description">Просмотрите каталог сценариев свиданий-квестов и выберите подходящий формат</p>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-icon"></div>
               <h3 class="step-title">Настройте под себя</h3>
-              <p class="step-description">Укажите детали: локацию, дату, особые пожелания. Мы адаптируем квест специально для вас</p>
+              <p class="step-description">Укажите детали: локацию, дату, особые пожелания. Я адаптирую сценарий специально под вас</p>
             </div>
             <div class="step">
               <div class="step-number">3</div>
@@ -109,7 +109,7 @@
 
     <section class="testimonials-section">
       <div class="container">
-        <h2 class="section-title"> Что говорят наши клиенты</h2>
+        <h2 class="section-title"> Что говорят клиенты</h2>
         <p class="section-description">Реальные отзывы от пар, которые уже прошли квест</p>
         <div class="scroll-fade-wrap">
           <div class="testimonials-grid">
@@ -123,7 +123,7 @@
       <div class="container">
         <div class="cta-content">
           <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
-          <p class="cta-description">Выберите шаблон  и я адаптирую его специально под вас</p>
+          <p class="cta-description">Выберите сценарий — и я создам свидание-квест специально для вас</p>
           <NuxtLink to="/catalog" class="btn-cta"> Выбрать квест сейчас</NuxtLink>
         </div>
       </div>
@@ -137,10 +137,81 @@ import { computed } from 'vue'
 const { getCategories, getFeaturedDates, getPopularDates, getStats, getFeaturedReviews } = useDatesApi()
 
 useSeoMeta({
-  title:         'Quest Dating  персональные свидания-квесты',
-  description:   'Создам персональный квест для вашего свидания. Уникальный сценарий под вашу пару  готов за 24 часа.',
-  ogTitle:       'Quest Dating  персональные свидания-квесты',
-  ogDescription: 'Превратите свидание в незабываемое приключение. Персональные романтические квесты от Влада.',
+  title:         'Quest Dating — персональные свидания-квесты',
+  description:   'Лиза Петри создаст персональный свидание-квест для вашей пары. Уникальный сценарий под вас — готов за 24 часа.',
+  ogTitle:       'Quest Dating — свидание, которое запомнят',
+  ogDescription: 'Превратите свидание в незабываемый квест. Лиза Петри разработает персональный сценарий специально для вас.',
+  ogImage:       'https://questdating.ru/og-image.jpg',
+  ogImageWidth:  '1200',
+  ogImageHeight: '630',
+  ogType:        'website',
+  ogUrl:         'https://questdating.ru/',
+})
+
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type':    'Organization',
+        name:       'Quest Dating',
+        url:        'https://questdating.ru',
+        logo:       'https://questdating.ru/icon-512x512.png',
+        description: 'Лиза Петри разрабатывает персональные свидания-квесты для пар. Уникальный сценарий под вас — готов за 24 часа.',
+        founder: {
+          '@type': 'Person',
+          name:    'Лиза Петри',
+        },
+        contactPoint: {
+          '@type':       'ContactPoint',
+          contactType:   'customer support',
+          availableLanguage: 'Russian',
+        },
+      }),
+    },
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context':  'https://schema.org',
+        '@type':     'FAQPage',
+        mainEntity: [
+          {
+            '@type':          'Question',
+            name:             'Что такое свидание-квест?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text:    'Свидание-квест — это романтическое приключение по персональному сценарию: задания, загадки и сюрпризы, которые Лиза Петри разрабатывает специально для вашей пары с учётом вашей истории и предпочтений.',
+            },
+          },
+          {
+            '@type':          'Question',
+            name:             'Сколько стоит свидание-квест?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text:    'Стоимость зависит от выбранного сценария и уровня персонализации. Базовые сценарии доступны от 990 рублей. Подробные цены указаны на странице каждого квеста.',
+            },
+          },
+          {
+            '@type':          'Question',
+            name:             'Как долго разрабатывается квест?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text:    'Стандартный срок разработки — от 24 часов после оформления заказа. Срочные квесты обсуждаются индивидуально.',
+            },
+          },
+          {
+            '@type':          'Question',
+            name:             'Можно ли заказать квест-сюрприз для девушки или парня?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text:    'Да! Квест-сюрприз — один из самых популярных форматов. Вы сообщаете детали о партнёре, а Лиза разрабатывает сценарий так, чтобы сюрприз удался.',
+            },
+          },
+        ],
+      }),
+    },
+  ],
 })
 
 const { data: homeData, pending: homePending } = await useAsyncData('home-all', async () => {

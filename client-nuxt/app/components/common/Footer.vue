@@ -74,7 +74,7 @@
       <!-- Нижний футер -->
       <div class="footer-bottom">
         <p class="copyright">
-          © {{ currentYear }} Quest Dating · Влад и Лиза Петровы
+          © {{ currentYear }} Quest Dating · Лиза Петри
         </p>
         <nav class="footer-legal" aria-label="Правовые документы">
           <NuxtLink to="/terms">Условия использования</NuxtLink>

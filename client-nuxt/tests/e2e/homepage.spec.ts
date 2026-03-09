@@ -1,0 +1,47 @@
+import { test, expect } from '@playwright/test'
+
+test.describe('Главная страница', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('отображает заголовок с ключевым словом квест', async ({ page }) => {
+    const h1 = page.locator('h1')
+    await expect(h1).toBeVisible()
+    await expect(h1).toContainText('квест')
+  })
+
+  test('отображает упоминание Лизы Петри', async ({ page }) => {
+    await expect(page.locator('body')).toContainText('Лиза Петри')
+  })
+
+  test('кнопка "Выбрать квест" ведёт на каталог', async ({ page }) => {
+    await page.locator('a, button').filter({ hasText: 'Выбрать квест' }).first().click()
+    await expect(page).toHaveURL(/\/catalog/)
+  })
+
+  test('кнопка "О Лизе" ведёт на about', async ({ page }) => {
+    await page.locator('a, button').filter({ hasText: 'О Лизе' }).first().click()
+    await expect(page).toHaveURL(/\/about/)
+  })
+
+  test('секция "Как это работает" содержит 4 шага', async ({ page }) => {
+    // Реальная структура: section.how-it-works > .steps-grid > .step (x4)
+    const steps = page.locator('.step')
+    await expect(steps).toHaveCount(4)
+  })
+
+  test('отображает секцию с квестами', async ({ page }) => {
+    await expect(page.locator('text=Избранные квесты')).toBeVisible()
+  })
+
+  test('title страницы содержит Quest Dating', async ({ page }) => {
+    await expect(page).toHaveTitle(/Quest Dating/)
+  })
+
+  test('og:image meta тег присутствует', async ({ page }) => {
+    const ogImage = page.locator('meta[property="og:image"]')
+    await expect(ogImage).toHaveAttribute('content', /.+/)
+  })
+})

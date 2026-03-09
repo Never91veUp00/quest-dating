@@ -6,9 +6,9 @@
 
     <section class="page-header">
       <div class="container">
-        <h1 class="page-title">Шаблоны свидания-квестов</h1>
+        <h1 class="page-title">Свидания-квесты — сценарии для пар</h1>
         <p class="page-description">
-          Выберите шаблон — Влад адаптирует его специально под вас
+          Выберите сценарий — Лиза Петри адаптирует его специально под вас
         </p>
         <div class="search-wrapper">
           <SearchBar
@@ -150,11 +150,13 @@ const router = useRouter()
 const { getDates, getCategories, getPopularTags } = useDatesApi()
 
 useSeoMeta({
-  title:         'Шаблоны свидания-квестов — Quest Dating',
-  description:   'Уникальные шаблоны свидания-квестов от Влада. Каждый адаптируется под вашу пару. Закажите персональный квест за 24 часа.',
-  ogTitle:       'Шаблоны свидания-квестов — Quest Dating',
-  ogDescription: 'Персональные квесты для влюблённых. Выберите шаблон — Влад адаптирует его специально под вас.',
+  title:         'Свидания-квесты — сценарии для пар | Quest Dating',
+  description:   'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 990 руб.',
+  ogTitle:       'Свидания-квесты — сценарии для пар | Quest Dating',
+  ogDescription: 'Готовые сценарии свиданий-квестов. Лиза Петри разработает персональный квест специально для вашей пары.',
+  ogImage:       'https://questdating.ru/og-image.jpg',
 })
+
 
 const {
   filters, getActiveFilters, activeFiltersCount,
@@ -192,6 +194,40 @@ const { data: tagsData } = await useAsyncData(
 )
 
 const allDates    = computed(() => datesData.value?.data      || datesData.value      || [])
+
+useHead(() => ({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type':    'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Главная',                    item: 'https://questdating.ru/' },
+          { '@type': 'ListItem', position: 2, name: 'Сценарии свиданий-квестов',  item: 'https://questdating.ru/catalog' },
+        ],
+      }),
+    },
+    ...(allDates.value?.length ? [{
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context':       'https://schema.org',
+        '@type':          'ItemList',
+        name:             'Сценарии свиданий-квестов',
+        description:      'Готовые сценарии свиданий-квестов от Лизы Петри — персональная адаптация под каждую пару.',
+        numberOfItems:    allDates.value.length,
+        itemListElement:  allDates.value.slice(0, 20).map((d, i) => ({
+          '@type':    'ListItem',
+          position:   i + 1,
+          name:       d.title,
+          url:        `https://questdating.ru/date/${d.slug}`,
+          image:      d.cover_image || 'https://questdating.ru/og-image.jpg',
+          description: d.tagline || d.description?.substring(0, 120) || '',
+        })),
+      }),
+    }] : []),
+  ],
+}))
 const categories  = computed(() => categoriesData.value?.data || categoriesData.value || [])
 const popularTags = computed(() => tagsData.value?.data       || tagsData.value       || [])
 
@@ -217,7 +253,7 @@ const activeFilters = computed(() => getActiveFilters.value)
 
 const breadcrumbs = computed(() => [
   { label: 'Главная', to: '/' },
-  { label: 'Шаблоны свидания-квестов' }
+  { label: 'Сценарии свиданий-квестов' }
 ])
 
 const formatFilterValue = (filter) => {

@@ -99,8 +99,8 @@ const ALLOWED_ORDER = new Set(['ASC', 'DESC'])
 export const getAllTemplates = async (req, res, next) => {
   try {
     const {
-      page     = PAGINATION.DEFAULT_PAGE,
-      limit    = PAGINATION.DEFAULT_LIMIT,
+      page:     _page     = PAGINATION.DEFAULT_PAGE,
+      limit:    _limit    = PAGINATION.DEFAULT_LIMIT,
       category,
       difficulty,
       location_type,
@@ -112,6 +112,8 @@ export const getAllTemplates = async (req, res, next) => {
       order    = 'DESC'
     } = req.query
 
+    const page  = parseInt(_page,  10) || PAGINATION.DEFAULT_PAGE
+    const limit = parseInt(_limit, 10) || PAGINATION.DEFAULT_LIMIT
     const offset = (page - 1) * limit
 
     // Валидация сортировки — не доверяем query-параметрам
@@ -175,6 +177,7 @@ export const getAllTemplates = async (req, res, next) => {
       }
     })
   } catch (error) {
+    console.error('❌ getAllTemplates PG error:', error.code, error.message, '| params:', JSON.stringify(error))
     next(error)
   }
 }
@@ -336,6 +339,20 @@ export const getSimilarTemplates = async (req, res, next) => {
     `, [id, category_id, TEMPLATE_STATUS.PUBLISHED, limit])
 
     res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Инкремент просмотров — POST /templates/:slug/view
+export const incrementView = async (req, res, next) => {
+  try {
+    const { slug } = req.params
+    await pool.query(
+      'UPDATE quest_templates SET views_count = views_count + 1 WHERE slug = $1',
+      [slug]
+    )
+    res.json({ success: true })
   } catch (error) {
     next(error)
   }

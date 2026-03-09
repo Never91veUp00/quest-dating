@@ -1,5 +1,5 @@
 <template>
-  <div class="template-card" @click="navigateToTemplate">
+  <NuxtLink :to="`/date/${template.slug}`" class="template-card">
     <!-- Изображение -->
     <div class="card-image">
       <img 
@@ -17,7 +17,7 @@
 
       <!-- Оверлей при наведении -->
       <div class="card-overlay">
-        <button class="btn-quick-view" @click.stop="showQuickView">
+        <button class="btn-quick-view" @click.prevent.stop="showQuickView">
           👁️ Быстрый просмотр
         </button>
       </div>
@@ -98,7 +98,7 @@
         </div>
       </ClientOnly>
     </div>
-  </div>
+  </NuxtLink>
 </template>
 
 <script setup>
@@ -113,8 +113,6 @@ const props = defineProps({
 
 const emit = defineEmits(['quickView'])
 
-const router = useRouter()
-
 const displayTags = computed(() => props.template.tags?.slice(0, 3) || [])
 
 const remainingTagsCount = computed(() => {
@@ -122,11 +120,7 @@ const remainingTagsCount = computed(() => {
   return total > 3 ? total - 3 : 0
 })
 
-const navigateToTemplate = () => {
-  router.push(`/date/${props.template.slug}`)
-}
-
-const showQuickView = () => {
+const showQuickView = (e) => {
   emit('quickView', props.template)
 }
 

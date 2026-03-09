@@ -19,7 +19,7 @@
         <div class="header-actions">
           <!-- ❌ Было: /become-author "Стать автором" -->
           <NuxtLink to="/catalog" class="btn-author">
-            Заказать квест
+            Заказать свидание-квест
           </NuxtLink>
           <button @click="toggleMobileMenu" class="btn-mobile-menu">
             <span class="hamburger" :class="{ active: mobileMenuOpen }">
@@ -48,7 +48,7 @@
           <!-- ❌ Удалено: /authors -->
           <!-- ❌ Было: /become-author "Стать автором" -->
           <NuxtLink to="/catalog" class="mobile-nav-link highlighted" @click="closeMobileMenu">
-            Заказать квест
+            Заказать свидание-квест
           </NuxtLink>
         </nav>
       </div>
