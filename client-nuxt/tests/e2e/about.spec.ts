@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { mockHomepageApi } from './fixtures/mockApi'
 
 test.describe('Страница О нас', () => {
   test.beforeEach(async ({ page }) => {
+    // /about делает GET /stats (счётчики) — мокируем чтобы не выбивать rate limiter
+    await mockHomepageApi(page)
     await page.goto('/about')
   })
 
@@ -18,15 +21,11 @@ test.describe('Страница О нас', () => {
   })
 
   test('секция "Мои принципы" содержит 4 карточки', async ({ page }) => {
-    // Реальная структура: section.values-section > .value-card (x4)
-    const cards = page.locator('.value-card')
-    await expect(cards).toHaveCount(4)
+    await expect(page.locator('.value-card')).toHaveCount(4)
   })
 
   test('секция "Как это работает" содержит 4 шага', async ({ page }) => {
-    // Реальная структура: section.how-it-works-section > .timeline-item (x4)
-    const steps = page.locator('.timeline-item')
-    await expect(steps).toHaveCount(4)
+    await expect(page.locator('.timeline-item')).toHaveCount(4)
   })
 
   test('контактная информация отображается', async ({ page }) => {

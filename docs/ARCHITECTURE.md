@@ -7,68 +7,62 @@
 - [Общий обзор](#общий-обзор)
 - [Технологический стек](#технологический-стек)
 - [Структура проекта](#структура-проекта)
+- [Frontend архитектура (Nuxt 4)](#frontend-архитектура-nuxt-4)
 - [Backend архитектура](#backend-архитектура)
-- [Frontend архитектура](#frontend-архитектура)
 - [База данных](#база-данных)
-- [API дизайн](#api-дизайн)
+- [Рендеринг и SEO](#рендеринг-и-seo)
 - [Безопасность](#безопасность)
-- [Масштабируемость](#масштабируемость)
 
 ---
 
 ## Общий обзор
 
-Quest Dating — это fullstack веб-приложение для маркетплейса шаблонов квестов. Архитектура построена на принципах:
+Quest Dating — сервис персональных романтических квестов от Лизы Петри (бренд questdating.ru). Архитектура построена под SEO-трафик и персональный сервис без мультивендора.
 
-- **Монолитный backend с модульной структурой**
-- **SPA frontend на Vue 3**
-- **RESTful API**
-- **PostgreSQL для хранения данных**
-- **Stateless аутентификация через JWT**
+```
+┌─────────────────────────────────────────┐
+│           Браузер (Client)              │
+└───────────────┬─────────────────────────┘
+                │ HTTP/HTTPS
+                ▼
+┌─────────────────────────────────────────┐
+│              Nginx                       │
+│  questdating.ru → Nuxt 4 (port 3000)   │
+│  /uploads      → Express (port 5000)   │
+└───────┬───────────────────┬─────────────┘
+        │                   │
+        ▼                   ▼
+┌──────────────┐   ┌────────────────┐
+│   Nuxt 4     │   │  Express API   │
+│  SSR+SSG+CSR │   │  (port 5000)  │
+│  (port 3000) │   └───────┬────────┘
+└──────┬───────┘           │
+       │ SSR: internal     ▼
+       │ $fetch      ┌──────────────┐
+       └────────────►│  PostgreSQL  │
+                     └──────────────┘
+```
 
-### Высокоуровневая диаграмма
-```
-┌─────────────┐
-│   Client    │
-│  (Vue 3)    │
-└──────┬──────┘
-       │ HTTP/HTTPS
-       │ (REST API)
-       ▼
-┌─────────────┐
-│   Nginx     │
-│  (Reverse   │
-│   Proxy)    │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐      ┌──────────────┐
-│   Backend   │─────▶│  PostgreSQL  │
-│  (Express)  │      │   Database   │
-└─────────────┘      └──────────────┘
-       │
-       ▼
-┌─────────────┐
-│   Storage   │
-│ (Uploads)   │
-└─────────────┘
-```
+### Инфраструктура
+
+Сервер — Orange Pi 5 Pro, развёрнуто через Docker Compose. Telegram-бот для уведомлений о новых заказах.
 
 ---
 
 ## Технологический стек
 
-### Frontend
+### Frontend (client-nuxt/)
 
 | Технология | Версия | Назначение |
 |-----------|--------|------------|
-| Vue.js | 3.4+ | UI Framework |
-| Vue Router | 4.3+ | Роутинг |
-| Pinia | 2.1+ | State Management |
-| Axios | 1.6+ | HTTP клиент |
-| Vite | 5.2+ | Build Tool |
+| Nuxt | 4.x | SSR/SSG/CSR фреймворк |
+| Vue | 3.4+ | UI Framework |
+| Pinia | 2.x | State Management |
+| @nuxtjs/seo | latest | sitemap, robots, og-tags |
+| Playwright | 1.44+ | E2E тесты |
+| Vitest | 2.x | Unit тесты |
 
-### Backend
+### Backend (server/)
 
 | Технология | Версия | Назначение |
 |-----------|--------|------------|
@@ -77,670 +71,205 @@ Quest Dating — это fullstack веб-приложение для марке�
 | PostgreSQL | 14+ | База данных |
 | pg | 8.11+ | PostgreSQL драйвер |
 | JWT | 9.0+ | Аутентификация |
-| Bcrypt | 5.1+ | Хеширование паролей |
-| Multer | 1.4+ | Загрузка файлов |
-
-### DevOps
-
-| Технология | Назначение |
-|-----------|------------|
-| Docker | Контейнеризация |
-| Docker Compose | Оркестрация |
-| Nginx | Reverse Proxy |
-| GitHub Actions | CI/CD (опционально) |
+| express-rate-limit | latest | Rate limiting |
+| DOMPurify | latest | XSS защита |
 
 ---
 
 ## Структура проекта
+
 ```
 quest-dating/
-├── client/                      # Frontend приложение
-│   ├── public/                  # Статические файлы
-│   ├── src/
-│   │   ├── assets/             # Стили, изображения
-│   │   │   └── styles/
-│   │   │       ├── variables.css
-│   │   │       ├── main.css
-│   │   │       └── animations.css
-│   │   ├── components/         # Vue компоненты
-│   │   │   ├── common/        # Переиспользуемые компоненты
-│   │   │   ├── marketplace/   # Компоненты маркетплейса
-│   │   │   ├── template/      # Компоненты шаблонов
-│   │   │   ├── order/         # Компоненты заказов
-│   │   │   ├── quest/         # Компоненты квестов
-│   │   │   └── author/        # Компоненты авторов
-│   │   ├── composables/       # Composition API логика
-│   │   │   ├── useTemplates.js
-│   │   │   ├── useFilters.js
-│   │   │   └── useQuest.js
-│   │   ├── router/            # Vue Router
-│   │   │   └── index.js
-│   │   ├── services/          # API сервисы
-│   │   │   ├── api.js
-│   │   │   ├── templateService.js
-│   │   │   ├── authorService.js
-│   │   │   └── orderService.js
-│   │   ├── store/             # Pinia stores
-│   │   │   ├── index.js
-│   │   │   └── modules/
-│   │   │       ├── auth.js
-│   │   │       └── cart.js
-│   │   ├── utils/             # Утилиты
-│   │   │   ├── formatters.js
-│   │   │   ├── validators.js
-│   │   │   └── helpers.js
-│   │   ├── views/             # Страницы
-│   │   ├── App.vue
-│   │   └── main.js
-│   └── vite.config.js
+├── client-nuxt/                 # Frontend (Nuxt 4)
+│   ├── app/
+│   │   ├── app.vue              # Root с isFullscreen для quest player
+│   │   ├── pages/               # Файловый роутинг Nuxt
+│   │   │   ├── index.vue        # / — главная (SSR + SWR 300s)
+│   │   │   ├── catalog.vue      # /catalog (SSR + SWR 300s)
+│   │   │   ├── about.vue        # /about (SSR + SWR 3600s)
+│   │   │   ├── date/[slug].vue  # /date/:slug (SSR + SWR 600s)
+│   │   │   ├── order/[templateSlug].vue  # /order/:slug (CSR)
+│   │   │   ├── quest/[slug].vue          # /quest/:slug (CSR)
+│   │   │   └── admin/           # /admin/** (CSR, без SSR)
+│   │   ├── components/
+│   │   │   ├── common/          # Header, Footer, Modal, Loader...
+│   │   │   ├── marketplace/     # TemplateCard, TemplateGrid...
+│   │   │   ├── order/           # OrderForm, OrderSummary
+│   │   │   └── quest/           # QuestSplash, QuestBlock...
+│   │   ├── composables/
+│   │   │   └── useApi.js        # $fetch обёртка, все API методы
+│   │   └── assets/styles/       # variables.css, main.css...
+│   ├── tests/
+│   │   ├── e2e/                 # Playwright тесты
+│   │   │   ├── fixtures/        # mockApi.ts, api.ts
+│   │   │   └── *.spec.ts
+│   │   └── unit/                # Vitest тесты
+│   ├── nuxt.config.ts
+│   ├── playwright.config.ts
+│   └── vitest.config.ts
 │
-├── server/                      # Backend приложение
-│   ├── config/                 # Конфигурация
-│   │   ├── db.js
-│   │   └── config.js
-│   ├── controllers/            # Контроллеры (бизнес-логика)
-│   │   ├── templateController.js
-│   │   ├── authorController.js
-│   │   ├── orderController.js
-│   │   └── questController.js
-│   ├── database/               # SQL скрипты
-│   │   ├── schema.sql
-│   │   └── seeds.sql
-│   ├── middleware/             # Express middleware
-│   │   ├── auth.js
-│   │   ├── errorHandler.js
-│   │   └── validators.js
-│   ├── models/                 # Модели данных
-│   │   ├── Template.js
-│   │   ├── Author.js
-│   │   └── Order.js
-│   ├── routes/                 # API роуты
-│   │   ├── templates.js
-│   │   ├── authors.js
-│   │   ├── orders.js
-│   │   └── index.js
-│   ├── services/               # Сервисный слой
-│   │   ├── emailService.js
-│   │   └── uploadService.js
-│   ├── uploads/                # Загруженные файлы
-│   ├── utils/                  # Утилиты
-│   │   ├── helpers.js
-│   │   └── constants.js
-│   └── index.js
+├── server/                      # Backend (Express)
+│   └── src/
+│       ├── app.js               # Express app init
+│       ├── routes/              # API роуты
+│       │   ├── api.js           # /stats, подключение роутов
+│       │   ├── templates.js     # /templates/**
+│       │   ├── categories.js    # /categories
+│       │   ├── orders.js        # /orders
+│       │   ├── quests.js        # /quests/**
+│       │   ├── reviews.js       # /reviews
+│       │   ├── contact.js       # /contact
+│       │   └── auth.js          # /auth
+│       ├── controllers/         # Бизнес-логика
+│       ├── middleware/
+│       │   ├── rateLimiter.js   # generalLimiter, orderLimiter...
+│       │   ├── auth.js          # JWT проверка
+│       │   └── sanitize.js      # DOMPurify XSS защита
+│       └── config/
+│           └── db.js            # pg pool
 │
+├── database/                    # SQL миграции
 ├── docs/                        # Документация
-├── nginx/                       # Nginx конфигурация
-├── docker-compose.yml
-└── package.json
+├── nginx/                       # Nginx конфиги
+└── docker-compose.yml
 ```
+
+---
+
+## Frontend архитектура (Nuxt 4)
+
+### Стратегии рендеринга
+
+Определены в `nuxt.config.ts` через `routeRules`:
+
+```
+/                → SSR + SWR 300s   (главная, SEO + свежесть)
+/catalog         → SSR + SWR 300s   (каталог с фильтрами)
+/date/**         → SSR + SWR 600s   (страница квеста, ключевые SEO страницы)
+/about           → SSR + SWR 3600s  (статичная, редко меняется)
+/terms, /privacy → prerender        (полностью статичные)
+/order/**        → CSR              (динамичная, не нужен SSR)
+/quest/**        → CSR              (интерактивный плеер)
+/admin/**        → CSR              (защищённая зона)
+```
+
+### API слой (useApi.js)
+
+Единый composable для всех запросов. `apiBase` зависит от контекста:
+- **Server-side (SSR):** `runtimeConfig.apiBaseInternal` → Docker internal network
+- **Client-side (CSR):** `runtimeConfig.public.apiBase` → `/api` через Nuxt devProxy в dev, env переменная в prod
+
+```javascript
+// Пример использования
+const { getDates, getCategories } = useDatesApi()
+const { data } = await useAsyncData('catalog', () => getDates(params))
+```
+
+### JWT аутентификация
+
+Токен хранится в `useCookie('auth_token')` — SSR-совместимо. Не используется `localStorage` (недоступен на сервере).
+
+### Quest Player (изоляция)
+
+`app.vue` содержит `isFullscreen` computed — при маршруте `/quest/**` скрываются Header и Footer, квест занимает весь экран.
 
 ---
 
 ## Backend архитектура
 
-### Слои приложения
+### Rate Limiting
+
 ```
-┌──────────────────────────────────────┐
-│           Routes Layer               │  HTTP endpoints
-│  (Определение API endpoints)         │
-└────────────────┬─────────────────────┘
-                 │
-┌────────────────▼─────────────────────┐
-│        Controllers Layer             │  Request handling
-│  (Обработка запросов, валидация)    │
-└────────────────┬─────────────────────┘
-                 │
-┌────────────────▼─────────────────────┐
-│          Models Layer                │  Business logic
-│  (Работа с данными, SQL запросы)    │
-└────────────────┬─────────────────────┘
-                 │
-┌────────────────▼─────────────────────┐
-│         Database Layer               │  PostgreSQL
-│  (Хранение данных)                   │
-└──────────────────────────────────────┘
+generalLimiter  → все /api/*  → 300 req/15min (prod), 1000 (dev)
+questLimiter    → /api/quests → 200 req/15min (prod)
+orderLimiter    → /api/orders → 5 req/hour
+contactLimiter  → /api/contact → 3 req/hour
+loginLimiter    → /api/auth   → 5 попыток/15min (skipSuccessfulRequests)
 ```
 
-### Middleware Pipeline
-```
-Request
-   │
-   ▼
-┌─────────────────┐
-│  CORS           │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Body Parser    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Auth (JWT)     │ (для защищенных роутов)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Validation     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Route Handler  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Error Handler  │
-└────────┬────────┘
-         │
-         ▼
-      Response
-```
+**Важно:** в dev режиме `skip: skipLocalhost` — запросы с `127.0.0.1`/`::1` не засчитываются. Это необходимо для E2E тестов и SSR-запросов Nuxt.
 
-### Модель данных (Models)
+### Express route ordering
 
-Каждая модель отвечает за:
-- SQL запросы к базе данных
-- Валидацию данных на уровне модели
-- Бизнес-логику работы с данными
+Специфичные пути объявляются **до** параметрических:
 ```javascript
-// Пример: models/Template.js
-class Template {
-  static async findAll(filters = {}) { /* ... */ }
-  static async findBySlug(slug) { /* ... */ }
-  static async create(data) { /* ... */ }
-  static async update(id, data) { /* ... */ }
-  static async delete(id) { /* ... */ }
-}
+router.get('/featured', ...)  // ← до
+router.get('/popular', ...)   // ← до
+router.get('/:id', ...)       // ← после
 ```
 
-### Контроллеры (Controllers)
+### Ответы API
 
-Контроллеры обрабатывают HTTP запросы:
-- Валидация входящих данных
-- Вызов методов моделей
-- Форматирование ответов
-- Обработка ошибок
+Единый формат:
 ```javascript
-// Пример: controllers/templateController.js
-exports.getTemplates = async (req, res, next) => {
-  try {
-    const filters = req.query
-    const templates = await Template.findAll(filters)
-    res.json({ success: true, data: templates })
-  } catch (error) {
-    next(error)
-  }
-}
+// Успех
+{ success: true, data: {...}, message?: '...' }
+
+// Ошибка
+{ success: false, message: '...', errors?: {...} }
+
+// 403 защищённый квест
+{ success: false, requires_code: true, data: { title, theme, ... } }
 ```
 
-### Роуты (Routes)
-
-Роуты определяют API endpoints:
-```javascript
-// routes/templates.js
-router.get('/', templateController.getTemplates)
-router.get('/popular', templateController.getPopular)
-router.get('/:slug', templateController.getBySlug)
-router.post('/', auth, templateController.create)
-```
-
----
-
-## Frontend архитектура
-
-### Архитектурные принципы
-
-1. **Component-Based Architecture** - все UI элементы - компоненты
-2. **Composition API** - используем современный Vue 3 API
-3. **Centralized State Management** - Pinia для глобального состояния
-4. **Service Layer** - изолированная логика API вызовов
-5. **Utility Functions** - переиспользуемые функции
-
-### Структура компонентов
-```
-components/
-├── common/              # Переиспользуемые компоненты
-│   ├── Header.vue
-│   ├── Footer.vue
-│   ├── Button.vue
-│   ├── Modal.vue
-│   └── Loader.vue
-├── marketplace/         # Компоненты маркетплейса
-│   ├── TemplateCard.vue
-│   ├── TemplateGrid.vue
-│   └── TemplateFilters.vue
-└── template/            # Компоненты шаблона
-    ├── TemplateGallery.vue
-    └── TemplateReviews.vue
-```
-
-### State Management (Pinia)
-```javascript
-// store/index.js
-export const useQuestStore = defineStore('quest', {
-  state: () => ({
-    templates: [],
-    currentTemplate: null,
-    loading: false
-  }),
-  
-  getters: {
-    templateBySlug: (state) => (slug) => {
-      return state.templates.find(t => t.slug === slug)
-    }
-  },
-  
-  actions: {
-    async fetchTemplates() {
-      this.loading = true
-      const data = await templateService.getAll()
-      this.templates = data
-      this.loading = false
-    }
-  }
-})
-```
-
-### Composables
-
-Переиспользуемая логика через Composition API:
-```javascript
-// composables/useTemplates.js
-export function useTemplates() {
-  const templates = ref([])
-  const loading = ref(false)
-  
-  const fetchTemplates = async (filters) => {
-    loading.value = true
-    templates.value = await templateService.getAll(filters)
-    loading.value = false
-  }
-  
-  return { templates, loading, fetchTemplates }
-}
-```
-
-### Роутинг
-```javascript
-// router/index.js
-const routes = [
-  { path: '/', component: Home },
-  { path: '/templates', component: Templates },
-  { path: '/template/:slug', component: TemplateDetail },
-  { path: '/order/:slug', component: Order, meta: { requiresConsent: true } },
-  { path: '/quest/:slug', component: Quest }
-]
-```
+**Важно:** PostgreSQL `COUNT()` возвращает строку в Node.js. Всегда приводить через `parseInt()`. Массивы параметров требуют явного каста `::int[]`.
 
 ---
 
 ## База данных
 
-### ER диаграмма
-```
-┌──────────────┐       ┌──────────────┐
-│  categories  │       │   authors    │
-├──────────────┤       ├──────────────┤
-│ id (PK)      │       │ id (PK)      │
-│ name         │       │ username     │
-│ slug         │◄──┐   │ email        │
-│ icon         │   │   │ password     │
-└──────────────┘   │   └──────┬───────┘
-                   │          │
-┌──────────────┐   │          │
-│   templates  │   │          │
-├──────────────┤   │          │
-│ id (PK)      │   │          │
-│ slug         │   │          │
-│ title        │   │          │
-│ category_id  ├───┘          │
-│ author_id    ├──────────────┘
-│ difficulty   │
-│ base_price   │
-└──────┬───────┘
-       │
-       │     ┌──────────────┐
-       │     │    tags      │
-       │     ├──────────────┤
-       │     │ id (PK)      │
-       │     │ name         │
-       │     │ slug         │
-       │     └──────┬───────┘
-       │            │
-       │     ┌──────▼───────────┐
-       └────►│ template_tags    │
-             ├──────────────────┤
-             │ template_id (FK) │
-             │ tag_id (FK)      │
-             └──────────────────┘
-
-┌──────────────┐       ┌──────────────┐
-│   orders     │       │   reviews    │
-├──────────────┤       ├──────────────┤
-│ id (PK)      │       │ id (PK)      │
-│ template_id  ├───┐   │ template_id  ├───┐
-│ client_name  │   │   │ order_id     │   │
-│ status       │   │   │ rating       │   │
-└──────────────┘   │   │ comment      │   │
-                   │   └──────────────┘   │
-                   │                      │
-                   └──────────────────────┘
-                            │
-                            ▼
-                   ┌──────────────┐
-                   │  templates   │
-                   └──────────────┘
-```
-
 ### Основные таблицы
 
-**categories** - Категории квестов
-```sql
-id SERIAL PRIMARY KEY
-name VARCHAR(100)
-slug VARCHAR(100) UNIQUE
-description TEXT
-icon VARCHAR(10)
-```
+**quest_templates** — шаблоны квестов (slug, title, base_price, category_id, author_id, difficulty, features JSON, faq JSON, is_published)
 
-**authors** - Авторы квестов
-```sql
-id SERIAL PRIMARY KEY
-username VARCHAR(50) UNIQUE
-email VARCHAR(255) UNIQUE
-password_hash VARCHAR(255)
-display_name VARCHAR(100)
-bio TEXT
-avatar_url VARCHAR(500)
-is_verified BOOLEAN DEFAULT false
-```
+**created_quests** — квесты созданные по заказу (slug, template_id, client_name, access_code, content JSON с шагами)
 
-**templates** - Шаблоны квестов
-```sql
-id SERIAL PRIMARY KEY
-slug VARCHAR(150) UNIQUE
-title VARCHAR(200)
-tagline VARCHAR(300)
-description TEXT
-category_id INTEGER REFERENCES categories(id)
-author_id INTEGER REFERENCES authors(id)
-difficulty VARCHAR(20)
-duration_minutes INTEGER
-base_price INTEGER
-rating DECIMAL(3,2)
-orders_count INTEGER DEFAULT 0
-```
+**orders** — заказы (template_id, client_name, client_email, client_phone, event_date, status, total_price)
 
-**orders** - Заказы
-```sql
-id SERIAL PRIMARY KEY
-order_number VARCHAR(50) UNIQUE
-template_id INTEGER REFERENCES templates(id)
-client_name VARCHAR(100)
-client_email VARCHAR(255)
-status VARCHAR(20)
-total_price INTEGER
-```
+**categories** — категории квестов (name, slug, color, icon)
 
-**reviews** - Отзывы
-```sql
-id SERIAL PRIMARY KEY
-template_id INTEGER REFERENCES templates(id)
-order_id INTEGER REFERENCES orders(id)
-rating INTEGER CHECK (rating >= 1 AND rating <= 5)
-comment TEXT
-client_name VARCHAR(100)
-```
+**authors** — авторы (единственный: Лиза Петри / elizaveta_petrova)
+
+**quest_sessions** — сессии прохождения квестов (quest_id, progress JSON, completed_at)
+
+**reviews** — отзывы (template_id, rating, author_name, text)
 
 ### Индексы
 
-Для оптимизации производительности:
 ```sql
--- Часто используемые поиски
-CREATE INDEX idx_templates_slug ON templates(slug);
-CREATE INDEX idx_templates_category ON templates(category_id);
-CREATE INDEX idx_templates_author ON templates(author_id);
-CREATE INDEX idx_templates_rating ON templates(rating DESC);
-
--- Полнотекстовый поиск
-CREATE INDEX idx_templates_search ON templates 
-  USING gin(to_tsvector('russian', title || ' ' || description));
-
--- Фильтрация и сортировка
-CREATE INDEX idx_templates_difficulty ON templates(difficulty);
-CREATE INDEX idx_templates_price ON templates(base_price);
-CREATE INDEX idx_orders_status ON orders(status);
+idx_templates_slug, idx_templates_category, idx_templates_is_published
+idx_created_quests_slug, idx_orders_status, idx_quest_sessions_quest
 ```
 
 ---
 
-## API дизайн
+## Рендеринг и SEO
 
-### RESTful принципы
+### Мета-теги
 
-- **Ресурсо-ориентированный** - URL представляют ресурсы
-- **HTTP методы** - GET, POST, PATCH, DELETE
-- **Stateless** - каждый запрос независим
-- **JSON формат** - все данные в JSON
+Каждая страница устанавливает через `useSeoMeta()`:
+- `title`, `description`
+- `og:title`, `og:description`, `og:image`
+- `og:image` → `/og-image.jpg` (1200×630, брендированный)
 
-### Naming conventions
-```
-GET    /api/templates          # Получить список
-GET    /api/templates/:slug    # Получить один
-POST   /api/templates          # Создать
-PATCH  /api/templates/:id      # Обновить
-DELETE /api/templates/:id      # Удалить
-```
+### JSON-LD Schema
 
-### Response format
+- `/` → `WebSite` + `LocalBusiness`
+- `/date/:slug` → `Product` + `FAQPage` + `BreadcrumbList`
+- `/catalog` → `ItemList` + `BreadcrumbList`
+- `/about` → `Person` (Лиза Петри)
 
-Единообразный формат ответов:
-```javascript
-// Успех
-{
-  "success": true,
-  "data": { ... },
-  "message": "Optional message"
-}
+### Sitemap и Robots
 
-// Ошибка
-{
-  "success": false,
-  "error": "Error message",
-  "details": { ... }
-}
-```
-
-### Versioning
-
-API версионируется через URL:
-- `/api/v1/templates` - версия 1
-- `/api/v2/templates` - версия 2 (будущая)
+Генерируется через `@nuxtjs/seo`. Исключены: `/admin/**`, `/quest/**`, `/order/**`.
 
 ---
 
 ## Безопасность
 
-### Аутентификация
-
-**JWT (JSON Web Tokens)**:
-- Токены генерируются при логине
-- Хранятся в localStorage на клиенте
-- Передаются в заголовке `Authorization: Bearer <token>`
-- Срок жизни: 7 дней
-
-### Авторизация
-
-Уровни доступа:
-- **Anonymous** - просмотр каталога, заказы
-- **Author** - создание шаблонов, статистика
-- **Admin** - полный доступ
-
-### Защита данных
-
-- **Password hashing** - bcrypt с salt rounds = 10
-- **SQL injection** - параметризованные запросы
-- **XSS** - sanitization входящих данных
-- **CORS** - настроенный whitelist доменов
-- **Rate limiting** - ограничение запросов
-
-### Валидация
-
-Многоуровневая валидация:
-1. **Client-side** - Vue компоненты
-2. **API middleware** - Express validators
-3. **Database** - constraints и triggers
-
----
-
-## Масштабируемость
-
-### Горизонтальное масштабирование
-```
-┌─────────┐     ┌─────────┐     ┌─────────┐
-│ Client  │────►│  Nginx  │────►│  Node   │
-└─────────┘     │  Load   │     │Instance1│
-                │ Balancer│     └─────────┘
-                └────┬────┘           │
-                     │          ┌─────▼─────┐
-                     └─────────►│  Node     │
-                                │Instance2  │
-                                └─────┬─────┘
-                                      │
-                                ┌─────▼─────┐
-                                │PostgreSQL │
-                                │ (Master)  │
-                                └───────────┘
-```
-
-### Кеширование
-
-**Redis** (будущая оптимизация):
-- Кеш популярных шаблонов
-- Сессии пользователей
-- Rate limiting counters
-
-### CDN
-
-Статические ресурсы через CDN:
-- Изображения шаблонов
-- Аватары авторов
-- Frontend assets
-
-### Database оптимизация
-
-- **Connection pooling** - pg pool
-- **Indexes** - на часто запрашиваемые поля
-- **Query optimization** - EXPLAIN ANALYZE
-- **Read replicas** - для аналитики (будущее)
-
----
-
-## Мониторинг
-
-### Логирование
-```javascript
-// Winston logger
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' })
-  ]
-})
-```
-
-### Метрики
-
-Отслеживаемые метрики:
-- Response time
-- Error rate
-- Request count
-- Database query time
-
-### Alerting
-
-Уведомления при:
-- 5xx ошибках
-- Высокой нагрузке
-- Медленных запросах (>1s)
-
----
-
-## Deployment
-
-### Production архитектура
-```
-Internet
-   │
-   ▼
-┌─────────────┐
-│   Cloudflare│  SSL, DDoS protection, CDN
-│     DNS     │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│    Nginx    │  Reverse Proxy, SSL termination
-└──────┬──────┘
-       │
-       ├────────┬────────┐
-       ▼        ▼        ▼
-    ┌────┐  ┌────┐  ┌────┐
-    │Node│  │Node│  │Node│  Application servers
-    │ 1  │  │ 2  │  │ 3  │
-    └─┬──┘  └─┬──┘  └─┬──┘
-      │       │       │
-      └───────┴───────┘
-              │
-              ▼
-      ┌──────────────┐
-      │  PostgreSQL  │  Database
-      │   (Master)   │
-      └──────┬───────┘
-             │
-             ▼
-      ┌──────────────┐
-      │  PostgreSQL  │  Read Replica
-      │   (Replica)  │
-      └──────────────┘
-```
-
----
-
-## Будущие улучшения
-
-### Планируемые фичи
-
-1. **Real-time chat** - WebSocket для общения с авторами
-2. **Payment integration** - Stripe/Яндекс.Касса
-3. **Email notifications** - SendGrid/Mailgun
-4. **Analytics dashboard** - для авторов
-5. **Mobile app** - React Native
-6. **GraphQL API** - альтернатива REST
-7. **Microservices** - разделение сервисов
-
-### Технические улучшения
-
-1. **Redis caching**
-2. **Elasticsearch** - полнотекстовый поиск
-3. **S3 storage** - для файлов
-4. **Kubernetes** - оркестрация
-5. **Monitoring** - Prometheus + Grafana
-6. **CI/CD** - GitHub Actions
-
----
-
-## Заключение
-
-Quest Dating построен на современном технологическом стеке с акцентом на:
-- Модульность и расширяемость
-- Безопасность
-- Производительность
-- Developer experience
-
-Архитектура позволяет легко добавлять новые фичи и масштабировать систему по мере роста.
+- **JWT:** хранится в httpOnly cookie (`useCookie`), передаётся в `Authorization: Bearer`
+- **SQL injection:** параметризованные запросы везде (`$1, $2, ...`)
+- **XSS:** DOMPurify на входящих данных сервера
+- **Quest access codes:** передаются только в теле POST, никогда в URL/query params
+- **CORS:** whitelist доменов в Express
+- **Rate limiting:** многоуровневый (см. выше)

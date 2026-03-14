@@ -310,7 +310,19 @@ const loadQuest = async () => {
       } catch {}
     }
 
-    const res = await questService.getBySlug(slug.value)
+    let res
+    try {
+      res = await questService.getBySlug(slug.value)
+    } catch (err) {
+      //  бросает исключение при 4xx.
+      // 403 с requires_code — штатная ситуация (квест защищён кодом доступа).
+      if (err?.data?.requires_code) {
+        requiresCode.value = true
+        questData.value = err.data?.data ?? null
+        return
+      }
+      throw err
+    }
 
     if (res?.requires_code) {
       requiresCode.value = true

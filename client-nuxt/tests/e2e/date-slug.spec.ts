@@ -1,6 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
+import { mockHomepageApi } from './fixtures/mockApi'
 
 async function getFirstDateSlug(page: Page) {
+  await mockHomepageApi(page)
   await page.goto('/catalog')
   await page.waitForLoadState('networkidle')
   await page.waitForSelector('a[href*="/date/"]', { timeout: 10000 })
@@ -39,7 +41,6 @@ test.describe('Страница квеста', () => {
   })
 
   test('отображает блок CTA с Лизой Петри', async ({ page }) => {
-    // strict mode: несколько элементов с "Лиза Петри" — берём первый видимый
     await expect(page.locator('text=Лиза Петри').first()).toBeVisible()
   })
 

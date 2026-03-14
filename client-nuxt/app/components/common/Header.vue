@@ -13,13 +13,14 @@
           <NuxtLink to="/" class="nav-link">Главная</NuxtLink>
           <NuxtLink to="/catalog" class="nav-link">Квесты</NuxtLink>
           <NuxtLink to="/about" class="nav-link">О создателе</NuxtLink>
+          <NuxtLink to="/blog" class="nav-link">Блог</NuxtLink>
           <!-- ❌ Удалено: /authors, /about (О платформе) -->
         </nav>
 
         <div class="header-actions">
           <!-- ❌ Было: /become-author "Стать автором" -->
           <NuxtLink to="/catalog" class="btn-author">
-            Заказать свидание-квест
+            Заказать квест
           </NuxtLink>
           <button @click="toggleMobileMenu" class="btn-mobile-menu">
             <span class="hamburger" :class="{ active: mobileMenuOpen }">
@@ -45,10 +46,13 @@
           <NuxtLink to="/about" class="mobile-nav-link" @click="closeMobileMenu">
             О создателе
           </NuxtLink>
+          <NuxtLink to="/blog" class="mobile-nav-link" @click="closeMobileMenu">
+            Блог
+          </NuxtLink>
           <!-- ❌ Удалено: /authors -->
           <!-- ❌ Было: /become-author "Стать автором" -->
           <NuxtLink to="/catalog" class="mobile-nav-link highlighted" @click="closeMobileMenu">
-            Заказать свидание-квест
+            Заказать квест
           </NuxtLink>
         </nav>
       </div>

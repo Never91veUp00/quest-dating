@@ -6,10 +6,11 @@
       <!-- Аватар -->
       <div class="author-header">
         <NuxtLink to="/about" class="author-avatar-link">
-          <img 
-            :src="author.avatar_url || '/images/avatars/default.jpg'" 
+          <img
+            :src="withAvatarFallback(author.avatar_url)"
             :alt="author.display_name"
             class="author-avatar"
+            @error="onImgError"
           />
         </NuxtLink>
 
@@ -95,6 +96,7 @@
 <script setup>
 import { computed } from 'vue'
 
+const { withAvatarFallback, onImgError } = useImageFallback()
 const props = defineProps({
   author: {
     type: Object,

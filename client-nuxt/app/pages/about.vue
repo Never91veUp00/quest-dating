@@ -2,9 +2,9 @@
   <div class="about-page">
     <section class="hero">
       <div class="container">
-        <h1 class="hero-title">Лиза Петри</h1>
+        <h1 class="hero-title">О создателе</h1>
         <p class="hero-description">
-          Организую свидания-квесты для пар — с душой и без шаблонов
+          Влад — создаю персональные квесты для романтических свиданий
         </p>
       </div>
     </section>
@@ -16,18 +16,17 @@
             <h2 class="section-title">Моя история</h2>
             <p class="mission-description">
               Я верю, что каждое свидание может стать настоящим приключением.
-              Однажды мне самой захотелось организовать для близкого человека что-то особенное —
-              не просто ужин, а целое приключение. Я искала готовые сценарии
-              и не нашла ничего, что было бы сделано с душой.
+              Quest Dating я создал потому, что сам однажды хотел удивить свою жену —
+              и понял, что ничего подходящего просто не существует.
             </p>
             <p class="mission-description">
-              Так появился Quest Dating. Теперь я создаю персональные квесты для пар —
-              каждый сценарий пишу с нуля под конкретных людей,
-              с учётом вашего города, ваших интересов и вашей истории.
+              С тех пор я создаю персональные квесты для пар. Каждый сценарий
+              пишу с нуля под конкретных людей — с учётом вашего города,
+              ваших интересов и вашей истории.
             </p>
           </div>
           <div class="mission-image">
-            <img src="/images/mission-illustration.svg" alt="Our Mission" />
+            <img :src="missionImg" alt="Лиза Петри и её история" />
           </div>
         </div>
       </div>
@@ -71,7 +70,7 @@
 
     <section class="how-it-works-section">
       <div class="container">
-        <h2 class="section-title">Как это работает</h2>
+        <h2 class="section-title">Как мы работаем</h2>
         <div class="process-timeline">
           <div class="timeline-item">
             <div class="timeline-number">1</div>
@@ -122,7 +121,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-number">{{ stats?.total_templates ?? '...' }}</div>
-            <div class="stat-label">Готовых сценариев</div>
+            <div class="stat-label">Готовых шаблонов</div>
           </div>
           <div class="stat-card">
             <div class="stat-number">от 24ч</div>
@@ -149,13 +148,13 @@
         <div class="team-grid" style="max-width: 400px; margin: 0 auto;">
           <div class="team-member">
             <div class="member-avatar">
-              <img src="/images/avatars/author1.jpg" alt="Лиза Петри" />
+              <img :src="withAvatarFallback('/images/avatars/author1.jpg')" alt="Лиза Петри" @error="onImgError" />
             </div>
-            <h3 class="member-name">Лиза Петри</h3>
+            <h3 class="member-name">Влад</h3>
             <div class="member-role">Создатель квестов</div>
             <p class="member-bio">
               Создаю персональные романтические квесты с 2024 года.
-              Каждый сценарий пишу сама — от первой подсказки до финального сюрприза.
+              Каждый сценарий пишу сам — от первой подсказки до финального сюрприза.
             </p>
           </div>
         </div>
@@ -164,7 +163,7 @@
 
     <section class="contact-section">
       <div class="container">
-        <h2 class="section-title">Свяжитесь со мной</h2>
+        <h2 class="section-title">Свяжитесь с нами</h2>
         <div class="contact-content">
           <div class="contact-info">
             <div class="contact-item">
@@ -213,7 +212,7 @@
               </button>
             </form>
             <div v-if="showSuccess" class="success-message">
-              ✅ Сообщение отправлено! Я свяжусь с вами в ближайшее время.
+              ✅ Сообщение отправлено! Мы свяжемся с вами в ближайшее время.
             </div>
           </div>
         </div>
@@ -223,7 +222,7 @@
     <section class="cta-section">
       <div class="container">
         <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
-        <p class="cta-description">Выберите сценарий — и я создам свидание-квест специально для вас</p>
+        <p class="cta-description">Выберите шаблон — и я создам квест специально для вас</p>
         <NuxtLink to="/catalog" class="btn-cta">🎯 Выбрать квест</NuxtLink>
       </div>
     </section>
@@ -234,32 +233,16 @@
 import { ref, reactive, computed } from 'vue'
 
 const { getStats, sendContact } = useDatesApi()
+const { withAvatarFallback, onImgError } = useImageFallback()
+
+// Динамические пути — Vite не резолвит их статически как модули
+const missionImg = '/images/mission-illustration.svg'
+
 
 useSeoMeta({
-  title:       'Лиза Петри — организатор свиданий | Quest Dating',
-  description: 'Лиза Петри придумывает и разрабатывает свидания-квесты персонально под каждую пару. Организатор, блогер, автор сценариев.',
-  ogTitle:     'Лиза Петри — организую свидания, о которых говорят | Quest Dating',
-  ogImage:     'https://questdating.ru/og-image.jpg',
-})
-
-useHead({
-  script: [{
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type':    'Person',
-      name:        'Лиза Петри',
-      description: 'Организатор свиданий-квестов, автор персональных сценариев для пар. Создаёт уникальные романтические приключения.',
-      url:         'https://questdating.ru/about',
-      image:       'https://questdating.ru/og-image.jpg',
-      jobTitle:    'Организатор свиданий-квестов',
-      worksFor: {
-        '@type': 'Organization',
-        name:    'Quest Dating',
-        url:     'https://questdating.ru',
-      },
-    }),
-  }],
+  title:       'О создателе — Quest Dating',
+  description: 'Влад создаёт персональные романтические квесты для пар. Узнайте больше о создателе Quest Dating.',
+  ogTitle:     'О создателе — Quest Dating',
 })
 
 const { data: statsRaw } = await useAsyncData('about-stats', () => getStats())
@@ -363,7 +346,7 @@ const handleSubmit = async () => {
 .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
 @media (max-width: 1024px) { .mission-content, .contact-content { grid-template-columns: 1fr; gap: 40px; } }
 @media (max-width: 640px) {
-  .hero { padding: 32px 0 24px; }
+  .hero { padding: 100px 0 40px; }
   .hero-title { font-size: 1.8rem; margin-bottom: 8px; }
   .hero-description { font-size: 0.95rem; }
   .mission-section { padding: 24px 0; }

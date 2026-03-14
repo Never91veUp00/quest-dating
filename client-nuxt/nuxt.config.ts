@@ -27,7 +27,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiBaseInternal: process.env.NUXT_API_BASE_INTERNAL || 'http://server:5000/api',
     public: {
-      apiBase:  process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:5000/api',
+      // В dev: относительный /api — запросы идут через Nuxt devProxy -> localhost:5000
+      // Playwright перехватывает localhost:3000/api/... через page.route('**/api/**')
+      // В prod: задаётся через NUXT_PUBLIC_API_BASE
+      apiBase:  process.env.NUXT_PUBLIC_API_BASE || '/api',
       appName:  'Quest Dating',
     }
   },
@@ -36,10 +39,12 @@ export default defineNuxtConfig({
     '/':              { ssr: true, swr: 300   },
     '/catalog':       { ssr: true, swr: 300   },
     '/date/**':       { ssr: true, swr: 600   },
-    '/categories/**': { ssr: true, swr: 300   },
+    '/categories/**': { ssr: true, isr: false },
     '/about':         { ssr: true, swr: 3600  },
-    '/terms':         { prerender: true },
-    '/privacy':       { prerender: true },
+    '/blog':           { prerender: true },
+    '/blog/**':        { prerender: true },
+    '/terms':         { ssr: true },
+    '/privacy':       { ssr: true },
     '/admin/**':      { ssr: false },
     '/order/**':      { ssr: false },
     '/quest/**':      { ssr: false },
@@ -59,6 +64,7 @@ export default defineNuxtConfig({
 
   sitemap: {
     exclude: ['/admin/**', '/quest/**', '/order/**'],
+    include: ['/blog', '/blog/**'],
   },
 
   robots: {
@@ -67,7 +73,8 @@ export default defineNuxtConfig({
 
   nitro: {
     devProxy: {
-      // ВАЖНО: только статические ресурсы — НЕ /templates (конфликт с API роутом)
+      // ВАЖНО: /templates НЕ проксируем — конфликт с Nuxt pages роутом /date/[slug]
+      '/api':     { target: 'http://localhost:5000', changeOrigin: true },
       '/images':  { target: 'http://localhost:5000', changeOrigin: true },
       '/uploads': { target: 'http://localhost:5000', changeOrigin: true },
     }

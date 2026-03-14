@@ -103,31 +103,55 @@ const { getCategory, getDates, getCategories } = useDatesApi()
 
 const { data: categoryRaw, pending, error } = await useAsyncData(
   `category-${route.params.slug}`,
-  () => getCategory(route.params.slug)
+  () => getCategory(route.params.slug),
+  { transform: (d) => JSON.parse(JSON.stringify(d)) }
 )
 
 const category = computed(() => categoryRaw.value?.data ?? categoryRaw.value ?? null)
+
+const SITE_URL = 'https://questdating.ru'
 
 useSeoMeta({
   title:         () => category.value
     ? `${category.value.name} — свидание-квест | Quest Dating`
     : 'Категория | Quest Dating',
-  description:   () => category.value?.description,
-  ogTitle:       () => category.value?.name,
-  ogDescription: () => category.value?.description,
+  description:   () => category.value?.description ?? null,
+  ogTitle:       () => category.value?.name ?? null,
+  ogDescription: () => category.value?.description ?? null,
+  ogImage:       `${SITE_URL}/og-image.jpg`,
 })
+
+// useServerHead — выполняется только при SSR, не включается в клиентский payload
+// поэтому devalue не пытается сериализовать @ ключи JSON-LD
+if (category.value) {
+  useServerHead({
+    script: [{
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Главная',                   item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Шаблоны свидания-квестов', item: `${SITE_URL}/catalog` },
+          { '@type': 'ListItem', position: 3, name: category.value.name,         item: `${SITE_URL}/categories/${category.value.slug}` },
+        ]
+      })
+    }]
+  })
+}
 
 const { data: templatesRaw, pending: templatesPending } = await useAsyncData(
   `category-templates-${route.params.slug}`,
   () => category.value ? getDates({ category: category.value.slug }) : Promise.resolve(null),
-  { watch: [() => route.params.slug] }
+  { watch: [() => route.params.slug], transform: (d) => d ? JSON.parse(JSON.stringify(d)) : null }
 )
 
 const templates = computed(() => templatesRaw.value?.data ?? templatesRaw.value ?? [])
 
 const { data: categoriesRaw } = await useAsyncData(
-  'all-categories',
-  () => getCategories()
+  'all-categories-v2',
+  () => getCategories(),
+  { transform: (d) => JSON.parse(JSON.stringify(d)) }
 )
 const allCategories = computed(() => categoriesRaw.value?.data ?? categoriesRaw.value ?? [])
 

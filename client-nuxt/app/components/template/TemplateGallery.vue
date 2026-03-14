@@ -2,21 +2,32 @@
   <div class="template-gallery">
     <!-- Главное изображение -->
     <div class="gallery-main">
-      <img 
-        :src="currentImage" 
+      <!-- Есть картинки -->
+      <img
+        v-if="images.length > 0"
+        :src="currentImage"
         :alt="template.title"
-        class="main-image"
+        :class="['main-image', { 'is-placeholder': currentImage === PLACEHOLDER }]"
+        @error="onImgError"
       />
-      
+      <!-- Нет картинок — брендированная заглушка -->
+      <div v-else class="gallery-placeholder">
+        <img
+          :src="PLACEHOLDER"
+          alt="Изображение квеста"
+          class="placeholder-img"
+        />
+      </div>
+
       <!-- Навигация -->
-      <button 
+      <button
         v-if="images.length > 1"
         class="gallery-nav gallery-prev"
         @click="previousImage"
       >
         ←
       </button>
-      <button 
+      <button
         v-if="images.length > 1"
         class="gallery-nav gallery-next"
         @click="nextImage"
@@ -39,7 +50,11 @@
         :class="{ active: index === currentIndex }"
         @click="currentIndex = index"
       >
-        <img :src="image" :alt="`${template.title} ${index + 1}`" />
+        <img
+          :src="image"
+          :alt="`${template.title} ${index + 1}`"
+          @error="onImgError"
+        />
       </div>
     </div>
 
@@ -60,7 +75,15 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { toAbsoluteUrl } from '@/utils/helpers'
+
+const { withFallback, isValidImageSrc, PLACEHOLDER } = useImageFallback()
+
+// Реактивный Set индексов изображений с ошибкой загрузки
+const failedIndexes = ref(new Set())
+
+const onImgError = (e) => {
+  failedIndexes.value = new Set([...failedIndexes.value, currentIndex.value])
+}
 
 const props = defineProps({
   template: {
@@ -71,15 +94,13 @@ const props = defineProps({
 
 const currentIndex = ref(0)
 
-const toAbsolute = toAbsoluteUrl
-
 const images = computed(() => {
-  const gallery = (props.template.gallery || []).map(toAbsolute).filter(Boolean)
-  const cover   = toAbsolute(props.template.cover_image)
+  const gallery = (props.template.gallery || []).map(withFallback).filter(url => url !== PLACEHOLDER)
+  const cover   = props.template.cover_image ? withFallback(props.template.cover_image) : null
 
   if (!cover && !gallery.length) return []
 
-  // Дедупликация: собираем уникальные URL, cover первым
+  // Дедупликация: cover первым
   const seen = new Set()
   const result = []
   for (const url of [cover, ...gallery]) {
@@ -91,20 +112,20 @@ const images = computed(() => {
   return result
 })
 
-const currentImage = computed(() => images.value[currentIndex.value])
+// Если images пустой — currentImage = null → в template используем v-if
+const currentImage = computed(() => images.value[currentIndex.value] ?? null)
 
 const nextImage = () => {
   currentIndex.value = (currentIndex.value + 1) % images.value.length
 }
 
 const previousImage = () => {
-  currentIndex.value = currentIndex.value === 0 
-    ? images.value.length - 1 
+  currentIndex.value = currentIndex.value === 0
+    ? images.value.length - 1
     : currentIndex.value - 1
 }
 
 const getEmbedUrl = (url) => {
-  // Конвертация YouTube URL в embed формат
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
     const videoId = url.split('v=')[1] || url.split('/').pop()
     return `https://www.youtube.com/embed/${videoId}`
@@ -126,13 +147,36 @@ const getEmbedUrl = (url) => {
   height: 500px;
   border-radius: 16px;
   overflow: hidden;
-  background: #f0f0f0;
+  background: #f0f4ff;
 }
 
 .main-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.main-image.is-placeholder {
+  object-fit: contain;
+  padding: 60px;
+  opacity: 0.7;
+}
+
+/* Заглушка когда нет ни одной картинки */
+.gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f2ff 0%, #e8eaf6 100%);
+}
+
+.placeholder-img {
+  width: 55%;
+  max-width: 280px;
+  height: auto;
+  opacity: 0.9;
 }
 
 .gallery-nav {
@@ -156,13 +200,8 @@ const getEmbedUrl = (url) => {
   transform: translateY(-50%) scale(1.1);
 }
 
-.gallery-prev {
-  left: 16px;
-}
-
-.gallery-next {
-  right: 16px;
-}
+.gallery-prev { left: 16px; }
+.gallery-next { right: 16px; }
 
 .gallery-indicator {
   position: absolute;
@@ -193,9 +232,7 @@ const getEmbedUrl = (url) => {
   transition: all 0.3s;
 }
 
-.thumbnail:hover {
-  border-color: #667eea;
-}
+.thumbnail:hover { border-color: #667eea; }
 
 .thumbnail.active {
   border-color: #667eea;
@@ -208,9 +245,7 @@ const getEmbedUrl = (url) => {
   object-fit: cover;
 }
 
-.gallery-video {
-  margin-top: 24px;
-}
+.gallery-video { margin-top: 24px; }
 
 .gallery-video h4 {
   font-size: 1.1rem;
@@ -221,7 +256,7 @@ const getEmbedUrl = (url) => {
 
 .video-wrapper {
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  padding-bottom: 56.25%;
   height: 0;
   overflow: hidden;
   border-radius: 12px;
@@ -236,8 +271,6 @@ const getEmbedUrl = (url) => {
 }
 
 @media (max-width: 768px) {
-  .gallery-main {
-    height: 300px;
-  }
+  .gallery-main { height: 300px; }
 }
 </style>

@@ -4,20 +4,20 @@
       <div class="container">
         <div class="hero-content">
           <h1 class="hero-title">
-            Превратите свидание в <span class="gradient-text">незабываемый квест</span>
+            Превратите свидание в <span class="gradient-text">незабываемое приключение</span>
           </h1>
           <p class="hero-description">
-            Лиза Петри создаст персональный свидание-квест специально для вас —
-            уникальный сценарий, живые эмоции, готов от 24 часов.
+            Создам персональный квест специально для вас и вашей второй половинки 
+            уникальный сценарий, живые эмоции, готовится от 24 часов.
           </p>
           <div class="hero-actions">
             <NuxtLink to="/catalog" class="btn-primary"> Выбрать квест</NuxtLink>
-            <NuxtLink to="/about" class="btn-secondary">О Лизе</NuxtLink>
+            <NuxtLink to="/about" class="btn-secondary">О создателе</NuxtLink>
           </div>
           <div class="hero-stats">
             <div class="stat">
               <div class="stat-number">{{ stats?.total_templates ?? '...' }}</div>
-              <div class="stat-label">Сценариев квестов</div>
+              <div class="stat-label">Шаблонов квестов</div>
             </div>
             <div class="stat">
               <div class="stat-number">от 24ч</div>
@@ -30,7 +30,7 @@
           </div>
         </div>
         <div class="hero-image">
-          <img src="/images/love-in-the-air.svg" alt="Quest Dating — свидание-квест для двоих" />
+          <img :src="heroImg" alt="Quest Dating — романтический свидание-квест" />
         </div>
       </div>
     </section>
@@ -82,13 +82,13 @@
               <div class="step-number">1</div>
               <div class="step-icon"></div>
               <h3 class="step-title">Выберите квест</h3>
-              <p class="step-description">Просмотрите каталог сценариев свиданий-квестов и выберите подходящий формат</p>
+              <p class="step-description">Просмотрите каталог готовых шаблонов и найдите подходящий для вашего свидания</p>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-icon"></div>
               <h3 class="step-title">Настройте под себя</h3>
-              <p class="step-description">Укажите детали: локацию, дату, особые пожелания. Я адаптирую сценарий специально под вас</p>
+              <p class="step-description">Укажите детали: локацию, дату, особые пожелания. Мы адаптируем квест специально для вас</p>
             </div>
             <div class="step">
               <div class="step-number">3</div>
@@ -109,7 +109,7 @@
 
     <section class="testimonials-section">
       <div class="container">
-        <h2 class="section-title"> Что говорят клиенты</h2>
+        <h2 class="section-title"> Что говорят наши клиенты</h2>
         <p class="section-description">Реальные отзывы от пар, которые уже прошли квест</p>
         <div class="scroll-fade-wrap">
           <div class="testimonials-grid">
@@ -119,11 +119,38 @@
       </div>
     </section>
 
+
+    <section class="blog-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title"><span class="title-emoji">✍️</span> Блог о свиданиях-квестах</h2>
+          <NuxtLink to="/blog" class="link-more">Все статьи →</NuxtLink>
+        </div>
+        <p class="section-description">Идеи, советы и истории от Лизы Петри</p>
+        <div class="blog-preview-grid">
+          <NuxtLink
+            v-for="post in blogPreview"
+            :key="post.slug"
+            :to="`/blog/${post.slug}`"
+            class="blog-preview-card"
+          >
+            <div class="blog-preview-img">
+              <img :src="post.image" :alt="post.title" loading="lazy" />
+            </div>
+            <div class="blog-preview-body">
+              <span class="blog-preview-cat">{{ post.category }}</span>
+              <h3 class="blog-preview-title">{{ post.title }}</h3>
+              <span class="blog-preview-link">Читать →</span>
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
     <section class="cta-section">
       <div class="container">
         <div class="cta-content">
           <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
-          <p class="cta-description">Выберите сценарий — и я создам свидание-квест специально для вас</p>
+          <p class="cta-description">Выберите шаблон  и я адаптирую его специально под вас</p>
           <NuxtLink to="/catalog" class="btn-cta"> Выбрать квест сейчас</NuxtLink>
         </div>
       </div>
@@ -133,86 +160,45 @@
 
 <script setup>
 import { computed } from 'vue'
+import { BLOG_POSTS } from '~/data/blogPosts'
+
+const heroImg = '/images/love-in-the-air.svg'
 
 const { getCategories, getFeaturedDates, getPopularDates, getStats, getFeaturedReviews } = useDatesApi()
 
 useSeoMeta({
-  title:         'Quest Dating — персональные свидания-квесты',
-  description:   'Лиза Петри создаст персональный свидание-квест для вашей пары. Уникальный сценарий под вас — готов за 24 часа.',
-  ogTitle:       'Quest Dating — свидание, которое запомнят',
-  ogDescription: 'Превратите свидание в незабываемый квест. Лиза Петри разработает персональный сценарий специально для вас.',
-  ogImage:       'https://questdating.ru/og-image.jpg',
-  ogImageWidth:  '1200',
-  ogImageHeight: '630',
-  ogType:        'website',
-  ogUrl:         'https://questdating.ru/',
+  title:         'Quest Dating  персональные свидания-квесты',
+  description:   'Создам персональный квест для вашего свидания. Уникальный сценарий под вашу пару  готов за 24 часа.',
+  ogTitle:       'Quest Dating  персональные свидания-квесты',
+  ogDescription: 'Превратите свидание в незабываемое приключение. Персональные романтические квесты от Влада.',
 })
 
-useHead({
-  script: [
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type':    'Organization',
-        name:       'Quest Dating',
-        url:        'https://questdating.ru',
-        logo:       'https://questdating.ru/icon-512x512.png',
-        description: 'Лиза Петри разрабатывает персональные свидания-квесты для пар. Уникальный сценарий под вас — готов за 24 часа.',
-        founder: {
-          '@type': 'Person',
-          name:    'Лиза Петри',
-        },
-        contactPoint: {
-          '@type':       'ContactPoint',
-          contactType:   'customer support',
-          availableLanguage: 'Russian',
-        },
-      }),
-    },
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context':  'https://schema.org',
-        '@type':     'FAQPage',
-        mainEntity: [
-          {
-            '@type':          'Question',
-            name:             'Что такое свидание-квест?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text:    'Свидание-квест — это романтическое приключение по персональному сценарию: задания, загадки и сюрпризы, которые Лиза Петри разрабатывает специально для вашей пары с учётом вашей истории и предпочтений.',
-            },
-          },
-          {
-            '@type':          'Question',
-            name:             'Сколько стоит свидание-квест?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text:    'Стоимость зависит от выбранного сценария и уровня персонализации. Базовые сценарии доступны от 990 рублей. Подробные цены указаны на странице каждого квеста.',
-            },
-          },
-          {
-            '@type':          'Question',
-            name:             'Как долго разрабатывается квест?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text:    'Стандартный срок разработки — от 24 часов после оформления заказа. Срочные квесты обсуждаются индивидуально.',
-            },
-          },
-          {
-            '@type':          'Question',
-            name:             'Можно ли заказать квест-сюрприз для девушки или парня?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text:    'Да! Квест-сюрприз — один из самых популярных форматов. Вы сообщаете детали о партнёре, а Лиза разрабатывает сценарий так, чтобы сюрприз удался.',
-            },
-          },
-        ],
-      }),
-    },
-  ],
-})
+// При SSR проверяем существование /uploads/ файлов через fs.existsSync
+// Несуществующие пути → null → withFallback(null) → placeholder без 404 запросов
+let checkUpload = null
+if (import.meta.server) {
+  const { existsSync } = await import('node:fs')
+  const { resolve, join } = await import('node:path')
+  const uploadsDir = resolve(process.cwd(), '../server/uploads')
+  checkUpload = (p) => {
+    if (!p || typeof p !== 'string') return null
+    if (p.startsWith('http')) return p
+    if (p.startsWith('/uploads/')) return existsSync(join(uploadsDir, p.slice(9))) ? p : null
+    return null
+  }
+}
+
+function cleanTemplates(data) {
+  if (!checkUpload) return data  // на клиенте не трогаем
+  const list = Array.isArray(data) ? data : data?.data
+  if (!Array.isArray(list)) return data
+  const cleaned = list.map(t => ({
+    ...t,
+    cover_image:   checkUpload(t.cover_image),
+    author_avatar: checkUpload(t.author_avatar),
+  }))
+  return Array.isArray(data) ? cleaned : { ...data, data: cleaned }
+}
 
 const { data: homeData, pending: homePending } = await useAsyncData('home-all', async () => {
   const [cats, feat, pop, st, rev] = await Promise.allSettled([
@@ -224,8 +210,8 @@ const { data: homeData, pending: homePending } = await useAsyncData('home-all', 
   ])
   return {
     categories: cats.status === 'fulfilled' ? cats.value : null,
-    featured:   feat.status === 'fulfilled' ? feat.value : null,
-    popular:    pop.status  === 'fulfilled' ? pop.value  : null,
+    featured:   feat.status === 'fulfilled' ? cleanTemplates(feat.value) : null,
+    popular:    pop.status  === 'fulfilled' ? cleanTemplates(pop.value)  : null,
     stats:      st.status   === 'fulfilled' ? st.value   : null,
     reviews:    rev.status  === 'fulfilled' ? rev.value  : null,
   }
@@ -237,6 +223,8 @@ const popularTemplates  = computed(() => homeData.value?.popular?.data    ?? hom
 const stats             = computed(() => homeData.value?.stats?.data      ?? homeData.value?.stats      ?? {})
 
 const AVATARS = ['', '', '', '', '', '']
+const blogPreview = computed(() => BLOG_POSTS.slice(0, 3))
+
 const testimonials = computed(() => {
   const rows = homeData.value?.reviews?.data ?? homeData.value?.reviews ?? []
   return rows.map((r, i) => ({
@@ -292,6 +280,18 @@ const testimonials = computed(() => {
 .step-title { font-size: 1.25rem; font-weight: 700; color: #2d3748; margin: 0 0 12px 0; }
 .step-description { color: #718096; line-height: 1.6; margin: 0; }
 .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
+.blog-section { padding: 60px 0; background: white; }
+.blog-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 24px; }
+.blog-preview-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); text-decoration: none; color: inherit; transition: transform 0.3s, box-shadow 0.3s; display: flex; flex-direction: column; }
+.blog-preview-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.blog-preview-img { height: 160px; overflow: hidden; }
+.blog-preview-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.blog-preview-card:hover .blog-preview-img img { transform: scale(1.05); }
+.blog-preview-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.blog-preview-cat { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #667eea; }
+.blog-preview-title { font-size: 0.95rem; font-weight: 700; color: #2d3748; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.blog-preview-link { font-size: 0.85rem; font-weight: 600; color: #667eea; margin-top: auto; }
+
 .cta-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; text-align: center; }
 .cta-content { max-width: 700px; margin: 0 auto; }
 .cta-title { font-size: 2.5rem; font-weight: 900; margin: 0 0 16px 0; }
@@ -304,7 +304,9 @@ const testimonials = computed(() => {
   .hero-title { font-size: 2.5rem; }
 }
 @media (max-width: 768px) {
-  .hero { padding: 72px 0 48px; background: linear-gradient(to bottom, rgba(102,126,234,0.82) 0%, rgba(118,75,162,0.88) 100%), url('/images/love-in-the-air.svg') center / cover no-repeat; }
+  .blog-preview-grid { grid-template-columns: 1fr; }
+  .blog-section { padding: 40px 0; }
+  .hero { padding: 100px 0 48px; background: linear-gradient(to bottom, rgba(102,126,234,0.82) 0%, rgba(118,75,162,0.88) 100%), url('/images/love-in-the-air.svg') center / cover no-repeat; }
   .hero-image { display: none; }
   .hero .container { grid-template-columns: 1fr; }
   .hero-title { font-size: 2rem; }

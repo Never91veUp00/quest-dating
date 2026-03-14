@@ -173,7 +173,7 @@
                 @dragover.prevent
                 @drop.prevent="galleryDragReorder(idx)"
               >
-                <img :src="imgSrc(img.url)" class="adm-gallery-item__img" @error="e => e.target.src='/placeholder.jpg'" />
+                <img :src="imgSrc(img.url)" class="adm-gallery-item__img" @error="onImgError" />
                 <div class="adm-gallery-item__overlay">
                   <button class="adm-gallery-item__btn" :class="{ active: img.url === form.cover_image }" title="Сделать обложкой" @click.stop="form.cover_image = img.url">⭐</button>
                   <button class="adm-gallery-item__btn adm-gallery-item__btn--del" title="Удалить" @click.stop="removeGalleryItem(idx)">✕</button>
@@ -215,6 +215,7 @@ const props = defineProps({
   saving:          { type: Boolean, default: false },
   error:           { type: String,  default: '' },
 })
+const { onImgError } = useImageFallback()
 const emit = defineEmits(['close', 'save', 'delete'])
 
 // ── Tag toggling ───────────────────────────────────────────────

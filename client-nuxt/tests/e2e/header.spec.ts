@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test'
+import { mockHomepageApi } from './fixtures/mockApi'
 
 test.describe('Хедер — навигация', () => {
   test.use({ viewport: { width: 1280, height: 800 } })
 
   test.beforeEach(async ({ page }) => {
+    await mockHomepageApi(page)
     await page.goto('/')
     await page.waitForLoadState('networkidle')
   })
@@ -29,6 +31,7 @@ test.describe('Хедер — навигация', () => {
   })
 
   test('логотип ведёт на главную', async ({ page }) => {
+    await mockHomepageApi(page)
     await page.goto('/catalog')
     await page.locator('header a[href="/"], .header a[href="/"]').first().click()
     await expect(page).toHaveURL('/')
@@ -37,7 +40,6 @@ test.describe('Хедер — навигация', () => {
   test('хедер становится scrolled после прокрутки', async ({ page }) => {
     await page.evaluate(() => window.scrollBy(0, 300))
     await page.waitForTimeout(500)
-    // Проверяем только класс — box-shadow не надёжен на всех платформах
     const hasScrolled = await page.locator('header, .header').first()
       .evaluate(el => el.classList.contains('scrolled'))
     expect(hasScrolled).toBe(true)
@@ -48,6 +50,7 @@ test.describe('Хедер — мобильное меню', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
   test.beforeEach(async ({ page }) => {
+    await mockHomepageApi(page)
     await page.goto('/')
     await page.waitForLoadState('networkidle')
   })
@@ -62,7 +65,6 @@ test.describe('Хедер — мобильное меню', () => {
 
   test('мобильное меню открывается по клику', async ({ page }) => {
     await page.locator('.btn-mobile-menu').click()
-    // v-if + <transition>: ждём появления в DOM с достаточным таймаутом
     await expect(page.locator('.mobile-menu')).toBeVisible({ timeout: 3000 })
   })
 

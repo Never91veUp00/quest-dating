@@ -32,6 +32,7 @@
             <li><NuxtLink to="/">Главная</NuxtLink></li>
             <li><NuxtLink to="/catalog">Каталог квестов</NuxtLink></li>
             <li><NuxtLink to="/about">О создателе</NuxtLink></li>
+            <li><NuxtLink to="/blog">Блог</NuxtLink></li>
           </ul>
           <h4 class="footer-title footer-title--legal">Документы</h4>
           <ul class="footer-links">
@@ -74,7 +75,7 @@
       <!-- Нижний футер -->
       <div class="footer-bottom">
         <p class="copyright">
-          © {{ currentYear }} Quest Dating · Лиза Петри
+          © {{ currentYear }} Quest Dating · Влад и Лиза Петровы
         </p>
         <nav class="footer-legal" aria-label="Правовые документы">
           <NuxtLink to="/terms">Условия использования</NuxtLink>

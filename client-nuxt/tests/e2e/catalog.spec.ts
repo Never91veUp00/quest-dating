@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { mockHomepageApi } from './fixtures/mockApi'
 
 test.describe('Каталог', () => {
   test.beforeEach(async ({ page }) => {
+    // /catalog делает GET /categories, /templates?... — мокируем базовые
+    await mockHomepageApi(page)
     await page.goto('/catalog')
     await page.waitForLoadState('networkidle')
   })
@@ -34,8 +37,6 @@ test.describe('Каталог', () => {
   })
 
   test('фильтры категорий отображаются', async ({ page }) => {
-    // Реальная структура: aside.filters-sidebar — скрыта на мобильном, видна на десктопе
-    // Используем viewport десктопа для этого теста
     await page.setViewportSize({ width: 1280, height: 800 })
     await expect(page.locator('.filters-sidebar').first()).toBeVisible()
   })

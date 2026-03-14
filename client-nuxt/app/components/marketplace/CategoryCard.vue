@@ -3,6 +3,7 @@
     :to="`/categories/${category.slug}`"
     class="category-card"
     :style="{ '--category-color': category.color }"
+    :prefetch="false"
   >
     <div class="category-icon">{{ category.icon }}</div>
     <div class="category-content">

@@ -1,6 +1,24 @@
 import { test, expect, type Page } from '@playwright/test'
+import { mockHomepageApi } from './fixtures/mockApi'
+
+// Мок для POST /api/orders — перехватывает оба варианта URL:
+// - localhost:3000/api/orders (через Nuxt devProxy, если сервер перезапущен)
+// - localhost:5000/api/orders (прямой, если сервер работает со старым конфигом)
+async function mockOrdersApi(page: Page) {
+  const orderResponse = {
+    status: 201,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      success: true,
+      data: { id: 999, total_price: 350000, client_email: 'test@example.com' }
+    })
+  }
+  await page.route('**/api/orders', route => route.fulfill(orderResponse))
+  await page.route('http://localhost:5000/api/orders', route => route.fulfill(orderResponse))
+}
 
 async function navigateToOrderPage(page: Page) {
+  await mockHomepageApi(page)
   await page.goto('/catalog')
   await page.waitForLoadState('networkidle')
   await page.waitForSelector('a[href*="/date/"]', { timeout: 10000 })
@@ -15,17 +33,8 @@ async function navigateToOrderPage(page: Page) {
 
 test.describe('Создание заказа', () => {
   test('полный флоу: выбрать квест → заполнить форму → отправить', async ({ page }) => {
-    // Мокируем по обоим паттернам: devProxy (localhost:3000/api) и прямой (localhost:5000/api)
-    const mockFulfill = (route: Parameters<Parameters<typeof page.route>[1]>[0]) =>
-      route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: { id: 999, total_price: 350000, client_email: 'test@example.com' }
-        })
-      })
-    await page.route('**/api/orders', mockFulfill)
+    // Мокируем ДО навигации — оба возможных URL
+    await mockOrdersApi(page)
 
     await navigateToOrderPage(page)
 
@@ -52,11 +61,15 @@ test.describe('Создание заказа', () => {
       'Романтический вечер для двоих. Хотим провести незабываемый квест в честь годовщины свадьбы.'
     )
 
-    // Чекбокс кастомный — label @click, не input[type=checkbox]
-    const agreeLabel = page.locator('.checkbox-label').first()
-    if (await agreeLabel.isVisible()) {
-      await agreeLabel.click()
+    // Чекбокс кастомный: кликаем на .checkbox-box (квадратик),
+    // а не на весь label — внутри label есть <a @click.stop> которые
+    // поглощают клик и не дают всплыть до @click на label
+    const checkboxBox = page.locator('.checkbox-box').first()
+    if (await checkboxBox.isVisible()) {
+      await checkboxBox.click()
     }
+    // Убеждаемся что согласие отмечено (появляется .checkbox-tick)
+    await expect(page.locator('.checkbox-tick').first()).toBeVisible({ timeout: 2000 })
 
     await page.locator('button.btn-submit').click()
 
@@ -67,7 +80,7 @@ test.describe('Создание заказа', () => {
   test('форма показывает ошибки при пустой отправке шага 1', async ({ page }) => {
     await navigateToOrderPage(page)
     await page.locator('.btn-nav.btn-next').click()
-    // Валидация: остаёмся на шаге 1 (показывается toast)
+    // Валидация: остаёмся на шаге 1 (toast с ошибкой)
     await expect(page.locator('input[placeholder="Иван Иванов"]')).toBeVisible({ timeout: 3000 })
   })
 })

@@ -12,10 +12,6 @@ import { generalLimiter, adminLimiter } from './middleware/rateLimiter.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UPLOADS_DIR = path.resolve(__dirname, '../../server/uploads')
 
-/**
- * Фабрика Express-приложения — вынесена из server.js чтобы тесты могли
- * создавать изолированный экземпляр без реального запуска сервера на порту.
- */
 export const createApp = () => {
   const app = express()
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
@@ -36,7 +32,6 @@ export const createApp = () => {
   app.use(express.json({ limit: '2mb' }))
   app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 
-  // В тестах rate limiting отключаем чтобы не мешал повторным запросам
   if (process.env.NODE_ENV !== 'test') {
     app.use('/api/admin', adminLimiter)
     app.use('/api', generalLimiter)
@@ -47,7 +42,19 @@ export const createApp = () => {
   app.use('/uploads', (req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     next()
-  }, express.static(UPLOADS_DIR))
+  }, express.static(UPLOADS_DIR), (req, res) => {
+    // Файл не найден локально — отдаём заглушку вместо 404
+    console.log(`[uploads fallback] ${req.url} → placeholder.svg (UPLOADS_DIR: ${UPLOADS_DIR})`)
+    const placeholderPath = path.resolve(__dirname, '../../client-nuxt/public/images/placeholder.svg')
+    res.setHeader('Content-Type', 'image/svg+xml')
+    res.setHeader('Cache-Control', 'public, max-age=60')
+    res.sendFile(placeholderPath, (err) => {
+      if (err) {
+        console.error(`[uploads fallback] placeholder not found at: ${placeholderPath}`)
+        res.status(404).json({ error: 'File not found' })
+      }
+    })
+  })
 
   app.use('/api', apiRoutes)
 

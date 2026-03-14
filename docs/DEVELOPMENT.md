@@ -1,906 +1,278 @@
 # Руководство по разработке
 
-Документация для разработчиков Quest Dating платформы.
+Документация для разработчиков Quest Dating.
 
 ## Оглавление
 
-- [Настройка окружения](#настройка-окружения)
-- [Стандарты кода](#стандарты-кода)
+- [Рабочий процесс](#рабочий-процесс)
+- [Frontend (Nuxt 4)](#frontend-nuxt-4)
+- [Backend (Express)](#backend-express)
+- [База данных](#база-данных)
 - [Git workflow](#git-workflow)
-- [Тестирование](#тестирование)
-- [Отладка](#отладка)
-- [Работа с базой данных](#работа-с-базой-данных)
-- [API разработка](#api-разработка)
-- [Frontend разработка](#frontend-разработка)
-- [Часто встречающиеся задачи](#часто-встречающиеся-задачи)
+- [Полезные команды](#полезные-команды)
 
 ---
 
-## Настройка окружения
+## Рабочий процесс
 
-### Требования
+### Запуск в dev
 
-- Node.js >= 18.0.0
-- npm >= 9.0.0
-- PostgreSQL >= 14
-- Git
-- VS Code (рекомендуется)
-
-### Установка
-
-1. **Клонирование репозитория:**
 ```bash
-git clone https://github.com/yourusername/quest-dating.git
-cd quest-dating
+# Terminal 1
+cd server && npm run dev          # Express на :5000
+
+# Terminal 2
+cd client-nuxt && npm run dev     # Nuxt 4 на :3000
 ```
 
-2. **Установка зависимостей:**
-```bash
-npm run install:all
+Nuxt devProxy автоматически проксирует `/api/*` → `localhost:5000/api`. Браузер работает только с `:3000`, что важно для Playwright (перехват запросов).
+
+### Ветка разработки
+
+Вся работа ведётся в `feature/nuxt3-migration`. В `main` мержится только стабильный код.
+
+---
+
+## Frontend (Nuxt 4)
+
+### Структура app/
+
+```
+app/
+├── app.vue           # Root — isFullscreen для quest player
+├── pages/            # Файловый роутинг
+├── components/
+│   ├── common/       # Header, Footer, Modal, Loader, Breadcrumbs...
+│   ├── marketplace/  # TemplateCard, TemplateFilters...
+│   ├── order/        # OrderForm, OrderSummary
+│   └── quest/        # QuestSplash, QuestBlock, QuestTimer...
+├── composables/
+│   └── useApi.js     # Все API вызовы
+└── assets/styles/    # variables.css, main.css, animations.css
 ```
 
-3. **Настройка переменных окружения:**
-```bash
-# Backend
-cp server/.env.example server/.env
+### Добавление новой страницы
 
-# Frontend
-cp client/.env.example client/.env
+1. Создать файл в `app/pages/` — Nuxt автоматически создаст роут
+2. Добавить `routeRules` в `nuxt.config.ts` с нужной стратегией рендеринга
+3. Установить мета-теги через `useSeoMeta()`
+4. Добавить JSON-LD если нужно для SEO
+
+```vue
+<script setup>
+// Мета-теги
+useSeoMeta({
+  title: 'Заголовок | Quest Dating',
+  description: 'Описание страницы',
+  ogImage: '/og-image.jpg',
+})
+
+// Данные через SSR
+const { getDates } = useDatesApi()
+const { data } = await useAsyncData('key', () => getDates())
+</script>
 ```
 
-4. **Настройка базы данных:**
-```bash
-# Создать базу данных
-createdb quest_dating
+### useApi.js
 
-# Инициализация схемы
-npm run db:init
+Единственное место для всех API запросов. Не создавай прямые `$fetch` в компонентах.
 
-# Заполнение тестовыми данными
-npm run db:seed
+```javascript
+const {
+  getDates,        // GET /templates?...
+  getDate,         // GET /templates/:slug
+  getCategories,   // GET /categories
+  getStats,        // GET /stats
+  createOrder,     // POST /orders
+  sendContact,     // POST /contact
+} = useDatesApi()
 ```
 
-5. **Запуск в режиме разработки:**
-```bash
-npm run dev
+### Правила компонентов
+
+**Никогда не вкладывай `<NuxtLink>` в `<NuxtLink>`** — оба рендерятся в `<a>`, это невалидный HTML и вызывает hydration error. Используй `<article>` или `<div>` с `@click="router.push()"` для внешнего контейнера, оставляя внутренние ссылки как `<NuxtLink>`.
+
+**`ClientOnly` для контента зависящего от клиента:**
+```vue
+<ClientOnly>
+  <div>{{ new Date().toLocaleDateString() }}</div>
+</ClientOnly>
 ```
 
-### VS Code расширения
+**JWT в `useCookie`, не в `localStorage`** — localStorage недоступен на сервере при SSR.
 
-Рекомендуемые расширения:
-```json
-{
-  "recommendations": [
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "vue.volar",
-    "christian-kohler.path-intellisense",
-    "streetsidesoftware.code-spell-checker",
-    "eamodio.gitlens",
-    "bradlc.vscode-tailwindcss"
-  ]
-}
+### Стили
+
+Градиент бренда: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
+
+CSS переменные объявлены в `assets/styles/variables.css`. Компонентные стили — `<style scoped>`.
+
+---
+
+## Backend (Express)
+
+### Добавление нового endpoint
+
+1. **Роут** в соответствующем файле `routes/`:
+```javascript
+router.get('/new-endpoint', controller.newMethod)
 ```
 
-### VS Code настройки
-
-`.vscode/settings.json`:
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+2. **Контроллер** в `controllers/`:
+```javascript
+export const newMethod = async (req, res, next) => {
+  try {
+    const result = await pool.query('SELECT ...', [params])
+    res.json({ success: true, data: result.rows })
+  } catch (err) {
+    next(err)
   }
 }
 ```
 
----
-
-## Стандарты кода
-
-### JavaScript/Vue
-
-#### Именование
+3. **Важные правила PostgreSQL:**
 ```javascript
-// Константы - UPPER_SNAKE_CASE
-const MAX_FILE_SIZE = 5242880
-const API_BASE_URL = 'http://localhost:5000'
+// COUNT() возвращает строку — всегда parseInt!
+const count = parseInt(result.rows[0].count)
 
-// Переменные и функции - camelCase
-const userName = 'John'
-function getUserData() { }
+// Массивы параметров требуют явного каста
+const q = 'SELECT * FROM t WHERE id = ANY($1::int[])'
+await pool.query(q, [[1, 2, 3]])
 
-// Классы и компоненты - PascalCase
-class UserModel { }
-// TemplateCard.vue, AuthorProfile.vue
-
-// Приватные методы - _camelCase (convention)
-function _validateInput() { }
-
-// Boolean переменные - префикс is/has/should
-const isActive = true
-const hasPermission = false
-const shouldRender = true
+// Специфичные роуты ПЕРЕД параметрическими
+router.get('/featured', ...)  // ✅ сначала
+router.get('/:id', ...)       // ✅ потом
 ```
 
-#### Структура файлов
+### Rate limiter
 
-**Vue компоненты:**
-```vue
-<template>
-  <!-- HTML -->
-</template>
-
-<script setup>
-// 1. Импорты
-import { ref, computed } from 'vue'
-
-// 2. Props
-const props = defineProps({ ... })
-
-// 3. Emits
-const emit = defineEmits(['update', 'delete'])
-
-// 4. Reactive state
-const count = ref(0)
-
-// 5. Computed
-const doubleCount = computed(() => count.value * 2)
-
-// 6. Methods
-const increment = () => { count.value++ }
-
-// 7. Lifecycle hooks
-onMounted(() => { })
-</script>
-
-<style scoped>
-/* Styles */
-</style>
-```
-
-**JavaScript модули:**
+При добавлении нового чувствительного endpoint (форма, платёж) — применить соответствующий limiter:
 ```javascript
-// 1. Импорты
-import express from 'express'
-import { someHelper } from './utils'
-
-// 2. Константы
-const PORT = 5000
-
-// 3. Функции/Классы
-export class Template {
-  // ...
-}
-
-export const getTemplates = async () => {
-  // ...
-}
-
-// 4. Default export (если нужен)
-export default Template
+import { contactLimiter } from '../middleware/rateLimiter.js'
+router.post('/new-form', contactLimiter, controller.handle)
 ```
 
-#### ESLint правила
+В dev режиме запросы с localhost автоматически пропускаются.
 
-Основные правила:
-- Нет `var`, только `const` и `let`
-- Предпочитайте `const` над `let`
-- Arrow functions для коллбеков
-- Template literals вместо конкатенации
-- Деструктуризация объектов
-- Single quotes для строк
-- No semicolons
-- 2 spaces для отступов
+### Telegram уведомления
+
 ```javascript
-// ✅ Хорошо
-const getUserName = (user) => user.name
-const message = `Hello, ${userName}!`
-const { id, name } = user
+import { sendTelegramNotification } from '../services/telegramService.js'
 
-// ❌ Плохо
-var getUserName = function(user) { return user.name; };
-var message = 'Hello, ' + userName + '!';
-var id = user.id;
-var name = user.name;
-```
-
-### CSS/Styling
-
-#### Именование классов
-
-Используем BEM-подобную методологию:
-```css
-/* Block */
-.template-card { }
-
-/* Element */
-.template-card__title { }
-.template-card__image { }
-
-/* Modifier */
-.template-card--featured { }
-.template-card__title--large { }
-```
-
-#### CSS переменные
-
-Всегда используйте CSS переменные из `variables.css`:
-```css
-/* ✅ Хорошо */
-.button {
-  background: var(--color-primary);
-  padding: var(--spacing-4);
-  border-radius: var(--radius-lg);
-}
-
-/* ❌ Плохо */
-.button {
-  background: #667eea;
-  padding: 16px;
-  border-radius: 8px;
-}
-```
-
-### SQL
-```sql
--- Все ключевые слова в ВЕРХНЕМ РЕГИСТРЕ
-SELECT id, name, email
-FROM users
-WHERE status = 'active'
-ORDER BY created_at DESC;
-
--- Используйте алиасы для ясности
-SELECT 
-  t.id,
-  t.title,
-  a.display_name AS author_name
-FROM templates t
-JOIN authors a ON t.author_id = a.id;
-
--- Параметризованные запросы (защита от SQL injection)
-const query = 'SELECT * FROM users WHERE email = $1'
-const values = [email]
+// Уведомление не должно блокировать HTTP-ответ
+res.json({ success: true, data: order })
+sendTelegramNotification(message).catch(console.error)  // после ответа
 ```
 
 ---
 
-## Git Workflow
+## База данных
 
-### Ветки
-```
-main           # Production-ready код
-├── develop    # Интеграционная ветка
-    ├── feature/template-filters
-    ├── feature/order-system
-    ├── bugfix/image-upload
-    └── hotfix/payment-error
-```
+### Подключение
 
-### Именование веток
 ```bash
-# Features
-git checkout -b feature/add-payment-integration
-git checkout -b feature/author-dashboard
-
-# Bug fixes
-git checkout -b bugfix/fix-image-upload
-git checkout -b bugfix/template-search
-
-# Hotfixes (срочные исправления в production)
-git checkout -b hotfix/critical-security-patch
-```
-
-### Commit сообщения
-
-Формат: `<type>(<scope>): <subject>`
-
-**Types:**
-- `feat` - новая функция
-- `fix` - исправление бага
-- `docs` - документация
-- `style` - форматирование
-- `refactor` - рефакторинг
-- `test` - тесты
-- `chore` - рутинные задачи
-```bash
-# Примеры
-git commit -m "feat(templates): add filtering by difficulty"
-git commit -m "fix(orders): resolve email validation bug"
-git commit -m "docs(api): update endpoints documentation"
-git commit -m "refactor(auth): simplify JWT middleware"
-git commit -m "style(frontend): format code with prettier"
-```
-
-### Pull Request процесс
-
-1. **Создайте ветку от `develop`:**
-```bash
-git checkout develop
-git pull origin develop
-git checkout -b feature/my-feature
-```
-
-2. **Разрабатывайте и коммитьте:**
-```bash
-git add .
-git commit -m "feat(scope): description"
-```
-
-3. **Push и создайте PR:**
-```bash
-git push origin feature/my-feature
-# Создайте PR на GitHub
-```
-
-4. **Code Review:**
-   - Минимум 1 аппрув
-   - Все проверки пройдены
-   - Нет конфликтов
-
-5. **Merge:**
-```bash
-# Squash merge в develop
-git checkout develop
-git merge --squash feature/my-feature
-git commit -m "feat(scope): complete description"
-git push origin develop
-```
-
----
-
-## Тестирование
-
-### Unit тесты
-```javascript
-// tests/utils/formatters.test.js
-import { formatPrice, formatDate } from '@/utils/formatters'
-
-describe('formatPrice', () => {
-  it('should format price correctly', () => {
-    expect(formatPrice(100000)).toBe('1 000 ₽')
-    expect(formatPrice(0)).toBe('Бесплатно')
-  })
-})
-
-describe('formatDate', () => {
-  it('should format date in short format', () => {
-    const date = new Date('2024-02-10')
-    expect(formatDate(date, 'short')).toBe('10.02.2024')
-  })
-})
-```
-
-### Integration тесты
-```javascript
-// tests/api/templates.test.js
-import request from 'supertest'
-import app from '../server/index.js'
-
-describe('GET /api/templates', () => {
-  it('should return templates list', async () => {
-    const response = await request(app)
-      .get('/api/templates')
-      .expect(200)
-    
-    expect(response.body.success).toBe(true)
-    expect(Array.isArray(response.body.data)).toBe(true)
-  })
-  
-  it('should filter by category', async () => {
-    const response = await request(app)
-      .get('/api/templates?category=1')
-      .expect(200)
-    
-    expect(response.body.data.every(t => t.category_id === 1)).toBe(true)
-  })
-})
-```
-
-### Запуск тестов
-```bash
-# Все тесты
-npm test
-
-# Конкретный файл
-npm test -- tests/api/templates.test.js
-
-# С покрытием
-npm test -- --coverage
-
-# Watch mode
-npm test -- --watch
-```
-
----
-
-## Отладка
-
-### Backend отладка
-
-**Console logging:**
-```javascript
-console.log('Debug:', variable)
-console.error('Error:', error)
-console.table(arrayOfObjects)
-```
-
-**VS Code debugger:**
-
-`.vscode/launch.json`:
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Server",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/server/index.js",
-      "envFile": "${workspaceFolder}/server/.env"
-    }
-  ]
-}
-```
-
-**Database queries:**
-```javascript
-// Логирование SQL запросов
-const result = await pool.query(query, values)
-console.log('Query:', query)
-console.log('Values:', values)
-console.log('Result:', result.rows)
-```
-
-### Frontend отладка
-
-**Vue DevTools:**
-- Установите расширение Vue DevTools
-- Просмотр компонентов, props, state
-- Отслеживание events
-
-**Browser DevTools:**
-```javascript
-// Логирование
-console.log('Component mounted:', this.$options.name)
-
-// Точки останова
-debugger
-
-// Network tab для API запросов
-```
-
-**Pinia DevTools:**
-```javascript
-// Просмотр state изменений
-import { useQuestStore } from '@/store'
-
-const store = useQuestStore()
-console.log('Store state:', store.$state)
-```
-
----
-
-## Работа с базой данных
-
-### Подключение к БД
-```bash
-# Используя psql
+# Локально
 psql -U quest_user -d quest_dating
 
-# Подключение к Docker контейнеру
-docker exec -it quest-dating-db psql -U quest_user -d quest_dating
-```
-
-### Частые SQL команды
-```sql
--- Список таблиц
-\dt
-
--- Структура таблицы
-\d templates
-
--- Выполнить SQL файл
-\i server/database/schema.sql
-
--- Посмотреть данные
-SELECT * FROM templates LIMIT 10;
-
--- Очистить таблицу
-TRUNCATE TABLE templates RESTART IDENTITY CASCADE;
+# В Docker
+docker-compose exec postgres psql -U quest_user -d quest_dating
 ```
 
 ### Миграции
 
-**Создание миграции:**
 ```bash
 # Создать файл миграции
-touch server/database/migrations/001_add_featured_column.sql
+touch database/migrations/XXX_description.sql
+
+# Применить
+psql -U quest_user -d quest_dating -f database/migrations/XXX_description.sql
 ```
+
+### Полезные запросы
+
 ```sql
--- 001_add_featured_column.sql
-ALTER TABLE templates 
-ADD COLUMN is_featured BOOLEAN DEFAULT false;
+-- Список квестов
+SELECT id, slug, title, is_published FROM quest_templates ORDER BY id;
 
-CREATE INDEX idx_templates_featured ON templates(is_featured);
-```
+-- Активные заказы
+SELECT id, client_name, status, created_at FROM orders
+WHERE status != 'cancelled' ORDER BY created_at DESC LIMIT 20;
 
-**Применение миграций:**
-```bash
-npm run db:migrate
-```
-
-### Бэкапы
-```bash
-# Создать бэкап
-pg_dump -U quest_user quest_dating > backup.sql
-
-# Восстановить из бэкапа
-psql -U quest_user quest_dating < backup.sql
-
-# Бэкап через Docker
-docker exec quest-dating-db pg_dump -U quest_user quest_dating > backup.sql
+-- Сессии квестов за сегодня
+SELECT COUNT(*) FROM quest_sessions
+WHERE created_at >= CURRENT_DATE;
 ```
 
 ---
 
-## API разработка
+## Git workflow
 
-### Создание нового endpoint
+### Именование веток
 
-1. **Создайте роут:**
-```javascript
-// server/routes/templates.js
-router.get('/featured', templateController.getFeatured)
+```
+feature/nuxt3-migration     ← основная ветка разработки
+feature/blog-routes         ← новые фичи
+bugfix/catalog-filters      ← исправления
+hotfix/payment-critical     ← срочные фиксы
 ```
 
-2. **Создайте контроллер:**
-```javascript
-// server/controllers/templateController.js
-exports.getFeatured = async (req, res, next) => {
-  try {
-    const limit = parseInt(req.query.limit) || 6
-    const templates = await Template.findFeatured(limit)
-    res.json({ success: true, data: templates })
-  } catch (error) {
-    next(error)
-  }
-}
+### Формат коммитов
+
+```
+feat(catalog): добавить фильтр по сложности
+fix(order): исправить кастомный чекбокс согласия
+docs(testing): обновить TESTING.md под Nuxt 4
+refactor(api): вынести mock helpers в fixtures/
+test(e2e): добавить тест защищённого квеста
 ```
 
-3. **Создайте метод модели:**
-```javascript
-// server/models/Template.js
-static async findFeatured(limit = 6) {
-  const query = `
-    SELECT * FROM templates
-    WHERE is_featured = true
-    ORDER BY rating DESC
-    LIMIT $1
-  `
-  const result = await pool.query(query, [limit])
-  return result.rows
-}
-```
+### Перед коммитом
 
-4. **Добавьте валидацию (опционально):**
-```javascript
-// server/middleware/validators.js
-const validateFeaturedQuery = [
-  query('limit').optional().isInt({ min: 1, max: 20 })
-]
-
-// В роуте
-router.get('/featured', validateFeaturedQuery, templateController.getFeatured)
-```
-
-### Тестирование API
 ```bash
-# Используя curl
-curl http://localhost:5000/api/templates/featured
-
-# Используя httpie
-http GET localhost:5000/api/templates/featured
-
-# Используя Postman или Insomnia
-```
-
----
-
-## Frontend разработка
-
-### Создание нового компонента
-
-1. **Создайте файл компонента:**
-```bash
-touch client/src/components/common/Badge.vue
-```
-
-2. **Базовая структура:**
-```vue
-<template>
-  <span :class="['badge', `badge--${variant}`]">
-    <slot />
-  </span>
-</template>
-
-<script setup>
-defineProps({
-  variant: {
-    type: String,
-    default: 'primary',
-    validator: (value) => ['primary', 'success', 'warning'].includes(value)
-  }
-})
-</script>
-
-<style scoped>
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.badge--primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.badge--success {
-  background: var(--color-success);
-  color: white;
-}
-
-.badge--warning {
-  background: var(--color-warning);
-  color: var(--color-gray-800);
-}
-</style>
-```
-
-3. **Использование:**
-```vue
-<template>
-  <Badge variant="success">Активен</Badge>
-</template>
-
-<script setup>
-import Badge from '@/components/common/Badge.vue'
-</script>
-```
-
-### Работа со state
-
-**Локальный state (ref):**
-```vue
-<script setup>
-import { ref } from 'vue'
-
-const count = ref(0)
-const increment = () => count.value++
-</script>
-```
-
-**Глобальный state (Pinia):**
-```javascript
-// store/index.js
-export const useQuestStore = defineStore('quest', {
-  state: () => ({
-    templates: []
-  }),
-  actions: {
-    async fetchTemplates() {
-      const data = await templateService.getAll()
-      this.templates = data
-    }
-  }
-})
-
-// В компоненте
-import { useQuestStore } from '@/store'
-const store = useQuestStore()
-store.fetchTemplates()
-```
-
-### API вызовы
-```javascript
-// services/templateService.js
-import api from './api'
-
-export const templateService = {
-  async getAll(params) {
-    const response = await api.get('/templates', { params })
-    return response.data
-  },
-  
-  async getBySlug(slug) {
-    const response = await api.get(`/templates/${slug}`)
-    return response.data
-  }
-}
-
-// В компоненте
-import { templateService } from '@/services/templateService'
-
-const loadTemplates = async () => {
-  try {
-    const data = await templateService.getAll({ limit: 12 })
-    templates.value = data
-  } catch (error) {
-    console.error('Error:', error)
-  }
-}
-```
-
----
-
-## Часто встречающиеся задачи
-
-### Добавить новую категорию
-```sql
-INSERT INTO categories (name, slug, description, icon, "order")
-VALUES ('Новая категория', 'new-category', 'Описание', '🎯', 10);
-```
-
-### Сбросить базу данных
-```bash
-npm run db:reset
-```
-
-### Очистить кэш npm
-```bash
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Пересобрать Docker контейнеры
-```bash
-npm run docker:clean
-npm run docker:build
-npm run docker:dev
-```
-
-### Исправить линтинг ошибки
-```bash
-npm run lint:fix
-```
-
-### Обновить зависимости
-```bash
-# Проверить устаревшие пакеты
-npm outdated
-
-# Обновить все (осторожно!)
-npm update
-
-# Обновить конкретный пакет
-npm update vue@latest
-```
-
-### Профилирование производительности
-
-**Backend:**
-```javascript
-console.time('Query execution')
-const result = await pool.query(query)
-console.timeEnd('Query execution')
-```
-
-**Frontend:**
-```javascript
-// Vue DevTools -> Performance
-// Browser DevTools -> Performance tab
+# Убедиться что тесты проходят
+cd client-nuxt
+npm run test          # unit тесты
+npm run test:e2e      # E2E (нужен запущенный сервер)
 ```
 
 ---
 
 ## Полезные команды
+
+### Frontend
+
 ```bash
-# Разработка
-npm run dev              # Запуск frontend + backend
-npm run client:dev       # Только frontend
-npm run server:dev       # Только backend
+cd client-nuxt
 
-# База данных
-npm run db:init          # Инициализация
-npm run db:seed          # Тестовые данные
-npm run db:reset         # Сброс и переинициализация
+npm run dev           # dev сервер
+npm run build         # production сборка
+npm run preview       # превью production build
 
-# Код качество
-npm run lint             # Проверка
-npm run lint:fix         # Автоисправление
-npm run format           # Prettier форматирование
-
-# Docker
-npm run docker:dev       # Запуск в dev
-npm run docker:logs      # Логи
-npm run docker:down      # Остановка
-npm run docker:clean     # Полная очистка
-
-# Тесты
-npm test                 # Все тесты
-npm test -- --watch      # Watch mode
-npm test -- --coverage   # С покрытием
+npm run test          # unit тесты (Vitest)
+npm run test:watch    # watch режим
+npm run test:e2e      # E2E тесты (нужен dev сервер)
+npm run test:e2e:ui   # Playwright UI
 ```
 
----
+### Backend
 
-## Troubleshooting
-
-### Проблема: Port already in use
 ```bash
-# Найти процесс на порту
-lsof -i :5000
+cd server
 
-# Убить процесс
-kill -9 <PID>
+npm run dev           # dev с nodemon
+npm start             # production
+
+npm test              # тесты
+npm run test:watch    # watch режим
 ```
 
-### Проблема: Database connection error
+### Docker
+
 ```bash
-# Проверить статус PostgreSQL
-pg_isready -U quest_user -d quest_dating
-
-# Перезапустить PostgreSQL (Mac)
-brew services restart postgresql
-
-# Перезапустить PostgreSQL (Linux)
-sudo systemctl restart postgresql
+docker-compose up -d              # запустить все
+docker-compose logs -f server     # логи сервера
+docker-compose logs -f client     # логи Nuxt
+docker-compose restart client     # перезапустить Nuxt
+docker-compose down               # остановить все
+docker-compose build client       # пересобрать клиент
 ```
-
-### Проблема: Module not found
-```bash
-# Переустановить зависимости
-rm -rf node_modules
-npm install
-```
-
-### Проблема: Git merge conflicts
-```bash
-# Посмотреть конфликты
-git status
-
-# Разрешить через VS Code или вручную
-# После разрешения:
-git add .
-git commit -m "resolve merge conflicts"
-```
-
----
-
-## Ресурсы
-
-### Документация
-
-- [Vue 3 Docs](https://vuejs.org/)
-- [Express Docs](https://expressjs.com/)
-- [PostgreSQL Docs](https://www.postgresql.org/docs/)
-- [Pinia Docs](https://pinia.vuejs.org/)
-
-### Инструменты
-
-- [Vue DevTools](https://devtools.vuejs.org/)
-- [Postman](https://www.postman.com/)
-- [TablePlus](https://tableplus.com/) - GUI для PostgreSQL
-
-### Community
-
-- GitHub Issues
-- Stack Overflow
-- Vue Forum
-- Node.js Forum
-
----
-
-Happy Coding! 🚀

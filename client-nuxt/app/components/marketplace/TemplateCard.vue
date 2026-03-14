@@ -1,11 +1,27 @@
 <template>
-  <NuxtLink :to="`/date/${template.slug}`" class="template-card">
+  <!--
+    Внешний элемент — article, не <a>.
+    Внутри есть <NuxtLink> для категории — вложенные <a> невалидны в HTML.
+    Навигация через @click + useRouter.push(), keyboard — @keydown.enter/space.
+    Для SEO заголовок h3 обёрнут в отдельный <NuxtLink>.
+  -->
+  <article
+    class="template-card"
+    @click="navigateToCard"
+    @keydown.enter.prevent="navigateToCard"
+    @keydown.space.prevent="navigateToCard"
+    tabindex="0"
+    role="link"
+    :aria-label="template.title"
+  >
     <!-- Изображение -->
     <div class="card-image">
-      <img 
-        :src="toAbsoluteUrl(template.cover_image) || '/images/placeholder.jpg'" 
+      <img
+        :src="coverSrc"
         :alt="template.title"
         loading="lazy"
+        :class="{ 'is-placeholder': coverFailed || !isValidImageSrc(template.cover_image) }"
+        @error="onCoverError"
       />
       
       <!-- Бейджи -->
@@ -32,14 +48,21 @@
           class="category-link"
           :style="{ color: template.category_color }"
           @click.stop
+          :prefetch="false"
         >
           {{ template.category_name }}
         </NuxtLink>
         <span class="duration">⏱️ {{ formatDuration(template.duration_minutes) }}</span>
       </div>
 
-      <!-- Заголовок -->
-      <h3 class="card-title">{{ template.title }}</h3>
+      <!-- Заголовок — NuxtLink для SEO, @click.stop чтобы не дублировать navigateToCard -->
+      <h3 class="card-title">
+        <NuxtLink
+          :to="`/date/${template.slug}`"
+          class="card-title-link"
+          @click.stop
+        >{{ template.title }}</NuxtLink>
+      </h3>
 
       <!-- Описание -->
       <p class="card-tagline">{{ template.tagline }}</p>
@@ -47,10 +70,11 @@
       <!-- Автор -->
       <div class="card-author">
         <div class="author-info">
-          <img 
-            :src="template.author_avatar || '/images/avatars/default.jpg'" 
+          <img
+            :src="avatarSrc"
             :alt="template.author_name"
             class="author-avatar"
+            @error="onAvatarErr"
           />
           <span class="author-name">{{ template.author_name }}</span>
         </div>
@@ -98,11 +122,30 @@
         </div>
       </ClientOnly>
     </div>
-  </NuxtLink>
+  </article>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+
+const { withFallback, withAvatarFallback, isValidImageSrc, PLACEHOLDER, AVATAR_PLACEHOLDER } = useImageFallback()
+
+// Реактивное состояние ошибки загрузки
+// Vue управляет src через эти ref — нет конфликта с гидрацией
+const coverFailed = ref(false)
+const avatarFailed = ref(false)
+
+const coverSrc = computed(() =>
+  coverFailed.value ? PLACEHOLDER : withFallback(props.template.cover_image)
+)
+const avatarSrc = computed(() =>
+  avatarFailed.value ? AVATAR_PLACEHOLDER : withAvatarFallback(props.template.author_avatar)
+)
+
+const onCoverError = () => { coverFailed.value = true }
+const onAvatarErr  = () => { avatarFailed.value = true }
+const router = useRouter()
+const navigateToCard = () => router.push(`/date/${props.template.slug}`)
 
 const props = defineProps({
   template: {
@@ -162,6 +205,11 @@ function formatNumber(num) {
   justify-content: space-between;
 }
 
+.template-card:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
 .template-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
@@ -172,7 +220,7 @@ function formatNumber(num) {
   width: 100%;
   height: 220px;
   overflow: hidden;
-  background: #f0f0f0;
+  background: #f0f4ff;
 }
 
 .card-image img {
@@ -180,6 +228,13 @@ function formatNumber(num) {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+}
+
+/* Заглушка: центрируем и уменьшаем, не растягиваем на всю карточку */
+.card-image img.is-placeholder {
+  object-fit: contain;
+  padding: 24px;
+  opacity: 0.7;
 }
 
 .template-card:hover .card-image img {
@@ -288,6 +343,13 @@ function formatNumber(num) {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.card-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title-link:hover { color: #667eea; }
 
 .card-tagline {
   color: #718096;
@@ -399,7 +461,14 @@ function formatNumber(num) {
     -webkit-line-clamp: 2;
   }
 
-  .card-tagline {
+  .card-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title-link:hover { color: #667eea; }
+
+.card-tagline {
     font-size: 0.75rem;
     -webkit-line-clamp: 2;
   }

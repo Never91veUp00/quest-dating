@@ -6,8 +6,9 @@
       <div v-if="template" class="quick-view">
         <div class="quick-view__image">
           <img
-            :src="toAbsoluteUrl(template.cover_image) || '/images/placeholder.jpg'"
+            :src="withFallback(template.cover_image)"
             :alt="template.title"
+            @error="onImgError"
           >
         </div>
 
@@ -49,8 +50,8 @@
 
 <script setup>
 import { computed, watch } from 'vue'
-import { toAbsoluteUrl } from '@/utils/helpers'
 
+const { withFallback, onImgError } = useImageFallback()
 const props = defineProps({
   template: Object,
   isOpen:   Boolean

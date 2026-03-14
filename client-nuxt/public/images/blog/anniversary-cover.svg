@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#d69e2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#g)"/>
+  <text x="400" y="195" font-size="80" text-anchor="middle" dominant-baseline="middle">💑</text>
+  <text x="400" y="290" font-size="28" font-family="Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" opacity="0.9">Годовщина</text>
+  <text x="400" y="330" font-size="18" font-family="Arial, sans-serif" fill="white" text-anchor="middle" opacity="0.7">Quest Dating &#x2022; Лиза Петри</text>
+</svg>

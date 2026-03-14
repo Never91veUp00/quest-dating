@@ -6,7 +6,7 @@
     <div class="summary-section">
       <div class="template-preview">
         <img 
-          :src="template.cover_image || '/images/placeholder.jpg'" 
+          :src="template.cover_image || withFallback(null)" 
           :alt="template.title"
           class="template-image"
         />
@@ -106,6 +106,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
+const { withFallback, onImgError } = useImageFallback()
 const props = defineProps({
   template: {
     type: Object,

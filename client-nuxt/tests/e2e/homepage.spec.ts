@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { mockHomepageApi } from './fixtures/mockApi'
 
 test.describe('Главная страница', () => {
   test.beforeEach(async ({ page }) => {
+    await mockHomepageApi(page)
     await page.goto('/')
     await page.waitForLoadState('networkidle')
   })
@@ -27,7 +29,6 @@ test.describe('Главная страница', () => {
   })
 
   test('секция "Как это работает" содержит 4 шага', async ({ page }) => {
-    // Реальная структура: section.how-it-works > .steps-grid > .step (x4)
     const steps = page.locator('.step')
     await expect(steps).toHaveCount(4)
   })
