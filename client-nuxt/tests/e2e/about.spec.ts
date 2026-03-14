@@ -17,7 +17,7 @@ test.describe('Страница О нас', () => {
   })
 
   test('текст истории от первого лица', async ({ page }) => {
-    await expect(page.locator('main')).toContainText('мне самой')
+    await expect(page.locator('main')).toContainText('я сама хотела')
   })
 
   test('секция "Мои принципы" содержит 4 карточки', async ({ page }) => {

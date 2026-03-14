@@ -8,10 +8,15 @@
     </div>
 
     <template v-else>
+      <div class="breadcrumbs-bar">
+        <div class="container">
+          <Breadcrumbs :crumbs="breadcrumbs" />
+        </div>
+      </div>
+
       <section class="article-hero" :style="{ backgroundImage: `url(${post.image})` }">
         <div class="article-hero__overlay" />
         <div class="container">
-          <Breadcrumbs :crumbs="breadcrumbs" />
           <div class="article-hero__content">
             <span class="article-category">{{ post.category }}</span>
             <h1 class="article-title">{{ post.title }}</h1>
@@ -127,13 +132,18 @@ useHead({
 </script>
 
 <style scoped>
+.breadcrumbs-bar {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
 .article-hero {
   position: relative;
-  padding: 120px 0 60px;
+  padding: 60px 0 48px;
   background-size: cover;
   background-position: center;
   color: white;
-  min-height: 360px;
+  min-height: 320px;
   display: flex;
   align-items: flex-end;
 }
@@ -153,7 +163,7 @@ useHead({
   width: 100%;
 }
 
-.article-hero__content { margin-top: 24px; }
+.article-hero__content { margin-top: 0; }
 
 .article-category {
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -168,11 +178,13 @@ useHead({
 }
 
 .article-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 2.5rem;
-  font-weight: 900;
+  font-weight: 600;
   margin: 0 0 20px;
-  line-height: 1.25;
+  line-height: 1.2;
   max-width: 800px;
+  letter-spacing: -0.01em;
 }
 
 .article-meta {
@@ -217,17 +229,21 @@ useHead({
 }
 
 .article-content :deep(h2) {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 600;
   margin: 40px 0 16px;
   color: #1a202c;
+  letter-spacing: -0.01em;
 }
 
 .article-content :deep(h3) {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 600;
   margin: 28px 0 12px;
   color: #2d3748;
+  letter-spacing: -0.01em;
 }
 
 .article-content :deep(p) { margin: 0 0 20px; }
@@ -271,12 +287,13 @@ useHead({
 .btn-cta {
   display: inline-block;
   background: white;
-  color: #667eea;
-  font-weight: 700;
+  color: #764ba2;
+  font-weight: 600;
   padding: 10px 24px;
-  border-radius: 8px;
+  border-radius: 50px;
   text-decoration: none;
   transition: transform 0.2s;
+  letter-spacing: 0.02em;
 }
 
 .btn-cta:hover { transform: translateY(-2px); }
@@ -289,10 +306,12 @@ useHead({
 }
 
 .sidebar-title {
-  font-size: 1rem;
-  font-weight: 700;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: #2d3748;
   margin: 0 0 16px;
+  letter-spacing: -0.01em;
 }
 
 .sidebar-post {
@@ -336,8 +355,9 @@ useHead({
 }
 
 @media (max-width: 640px) {
-  .article-hero { padding: 100px 0 40px; }
-  .article-title { font-size: 1.75rem; }
-  .article-content { padding: 24px; }
+  .article-hero { padding: 32px 0 32px; min-height: 240px; }
+  .article-title { font-size: 1.4rem; line-height: 1.25; }
+  .article-meta { flex-wrap: wrap; gap: 6px; font-size: 0.82rem; }
+  .article-content { padding: 20px 16px; }
 }
 </style>

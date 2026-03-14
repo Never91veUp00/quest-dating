@@ -111,23 +111,13 @@
               </div>
             </div>
 
-            <div v-if="pending" class="loading-state">
-              <Loader text="Загружаем квесты..." size="large" />
+            <div class="results-area" :class="{ 'results-area--loading': pending }">
+              <TemplateGrid
+                :templates="paginatedDates"
+                :loading="pending"
+                @reset-filters="handleFiltersReset"
+              />
             </div>
-
-            <div v-else-if="filteredDates.length === 0" class="empty-state">
-              <div class="empty-icon">🔍</div>
-              <h3>Квесты не найдены</h3>
-              <p>Попробуйте изменить параметры фильтров для поиска</p>
-              <button @click="handleFiltersReset" class="btn-reset">Сбросить фильтры</button>
-            </div>
-
-            <TemplateGrid
-              v-else
-              :templates="paginatedDates"
-              :loading="pending"
-              @reset-filters="handleFiltersReset"
-            />
 
             <Pagination
               v-if="totalPages > 1"
@@ -148,7 +138,6 @@ import { ref, computed, watch } from 'vue'
 const route  = useRoute()
 const router = useRouter()
 const { getDates, getCategories, getPopularTags } = useDatesApi()
-
 useSeoMeta({
   title:         'Свидания-квесты — сценарии для пар | Quest Dating',
   description:   'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 990 руб.',
@@ -350,7 +339,14 @@ watch(() => route.query, (newQ, oldQ) => {
 .templates-page { min-height: 100vh; background: #f7fafc; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 .page-header { background: white; padding: 40px 0; border-bottom: 1px solid #e2e8f0; }
-.page-title { font-size: 2.5rem; font-weight: 800; color: #2d3748; margin: 0 0 12px 0; }
+.page-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
 .page-description { font-size: 1.1rem; color: #718096; margin: 0 0 32px 0; }
 .search-wrapper { max-width: 600px; }
 .templates-content { padding: 40px 0 80px; }
@@ -373,12 +369,24 @@ watch(() => route.query, (newQ, oldQ) => {
 .sorting label { color: #718096; font-size: 0.9rem; }
 .sort-select { padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; color: #4a5568; background: white; cursor: pointer; transition: border-color 0.3s; }
 .sort-select:focus { outline: none; border-color: #667eea; }
+.results-area {
+  position: relative;
+  transition: opacity 0.2s ease;
+  /* Фиксируем минимальную высоту чтобы страница не прыгала при смене данных */
+  min-height: 400px;
+  /* Отключаем scroll anchoring — браузер не должен корректировать позицию скролла */
+  overflow-anchor: none;
+}
+.results-area--loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
 .loading-state { display: flex; justify-content: center; padding: 80px 20px; }
 .empty-state { text-align: center; padding: 80px 20px; background: white; border-radius: 12px; }
 .empty-icon { font-size: 5rem; margin-bottom: 24px; opacity: 0.5; }
 .empty-state h3 { font-size: 1.5rem; font-weight: 700; color: #2d3748; margin: 0 0 12px 0; }
 .empty-state p { color: #718096; margin: 0 0 24px 0; }
-.btn-reset { padding: 12px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-reset { padding: 11px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; letter-spacing: 0.02em; }
 .btn-reset:hover { transform: translateY(-2px); }
 .filters-toggle { display: none; }
 @media (max-width: 1024px) {

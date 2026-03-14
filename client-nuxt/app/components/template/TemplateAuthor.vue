@@ -1,14 +1,14 @@
 <template>
   <div class="template-author">
-    <h3 class="section-title">О создателе</h3>
+    <h3 class="section-title">Об авторе</h3>
     
     <div class="author-card">
       <!-- Аватар -->
       <div class="author-header">
         <NuxtLink to="/about" class="author-avatar-link">
           <img
-            :src="withAvatarFallback(author.avatar_url)"
-            :alt="author.display_name"
+            :src="withAvatarFallback(author.avatar_url || '/images/avatars/liza.jpg')"
+            alt="Лиза Петри"
             class="author-avatar"
             @error="onImgError"
           />
@@ -16,26 +16,27 @@
 
         <div class="author-info">
           <NuxtLink to="/about" class="author-name">
-            {{ author.display_name }}
+            {{ (author.display_name === "Влад" || !author.display_name) ? "Лиза Петри" : author.display_name }}
           </NuxtLink>
           
           <!-- Статистика создателя -->
           <div class="author-quick-stats">
             <div class="stat">
               <span class="stat-number">{{ author.total_templates || 0 }}</span>
-              <span class="stat-text">квестов создано</span>
+              <span class="stat-text">сценариев</span>
             </div>
             <div class="stat">
-              <span class="stat-number">100%</span>
-              <span class="stat-text">персонально</span>
+              <span class="stat-number">за 24ч</span>
+              <span class="stat-text">срок создания</span>
             </div>
           </div>
+          <p class="author-process">Общаемся, уточняем детали, погружаемся в вашу историю</p>
         </div>
       </div>
 
       <!-- Биография -->
-      <p v-if="author.bio" class="author-bio">
-        {{ author.bio }}
+      <p class="author-bio">
+        {{ author.bio || "Создаю персональные свидания-квесты с 2024 года. Каждый сценарий — с нуля под вашу пару." }}
       </p>
 
       <!-- Социальные ссылки -->
@@ -218,6 +219,14 @@ const hasSocialLinks = computed(() => {
 
 .stat-text {
   color: #718096;
+}
+
+.author-process {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: #718096;
+  font-style: italic;
+  line-height: 1.4;
 }
 
 .author-bio {

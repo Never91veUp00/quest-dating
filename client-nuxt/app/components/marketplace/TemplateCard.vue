@@ -18,7 +18,7 @@
     <div class="card-image">
       <img
         :src="coverSrc"
-        :alt="template.title"
+        :alt="`${template.title} — свидание-квест для двоих`"
         loading="lazy"
         :class="{ 'is-placeholder': coverFailed || !isValidImageSrc(template.cover_image) }"
         @error="onCoverError"

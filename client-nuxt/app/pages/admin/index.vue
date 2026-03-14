@@ -328,7 +328,7 @@ const saveTemplate = async (form) => {
       ...form,
       features:   form.featuresText.split('\n').map(s => s.trim()).filter(Boolean),
       base_price: form.is_free ? 0 : form.base_price,
-      gallery:    form.gallery.map(item => item.url),
+      gallery:    form.gallery.map(item => typeof item === 'string' ? item : item.url).filter(Boolean),
       tag_ids:    form.tag_ids || [],
     }
     delete payload.featuresText

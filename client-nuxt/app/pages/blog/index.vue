@@ -1,5 +1,11 @@
 <template>
   <div class="blog-page">
+    <div class="breadcrumbs-bar">
+      <div class="container">
+        <Breadcrumbs :crumbs="breadcrumbs" />
+      </div>
+    </div>
+
     <section class="blog-hero">
       <div class="container">
         <h1 class="blog-title">Блог о свиданиях-квестах</h1>
@@ -11,8 +17,6 @@
 
     <section class="blog-content">
       <div class="container">
-        <Breadcrumbs :crumbs="breadcrumbs" />
-
         <div class="posts-grid">
           <NuxtLink
             v-for="post in posts"
@@ -53,7 +57,6 @@ const breadcrumbs = [
 const formatDate = (iso) => new Date(iso).toLocaleDateString('ru-RU', {
   day: 'numeric', month: 'long', year: 'numeric'
 })
-
 useSeoMeta({
   title: 'Блог о свиданиях-квестах — советы и идеи | Quest Dating',
   description: 'Идеи для романтических свиданий-квестов, советы по организации и вдохновляющие истории. Блог Лизы Петри — создателя персональных квестов для пар.',
@@ -82,6 +85,8 @@ useHead({
 </script>
 
 <style scoped>
+.breadcrumbs-bar { background: white; border-bottom: 1px solid #e2e8f0; }
+
 .blog-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -90,9 +95,11 @@ useHead({
 }
 
 .blog-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 3rem;
-  font-weight: 900;
+  font-weight: 600;
   margin: 0 0 16px;
+  letter-spacing: -0.01em;
 }
 
 .blog-subtitle {
@@ -215,7 +222,7 @@ useHead({
 
 @media (max-width: 640px) {
   .blog-hero { padding: 100px 0 40px; }
-  .blog-title { font-size: 2rem; }
+  .blog-title { font-size: 2rem; letter-spacing: -0.01em; }
   .posts-grid { grid-template-columns: 1fr; }
 }
 </style>

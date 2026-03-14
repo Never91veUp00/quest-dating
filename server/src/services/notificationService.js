@@ -30,15 +30,6 @@ const sendTelegramMessage = async (text) => {
   }
 }
 
-// FIX: Маскируем номер телефона в уведомлениях — показываем только последние 4 цифры.
-// Полный номер хранится в БД и доступен в админке — для Telegram достаточно частичного.
-const maskPhone = (phone) => {
-  if (!phone) return null
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length < 4) return phone
-  return '***' + digits.slice(-4)
-}
-
 export const notifyNewOrder = async (order, templateTitle) => {
   const priceFormatted = (order.total_price / 100).toLocaleString('ru-RU')
   const dateFormatted = order.event_date
@@ -59,63 +50,57 @@ export const notifyNewOrder = async (order, templateTitle) => {
     ? order.selected_features.map(f => featureLabels[f] || f).join(' · ')
     : '—'
 
-  const text = [
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `🎯  <b>НОВЫЙ ЗАКАЗ #${order.id}</b>`,
-    `━━━━━━━━━━━━━━━━━━━━`,
+  const lines = [
+    `🎯 <b>Новый заказ #${order.id}</b>`,
     ``,
-    `👤  <b>${order.client_name}</b>`,
-    `📧  ${order.client_email}`,
-    order.client_phone ? `📱  ${maskPhone(order.client_phone)}` : null,
+    `👤 <b>${order.client_name}</b>`,
+    `📧 ${order.client_email}`,
+    order.client_phone ? `📱 ${order.client_phone}` : null,
     ``,
-    `┌─ Квест ───────────────`,
-    `│  📦  ${templateTitle}`,
-    `│  📅  ${dateFormatted}`,
-    order.event_city ? `│  🏙  ${order.event_city}` : null,
-    `│  💰  <b>${priceFormatted} ₽</b>`,
-    `└────────────────────────`,
+    `📦 ${templateTitle}`,
+    `📅 ${dateFormatted}`,
+    order.event_city ? `🏙 ${order.event_city}` : null,
+    `💰 <b>${priceFormatted} ₽</b>`,
+    features !== '—' ? `⚙️ ${features}` : null,
+    order.description ? `` : null,
+    order.description ? `💬 <i>${order.description}</i>` : null,
     ``,
-    features !== '—' ? `⚙️  ${features}` : null,
-    order.description ? `\n💬  <i>${order.description}</i>` : null,
-    ``,
-    `⏱  ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
-  ].filter(Boolean).join('\n')
+    `⏱ ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  ]
 
-  await sendTelegramMessage(text)
+  await sendTelegramMessage(lines.filter(l => l !== null).join('\n'))
 }
 
 export const notifyOrderStatusChange = async (order, newStatus) => {
   const statusLabels = {
-    confirmed:   '✅  Подтверждён',
-    in_progress: '🔨  В работе',
-    completed:   '🎉  Выполнен',
-    cancelled:   '❌  Отменён'
+    confirmed:   '✅ Подтверждён',
+    in_progress: '🔨 В работе',
+    completed:   '🎉 Выполнен',
+    cancelled:   '❌ Отменён'
   }
 
-  const text = [
-    `🔄  <b>Статус заказа #${order.id}</b>`,
+  const lines = [
+    `🔄 <b>Статус заказа #${order.id}</b>`,
     ``,
-    `👤  ${order.client_name} · ${order.client_email}`,
-    `▸  ${statusLabels[newStatus] || newStatus}`,
-    order.admin_notes ? `📝  <i>${order.admin_notes}</i>` : null,
-  ].filter(Boolean).join('\n')
+    `👤 ${order.client_name} · ${order.client_email}`,
+    `▸ ${statusLabels[newStatus] || newStatus}`,
+    order.admin_notes ? `📝 <i>${order.admin_notes}</i>` : null,
+  ]
 
-  await sendTelegramMessage(text)
+  await sendTelegramMessage(lines.filter(Boolean).join('\n'))
 }
 
 export const notifyContactMessage = async ({ name, phone, message }) => {
-  const text = [
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `✉️  <b>СООБЩЕНИЕ С САЙТА</b>`,
-    `━━━━━━━━━━━━━━━━━━━━`,
+  const lines = [
+    `✉️ <b>Сообщение с сайта</b>`,
     ``,
-    `👤  <b>${name}</b>`,
-    `📱  ${phone}`,
+    `👤 <b>${name}</b>`,
+    `📱 ${phone}`,
     ``,
-    `💬  <i>${message}</i>`,
+    `💬 <i>${message}</i>`,
     ``,
-    `⏱  ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
-  ].join('\n')
+    `⏱ ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} МСК`
+  ]
 
-  await sendTelegramMessage(text)
+  await sendTelegramMessage(lines.join('\n'))
 }

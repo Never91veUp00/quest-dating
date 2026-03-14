@@ -41,14 +41,22 @@ const BASE_GROUP_BY = `
 // Строит WHERE-условия по фильтрам и возвращает { conditions, params }
 // startIndex — с какого $N начинать нумерацию параметров
 const buildFilterConditions = (filters, startIndex = 2) => {
-  const { category, difficulty, location_type, min_price, max_price, search } = filters
+  const { category, difficulty, location_type, min_price, max_price, duration, search } = filters
   const conditions = []
   const params = []
   let i = startIndex
 
   if (category) {
-    conditions.push(`c.slug = $${i++}`)
-    params.push(category)
+    const categoryId = parseInt(category)
+    if (!isNaN(categoryId)) {
+      // Числовой id — фильтруем по id
+      conditions.push(`qt.category_id = $${i++}`)
+      params.push(categoryId)
+    } else {
+      // Строковый slug — фильтруем по slug категории (обратная совместимость)
+      conditions.push(`c.slug = $${i++}`)
+      params.push(category)
+    }
   }
 
   if (difficulty) {
@@ -69,6 +77,20 @@ const buildFilterConditions = (filters, startIndex = 2) => {
   if (max_price) {
     conditions.push(`qt.base_price <= $${i++}`)
     params.push(parseInt(max_price) * 100)
+  }
+
+  // duration — строка вида '0-60', '60-120', '120-180', '180+'
+  if (duration) {
+    if (duration === '180+') {
+      conditions.push(`qt.duration_minutes >= $${i++}`)
+      params.push(180)
+    } else {
+      const [min, max] = duration.split('-').map(Number)
+      conditions.push(`qt.duration_minutes >= $${i++}`)
+      params.push(min)
+      conditions.push(`qt.duration_minutes < $${i++}`)
+      params.push(max)
+    }
   }
 
   if (search) {
@@ -121,7 +143,8 @@ export const getAllTemplates = async (req, res, next) => {
     const sortOrder   = ALLOWED_ORDER.has(order?.toUpperCase()) ? order.toUpperCase() : 'DESC'
 
     // Строим фильтры один раз — используем для обоих запросов
-    const filters = { category, difficulty, location_type, min_price, max_price, search }
+    const { duration } = req.query
+    const filters = { category, difficulty, location_type, min_price, max_price, duration, search }
     const { conditions, params: filterParams, nextIndex } = buildFilterConditions(filters)
 
     const whereClause = conditions.length
@@ -136,13 +159,15 @@ export const getAllTemplates = async (req, res, next) => {
       ${BASE_GROUP_BY}
     `
 
-    // Фильтр по тегам (после GROUP BY)
+    // Фильтр по тегам (после GROUP BY) — tags приходят как строка id через запятую: '1,2,3'
     let tagIndex = nextIndex
     if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : [tags]
-      mainQuery += ` HAVING COUNT(DISTINCT t.id) FILTER (WHERE t.slug = ANY($${tagIndex})) = $${tagIndex + 1}`
-      mainParams.push(tagArray, tagArray.length)
-      tagIndex += 2
+      const tagArray = (Array.isArray(tags) ? tags : tags.split(',')).map(Number).filter(Boolean)
+      if (tagArray.length > 0) {
+        mainQuery += ` HAVING COUNT(DISTINCT t.id) FILTER (WHERE t.id = ANY($${tagIndex}::int[])) = $${tagIndex + 1}`
+        mainParams.push(tagArray, tagArray.length)
+        tagIndex += 2
+      }
     }
 
     mainQuery += ` ORDER BY ${sortColumn} ${sortOrder}`

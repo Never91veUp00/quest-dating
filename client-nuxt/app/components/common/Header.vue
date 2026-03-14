@@ -12,7 +12,7 @@
         <nav class="nav-desktop">
           <NuxtLink to="/" class="nav-link">Главная</NuxtLink>
           <NuxtLink to="/catalog" class="nav-link">Квесты</NuxtLink>
-          <NuxtLink to="/about" class="nav-link">О создателе</NuxtLink>
+          <NuxtLink to="/about" class="nav-link">О Лизе</NuxtLink>
           <NuxtLink to="/blog" class="nav-link">Блог</NuxtLink>
           <!-- ❌ Удалено: /authors, /about (О платформе) -->
         </nav>
@@ -44,7 +44,7 @@
             Квесты
           </NuxtLink>
           <NuxtLink to="/about" class="mobile-nav-link" @click="closeMobileMenu">
-            О создателе
+            О Лизе
           </NuxtLink>
           <NuxtLink to="/blog" class="mobile-nav-link" @click="closeMobileMenu">
             Блог

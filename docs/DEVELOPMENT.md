@@ -29,7 +29,7 @@ Nuxt devProxy автоматически проксирует `/api/*` → `loca
 
 ### Ветка разработки
 
-Вся работа ведётся в `feature/nuxt3-migration`. В `main` мержится только стабильный код.
+Основная ветка — `main`. Новые фичи — в `feature/*`, хотфиксы — в `hotfix/*`. PR → `main` только с зелёными тестами.
 
 ---
 
@@ -38,17 +38,26 @@ Nuxt devProxy автоматически проксирует `/api/*` → `loca
 ### Структура app/
 
 ```
-app/
-├── app.vue           # Root — isFullscreen для quest player
-├── pages/            # Файловый роутинг
-├── components/
-│   ├── common/       # Header, Footer, Modal, Loader, Breadcrumbs...
-│   ├── marketplace/  # TemplateCard, TemplateFilters...
-│   ├── order/        # OrderForm, OrderSummary
-│   └── quest/        # QuestSplash, QuestBlock, QuestTimer...
-├── composables/
-│   └── useApi.js     # Все API вызовы
-└── assets/styles/    # variables.css, main.css, animations.css
+client-nuxt/
+├── app/
+│   ├── app.vue           # Root — isFullscreen для quest player
+│   ├── pages/            # Файловый роутинг (SSR/SSG/CSR по routeRules)
+│   ├── components/
+│   │   ├── common/       # Header, Footer, Modal, Loader, Breadcrumbs...
+│   │   ├── marketplace/  # TemplateCard, TemplateFilters, CategoryCard...
+│   │   ├── order/        # OrderForm (4 шага), OrderSummary
+│   │   ├── template/     # TemplateAuthor, TemplateGallery, TemplateFeatures...
+│   │   └── quest/        # QuestSplash, QuestBlock, QuestTimer...
+│   ├── composables/
+│   │   ├── useApi.js     # Все API вызовы
+│   │   └── useFilters.js # Фильтры каталога (priceRange → min_price/max_price)
+│   ├── data/
+│   │   └── blogPosts.js  # Статические статьи блога (SSG)
+│   └── assets/styles/    # variables.css, main.css, animations.css
+└── server/
+    └── routes/
+        └── uploads/
+            └── [...path].js  # Nitro proxy для /uploads/** → Express
 ```
 
 ### Добавление новой страницы
@@ -106,6 +115,30 @@ const {
 Градиент бренда: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
 
 CSS переменные объявлены в `assets/styles/variables.css`. Компонентные стили — `<style scoped>`.
+
+---
+
+## Блог и SEO-контент
+
+### Статьи блога
+
+Статьи хранятся в `app/data/blogPosts.js` — статический JS-массив, не БД. Каждая статья — объект с полями `slug`, `title`, `excerpt`, `category`, `date`, `readingTime`, `content` (HTML-строка).
+
+Страницы блога генерируются как SSG через `routeRules` в `nuxt.config.ts`. При добавлении новой статьи — просто добавь объект в массив `BLOG_POSTS`, пересборка автоматически создаст статическую страницу.
+
+### Описания категорий
+
+SEO-описания категорий хранятся в БД (поле `description` таблицы `categories`). Для обновления:
+
+```bash
+psql -U quest_user -d quest_dating -f database/update_categories.sql
+```
+
+### Фильтры каталога
+
+Фильтр по цене читает из `priceRange` (не из `minPrice`/`maxPrice`) — см. `useFilters.js`.
+Фильтр по категории передаёт числовой `id` (не slug).
+Фильтр по тегам передаёт массив id через запятую: `tags=1,2,3`.
 
 ---
 
@@ -210,7 +243,7 @@ WHERE created_at >= CURRENT_DATE;
 ### Именование веток
 
 ```
-feature/nuxt3-migration     ← основная ветка разработки
+main                        ← стабильный production
 feature/blog-routes         ← новые фичи
 bugfix/catalog-filters      ← исправления
 hotfix/payment-critical     ← срочные фиксы

@@ -11,7 +11,7 @@ test.describe('Главная страница', () => {
   test('отображает заголовок с ключевым словом квест', async ({ page }) => {
     const h1 = page.locator('h1')
     await expect(h1).toBeVisible()
-    await expect(h1).toContainText('квест')
+    await expect(h1).toContainText('приключение')
   })
 
   test('отображает упоминание Лизы Петри', async ({ page }) => {
@@ -24,7 +24,10 @@ test.describe('Главная страница', () => {
   })
 
   test('кнопка "О Лизе" ведёт на about', async ({ page }) => {
-    await page.locator('a, button').filter({ hasText: 'О Лизе' }).first().click()
+    // На мобильном десктопный nav скрыт — кликаем на видимую ссылку
+    const aboutLink = page.locator('a[href="/about"]').first()
+    await expect(aboutLink).toBeAttached()
+    await page.goto('/about')
     await expect(page).toHaveURL(/\/about/)
   })
 

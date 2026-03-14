@@ -7,8 +7,7 @@
             Превратите свидание в <span class="gradient-text">незабываемое приключение</span>
           </h1>
           <p class="hero-description">
-            Создам персональный квест специально для вас и вашей второй половинки 
-            уникальный сценарий, живые эмоции, готовится от 24 часов.
+            Персональный сценарий для двоих — с вашими местами, вашей историей<br class="br-desktop"> и эмоциями, которые хочется помнить.
           </p>
           <div class="hero-actions">
             <NuxtLink to="/catalog" class="btn-primary"> Выбрать квест</NuxtLink>
@@ -17,17 +16,18 @@
           <div class="hero-stats">
             <div class="stat">
               <div class="stat-number">{{ stats?.total_templates ?? '...' }}</div>
-              <div class="stat-label">Шаблонов квестов</div>
+              <div class="stat-label">Готовых сценариев</div>
             </div>
             <div class="stat">
-              <div class="stat-number">от 24ч</div>
-              <div class="stat-label">Срок выполнения</div>
+              <div class="stat-number">за 24ч</div>
+              <div class="stat-label">Срок создания</div>
             </div>
             <div class="stat">
-              <div class="stat-number">100%</div>
-              <div class="stat-label">Персональный подход</div>
+              <div class="stat-number">с 2024</div>
+              <div class="stat-label">Создаём квесты</div>
             </div>
           </div>
+          <p class="hero-process">Общаемся с парой, уточняем детали, погружаемся в вашу историю</p>
         </div>
         <div class="hero-image">
           <img :src="heroImg" alt="Quest Dating — романтический свидание-квест" />
@@ -163,7 +163,6 @@ import { computed } from 'vue'
 import { BLOG_POSTS } from '~/data/blogPosts'
 
 const heroImg = '/images/love-in-the-air.svg'
-
 const { getCategories, getFeaturedDates, getPopularDates, getStats, getFeaturedReviews } = useDatesApi()
 
 useSeoMeta({
@@ -243,15 +242,58 @@ const testimonials = computed(() => {
 .hero::before { content: ''; position: absolute; inset: 0; background: url('/images/pattern.svg') repeat; opacity: 0.1; }
 .hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; }
 .hero-content { max-width: 600px; }
-.hero-title { font-size: 3.5rem; font-weight: 900; line-height: 1.2; margin: 0 0 24px 0; }
-.gradient-text { background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.hero-description { font-size: 1.25rem; line-height: 1.6; margin: 0 0 32px 0; opacity: 0.95; }
+.hero-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 3.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.01em;
+}
+.gradient-text {
+  font-style: italic;
+  font-weight: 900;
+  font-size: 1.18em;
+  line-height: 1.1;
+  display: inline-block;
+  background: linear-gradient(to right, #fde68a, #fb923c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 16px rgba(251,146,60,0.45));
+}
+.hero-description { font-size: 1.1rem; line-height: 1.7; margin: 0 0 32px 0; opacity: 0.88; font-weight: 300; }
 .hero-actions { display: flex; gap: 16px; margin-bottom: 48px; }
-.btn-primary, .btn-secondary { padding: 16px 32px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; transition: all 0.3s; display: inline-block; }
-.btn-primary { background: white; color: #667eea; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
-.btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; backdrop-filter: blur(10px); }
-.btn-secondary:hover { background: rgba(255,255,255,0.3); }
+.btn-primary, .btn-secondary {
+  padding: 15px 32px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-block;
+  letter-spacing: 0.02em;
+}
+.btn-primary {
+  background: white;
+  color: #764ba2;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.25); }
+.btn-secondary {
+  background: transparent;
+  color: white;
+  border: 1.5px solid rgba(255,255,255,0.6);
+}
+.btn-secondary:hover { border-color: white; background: rgba(255,255,255,0.1); }
+.hero-process {
+  margin-top: 16px;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
 .hero-stats { display: flex; align-items: center; }
 .stat { flex: 1; text-align: center; padding: 12px 8px; position: relative; }
 .stat + .stat::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 1px; background: rgba(255,255,255,0.3); }
@@ -270,7 +312,18 @@ const testimonials = computed(() => {
 .link-more { color: #667eea; font-weight: 600; text-decoration: none; font-size: 1.1rem; transition: color 0.3s; white-space: nowrap; }
 .link-more:hover { color: #764ba2; }
 .loading-state { display: flex; justify-content: center; padding: 60px 20px; }
-.categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 .how-it-works { background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); }
 .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; padding-top: 24px; }
 .step { text-align: center; position: relative; padding: 44px 24px 28px; background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: all 0.3s; display: flex; flex-direction: column; align-items: center; }
@@ -301,15 +354,31 @@ const testimonials = computed(() => {
 @media (max-width: 1024px) {
   .hero .container { grid-template-columns: 1fr; gap: 40px; }
   .hero-image { order: -1; }
-  .hero-title { font-size: 2.5rem; }
+  .hero-title { font-size: 2.4rem; }
 }
 @media (max-width: 768px) {
-  .blog-preview-grid { grid-template-columns: 1fr; }
   .blog-section { padding: 40px 0; }
+  .blog-preview-grid {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+    padding-bottom: 12px;
+    /* Убираем полосу прокрутки визуально, но оставляем функциональность */
+    scrollbar-width: none;
+  }
+  .blog-preview-grid::-webkit-scrollbar { display: none; }
+  .blog-preview-card {
+    flex: 0 0 75vw;
+    max-width: 300px;
+    scroll-snap-align: start;
+  }
   .hero { padding: 100px 0 48px; background: linear-gradient(to bottom, rgba(102,126,234,0.82) 0%, rgba(118,75,162,0.88) 100%), url('/images/love-in-the-air.svg') center / cover no-repeat; }
   .hero-image { display: none; }
   .hero .container { grid-template-columns: 1fr; }
-  .hero-title { font-size: 2rem; }
+  .hero-title { font-size: 1.9rem; }
   .hero-description { font-size: 1rem; }
   .hero-actions { flex-direction: column; }
   .stat-number { font-size: 1.3rem; }
@@ -320,13 +389,20 @@ const testimonials = computed(() => {
   .link-more { font-size: 0.65rem; opacity: 0.55; }
   .steps-grid { grid-template-columns: 1fr; }
 }
+.br-desktop { display: inline; }
 @media (max-width: 640px) {
+  .br-desktop { display: none; }
   .section-title { font-size: 1.2rem; }
   .section-description { display: none; }
   .categories-section { padding: 28px 0; }
   .categories-section .container { padding: 0; }
   .categories-section .section-title { padding: 0 20px; }
-  .categories-grid { display: flex; flex-direction: column; padding: 0 20px; gap: 0; }
+  .categories-grid {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 0;
+  }
   .categories-grid > *:not(:first-child) { margin-top: -18px; }
   .categories-grid > *:nth-child(1) { z-index: 5; position: relative; transform: rotate(-0.5deg); }
   .categories-grid > *:nth-child(2) { z-index: 4; position: relative; transform: rotate(0.3deg); }

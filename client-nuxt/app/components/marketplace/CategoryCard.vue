@@ -66,8 +66,8 @@ const pluralize = (count, one, few, many) => {
 
 .category-card:hover {
   border-color: var(--category-color, #667eea);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  background: #fafbff;
 }
 
 .category-card:hover::before {

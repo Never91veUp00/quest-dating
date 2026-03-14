@@ -24,10 +24,10 @@ test.describe('Хедер — навигация', () => {
     await expect(nav.locator('a[href="/about"]')).toBeVisible()
   })
 
-  test('кнопка "Заказать свидание-квест" содержит правильный текст', async ({ page }) => {
+  test('кнопка CTA в хедере содержит текст заказа', async ({ page }) => {
     await expect(
-      page.locator('header a, .header a').filter({ hasText: 'Заказать свидание-квест' }).first()
-    ).toContainText('Заказать свидание-квест')
+      page.locator('header a, .header a').filter({ hasText: 'Заказать' }).first()
+    ).toContainText('Заказать')
   })
 
   test('логотип ведёт на главную', async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe('Хедер — мобильное меню', () => {
   test('мобильное меню содержит "Заказать свидание-квест"', async ({ page }) => {
     await page.locator('.btn-mobile-menu').click()
     await expect(page.locator('.mobile-menu')).toBeVisible({ timeout: 3000 })
-    await expect(page.locator('.mobile-nav')).toContainText('Заказать свидание-квест')
+    await expect(page.locator('.mobile-nav')).toContainText('Заказать квест')
   })
 
   test('мобильное меню закрывается при клике на ссылку', async ({ page }) => {

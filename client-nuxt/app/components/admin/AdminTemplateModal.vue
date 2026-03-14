@@ -330,8 +330,10 @@ const uploadFiles = async (files) => {
     const token = useCookie('auth_token')
     const config = useRuntimeConfig()
     const baseURL = import.meta.server ? config.apiBaseInternal : config.public.apiBase
-    const res = await $fetch(`${baseURL}/admin/upload/images`, { method: 'POST', body: formData, headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
-      headers: { 'Content-Type': 'multipart/form-data' }
+    const res = await $fetch(`${baseURL}/admin/upload/images`, {
+      method: 'POST',
+      body: formData,
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
     })
     clearInterval(timer)
     galleryUploadProgress.value = 100

@@ -29,7 +29,7 @@
 ```bash
 git clone git@github.com:Never91veUp00/quest-dating.git
 cd quest-dating
-git checkout feature/nuxt3-migration
+git checkout main  # или feature/nuxt3-migration в разработке
 ```
 
 ### 2. Установить зависимости
@@ -96,13 +96,19 @@ docker-compose down
 Сервисы:
 - `postgres` — PostgreSQL (порт 5432)
 - `server` — Express API (порт 5000)
-- `client` — Nuxt 4 (порт 3000)
+- `client` — Nuxt 4 SSR (порт 3000)
+- `nginx` — обратный прокси (порты 80/443)
 
 ### Первый запуск с Docker
 
 ```bash
 # Дождаться старта postgres, затем применить схему
 docker-compose exec server npm run db:init
+
+# Применить SEO-описания категорий
+docker-compose exec postgres psql -U quest_user -d quest_dating \
+  -f /docker-entrypoint-initdb.d/update_categories.sql
+# (или psql локально: psql -U quest_user -d quest_dating -f database/update_categories.sql)
 ```
 
 ---
@@ -163,7 +169,7 @@ NUXT_API_BASE_INTERNAL=http://server:5000/api
 ```bash
 # На сервере
 cd /opt/quest-dating
-git pull origin feature/nuxt3-migration
+git pull origin main
 
 # Пересобрать и перезапустить изменённые сервисы
 docker-compose build client server
@@ -176,26 +182,18 @@ docker-compose logs -f --tail=50
 
 ### Nginx (обратный прокси)
 
-```nginx
-server {
-    server_name questdating.ru www.questdating.ru;
+Nginx запускается в Docker-контейнере. Конфиг: `nginx/nginx.conf`.
 
-    # Nuxt 4 SSR
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Загруженные файлы (статика с сервера)
-    location /uploads {
-        proxy_pass http://localhost:5000;
-    }
-}
+```bash
+# SSL через Let's Encrypt (на хосте, не в контейнере)
+certbot certonly --standalone -d questdating.ru -d www.questdating.ru
+# Сертификаты монтируются в контейнер через volume nginx/ssl/
 ```
 
-SSL через Let's Encrypt: `certbot --nginx -d questdating.ru -d www.questdating.ru`
+Структура запросов:
+- `questdating.ru/` → Nuxt 4 SSR (контейнер `client:3000`)
+- `questdating.ru/api/` → Express (контейнер `server:5000`)
+- `questdating.ru/uploads/` → volume `uploads` напрямую (без Node.js)
 
 ---
 

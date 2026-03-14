@@ -9,8 +9,8 @@
             <span class="logo-text">Quest Dating</span>
           </div>
           <p class="footer-description" itemprop="description">
-            Персональные романтические квесты для свиданий.
-            Каждый квест создаётся вручную — с уникальным сценарием, заданиями на локациях, загадками и сюрпризами, адаптированными под вашу пару.
+            Лиза Петри создаёт персональные свидания-квесты для пар.
+            Каждый сценарий — с нуля под вашу историю: ваш город, ваши места, ваши детали.
           </p>
           <div class="footer-social">
             <a href="https://t.me/vinatian00" target="_blank" rel="noopener noreferrer" class="social-link social-link--tg" aria-label="Telegram">
@@ -31,7 +31,7 @@
           <ul class="footer-links">
             <li><NuxtLink to="/">Главная</NuxtLink></li>
             <li><NuxtLink to="/catalog">Каталог квестов</NuxtLink></li>
-            <li><NuxtLink to="/about">О создателе</NuxtLink></li>
+            <li><NuxtLink to="/about">О Лизе Петри</NuxtLink></li>
             <li><NuxtLink to="/blog">Блог</NuxtLink></li>
           </ul>
           <h4 class="footer-title footer-title--legal">Документы</h4>
@@ -75,7 +75,7 @@
       <!-- Нижний футер -->
       <div class="footer-bottom">
         <p class="copyright">
-          © {{ currentYear }} Quest Dating · Влад и Лиза Петровы
+          © {{ currentYear }} Quest Dating · Лиза Петри
         </p>
         <nav class="footer-legal" aria-label="Правовые документы">
           <NuxtLink to="/terms">Условия использования</NuxtLink>

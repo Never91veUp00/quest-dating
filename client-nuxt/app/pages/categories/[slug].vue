@@ -14,8 +14,10 @@
     </div>
 
     <div v-else-if="category" class="category-content">
-      <div class="container">
-        <Breadcrumbs :crumbs="breadcrumbs" />
+      <div class="breadcrumbs-bar">
+        <div class="container">
+          <Breadcrumbs :crumbs="breadcrumbs" />
+        </div>
       </div>
 
       <section class="category-header">
@@ -100,7 +102,6 @@ import { ref, computed } from 'vue'
 const route  = useRoute()
 const router = useRouter()
 const { getCategory, getDates, getCategories } = useDatesApi()
-
 const { data: categoryRaw, pending, error } = await useAsyncData(
   `category-${route.params.slug}`,
   () => getCategory(route.params.slug),
@@ -111,13 +112,24 @@ const category = computed(() => categoryRaw.value?.data ?? categoryRaw.value ?? 
 
 const SITE_URL = 'https://questdating.ru'
 
+// SEO title по slug — точные формулировки для каждой категории
+const SEO_TITLES = {
+  anniversary: 'Квест-сюрприз на годовщину отношений | Quest Dating',
+  birthday:    'Свидание-квест на день рождения | Quest Dating',
+  valentines:  'Квест для свидания в День влюблённых | Quest Dating',
+  'womens-day':'Свидание-квест на 8 марта | Quest Dating',
+  home:        'Квест для свидания дома: сценарии | Quest Dating',
+  city:        'Городское свидание-квест: маршруты | Quest Dating',
+  online:      'Онлайн квест-сюрприз для двоих | Quest Dating',
+}
+
 useSeoMeta({
   title:         () => category.value
-    ? `${category.value.name} — свидание-квест | Quest Dating`
+    ? (SEO_TITLES[category.value.slug] || `${category.value.name} — свидание-квест | Quest Dating`)
     : 'Категория | Quest Dating',
-  description:   () => category.value?.description ?? null,
+  description:   () => category.value?.description?.substring(0, 160) ?? null,
   ogTitle:       () => category.value?.name ?? null,
-  ogDescription: () => category.value?.description ?? null,
+  ogDescription: () => category.value?.description?.substring(0, 160) ?? null,
   ogImage:       `${SITE_URL}/og-image.jpg`,
 })
 
@@ -142,7 +154,7 @@ if (category.value) {
 
 const { data: templatesRaw, pending: templatesPending } = await useAsyncData(
   `category-templates-${route.params.slug}`,
-  () => category.value ? getDates({ category: category.value.slug }) : Promise.resolve(null),
+  () => category.value ? getDates({ category: category.value.id }) : Promise.resolve(null),
   { watch: [() => route.params.slug], transform: (d) => d ? JSON.parse(JSON.stringify(d)) : null }
 )
 
@@ -214,24 +226,39 @@ const updateUrl = () => {
 
 <style scoped>
 .category-page { min-height: 100vh; background: #f7fafc; }
+.breadcrumbs-bar { background: white; border-bottom: 1px solid #e2e8f0; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 .loading-container, .error-container { display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 40px 20px; }
 .error-content { text-align: center; max-width: 500px; }
 .error-icon { font-size: 5rem; margin-bottom: 24px; }
 .error-content h2 { font-size: 2rem; font-weight: 700; color: #2d3748; margin: 0 0 12px 0; }
 .error-content p { color: #718096; margin: 0 0 32px 0; }
-.btn-back, .btn-browse { display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.3s; }
+.btn-back, .btn-browse { display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s; letter-spacing: 0.02em; }
 .btn-back:hover, .btn-browse:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
 .category-header { background: white; padding: 60px 0; border-bottom: 1px solid #e2e8f0; }
 .header-content { display: flex; align-items: center; gap: 32px; }
 .category-icon { width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 4rem; flex-shrink: 0; box-shadow: 0 8px 24px rgba(102,126,234,0.3); }
-.category-title { font-size: 3rem; font-weight: 900; color: #2d3748; margin: 0 0 16px 0; }
+.category-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #2d3748;
+  margin: 0 0 16px 0;
+}
 .category-description { font-size: 1.25rem; color: #718096; margin: 0 0 20px 0; line-height: 1.6; }
 .category-meta { display: flex; gap: 20px; }
 .meta-item { font-size: 1rem; color: #4a5568; font-weight: 600; }
 .templates-section { padding: 60px 0; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-.section-title { font-size: 2rem; font-weight: 800; color: #2d3748; margin: 0; }
+.section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #2d3748;
+  margin: 0;
+}
 .sorting { display: flex; align-items: center; gap: 12px; }
 .sorting label { color: #718096; font-size: 0.9rem; font-weight: 500; }
 .sort-select { padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; color: #4a5568; background: white; cursor: pointer; transition: border-color 0.3s; }
@@ -246,7 +273,7 @@ const updateUrl = () => {
 .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-top: 40px; }
 @media (max-width: 768px) {
   .header-content { flex-direction: column; text-align: center; }
-  .category-title { font-size: 2rem; }
+  .category-title { font-size: 1.8rem; }
   .section-header { flex-direction: column; align-items: flex-start; gap: 20px; }
   .sorting { width: 100%; justify-content: space-between; }
   .templates-grid { grid-template-columns: 1fr; }

@@ -64,19 +64,27 @@ export default defineNuxtConfig({
 
   sitemap: {
     exclude: ['/admin/**', '/quest/**', '/order/**'],
-    include: ['/blog', '/blog/**'],
+    // blog prerender — страницы автоматически попадают в sitemap через routeRules
   },
 
   robots: {
-    disallow: ['/admin', '/quest', '/order'],
+    groups: [
+      {
+        userAgent: ['*'],
+        disallow: ['/admin/', '/quest/', '/order/'],
+        allow: ['/'],
+      }
+    ],
+    sitemap: ['https://questdating.ru/sitemap.xml'],
   },
 
   nitro: {
     devProxy: {
       // ВАЖНО: /templates НЕ проксируем — конфликт с Nuxt pages роутом /date/[slug]
-      '/api':     { target: 'http://localhost:5000', changeOrigin: true },
-      '/images':  { target: 'http://localhost:5000', changeOrigin: true },
-      '/uploads': { target: 'http://localhost:5000', changeOrigin: true },
+      // /uploads убран — обрабатывается через server/routes/uploads/[...path].js
+      // (devProxy работает только для fetch/XHR, не для <img src>)
+      '/api':    { target: 'http://localhost:5000', changeOrigin: true },
+      '/images': { target: 'http://localhost:5000', changeOrigin: true },
     }
   },
 

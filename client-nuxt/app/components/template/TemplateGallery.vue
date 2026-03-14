@@ -14,7 +14,7 @@
       <div v-else class="gallery-placeholder">
         <img
           :src="PLACEHOLDER"
-          alt="Изображение квеста"
+          :alt="`${template.title} — свидание-квест, фото`"
           class="placeholder-img"
         />
       </div>
@@ -52,7 +52,7 @@
       >
         <img
           :src="image"
-          :alt="`${template.title} ${index + 1}`"
+          :alt="`${template.title} — свидание-квест, фото ${index + 1}`"
           @error="onImgError"
         />
       </div>

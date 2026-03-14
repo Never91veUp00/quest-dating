@@ -1,9 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { mockHomepageApi } from './fixtures/mockApi'
 
-// Мок для POST /api/orders — перехватывает оба варианта URL:
-// - localhost:3000/api/orders (через Nuxt devProxy, если сервер перезапущен)
-// - localhost:5000/api/orders (прямой, если сервер работает со старым конфигом)
 async function mockOrdersApi(page: Page) {
   const orderResponse = {
     status: 201,
@@ -27,50 +24,36 @@ async function navigateToOrderPage(page: Page) {
   await page.locator('a[href*="/order/"]').first().waitFor({ state: 'visible', timeout: 5000 })
   await page.locator('a[href*="/order/"]').first().click()
   await page.waitForURL(/\/order\//, { timeout: 5000 })
-  // Ждём загрузки шаблона квеста (v-else-if="template" — CSR страница)
   await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible', timeout: 15000 })
 }
 
 test.describe('Создание заказа', () => {
-  test('полный флоу: выбрать квест → заполнить форму → отправить', async ({ page }) => {
-    // Мокируем ДО навигации — оба возможных URL
+  test('полный флоу: 4 шага → отправить', async ({ page }) => {
     await mockOrdersApi(page)
-
     await navigateToOrderPage(page)
 
-    // ── Шаг 1: Контакты ──────────────────────────────────────────
-    await page.locator('input[placeholder="Иван Иванов"]').fill('Александр Тестовый')
+    // Шаг 1: Контакты
+    await page.locator('input[placeholder="Иван"]').fill('Александр Тестовый')
     await page.locator('input[placeholder="ivan@example.com"]').fill('test@example.com')
     await page.locator('input[placeholder="+7 999 123-45-67"]').fill('+79161234567')
-
-    const dateInput = page.locator('input[type="date"]').first()
-    if (await dateInput.isVisible()) {
-      const future = new Date()
-      future.setMonth(future.getMonth() + 3)
-      await dateInput.fill(future.toISOString().split('T')[0])
-    }
-
+    const future = new Date()
+    future.setMonth(future.getMonth() + 3)
+    await page.locator('input[type="date"]').first().fill(future.toISOString().split('T')[0])
     await page.locator('.btn-nav.btn-next').click()
 
-    // ── Шаг 2: Настройка — пропускаем ────────────────────────────
+    // Шаг 2: Настройка — пропускаем
     await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible' })
     await page.locator('.btn-nav.btn-next').click()
 
-    // ── Шаг 3: Описание + согласие ───────────────────────────────
-    await page.locator('textarea#description').fill(
-      'Романтический вечер для двоих. Хотим провести незабываемый квест в честь годовщины свадьбы.'
-    )
+    // Шаг 3: О паре — пропускаем
+    await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible' })
+    await page.locator('.btn-nav.btn-next').click()
 
-    // Чекбокс кастомный: кликаем на .checkbox-box (квадратик),
-    // а не на весь label — внутри label есть <a @click.stop> которые
-    // поглощают клик и не дают всплыть до @click на label
+    // Шаг 4: Пожелания + согласие
+    await page.locator('button.btn-submit').waitFor({ state: 'visible' })
     const checkboxBox = page.locator('.checkbox-box').first()
-    if (await checkboxBox.isVisible()) {
-      await checkboxBox.click()
-    }
-    // Убеждаемся что согласие отмечено (появляется .checkbox-tick)
+    if (await checkboxBox.isVisible()) await checkboxBox.click()
     await expect(page.locator('.checkbox-tick').first()).toBeVisible({ timeout: 2000 })
-
     await page.locator('button.btn-submit').click()
 
     await expect(page.locator('.success-modal').first()).toBeVisible({ timeout: 8000 })
@@ -80,7 +63,39 @@ test.describe('Создание заказа', () => {
   test('форма показывает ошибки при пустой отправке шага 1', async ({ page }) => {
     await navigateToOrderPage(page)
     await page.locator('.btn-nav.btn-next').click()
-    // Валидация: остаёмся на шаге 1 (toast с ошибкой)
-    await expect(page.locator('input[placeholder="Иван Иванов"]')).toBeVisible({ timeout: 3000 })
+    await expect(page.locator('input[placeholder="Иван"]')).toBeVisible({ timeout: 3000 })
+  })
+
+  test('прогресс-бар показывает 4 шага', async ({ page }) => {
+    await navigateToOrderPage(page)
+    await expect(page.locator('.progress-step')).toHaveCount(4)
+  })
+
+  test('шаг 3 содержит вопросы о паре', async ({ page }) => {
+    await navigateToOrderPage(page)
+    await page.locator('input[placeholder="Иван"]').fill('Тест')
+    await page.locator('input[placeholder="ivan@example.com"]').fill('test@example.com')
+    const future = new Date()
+    future.setMonth(future.getMonth() + 1)
+    await page.locator('input[type="date"]').first().fill(future.toISOString().split('T')[0])
+    await page.locator('.btn-nav.btn-next').click()
+    await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible' })
+    await page.locator('.btn-nav.btn-next').click()
+    await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible' })
+    await expect(page.locator('.step-title')).toContainText('Расскажите о вашей паре')
+    await expect(page.locator('.qa-hint')).toBeVisible()
+  })
+
+  test('кнопка «Назад» возвращает на предыдущий шаг', async ({ page }) => {
+    await navigateToOrderPage(page)
+    await page.locator('input[placeholder="Иван"]').fill('Тест')
+    await page.locator('input[placeholder="ivan@example.com"]').fill('test@example.com')
+    const future = new Date()
+    future.setMonth(future.getMonth() + 1)
+    await page.locator('input[type="date"]').first().fill(future.toISOString().split('T')[0])
+    await page.locator('.btn-nav.btn-next').click()
+    await page.locator('.btn-nav.btn-next').waitFor({ state: 'visible' })
+    await page.locator('.btn-nav.btn-prev').click()
+    await expect(page.locator('input[placeholder="Иван"]')).toBeVisible()
   })
 })

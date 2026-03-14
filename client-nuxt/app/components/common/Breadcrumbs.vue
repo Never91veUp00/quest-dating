@@ -48,8 +48,10 @@ const prevCrumb = computed(() => {
 
 <style scoped>
 .breadcrumbs {
-  padding: 16px 0;
-  margin-bottom: 8px;
+  padding: 10px 0;
+  margin-bottom: 0;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 /* Десктоп — показываем полную цепочку */
@@ -93,7 +95,7 @@ const prevCrumb = computed(() => {
   user-select: none;
 }
 
-/* Мобильная кнопка "← Назад" — скрыта на десктопе */
+/* Мобильная кнопка "← Назад" — только на мобилке */
 .breadcrumb-back {
   display: none;
   align-items: center;
@@ -110,10 +112,10 @@ const prevCrumb = computed(() => {
 }
 
 @media (max-width: 768px) {
+  /* На мобилке скрываем полную цепочку, показываем только "← Назад" */
   .breadcrumbs-list {
     display: none;
   }
-
   .breadcrumb-back {
     display: flex;
   }
