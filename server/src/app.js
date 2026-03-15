@@ -10,7 +10,7 @@ import { sanitizeQuery } from './middleware/validator.js'
 import { generalLimiter, adminLimiter } from './middleware/rateLimiter.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const UPLOADS_DIR = path.resolve(__dirname, '../../server/uploads')
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../uploads')
 
 export const createApp = () => {
   const app = express()
@@ -20,9 +20,11 @@ export const createApp = () => {
   app.use(compression())
   app.use(cors({
     origin: (origin, callback) => {
+      // Запросы без origin (server-to-server, Nuxt SSR, curl) — всегда разрешаем
       if (!origin) return callback(null, true)
       if (allowedOrigins.includes(origin)) return callback(null, true)
-      if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+      // В dev и при локальном запуске — разрешаем localhost
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
         return callback(null, true)
       }
       callback(new Error(`CORS: origin ${origin} not allowed`))

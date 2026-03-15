@@ -300,7 +300,7 @@ const formData = reactive({
     if (this.wish_mood)       parts.push(`Настроение: ${this.wish_mood}`)
     if (this.wish_ideas)      parts.push(`Идеи: ${this.wish_ideas}`)
     if (this.wish_other)      parts.push(`Дополнительно: ${this.wish_other}`)
-    return parts.join('\n\n')
+    return parts.length ? parts.join('\n\n') : 'Пожелания не указаны'
   }
 })
 

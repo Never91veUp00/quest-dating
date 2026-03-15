@@ -175,7 +175,10 @@
           class="qe-game-option" :class="{ correct: task.game_correct === i }">
           <span class="qe-game-option__letter" @click="task.game_correct = i"
             title="Отметить правильным">{{ 'АБВГ'[i] }}</span>
-          <input v-model="task.game_options[i]" :placeholder="`Вариант ${i + 1}`"
+          <input
+            :value="(task.game_options || [])[i] || ''"
+            @input="e => { if (!task.game_options) task.game_options = ['','','','']; task.game_options[i] = e.target.value }"
+            :placeholder="`Вариант ${i + 1}`"
             class="qe-game-option__input" />
           <span v-if="task.game_correct === i" class="qe-game-option__check">✓</span>
         </div>

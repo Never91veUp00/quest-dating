@@ -172,31 +172,10 @@ useSeoMeta({
   ogDescription: 'Превратите свидание в незабываемое приключение. Персональные романтические квесты от Влада.',
 })
 
-// При SSR проверяем существование /uploads/ файлов через fs.existsSync
-// Несуществующие пути → null → withFallback(null) → placeholder без 404 запросов
-let checkUpload = null
-if (import.meta.server) {
-  const { existsSync } = await import('node:fs')
-  const { resolve, join } = await import('node:path')
-  const uploadsDir = resolve(process.cwd(), '../server/uploads')
-  checkUpload = (p) => {
-    if (!p || typeof p !== 'string') return null
-    if (p.startsWith('http')) return p
-    if (p.startsWith('/uploads/')) return existsSync(join(uploadsDir, p.slice(9))) ? p : null
-    return null
-  }
-}
-
+// cleanTemplates — просто пробрасываем данные как есть
+// Проверка existsSync убрана: в Docker путь отличается, а @error на img покажет placeholder
 function cleanTemplates(data) {
-  if (!checkUpload) return data  // на клиенте не трогаем
-  const list = Array.isArray(data) ? data : data?.data
-  if (!Array.isArray(list)) return data
-  const cleaned = list.map(t => ({
-    ...t,
-    cover_image:   checkUpload(t.cover_image),
-    author_avatar: checkUpload(t.author_avatar),
-  }))
-  return Array.isArray(data) ? cleaned : { ...data, data: cleaned }
+  return data
 }
 
 const { data: homeData, pending: homePending } = await useAsyncData('home-all', async () => {

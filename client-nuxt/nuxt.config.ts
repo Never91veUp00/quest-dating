@@ -36,13 +36,16 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    // Production proxy: Nuxt проксирует /api/** на Express
+    // /uploads/** обрабатывается через server/routes/uploads/[...path].js
+    '/api/**':    { proxy: { to: 'http://server:5000/api/**' } },
     '/':              { ssr: true, swr: 300   },
     '/catalog':       { ssr: true, swr: 300   },
     '/date/**':       { ssr: true, swr: 600   },
     '/categories/**': { ssr: true, isr: false },
     '/about':         { ssr: true, swr: 3600  },
-    '/blog':           { prerender: true },
-    '/blog/**':        { prerender: true },
+    '/blog':           { ssr: true, swr: 3600 },
+    '/blog/**':        { ssr: true, swr: 3600 },
     '/terms':         { ssr: true },
     '/privacy':       { ssr: true },
     '/admin/**':      { ssr: false },

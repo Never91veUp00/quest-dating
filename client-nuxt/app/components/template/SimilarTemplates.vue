@@ -25,7 +25,7 @@
           :key="template.id"
           class="slider-item"
         >
-          <TemplateCard :template="template" />
+          <TemplateCard :template="template" @quickView="handleQuickView" />
         </div>
       </div>
 
@@ -37,6 +37,11 @@
         →
       </button>
     </div>
+      <QuickViewModal
+      :template="quickViewTemplate"
+      :is-open="showQuickView"
+      @close="showQuickView = false"
+    />
   </div>
 </template>
 
@@ -56,6 +61,13 @@ const { getSimilarDates } = useDatesApi()
 const templates = ref([])
 const loading = ref(true)
 const sliderTrack = ref(null)
+const showQuickView = ref(false)
+const quickViewTemplate = ref(null)
+
+const handleQuickView = (template) => {
+  quickViewTemplate.value = template
+  showQuickView.value = true
+}
 const scrollPosition = ref(0)
 
 const canScrollLeft = computed(() => scrollPosition.value > 0)

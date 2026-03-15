@@ -68,6 +68,7 @@
               v-for="template in paginatedTemplates"
               :key="template.id"
               :template="template"
+              @quickView="handleQuickView"
             />
           </div>
 
@@ -93,7 +94,12 @@
         </div>
       </section>
     </div>
-  </div>
+    <QuickViewModal
+    :template="quickViewTemplate"
+    :is-open="showQuickView"
+    @close="showQuickView = false"
+  />
+</div>
 </template>
 
 <script setup>
@@ -169,6 +175,13 @@ const allCategories = computed(() => categoriesRaw.value?.data ?? categoriesRaw.
 
 const sortBy       = ref(route.query.sort_by || 'newest')
 const currentPage  = ref(Number(route.query.page) || 1)
+const showQuickView = ref(false)
+const quickViewTemplate = ref(null)
+
+const handleQuickView = (template) => {
+  quickViewTemplate.value = template
+  showQuickView.value = true
+}
 const itemsPerPage = 12
 
 const breadcrumbs = computed(() => [

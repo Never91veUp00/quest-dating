@@ -268,33 +268,68 @@
 
           <!-- Найди пары -->
           <template v-else-if="task.game_type === 'pairs'">
-            <div class="task__pairs">
-              <button
-                v-for="(card, ci) in pairsCards"
-                :key="ci"
-                class="task__pairs__card"
-                :class="{
-                  flipped:  pairsFlipped.includes(ci),
-                  matched:  pairsMatched.includes(ci),
-                }"
-                :disabled="pairsMatched.includes(ci) || pairsFlipped.length === 2"
-                @click="flipCard(ci)"
-              >
-                <div class="task__pairs__card__inner">
-                  <div class="task__pairs__card__back">?</div>
-                  <div class="task__pairs__card__front">
-                    <img v-if="isCardImage(card.value)" :src="card.value" class="task__pairs__card__img" />
-                    <span v-else>{{ card.value }}</span>
+            <!-- Текстовые пары: task.pairs = [{left, right}] -->
+            <template v-if="task.pairs && task.pairs.length">
+              <div class="task__text-pairs">
+                <div class="task__text-pairs__cols">
+                  <div class="task__text-pairs__col">
+                    <button
+                      v-for="(pair, pi) in task.pairs"
+                      :key="'l'+pi"
+                      class="task__text-pairs__item"
+                      :class="{
+                        selected: textPairsLeftSelected === pi,
+                        matched:  textPairsMatched.includes(pi)
+                      }"
+                      :disabled="textPairsMatched.includes(pi)"
+                      @click="selectTextPairLeft(pi)"
+                    >{{ pair.left }}</button>
+                  </div>
+                  <div class="task__text-pairs__col">
+                    <button
+                      v-for="(item, ri) in textPairsRightShuffled"
+                      :key="'r'+ri"
+                      class="task__text-pairs__item task__text-pairs__item--right"
+                      :class="{
+                        selected: textPairsRightSelected === ri,
+                        matched:  textPairsMatchedRight.includes(ri)
+                      }"
+                      :disabled="textPairsMatchedRight.includes(ri)"
+                      @click="selectTextPairRight(ri)"
+                    >{{ item.value }}</button>
                   </div>
                 </div>
-              </button>
-            </div>
-            <div v-if="pairsComplete" class="task__quiz-result task__quiz-result--right">
-              Все пары найдены! 🎉
-            </div>
-            <button v-if="pairsComplete" class="task__action" @click="$emit('complete', task)">
-              Продолжаем →
-            </button>
+              </div>
+              <div v-if="textPairsWrong" class="task__quiz-result task__quiz-result--wrong">Не совпадает, попробуй ещё раз</div>
+              <div v-if="textPairsComplete" class="task__quiz-result task__quiz-result--right">Все пары найдены! 🎉</div>
+              <button v-if="textPairsComplete" class="task__action" @click="$emit('complete', task)">Продолжаем →</button>
+            </template>
+            <!-- Фото-пары: game_images -->
+            <template v-else>
+              <div class="task__pairs">
+                <button
+                  v-for="(card, ci) in pairsCards"
+                  :key="ci"
+                  class="task__pairs__card"
+                  :class="{
+                    flipped:  pairsFlipped.includes(ci),
+                    matched:  pairsMatched.includes(ci),
+                  }"
+                  :disabled="pairsMatched.includes(ci) || pairsFlipped.length === 2"
+                  @click="flipCard(ci)"
+                >
+                  <div class="task__pairs__card__inner">
+                    <div class="task__pairs__card__back">?</div>
+                    <div class="task__pairs__card__front">
+                      <img v-if="isCardImage(card.value)" :src="card.value" class="task__pairs__card__img" />
+                      <span v-else>{{ card.value }}</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              <div v-if="pairsComplete" class="task__quiz-result task__quiz-result--right">Все пары найдены! 🎉</div>
+              <button v-if="pairsComplete" class="task__action" @click="$emit('complete', task)">Продолжаем →</button>
+            </template>
           </template>
 
           <!-- ════ PUZZLE — тап→выбор→тап→поставить ════ -->
@@ -402,6 +437,47 @@ const pairsMatched = ref([])
 const pairsComplete = computed(() =>
   pairsCards.value.length > 0 && pairsMatched.value.length === pairsCards.value.length
 )
+
+// Текстовые пары
+const textPairsLeftSelected  = ref(null)
+const textPairsRightSelected = ref(null)
+const textPairsMatched       = ref([])   // индексы left которые совпали
+const textPairsMatchedRight  = ref([])   // индексы right которые совпали
+const textPairsWrong         = ref(false)
+const textPairsRightShuffled = computed(() => {
+  if (!props.task.pairs) return []
+  return props.task.pairs
+    .map((p, i) => ({ value: p.right, originalIdx: i }))
+    .sort(() => Math.random() - 0.5)
+})
+const textPairsComplete = computed(() =>
+  props.task.pairs && textPairsMatched.value.length === props.task.pairs.length
+)
+
+const selectTextPairLeft = (pi) => {
+  textPairsWrong.value = false
+  textPairsLeftSelected.value = pi
+  if (textPairsRightSelected.value !== null) checkTextPair()
+}
+const selectTextPairRight = (ri) => {
+  textPairsWrong.value = false
+  textPairsRightSelected.value = ri
+  if (textPairsLeftSelected.value !== null) checkTextPair()
+}
+const checkTextPair = () => {
+  const li = textPairsLeftSelected.value
+  const ri = textPairsRightSelected.value
+  const rightItem = textPairsRightShuffled.value[ri]
+  if (rightItem.originalIdx === li) {
+    textPairsMatched.value = [...textPairsMatched.value, li]
+    textPairsMatchedRight.value = [...textPairsMatchedRight.value, ri]
+  } else {
+    textPairsWrong.value = true
+    setTimeout(() => { textPairsWrong.value = false }, 1000)
+  }
+  textPairsLeftSelected.value  = null
+  textPairsRightSelected.value = null
+}
 
 onMounted(() => {
   if (props.task.type === 'mini_game' && props.task.game_type === 'pairs') {
@@ -950,4 +1026,16 @@ const resolvedMediaType = (task) => {
   .task__location-card { padding: 12px; }
   .task__media__tg-link { padding: 14px; }
 }
+.task__text-pairs { margin: 16px 0; }
+.task__text-pairs__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.task__text-pairs__col { display: flex; flex-direction: column; gap: 8px; }
+.task__text-pairs__item {
+  padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; text-align: left;
+  background: var(--task-bg, rgba(255,255,255,0.08)); border: 2px solid transparent;
+  color: inherit; cursor: pointer; transition: all 0.2s; line-height: 1.4;
+}
+.task__text-pairs__item:hover:not(:disabled) { border-color: var(--theme-accent, #667eea); }
+.task__text-pairs__item.selected { border-color: var(--theme-accent, #667eea); background: rgba(102,126,234,0.15); }
+.task__text-pairs__item.matched { border-color: #48bb78; background: rgba(72,187,120,0.15); opacity: 0.7; cursor: default; }
+.task__text-pairs__item--right { text-align: center; }
 </style>
