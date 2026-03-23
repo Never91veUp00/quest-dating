@@ -266,11 +266,41 @@ const badgeStyle = (d) => { const dd = DIFF[d]||DIFF.medium; return { background
 const formatPrice = (v) => v ? `${Math.round(Number(v)/100).toLocaleString('ru')} ₽` : '—'
 const formatDur = (m) => { if (!m) return ''; const h=Math.floor(m/60),mn=m%60; return h>0?(mn>0?`${h}ч ${mn}м`:`${h}ч`):`${mn}м` }
 
+const SITE_URL = 'https://questdating.ru'
+
 useSeoMeta({
   title:         'Quest Dating — персональные свидания-квесты',
   description:   'Лиза Петри создаёт персональный квест для вашего свидания. Уникальный сценарий под вашу пару — готов за 24 часа. От 499 рублей.',
   ogTitle:       'Quest Dating — персональные свидания-квесты',
   ogDescription: 'Удивите партнёра по-настоящему. Персональные романтические квесты от Лизы Петри.',
+  ogImage:       `${SITE_URL}/og-image.jpg`,
+  ogType:        'website',
+})
+
+useServerHead({
+  script: [
+    { type: 'application/ld+json', innerHTML: () => JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Quest Dating',
+      url: SITE_URL,
+      logo: `${SITE_URL}/og-image.jpg`,
+      description: 'Персональные свидания-квесты от Лизы Петри. Уникальный сценарий под вашу пару за 24 часа.',
+      founder: { '@type': 'Person', name: 'Лиза Петри', url: `${SITE_URL}/about` },
+      contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', url: 'https://t.me/vinatian00' },
+      sameAs: ['https://t.me/vinatian00'],
+    })},
+    { type: 'application/ld+json', innerHTML: () => JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        { '@type': 'Question', name: 'Что такое свидание-квест?', acceptedAnswer: { '@type': 'Answer', text: 'Свидание-квест — это персональный сценарий романтического вечера в формате квеста. Лиза Петри разрабатывает его специально под вашу пару: с вашими местами, вашей историей и вашими деталями.' } },
+        { '@type': 'Question', name: 'Сколько стоит свидание-квест?', acceptedAnswer: { '@type': 'Answer', text: 'Стоимость свидания-квеста начинается от 499 рублей. Цена включает персональную разработку сценария под вашу пару.' } },
+        { '@type': 'Question', name: 'Как долго разрабатывается квест?', acceptedAnswer: { '@type': 'Answer', text: 'Лиза Петри разрабатывает персональный сценарий в течение 24 часов после получения информации о вашей паре.' } },
+        { '@type': 'Question', name: 'Для какого повода подходит свидание-квест?', acceptedAnswer: { '@type': 'Answer', text: 'Свидание-квест подходит для любого повода: день рождения, годовщина, предложение руки и сердца, 14 февраля, 8 марта или просто романтический вечер без повода.' } },
+      ]
+    })},
+  ]
 })
 
 function cleanTemplates(data) { return data }

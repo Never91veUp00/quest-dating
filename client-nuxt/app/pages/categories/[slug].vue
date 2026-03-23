@@ -221,7 +221,7 @@ const pluralize = (n) =>
   font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 900;
   margin: 0 0 6px; letter-spacing: -0.02em;
 }
-.cp__desc { font-size: 0.9rem; color: rgba(240,237,232,0.55); margin: 0 0 8px; line-height: 1.5; }
+.cp__desc { font-size: 0.9rem; color: rgba(240,237,232,0.55); margin: 0 0 8px; line-height: 1.6; white-space: pre-line; max-width: 640px; }
 .cp__count { font-size: 0.78rem; color: rgba(240,237,232,0.3); font-weight: 600; }
 
 /* Body */

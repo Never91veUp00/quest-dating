@@ -93,7 +93,11 @@ export default defineNuxtConfig({
 
   sitemap: {
     exclude: ['/admin/**', '/quest/**', '/order/**'],
-    // blog prerender — страницы автоматически попадают в sitemap через routeRules
+    sources: [
+      // Динамические URL: все /date/:slug и /categories/:slug из БД
+      '/api/sitemap-urls',
+    ],
+    // Статические страницы подхватываются автоматически из routeRules
   },
 
   robots: {

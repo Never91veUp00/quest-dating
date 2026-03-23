@@ -1,6 +1,6 @@
 # Архитектура проекта
 
-Документация по архитектуре Quest Dating платформы.
+Quest Dating — сервис персональных романтических свиданий-квестов от Лизы Петри (questdating.ru). Архитектура построена под SEO-трафик через Nuxt 4 SSR.
 
 ## Оглавление
 
@@ -10,42 +10,41 @@
 - [Frontend архитектура (Nuxt 4)](#frontend-архитектура-nuxt-4)
 - [Backend архитектура](#backend-архитектура)
 - [База данных](#база-данных)
-- [Рендеринг и SEO](#рендеринг-и-seo)
+- [SEO архитектура](#seo-архитектура)
 - [Безопасность](#безопасность)
 
 ---
 
 ## Общий обзор
 
-Quest Dating — сервис персональных романтических квестов от Лизы Петри (бренд questdating.ru). Архитектура построена под SEO-трафик и персональный сервис без мультивендора.
-
 ```
 ┌─────────────────────────────────────────┐
 │           Браузер (Client)              │
 └───────────────┬─────────────────────────┘
-                │ HTTP/HTTPS
+                │ HTTPS (443)
                 ▼
 ┌─────────────────────────────────────────┐
-│              Nginx                       │
-│  questdating.ru → Nuxt 4 (port 3000)   │
-│  /uploads      → Express (port 5000)   │
-└───────┬───────────────────┬─────────────┘
-        │                   │
-        ▼                   ▼
-┌──────────────┐   ┌────────────────┐
-│   Nuxt 4     │   │  Express API   │
-│  SSR+SSG+CSR │   │  (port 5000)  │
-│  (port 3000) │   └───────┬────────┘
-└──────┬───────┘           │
-       │ SSR: internal     ▼
-       │ $fetch      ┌──────────────┐
-       └────────────►│  PostgreSQL  │
-                     └──────────────┘
+│              Nginx                      │
+│  questdating.ru → Nuxt 4 (port 3000)  │
+│  /uploads      → volume (напрямую)    │
+└───────┬─────────────────────────────────┘
+        │
+        ▼
+┌──────────────┐     ┌────────────────┐
+│   Nuxt 4     │────►│  Express API   │
+│  SSR+CSR     │     │  (port 5000)  │
+│  (port 3000) │     └───────┬────────┘
+└──────────────┘             │
+                             ▼
+                      ┌──────────────┐
+                      │  PostgreSQL  │
+                      │  (port 5432) │
+                      └──────────────┘
 ```
 
 ### Инфраструктура
 
-Сервер — Orange Pi 5 Pro, развёрнуто через Docker Compose. Telegram-бот для уведомлений о новых заказах.
+VPS на рег.ру, развёрнуто через Docker Compose (4 контейнера: postgres, server, client, nginx). Telegram-бот для уведомлений о заказах.
 
 ---
 
@@ -55,9 +54,9 @@ Quest Dating — сервис персональных романтически�
 
 | Технология | Версия | Назначение |
 |-----------|--------|------------|
-| Nuxt | 4.x | SSR/SSG/CSR фреймворк |
-| Vue | 3.4+ | UI Framework |
-| Pinia | 2.x | State Management |
+| Nuxt | 4.3+ | SSR/CSR фреймворк |
+| Vue | 3.5+ | UI Framework |
+| Pinia | 2.x | State Management (auth) |
 | @nuxtjs/seo | latest | sitemap, robots, og-tags |
 | Playwright | 1.44+ | E2E тесты |
 | Vitest | 2.x | Unit тесты |
@@ -66,9 +65,9 @@ Quest Dating — сервис персональных романтически�
 
 | Технология | Версия | Назначение |
 |-----------|--------|------------|
-| Node.js | 18+ | Runtime |
+| Node.js | 20 LTS | Runtime |
 | Express | 4.18+ | Web Framework |
-| PostgreSQL | 14+ | База данных |
+| PostgreSQL | 15 | База данных |
 | pg | 8.11+ | PostgreSQL драйвер |
 | JWT | 9.0+ | Аутентификация |
 | express-rate-limit | latest | Rate limiting |
@@ -82,55 +81,62 @@ Quest Dating — сервис персональных романтически�
 quest-dating/
 ├── client-nuxt/                 # Frontend (Nuxt 4)
 │   ├── app/
-│   │   ├── app.vue              # Root с isFullscreen для quest player
-│   │   ├── pages/               # Файловый роутинг Nuxt
-│   │   │   ├── index.vue        # / — главная (SSR + SWR 300s)
+│   │   ├── app.vue              # Root — isFullscreen для quest player
+│   │   ├── error.vue            # Страница ошибок (404, 500)
+│   │   ├── pages/
+│   │   │   ├── index.vue        # / (SSR + SWR 300s)
 │   │   │   ├── catalog.vue      # /catalog (SSR + SWR 300s)
 │   │   │   ├── about.vue        # /about (SSR + SWR 3600s)
 │   │   │   ├── date/[slug].vue  # /date/:slug (SSR + SWR 600s)
+│   │   │   ├── categories/[slug].vue  # /categories/:slug (SSR)
+│   │   │   ├── blog/            # /blog, /blog/:slug (SSR + SWR 3600s)
 │   │   │   ├── order/[templateSlug].vue  # /order/:slug (CSR)
 │   │   │   ├── quest/[slug].vue          # /quest/:slug (CSR)
-│   │   │   └── admin/           # /admin/** (CSR, без SSR)
+│   │   │   └── admin/           # /admin/** (CSR)
 │   │   ├── components/
-│   │   │   ├── common/          # Header, Footer, Modal, Loader...
-│   │   │   ├── marketplace/     # TemplateCard, TemplateGrid...
-│   │   │   ├── order/           # OrderForm, OrderSummary
-│   │   │   └── quest/           # QuestSplash, QuestBlock...
+│   │   │   ├── common/          # Header, Footer, Loader, Toast, StickyCTA
+│   │   │   ├── marketplace/     # TemplateCard, MagazineGrid, OccasionFilters, LizaPick
+│   │   │   ├── template/        # TemplateAuthor, TemplateReviews, SimilarTemplates
+│   │   │   ├── order/           # OrderForm (3 шага)
+│   │   │   └── quest/           # QuestSplash, QuestBlock, QuestTimer...
 │   │   ├── composables/
-│   │   │   └── useApi.js        # $fetch обёртка, все API методы
-│   │   └── assets/styles/       # variables.css, main.css...
-│   ├── tests/
-│   │   ├── e2e/                 # Playwright тесты
-│   │   │   ├── fixtures/        # mockApi.ts, api.ts
-│   │   │   └── *.spec.ts
-│   │   └── unit/                # Vitest тесты
-│   ├── nuxt.config.ts
-│   ├── playwright.config.ts
-│   └── vitest.config.ts
+│   │   │   ├── useApi.js        # Все API вызовы
+│   │   │   ├── useFilters.js    # Фильтры каталога
+│   │   │   └── useImageFallback.js  # Fallback для изображений
+│   │   ├── stores/
+│   │   │   └── auth.js          # JWT через useCookie
+│   │   └── data/
+│   │       └── blogPosts.js     # Статические статьи блога
+│   ├── server/
+│   │   ├── api/
+│   │   │   └── sitemap-urls.get.ts  # Динамические URL для sitemap
+│   │   └── routes/
+│   │       └── uploads/[...path].js # Nitro proxy /uploads → Express
+│   └── nuxt.config.ts
 │
 ├── server/                      # Backend (Express)
 │   └── src/
-│       ├── app.js               # Express app init
-│       ├── routes/              # API роуты
-│       │   ├── api.js           # /stats, подключение роутов
+│       ├── app.js
+│       ├── routes/
+│       │   ├── api.js           # Подключение всех роутов
 │       │   ├── templates.js     # /templates/**
 │       │   ├── categories.js    # /categories
 │       │   ├── orders.js        # /orders
 │       │   ├── quests.js        # /quests/**
 │       │   ├── reviews.js       # /reviews
-│       │   ├── contact.js       # /contact
+│       │   ├── admin.js         # /admin/** (все админ-эндпоинты)
 │       │   └── auth.js          # /auth
-│       ├── controllers/         # Бизнес-логика
+│       ├── controllers/
 │       ├── middleware/
-│       │   ├── rateLimiter.js   # generalLimiter, orderLimiter...
-│       │   ├── auth.js          # JWT проверка
-│       │   └── sanitize.js      # DOMPurify XSS защита
+│       │   ├── rateLimiter.js
+│       │   ├── auth.js          # JWT requireAdmin
+│       │   └── sanitize.js      # DOMPurify
 │       └── config/
-│           └── db.js            # pg pool
+│           └── database.js      # pg pool
 │
-├── database/                    # SQL миграции
+├── database/                    # SQL миграции и схема
+├── nginx/                       # nginx.conf + ssl/
 ├── docs/                        # Документация
-├── nginx/                       # Nginx конфиги
 └── docker-compose.yml
 ```
 
@@ -138,81 +144,70 @@ quest-dating/
 
 ## Frontend архитектура (Nuxt 4)
 
-### Стратегии рендеринга
-
-Определены в `nuxt.config.ts` через `routeRules`:
+### Стратегии рендеринга (routeRules)
 
 ```
-/                → SSR + SWR 300s   (главная, SEO + свежесть)
-/catalog         → SSR + SWR 300s   (каталог с фильтрами)
-/date/**         → SSR + SWR 600s   (страница квеста, ключевые SEO страницы)
-/about           → SSR + SWR 3600s  (статичная, редко меняется)
-/terms, /privacy → prerender        (полностью статичные)
-/order/**        → CSR              (динамичная, не нужен SSR)
-/quest/**        → CSR              (интерактивный плеер)
-/admin/**        → CSR              (защищённая зона)
+/                → SSR + SWR 300s    (главная)
+/catalog         → SSR + SWR 300s    (каталог)
+/date/**         → SSR + SWR 600s    (страницы квестов — приоритет SEO)
+/categories/**   → SSR               (категории)
+/about           → SSR + SWR 3600s
+/blog/**         → SSR + SWR 3600s
+/terms, /privacy → SSR
+/order/**        → CSR               (форма заказа)
+/quest/**        → CSR               (quest player)
+/admin/**        → CSR               (защищённая зона)
+```
+
+### 301-редиректы
+
+```
+/templates    → /catalog
+/template/**  → /date/**
+/authors      → /about
 ```
 
 ### API слой (useApi.js)
 
-Единый composable для всех запросов. `apiBase` зависит от контекста:
-- **Server-side (SSR):** `runtimeConfig.apiBaseInternal` → Docker internal network
-- **Client-side (CSR):** `runtimeConfig.public.apiBase` → `/api` через Nuxt devProxy в dev, env переменная в prod
+`apiBase` зависит от контекста выполнения:
+- **SSR:** `NUXT_API_BASE_INTERNAL` → `http://server:5000/api` (Docker internal)
+- **CSR:** `NUXT_PUBLIC_API_BASE` → `/api` → Nginx проксирует на Express
 
-```javascript
-// Пример использования
-const { getDates, getCategories } = useDatesApi()
-const { data } = await useAsyncData('catalog', () => getDates(params))
-```
+### Аутентификация
 
-### JWT аутентификация
+JWT хранится в `useCookie('auth_token')` — SSR-совместимо. `localStorage` не используется.
 
-Токен хранится в `useCookie('auth_token')` — SSR-совместимо. Не используется `localStorage` (недоступен на сервере).
+### Quest Player
 
-### Quest Player (изоляция)
-
-`app.vue` содержит `isFullscreen` computed — при маршруте `/quest/**` скрываются Header и Footer, квест занимает весь экран.
+`app.vue` скрывает Header/Footer при маршруте `/quest/**` через `isFullscreen` computed.
 
 ---
 
 ## Backend архитектура
 
+### Все админ-эндпоинты — в admin.js
+
+В отличие от старой архитектуры, все `/admin/*` роуты объединены в `routes/admin.js` (не разбросаны по файлам). Это включает: orders, quests, templates, categories, upload.
+
 ### Rate Limiting
 
 ```
-generalLimiter  → все /api/*  → 300 req/15min (prod), 1000 (dev)
-questLimiter    → /api/quests → 200 req/15min (prod)
-orderLimiter    → /api/orders → 5 req/hour
-contactLimiter  → /api/contact → 3 req/hour
-loginLimiter    → /api/auth   → 5 попыток/15min (skipSuccessfulRequests)
+generalLimiter  → /api/*      → 300 req/15min (prod)
+orderLimiter    → /orders     → 5 req/hour
+contactLimiter  → /contact    → 3 req/hour
+loginLimiter    → /auth/login → 5 попыток/15min
 ```
 
-**Важно:** в dev режиме `skip: skipLocalhost` — запросы с `127.0.0.1`/`::1` не засчитываются. Это необходимо для E2E тестов и SSR-запросов Nuxt.
+Dev-режим: запросы с `localhost` не ограничиваются (`skipLocalhost`).
 
 ### Express route ordering
 
-Специфичные пути объявляются **до** параметрических:
+Специфичные роуты объявляются **до** параметрических:
 ```javascript
-router.get('/featured', ...)  // ← до
-router.get('/popular', ...)   // ← до
-router.get('/:id', ...)       // ← после
+router.get('/featured', ...)  // ← сначала
+router.get('/all', ...)       // ← сначала
+router.get('/:id', ...)       // ← потом
 ```
-
-### Ответы API
-
-Единый формат:
-```javascript
-// Успех
-{ success: true, data: {...}, message?: '...' }
-
-// Ошибка
-{ success: false, message: '...', errors?: {...} }
-
-// 403 защищённый квест
-{ success: false, requires_code: true, data: { title, theme, ... } }
-```
-
-**Важно:** PostgreSQL `COUNT()` возвращает строку в Node.js. Всегда приводить через `parseInt()`. Массивы параметров требуют явного каста `::int[]`.
 
 ---
 
@@ -220,56 +215,59 @@ router.get('/:id', ...)       // ← после
 
 ### Основные таблицы
 
-**quest_templates** — шаблоны квестов (slug, title, base_price, category_id, author_id, difficulty, features JSON, faq JSON, is_published)
+**quest_templates** — сценарии квестов (`slug`, `title`, `base_price` в копейках, `category_id`, `difficulty`, `features[]`, `structure{}`, `orders_count`, `status`)
 
-**created_quests** — квесты созданные по заказу (slug, template_id, client_name, access_code, content JSON с шагами)
+**created_quests** — квесты созданные по заказу (`slug`, `template_id`, `client_name`, `access_code`, `blocks[]`, `is_public`)
 
-**orders** — заказы (template_id, client_name, client_email, client_phone, event_date, status, total_price)
+**orders** — заказы (`template_id`, `client_name`, `client_email`, `status`, `total_price`, `description`)
 
-**categories** — категории квестов (name, slug, color, icon)
+**categories** — категории (`name`, `slug`, `description`, `icon`, `color`)
 
-**authors** — авторы (единственный: Лиза Петри / elizaveta_petrova)
+**tags** / **template_tags** — теги и связи с квестами
 
-**quest_sessions** — сессии прохождения квестов (quest_id, progress JSON, completed_at)
+**authors** — авторы (единственный: Лиза Петри)
 
-**reviews** — отзывы (template_id, rating, author_name, text)
+**quest_sessions** — сессии прохождения
 
-### Индексы
+**reviews** — отзывы (`template_id`, `rating`, `client_name`, `comment`)
 
-```sql
-idx_templates_slug, idx_templates_category, idx_templates_is_published
-idx_created_quests_slug, idx_orders_status, idx_quest_sessions_quest
-```
+### Важные нюансы
+
+- `base_price` хранится в **копейках** — делить на 100 при отображении
+- `COUNT()` возвращает строку — всегда `parseInt()`
+- Массивы параметров: `ANY($1::int[])`
 
 ---
 
-## Рендеринг и SEO
+## SEO архитектура
 
-### Мета-теги
+### JSON-LD схемы
 
-Каждая страница устанавливает через `useSeoMeta()`:
-- `title`, `description`
-- `og:title`, `og:description`, `og:image`
-- `og:image` → `/og-image.jpg` (1200×630, брендированный)
+| Страница | Схемы |
+|----------|-------|
+| `/` | `Organization` + `FAQPage` |
+| `/date/:slug` | `Product` + `BreadcrumbList` + `FAQPage` |
+| `/catalog` | `ItemList` |
+| `/categories/:slug` | `BreadcrumbList` |
+| `/about` | `Person` |
 
-### JSON-LD Schema
+**Правило:** все `useServerHead` с JSON-LD используют `innerHTML: () => JSON.stringify(...)` (геттер-функция), не прямой `JSON.stringify`. Это предотвращает ошибку devalue сериализатора при prefetch `_payload.json`.
 
-- `/` → `WebSite` + `LocalBusiness`
-- `/date/:slug` → `Product` + `FAQPage` + `BreadcrumbList`
-- `/catalog` → `ItemList` + `BreadcrumbList`
-- `/about` → `Person` (Лиза Петри)
+### Sitemap
 
-### Sitemap и Robots
+Динамический через `@nuxtjs/seo`. Источник динамических URL: `server/api/sitemap-urls.get.ts` — запрашивает Express API и возвращает все `/date/:slug` и `/categories/:slug`.
 
-Генерируется через `@nuxtjs/seo`. Исключены: `/admin/**`, `/quest/**`, `/order/**`.
+### og:image
+
+`/public/og-image.jpg` (1200×630) — брендированное изображение для шаринга. Страницы квестов используют `cover_image` квеста если есть.
 
 ---
 
 ## Безопасность
 
-- **JWT:** хранится в httpOnly cookie (`useCookie`), передаётся в `Authorization: Bearer`
-- **SQL injection:** параметризованные запросы везде (`$1, $2, ...`)
-- **XSS:** DOMPurify на входящих данных сервера
-- **Quest access codes:** передаются только в теле POST, никогда в URL/query params
-- **CORS:** whitelist доменов в Express
-- **Rate limiting:** многоуровневый (см. выше)
+- **JWT:** `useCookie` (httpOnly), передаётся в `Authorization: Bearer`
+- **SQL:** параметризованные запросы (`$1, $2, ...`)
+- **XSS:** DOMPurify на сервере
+- **Access codes:** только в теле POST, никогда в URL
+- **Rate limiting:** многоуровневый
+- **Uploads:** сохраняются в Docker volume, отдаются через Nginx напрямую

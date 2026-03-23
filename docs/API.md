@@ -1,44 +1,33 @@
 # API Документация
 
-REST API для Quest Dating. Базовый URL: `http://localhost:5000/api`
-
-В production: `https://questdating.ru/api`
+REST API Quest Dating. Базовый URL: `http://localhost:5000/api` (dev) / `https://questdating.ru/api` (prod)
 
 ## Формат ответов
 
 ```javascript
-// Успех
 { "success": true, "data": { ... } }
-
-// Список с пагинацией
-{ "success": true, "data": [...], "pagination": { "total": 50, "page": 1, "limit": 12, "totalPages": 5 } }
-
-// Ошибка
+{ "success": true, "data": [...], "pagination": { "total": 50, "page": 1, "limit": 12 } }
 { "success": false, "message": "Описание ошибки" }
-
-// 403 — защищённый квест
-{ "success": false, "requires_code": true, "data": { "title": "...", "theme": "..." } }
+{ "success": false, "requires_code": true, "data": { "title": "...", "theme": "..." } }  // 403 защищённый квест
 ```
 
 ---
 
-## Эндпоинты
+## Публичные эндпоинты
 
-### Общее
+### Статистика
 
 ```
 GET /stats
 ```
-Возвращает счётчики платформы: `total_templates`, `total_orders`, `total_reviews`, `average_rating`.
+→ `{ total_templates, total_orders, total_reviews, average_rating }`
 
----
-
-### Шаблоны квестов
+### Сценарии квестов
 
 ```
 GET /templates
 ```
-Параметры: `category` (slug), `difficulty` (easy/medium/hard), `location_type`, `min_price`, `max_price`, `search`, `sort` (popular/newest/rating), `page`, `limit`.
+Параметры: `category` (slug), `difficulty` (easy/medium/hard/expert), `location_type`, `min_price`, `max_price`, `search`, `sort_by` (popular/newest/rating), `page`, `limit`, `tags` (ids через запятую)
 
 ```
 GET /templates/featured?limit=6
@@ -46,114 +35,118 @@ GET /templates/popular?limit=6
 GET /templates/:slug
 ```
 
-Поля ответа включают: `id`, `slug`, `title`, `tagline`, `description`, `base_price` (в копейках), `duration_minutes`, `difficulty`, `rating`, `orders_count`, `reviews_count`, `category_name`, `category_slug`, `category_color`, `author_name`, `tags[]`, `features[]`, `faq[]`.
-
----
+Поля ответа: `id`, `slug`, `title`, `tagline`, `description`, `base_price` **(в копейках)**, `duration_minutes`, `difficulty`, `rating`, `orders_count`, `reviews_count`, `category_name`, `category_slug`, `author_name`, `tags[]`, `features[]`, `structure{}`
 
 ### Категории
 
 ```
 GET /categories
 ```
-Список всех категорий с `id`, `name`, `slug`, `color`, `icon`, `templates_count`.
-
----
+→ `[{ id, name, slug, description, color, icon, templates_count }]`
 
 ### Теги
 
 ```
+GET /tags
 GET /tags/popular?limit=20
 ```
-
----
 
 ### Отзывы
 
 ```
 GET /reviews/featured?limit=6
+POST /reviews
 ```
-
----
+Тело POST: `{ template_id, client_name, rating, comment }`
 
 ### Заказы
 
 ```
 POST /orders
 ```
-Тело запроса:
 ```json
 {
   "template_id": 1,
   "client_name": "Имя",
   "client_email": "email@example.com",
   "client_phone": "+79161234567",
+  "description": "Пожелания и ответы на вопросы анкеты",
   "event_date": "2025-06-15",
-  "event_city": "Москва",
-  "description": "Пожелания...",
-  "agree_terms": true,
-  "selected_features": [1, 2],
-  "customization": {}
+  "event_city": "Москва"
 }
 ```
-Rate limit: 5 заказов в час с одного IP.
-
-Ответ: `{ success: true, data: { id, total_price, client_email } }` — отправляет Telegram уведомление.
-
----
-
-### Контакт
-
-```
-POST /contact
-```
-Тело: `{ name, phone, message }`. Rate limit: 3 в час.
-
----
+Rate limit: 5 заказов/час с одного IP. Отправляет Telegram уведомление.
 
 ### Квесты (прохождение)
 
 ```
-GET  /quests/:slug                    — получить квест (403 если требует код)
-POST /quests/:slug/access             — { access_code } → разблокировать квест
-POST /quests/:questId/session         — создать сессию прохождения
-PATCH /quests/session/:sessionId      — обновить прогресс
-POST /quests/session/:sessionId/complete — завершить квест
-POST /quests/session/:sessionId/restart  — перезапустить
-GET  /quests/session/:sessionId/stats — статистика сессии
+GET  /quests/:slug                          → квест (403 если требует код)
+POST /quests/:slug/access                   → { access_code }
+POST /quests/:questId/session               → создать сессию
+PATCH /quests/session/:sessionId            → обновить прогресс
+POST /quests/session/:sessionId/complete    → завершить
+POST /quests/session/:sessionId/restart     → { quest_id } — перезапустить
+GET  /quests/session/:sessionId/stats       → статистика
 ```
 
-**Важно:** `access_code` передаётся только в теле запроса, никогда в URL.
+**Важно:** `access_code` только в теле POST, никогда в URL. `restart` требует `quest_id` в теле.
 
 ---
 
-### Аутентификация (Админка)
+## Аутентификация
 
 ```
-POST /auth/login     — { username, password } → { token }
-GET  /auth/me        — проверка токена (требует Authorization: Bearer <token>)
+POST /auth/login     → { username, password } → { token }
+GET  /auth/me        → проверка токена
 POST /auth/logout
 ```
-Rate limit на login: 5 попыток / 15 минут (успешные входы не засчитываются).
+
+Rate limit: 5 попыток/15 мин на login.
 
 ---
 
-### Админ-эндпоинты
+## Админ-эндпоинты
 
-Все требуют `Authorization: Bearer <token>` с ролью `admin`.
+Все требуют `Authorization: Bearer <token>`.
+
+### Заказы
 
 ```
-GET    /admin/templates
-POST   /admin/templates
-PATCH  /admin/templates/:id
-DELETE /admin/templates/:id
-
 GET    /admin/orders
-PATCH  /admin/orders/:id      — обновить статус
+GET    /admin/orders/:id
+PATCH  /admin/orders/:id/status    → { status: 'confirmed'|'in_progress'|'completed'|'cancelled' }
+DELETE /admin/orders/:id           → только отменённые (status = 'cancelled')
+```
 
-GET    /admin/quests          — созданные квесты
-POST   /admin/quests          — создать квест для заказа
+### Сценарии
 
-GET    /admin/stats           — расширенная статистика
+```
+GET    /admin/templates             → опубликованные (для редактора квестов)
+GET    /admin/templates/all         → все (для управления витриной)
+GET    /admin/templates/:id
+POST   /admin/templates/create
+PUT    /admin/templates/:id
+PATCH  /admin/templates/:id/status  → { status: 'draft'|'published'|'archived' }
+DELETE /admin/templates/:id
+```
+
+### Квесты
+
+```
+GET    /admin/quests
+GET    /admin/quests/:id
+POST   /admin/quests
+PUT    /admin/quests/:id
+DELETE /admin/quests/:id
+```
+
+### Прочее
+
+```
+GET  /admin/dashboard          → статистика + recent_orders + recent_quests
+GET  /admin/categories         → для селекта при создании сценария
+POST /admin/upload/image       → multipart/form-data (field: image) → { url }
+POST /admin/upload/images      → multipart/form-data (field: images[]) → [urls]
 ```
 
 ---
@@ -168,7 +161,7 @@ GET    /admin/stats           — расширенная статистика
 | `/auth/login` | 5 попыток | 15 мин |
 | `/admin/*` | 2000 (prod) | 15 мин |
 
-В dev режиме запросы с `localhost` не ограничиваются.
+Dev: запросы с localhost не ограничиваются.
 
 ---
 
@@ -176,9 +169,10 @@ GET    /admin/stats           — расширенная статистика
 
 | Код | Значение |
 |-----|---------|
-| 400 | Неверные данные запроса |
-| 401 | Не авторизован (нет/истёк токен) |
+| 400 | Неверные данные |
+| 401 | Не авторизован |
 | 403 | Нет доступа / квест требует код |
-| 404 | Ресурс не найден |
-| 429 | Превышен rate limit |
+| 404 | Не найден |
+| 409 | Конфликт (slug занят) |
+| 429 | Rate limit |
 | 500 | Ошибка сервера |

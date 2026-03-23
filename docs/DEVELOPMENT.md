@@ -1,311 +1,156 @@
 # Руководство по разработке
 
-Документация для разработчиков Quest Dating.
-
-## Оглавление
-
-- [Рабочий процесс](#рабочий-процесс)
-- [Frontend (Nuxt 4)](#frontend-nuxt-4)
-- [Backend (Express)](#backend-express)
-- [База данных](#база-данных)
-- [Git workflow](#git-workflow)
-- [Полезные команды](#полезные-команды)
-
----
-
 ## Рабочий процесс
 
-### Запуск в dev
-
 ```bash
-# Terminal 1
-cd server && npm run dev          # Express на :5000
-
-# Terminal 2
-cd client-nuxt && npm run dev     # Nuxt 4 на :3000
+cd server && npm run dev          # Express :5000
+cd client-nuxt && npm run dev     # Nuxt :3000
 ```
 
-Nuxt devProxy автоматически проксирует `/api/*` → `localhost:5000/api`. Браузер работает только с `:3000`, что важно для Playwright (перехват запросов).
+Nuxt devProxy проксирует `/api/*` → `localhost:5000/api`.
 
-### Ветка разработки
-
-Основная ветка — `main`. Новые фичи — в `feature/*`, хотфиксы — в `hotfix/*`. PR → `main` только с зелёными тестами.
+Основная ветка: `feature/nuxt3-migration`.
 
 ---
 
 ## Frontend (Nuxt 4)
 
-### Структура app/
+### Добавление страницы
 
-```
-client-nuxt/
-├── app/
-│   ├── app.vue           # Root — isFullscreen для quest player
-│   ├── pages/            # Файловый роутинг (SSR/SSG/CSR по routeRules)
-│   ├── components/
-│   │   ├── common/       # Header, Footer, Modal, Loader, Breadcrumbs...
-│   │   ├── marketplace/  # TemplateCard, TemplateFilters, CategoryCard...
-│   │   ├── order/        # OrderForm (4 шага), OrderSummary
-│   │   ├── template/     # TemplateAuthor, TemplateGallery, TemplateFeatures...
-│   │   └── quest/        # QuestSplash, QuestBlock, QuestTimer...
-│   ├── composables/
-│   │   ├── useApi.js     # Все API вызовы
-│   │   └── useFilters.js # Фильтры каталога (priceRange → min_price/max_price)
-│   ├── data/
-│   │   └── blogPosts.js  # Статические статьи блога (SSG)
-│   └── assets/styles/    # variables.css, main.css, animations.css
-└── server/
-    └── routes/
-        └── uploads/
-            └── [...path].js  # Nitro proxy для /uploads/** → Express
-```
-
-### Добавление новой страницы
-
-1. Создать файл в `app/pages/` — Nuxt автоматически создаст роут
-2. Добавить `routeRules` в `nuxt.config.ts` с нужной стратегией рендеринга
-3. Установить мета-теги через `useSeoMeta()`
-4. Добавить JSON-LD если нужно для SEO
+1. `app/pages/название.vue`
+2. `routeRules` в `nuxt.config.ts`
+3. `useSeoMeta()` + `useServerHead()` с JSON-LD
 
 ```vue
 <script setup>
-// Мета-теги
-useSeoMeta({
-  title: 'Заголовок | Quest Dating',
-  description: 'Описание страницы',
-  ogImage: '/og-image.jpg',
+useSeoMeta({ title: '... | Quest Dating', description: '...', ogImage: '/og-image.jpg' })
+
+// JSON-LD — ОБЯЗАТЕЛЬНО геттер () =>
+useServerHead({
+  script: [{ type: 'application/ld+json', innerHTML: () => JSON.stringify({ '@context': 'https://schema.org', ... }) }]
 })
 
-// Данные через SSR
-const { getDates } = useDatesApi()
 const { data } = await useAsyncData('key', () => getDates())
 </script>
 ```
 
+### Критические правила
+
+**Не вкладывай `<NuxtLink>` в `<NuxtLink>`** — невалидный HTML, hydration error. Используй `<article @click="router.push(...)">`.
+
+**`useServerHead` с JSON-LD** — `innerHTML` ОБЯЗАН быть `() => JSON.stringify(...)`. Прямой `JSON.stringify` ломает `_payload.json` при prefetch.
+
+**JWT** — только `useCookie`, не `localStorage`.
+
+**Изображения** — `:src="computed"`, не `src="/uploads/..."` (Vite ломает статику).
+
+### OccasionFilters
+
+Фильтрует по категориям из БД. При выборе — `occasionFilters` (отдельный ref, не влияет на `activeFiltersCount`).
+
+| Повод | slug |
+|-------|------|
+| Дома | `home-quests` |
+| По городу | `city-quests` |
+| Предложение | `proposal` |
+| В парке | `park-adventures` |
+| Культурный | `cultural` |
+| Гастро | `gastronomic` |
+
 ### useApi.js
 
-Единственное место для всех API запросов. Не создавай прямые `$fetch` в компонентах.
+Единственное место для всех API запросов.
 
 ```javascript
-const {
-  getDates,        // GET /templates?...
-  getDate,         // GET /templates/:slug
-  getCategories,   // GET /categories
-  getStats,        // GET /stats
-  createOrder,     // POST /orders
-  sendContact,     // POST /contact
-} = useDatesApi()
+const { getDates, getDate, getCategories, createOrder } = useDatesApi()
+const { get, post, patch, del } = useApi()
 ```
-
-### Правила компонентов
-
-**Никогда не вкладывай `<NuxtLink>` в `<NuxtLink>`** — оба рендерятся в `<a>`, это невалидный HTML и вызывает hydration error. Используй `<article>` или `<div>` с `@click="router.push()"` для внешнего контейнера, оставляя внутренние ссылки как `<NuxtLink>`.
-
-**`ClientOnly` для контента зависящего от клиента:**
-```vue
-<ClientOnly>
-  <div>{{ new Date().toLocaleDateString() }}</div>
-</ClientOnly>
-```
-
-**JWT в `useCookie`, не в `localStorage`** — localStorage недоступен на сервере при SSR.
-
-### Стили
-
-Градиент бренда: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
-
-CSS переменные объявлены в `assets/styles/variables.css`. Компонентные стили — `<style scoped>`.
-
----
-
-## Блог и SEO-контент
-
-### Статьи блога
-
-Статьи хранятся в `app/data/blogPosts.js` — статический JS-массив, не БД. Каждая статья — объект с полями `slug`, `title`, `excerpt`, `category`, `date`, `readingTime`, `content` (HTML-строка).
-
-Страницы блога генерируются как SSG через `routeRules` в `nuxt.config.ts`. При добавлении новой статьи — просто добавь объект в массив `BLOG_POSTS`, пересборка автоматически создаст статическую страницу.
-
-### Описания категорий
-
-SEO-описания категорий хранятся в БД (поле `description` таблицы `categories`). Для обновления:
-
-```bash
-psql -U quest_user -d quest_dating -f database/update_categories.sql
-```
-
-### Фильтры каталога
-
-Фильтр по цене читает из `priceRange` (не из `minPrice`/`maxPrice`) — см. `useFilters.js`.
-Фильтр по категории передаёт числовой `id` (не slug).
-Фильтр по тегам передаёт массив id через запятую: `tags=1,2,3`.
 
 ---
 
 ## Backend (Express)
 
-### Добавление нового endpoint
+### Все админ-роуты в admin.js
 
-1. **Роут** в соответствующем файле `routes/`:
-```javascript
-router.get('/new-endpoint', controller.newMethod)
-```
+`routes/admin.js` содержит ВСЕ `/admin/*` эндпоинты — orders, templates, quests, upload.
 
-2. **Контроллер** в `controllers/`:
-```javascript
-export const newMethod = async (req, res, next) => {
-  try {
-    const result = await pool.query('SELECT ...', [params])
-    res.json({ success: true, data: result.rows })
-  } catch (err) {
-    next(err)
-  }
-}
-```
-
-3. **Важные правила PostgreSQL:**
-```javascript
-// COUNT() возвращает строку — всегда parseInt!
-const count = parseInt(result.rows[0].count)
-
-// Массивы параметров требуют явного каста
-const q = 'SELECT * FROM t WHERE id = ANY($1::int[])'
-await pool.query(q, [[1, 2, 3]])
-
-// Специфичные роуты ПЕРЕД параметрическими
-router.get('/featured', ...)  // ✅ сначала
-router.get('/:id', ...)       // ✅ потом
-```
-
-### Rate limiter
-
-При добавлении нового чувствительного endpoint (форма, платёж) — применить соответствующий limiter:
-```javascript
-import { contactLimiter } from '../middleware/rateLimiter.js'
-router.post('/new-form', contactLimiter, controller.handle)
-```
-
-В dev режиме запросы с localhost автоматически пропускаются.
-
-### Telegram уведомления
+### Правила PostgreSQL
 
 ```javascript
-import { sendTelegramNotification } from '../services/telegramService.js'
-
-// Уведомление не должно блокировать HTTP-ответ
-res.json({ success: true, data: order })
-sendTelegramNotification(message).catch(console.error)  // после ответа
+parseInt(result.rows[0].count)                    // COUNT() → строка
+pool.query('... = ANY($1::int[])', [[1, 2, 3]])   // массивы
+router.get('/templates/all', ...)  // специфичные ДО
+router.get('/templates/:id', ...)  // параметрических
 ```
+
+### Telegram
+
+```javascript
+res.json({ success: true, data: order })         // сначала ответ
+notifyNewOrder(order).catch(console.error)        // потом уведомление
+```
+
+---
+
+## SEO
+
+### JSON-LD по страницам
+
+| Страница | Схемы |
+|----------|-------|
+| `/` | `Organization` + `FAQPage` |
+| `/date/:slug` | `Product` + `BreadcrumbList` + `FAQPage` |
+| `/catalog` | `ItemList` |
+| `/categories/:slug` | `BreadcrumbList` |
+| `/about` | `Person` |
+
+Sitemap: динамический через `server/api/sitemap-urls.get.ts`.
 
 ---
 
 ## База данных
 
-### Подключение
-
 ```bash
-# Локально
-psql -U quest_user -d quest_dating
+# Docker
+docker exec -it quest-dating-db psql -U quest_user -d quest_dating
 
-# В Docker
-docker-compose exec postgres psql -U quest_user -d quest_dating
+# Применить миграцию
+Get-Content migration.sql | docker exec -i quest-dating-db psql -U quest_user -d quest_dating
 ```
-
-### Миграции
-
-```bash
-# Создать файл миграции
-touch database/migrations/XXX_description.sql
-
-# Применить
-psql -U quest_user -d quest_dating -f database/migrations/XXX_description.sql
-```
-
-### Полезные запросы
 
 ```sql
--- Список квестов
-SELECT id, slug, title, is_published FROM quest_templates ORDER BY id;
+-- Квесты
+SELECT qt.id, qt.slug, qt.title, c.name, qt.status
+FROM quest_templates qt LEFT JOIN categories c ON qt.category_id = c.id;
 
 -- Активные заказы
-SELECT id, client_name, status, created_at FROM orders
-WHERE status != 'cancelled' ORDER BY created_at DESC LIMIT 20;
-
--- Сессии квестов за сегодня
-SELECT COUNT(*) FROM quest_sessions
-WHERE created_at >= CURRENT_DATE;
+SELECT id, client_name, status FROM orders
+WHERE status NOT IN ('cancelled','completed') ORDER BY created_at DESC;
 ```
 
 ---
 
-## Git workflow
-
-### Именование веток
+## Git
 
 ```
-main                        ← стабильный production
-feature/blog-routes         ← новые фичи
-bugfix/catalog-filters      ← исправления
-hotfix/payment-critical     ← срочные фиксы
+feature/nuxt3-migration  ← основная рабочая ветка
+main                     ← production
 ```
 
-### Формат коммитов
-
-```
-feat(catalog): добавить фильтр по сложности
-fix(order): исправить кастомный чекбокс согласия
-docs(testing): обновить TESTING.md под Nuxt 4
-refactor(api): вынести mock helpers в fixtures/
-test(e2e): добавить тест защищённого квеста
-```
-
-### Перед коммитом
-
-```bash
-# Убедиться что тесты проходят
-cd client-nuxt
-npm run test          # unit тесты
-npm run test:e2e      # E2E (нужен запущенный сервер)
-```
+Формат коммитов: `feat(catalog): описание`, `fix(date-slug): описание`, `seo(about): описание`
 
 ---
 
-## Полезные команды
-
-### Frontend
+## Команды
 
 ```bash
+# Frontend
 cd client-nuxt
+npm run dev / build / test / test:e2e
 
-npm run dev           # dev сервер
-npm run build         # production сборка
-npm run preview       # превью production build
-
-npm run test          # unit тесты (Vitest)
-npm run test:watch    # watch режим
-npm run test:e2e      # E2E тесты (нужен dev сервер)
-npm run test:e2e:ui   # Playwright UI
-```
-
-### Backend
-
-```bash
-cd server
-
-npm run dev           # dev с nodemon
-npm start             # production
-
-npm test              # тесты
-npm run test:watch    # watch режим
-```
-
-### Docker
-
-```bash
-docker-compose up -d              # запустить все
-docker-compose logs -f server     # логи сервера
-docker-compose logs -f client     # логи Nuxt
-docker-compose restart client     # перезапустить Nuxt
-docker-compose down               # остановить все
-docker-compose build client       # пересобрать клиент
+# Docker
+docker compose up -d
+docker compose build --no-cache client
+docker compose logs -f client
+docker compose ps
 ```

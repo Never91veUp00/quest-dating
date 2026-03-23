@@ -6,6 +6,14 @@
       <div class="cat__container">
         <h1 class="cat__title">Свидания-квесты</h1>
         <p class="cat__sub">Выберите сценарий — Лиза адаптирует под вас</p>
+        <p class="cat__seo">
+          Свидание-квест — это персональный сценарий романтического вечера, который Лиза Петри
+          разрабатывает специально под вашу пару. Не шаблон, а живая история: с вашими местами,
+          вашими деталями и вашим финалом. Выберите формат — домашний квест-сюрприз, городское
+          приключение или предложение руки и сердца — и получите готовый сценарий за 24 часа.
+          Каждый квест-сюрприз для девушки или парня создаётся с нуля и подходит для любого повода:
+          день рождения, годовщина, 14 февраля или просто романтический вечер.
+        </p>
       </div>
     </section>
 
@@ -218,9 +226,37 @@ const route  = useRoute()
 const router = useRouter()
 const { getDates, getCategories, getPopularTags } = useDatesApi()
 
+const SITE_URL = 'https://questdating.ru'
+
 useSeoMeta({
-  title:       'Свидания-квесты — сценарии для пар | Quest Dating',
-  description: 'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 499 руб.',
+  title:         'Свидания-квесты — сценарии для пар | Quest Dating',
+  description:   'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 499 руб.',
+  ogTitle:       'Свидания-квесты — сценарии для пар | Quest Dating',
+  ogDescription: 'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 499 руб.',
+  ogImage:       `${SITE_URL}/og-image.jpg`,
+})
+
+// ItemList — вызываем на верхнем уровне setup, данные через геттер
+useServerHead({
+  script: [{
+    type: 'application/ld+json',
+    innerHTML: () => {
+      const dates = datesData.value?.data || datesData.value || []
+      if (!dates.length) return ''
+      return JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Свидания-квесты — сценарии для пар',
+        url: `${SITE_URL}/catalog`,
+        itemListElement: dates.slice(0, 20).map((d, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: `${SITE_URL}/date/${d.slug}`,
+          name: d.title,
+        }))
+      })
+    }
+  }]
 })
 
 const {
@@ -382,6 +418,11 @@ watch(sheetOpen, (open) => {
   border-bottom: 1px solid rgba(255,255,255,0.05);
   margin-bottom: 20px;
 }
+.cat__seo {
+  font-size: 0.88rem; color: rgba(240,237,232,0.4); line-height: 1.6;
+  margin: 12px 0 0; max-width: 680px;
+}
+@media (min-width: 768px) { .cat__seo { font-size: 0.9rem; } }
 .cat__title {
   font-size: clamp(1.5rem, 6vw, 2.2rem); font-weight: 900;
   margin: 0 0 6px; letter-spacing: -0.02em;

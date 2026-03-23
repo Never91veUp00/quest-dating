@@ -3,9 +3,9 @@
 ## Стек
 
 | Слой | Инструмент | Для чего |
-|------|-----------|---------| 
-| Frontend unit | Vitest + Vue Test Utils + jsdom | validators, formatters, helpers, компоненты |
-| E2E | Playwright | полные пользовательские сценарии в браузере |
+|------|-----------|---------|
+| Unit | Vitest + Vue Test Utils | validators, formatters, helpers |
+| E2E | Playwright | пользовательские сценарии |
 
 ---
 
@@ -16,96 +16,65 @@ cd client-nuxt
 npm install
 npx playwright install chromium   # один раз
 
-# Unit тесты
-npm run test
-
-# E2E (требуется запущенный dev сервер)
-npm run dev &
-npm run test:e2e
+npm run test          # unit
+npm run dev &         # нужен для E2E
+npm run test:e2e      # E2E
 ```
 
 ---
 
 ## Unit тесты (Vitest)
 
-### Запуск
-
 ```bash
-cd client-nuxt
-
-npm run test              # все тесты
-npm run test:watch        # watch-режим при разработке
-npm run test:unit         # только unit
+npm run test          # все
+npm run test:watch    # watch-режим
 ```
 
-### Структура
+### Покрытие
 
 ```
-tests/
-├── setup.ts                          # глобальная конфигурация
-└── unit/
-    ├── validators.test.ts            # 64 теста
-    ├── formatters.test.ts            # 65 тестов
-    ├── helpers.test.ts               # 37 тестов
-    └── components/
-        └── SearchBar.test.ts         # 16 тестов (XSS, подсветка)
+tests/unit/
+├── validators.test.ts   # isValidEmail, isValidPhone, validateOrderForm
+├── formatters.test.ts   # formatPrice, formatDuration, pluralize, formatDate
+└── helpers.test.ts      # slugify, truncateText, debounce, groupBy
 ```
-
-### Что покрыто
-
-**validators.ts** — `isValidEmail`, `isValidPhone`, `validateOrderForm`, `validateReviewForm`, граничные случаи
-
-**formatters.ts** — `formatPrice` (копейки→рубли), `formatDuration`, `pluralize` (склонения), `formatDate`, `formatRating`
-
-**helpers.ts** — `slugify`, `truncateText`, `debounce`, `groupBy`, работа с массивами
-
-**SearchBar.vue** — XSS-экранирование в `v-html`, подсветка совпадений, сохранение в localStorage
 
 ---
 
 ## E2E тесты (Playwright)
 
-### Запуск
-
 ```bash
-cd client-nuxt
-
-# Нужен запущенный сервер!
-npm run dev             # в отдельном терминале
-
+# Нужен запущенный dev сервер!
 npm run test:e2e        # headless
-npm run test:e2e:ui     # визуальный UI Playwright
+npm run test:e2e:ui     # визуальный UI
 ```
 
 ### Проекты
 
-| Проект | Viewport | Описание |
-|--------|----------|---------|
-| `chromium` | Desktop 1280px | Основные тесты |
-| `mobile` | iPhone 13 390px | Мобильная проверка |
+| Проект | Viewport |
+|--------|----------|
+| `chromium` | Desktop 1280px |
+| `mobile` | iPhone 13 390px |
 
 ### Файлы тестов
 
 ```
 tests/e2e/
 ├── fixtures/
-│   ├── api.ts          # MOCK_TEMPLATE, MOCK_STATS, MOCK_CATEGORY...
-│   └── mockApi.ts      # mockHomepageApi() — мок публичных GET
-├── about.spec.ts       # /about — контент, JSON-LD Person, CTA
-├── catalog.spec.ts     # /catalog — карточки, фильтры, breadcrumb
-├── contact.spec.ts     # форма обратной связи (только десктоп)
-├── date-slug.spec.ts   # /date/:slug — квест, FAQ, JSON-LD
-├── header.spec.ts      # навигация, мобильное меню, scroll
-├── homepage.spec.ts    # / — заголовок, шаги, og:image
-├── order.spec.ts       # полный флоу заказа (4 шага: контакты, настройка, о паре, пожелания)
-└── quest-player.spec.ts # прохождение квеста, защита кодом
+│   ├── api.ts        # MOCK_TEMPLATE, MOCK_STATS, MOCK_CATEGORY...
+│   └── mockApi.ts    # mockHomepageApi() — мок публичных GET
+├── about.spec.ts     # /about — Person JSON-LD, CTA
+├── catalog.spec.ts   # /catalog — карточки, фильтры
+├── date-slug.spec.ts # /date/:slug — FAQ блок, Product JSON-LD, BreadcrumbList
+├── header.spec.ts    # навигация, мобильное меню
+├── homepage.spec.ts  # / — заголовок, og:image, Organization JSON-LD
+├── order.spec.ts     # форма заказа (3 шага)
+└── quest-player.spec.ts  # прохождение квеста, защита кодом
 ```
 
 ### mockHomepageApi()
 
-Ключевая утилита. Мокирует `/stats`, `/categories`, `/reviews/featured`, `/templates/featured`, `/templates/popular`, `/tags/popular` через `page.route()`.
-
-**Зачем:** при повторных запусках тестов rate limiter (1000 req/15min) выбивается на этих эндпоинтах. Мок перехватывает запросы до сервера.
+Мокирует `/stats`, `/categories`, `/reviews/featured`, `/templates/featured`, `/templates/popular`, `/tags/popular` через `page.route()`. Нужен чтобы не выбивать rate limiter при повторных запусках.
 
 ```typescript
 import { mockHomepageApi } from './fixtures/mockApi'
@@ -116,55 +85,44 @@ test.beforeEach(async ({ page }) => {
 })
 ```
 
-### Моки POST-запросов
+### Моки POST
 
 ```typescript
-// Мокируем оба варианта URL (devProxy + прямой)
+// Мокировать оба URL (devProxy + прямой)
 await page.route('**/api/orders', route => route.fulfill({ status: 201, ... }))
 await page.route('http://localhost:5000/api/orders', route => route.fulfill({ status: 201, ... }))
 ```
 
-Два паттерна нужны потому что `apiBase` может быть как `/api` (через devProxy, новый конфиг) так и `http://localhost:5000/api` (прямой, если сервер не перезапущен).
+---
 
-### Особенности компонентов
+## Особенности компонентов
 
-**TemplateCard** — внешний контейнер `<article>` (не `<a>`), клик через `@click`. Для теста используй `a[href*="/date/"]` для ссылок внутри карточки.
+**TemplateCard** — внешний `<article>`, не `<a>`. Для ссылок внутри: `a[href*="/date/"]`.
 
-**Кастомный чекбокс в OrderForm** — нет `<input type="checkbox">`, только `<label @click>` и `<div class="checkbox-box">`. Кликай по `.checkbox-box`, не по `.checkbox-label` (внутри есть `<a @click.stop>` которые поглощают клик).
+**OrderForm** — 3 шага. Шаг 3 адаптируется к типу квеста (домашний, городской, предложение и т.д.).
 
-**Контактная форма** — скрыта на мобильном (`display:none` в CSS), тесты только для десктопа. Требует ожидания `.contact-form` для гарантии гидрации Vue перед кликом.
+**Quest Player** — `restart` требует `quest_id` в теле запроса.
 
-**Quest Player** — 403 от сервера при неверном/отсутствующем коде теперь корректно обрабатывается через `err.data.requires_code` в catch-блоке.
+**date-slug** — breadcrumb: `toContainText('Сценарии свиданий-квестов')`.
 
-### Переменные окружения для E2E
+**Контактная форма** — скрыта на мобильном, тесты только для desktop.
+
+---
+
+## Переменные для E2E
 
 ```env
-E2E_BASE_URL=http://localhost:3000      # URL Nuxt (по умолчанию)
-E2E_TEST_QUEST_SLUG=test-quest          # slug публичного квеста в БД
+E2E_BASE_URL=http://localhost:3000
+E2E_TEST_QUEST_SLUG=test-quest   # slug публичного квеста в БД
 ```
-
-`E2E_PROTECTED_QUEST_SLUG` больше не нужен — тест защищённого квеста использует мок.
 
 ---
 
 ## Текущий статус
 
 ```
-110 passed  ✓
-2 skipped   (quest-player: тесты с реальным квестом, пропускаются если slug не в БД)
-0 failed
+Unit:  182 passed
+E2E:   ~40 passed, 2 skipped (quest-player без реального квеста в БД)
 ```
 
-Пропущенные тесты — нормально. Они используют `test.skip()` при ответе 404 от сервера (квест не создан в тестовой БД). Для полного покрытия создай тестовый квест и передай slug через `E2E_TEST_QUEST_SLUG`.
-
-### Новые тесты (OrderForm 4 шага)
-
-`order.spec.ts` покрывает: полный флоу 4 шагов, прогресс-бар (4 элемента), шаг 3 «О паре» (`.qa-hint`, заголовок), кнопку «Назад», валидацию шага 1, успешный успех-модал.
-
-### Особенности E2E
-
-**date-slug** — breadcrumb проверяется через `toContainText('Сценарии свиданий-квестов')` (не substring) — следи за точным падежом при изменении текстов крошек.
-
-**homepage** — H1 содержит «приключение», не «квест». Тест `toContainText('приключение')`. Кнопка «О Лизе» в мобильном — в скрытом десктоп-nav, тест использует `page.goto('/about')` напрямую.
-
-**header** — CTA кнопка называется «Заказать квест» (не «Заказать свидание-квест»). Тест проверяет substring `'Заказать'`.
+Пропущенные E2E тесты — нормально. Для полного покрытия создай тестовый квест и передай slug через `E2E_TEST_QUEST_SLUG`.

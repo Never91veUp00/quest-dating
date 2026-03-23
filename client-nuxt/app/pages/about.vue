@@ -140,11 +140,40 @@ import { computed } from 'vue'
 
 const { getStats } = useDatesApi()
 
+const SITE_URL = 'https://questdating.ru'
+
 useSeoMeta({
-  title:       'О Лизе Петри — Quest Dating',
-  description: 'Лиза Петри создаёт персональные свидания-квесты для пар. Каждый сценарий — с нуля, готов за 24 часа.',
-  ogTitle:     'О Лизе Петри — Quest Dating',
-  ogImage:     'https://questdating.ru/uploads/avatars/liza.jpg',
+  title:         'Лиза Петри — организатор свиданий-квестов | Quest Dating',
+  description:   'Лиза Петри придумывает и разрабатывает свидания-квесты персонально под каждую пару. Организатор, автор сценариев. Готово за 24 часа.',
+  ogTitle:       'Лиза Петри — организатор свиданий-квестов',
+  ogDescription: 'Лиза Петри создаёт персональные свидания-квесты для пар. Каждый сценарий — с нуля, готов за 24 часа.',
+  ogImage:       `${SITE_URL}/uploads/avatars/liza.jpg`,
+  ogType:        'profile',
+})
+
+useServerHead({
+  script: [{
+    type: 'application/ld+json',
+    innerHTML: () => JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: 'Лиза Петри',
+      url: `${SITE_URL}/about`,
+      image: `${SITE_URL}/uploads/avatars/liza.jpg`,
+      description: 'Организатор свиданий-квестов. Разрабатывает персональные сценарии для пар — с вашими местами, историей и деталями.',
+      jobTitle: 'Организатор свиданий-квестов',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Quest Dating',
+        url: SITE_URL,
+      },
+      sameAs: [
+        'https://t.me/vinatian00',
+        'https://vk.com/vladislav_petrov2000',
+      ],
+      knowsAbout: ['свидания', 'квесты', 'романтика', 'персональные сценарии', 'квест-сюрприз'],
+    })
+  }]
 })
 
 const { data: statsRaw } = await useAsyncData('about-stats', () => getStats())

@@ -1,52 +1,47 @@
 <template>
-  <div class="not-found-page">
-    <div class="container">
-      <div class="not-found-content">
+  <div class="err">
 
-        <div class="error-number">{{ error?.statusCode || '?' }}</div>
+    <!-- Фоновые орбы -->
+    <div class="err__orb err__orb--1"></div>
+    <div class="err__orb err__orb--2"></div>
 
-        <div class="error-illustration">
-          <div class="magnifying-glass">🔍</div>
-          <div class="lost-icon">😕</div>
-        </div>
+    <div class="err__inner">
 
-        <h1 class="error-title">
-          {{ error?.statusCode === 404 ? 'Страница не найдена' : 'Что-то пошло не так' }}
-        </h1>
-        <p class="error-description">
-          {{ error?.statusCode === 404
-            ? 'К сожалению, страница, которую вы ищете, не существует или была перемещена.'
-            : (error?.message || 'Произошла неожиданная ошибка.') }}
-        </p>
+      <!-- Код ошибки -->
+      <div class="err__code">{{ error?.statusCode || '?' }}</div>
 
-        <div class="suggestions">
-          <h3 class="suggestions-title">Возможно, вас заинтересует:</h3>
-          <div class="suggestions-links">
-            <NuxtLink to="/" class="suggestion-link">🏠 Главная страница</NuxtLink>
-            <NuxtLink to="/catalog" class="suggestion-link">🎯 Каталог квестов</NuxtLink>
-            <NuxtLink to="/about" class="suggestion-link">ℹ️ О нас</NuxtLink>
-          </div>
-        </div>
+      <!-- Заголовок -->
+      <h1 class="err__title">
+        {{ error?.statusCode === 404 ? 'Страница не найдена' : 'Что-то пошло не так' }}
+      </h1>
+      <p class="err__desc">
+        {{ error?.statusCode === 404
+          ? 'Эта страница переехала или никогда не существовала. Возможно, вы ищете что-то из каталога?'
+          : (error?.message || 'Произошла неожиданная ошибка. Попробуйте обновить страницу.') }}
+      </p>
 
-        <div class="error-search">
-          <p class="search-label">Или воспользуйтесь поиском:</p>
-          <div class="search-box">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Поиск квестов..."
-              class="search-input"
-              @keyup.enter="handleSearch"
-            />
-            <button @click="handleSearch" class="btn-search">Найти</button>
-          </div>
-        </div>
-
-        <div class="back-button-wrapper">
-          <button @click="handleError" class="btn-back">← Вернуться назад</button>
-        </div>
-
+      <!-- Навигация -->
+      <div class="err__links">
+        <NuxtLink to="/catalog" class="err__btn err__btn--primary" @click="clearError()">
+          Перейти в каталог
+        </NuxtLink>
+        <NuxtLink to="/" class="err__btn err__btn--ghost" @click="clearError()">
+          На главную
+        </NuxtLink>
       </div>
+
+      <!-- Поиск -->
+      <div class="err__search">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Найти квест..."
+          class="err__input"
+          @keyup.enter="handleSearch"
+        />
+        <button class="err__search-btn" @click="handleSearch">→</button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -55,82 +50,145 @@
 import { ref } from 'vue'
 
 const props = defineProps({ error: Object })
-
 const searchQuery = ref('')
 const router = useRouter()
 
-const handleError = () => clearError({ redirect: '/' })
-
 const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    clearError()
-    router.push({ path: '/catalog', query: { search: searchQuery.value.trim() } })
-  }
+  if (!searchQuery.value.trim()) return
+  clearError()
+  router.push({ path: '/catalog', query: { search: searchQuery.value.trim() } })
 }
 </script>
 
 <style scoped>
-.not-found-page {
+.err {
   min-height: 100vh;
+  background: #0a0a0f;
+  color: #f0ede8;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
   padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
-.container { max-width: 800px; margin: 0 auto; }
-.not-found-content { text-align: center; }
-.error-number {
-  font-size: 12rem; font-weight: 900;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  line-height: 1; margin-bottom: 32px;
-  animation: float 3s ease-in-out infinite;
+
+.err__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
 }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-.error-illustration { position: relative; margin-bottom: 48px; height: 120px; }
-.magnifying-glass { font-size: 8rem; animation: search 2s ease-in-out infinite; }
-@keyframes search { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
-.lost-icon {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  font-size: 3rem; animation: shake 0.5s ease-in-out infinite;
+.err__orb--1 {
+  width: 400px; height: 400px;
+  background: rgba(212,175,55,0.12);
+  top: -100px; right: -100px;
 }
-@keyframes shake {
-  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-  25% { transform: translate(-50%, -50%) rotate(-5deg); }
-  75% { transform: translate(-50%, -50%) rotate(5deg); }
+.err__orb--2 {
+  width: 300px; height: 300px;
+  background: rgba(150,60,180,0.08);
+  bottom: -80px; left: -80px;
 }
-.error-title { font-size: 2.5rem; font-weight: 900; color: #2d3748; margin: 0 0 16px; }
-.error-description { font-size: 1.1rem; color: #718096; line-height: 1.6; margin: 0 auto 48px; max-width: 500px; }
-.suggestions { margin-bottom: 48px; }
-.suggestions-title { font-size: 1.25rem; font-weight: 700; color: #4a5568; margin: 0 0 24px; }
-.suggestions-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 600px; margin: 0 auto; }
-.suggestion-link {
-  padding: 16px 24px; background: white; border: 2px solid #e2e8f0; border-radius: 12px;
-  color: #4a5568; text-decoration: none; font-weight: 600; transition: all 0.3s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+
+.err__inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
 }
-.suggestion-link:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white; border-color: #667eea;
-  transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+
+.err__code {
+  font-size: clamp(7rem, 25vw, 11rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #d4af37, #f5d36e, #b8860b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 24px;
+  animation: float 4s ease-in-out infinite;
 }
-.error-search { margin-bottom: 48px; }
-.search-label { font-size: 1rem; color: #718096; margin: 0 0 16px; }
-.search-box { display: flex; gap: 12px; max-width: 500px; margin: 0 auto; }
-.search-input { flex: 1; padding: 14px 20px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; transition: border-color 0.3s; outline: none; }
-.search-input:focus { border-color: #667eea; }
-.btn-search { padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; white-space: nowrap; }
-.btn-search:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
-.back-button-wrapper { margin-top: 32px; }
-.btn-back { padding: 12px 32px; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-.btn-back:hover { background: #f7fafc; transform: translateY(-2px); }
-@media (max-width: 768px) {
-  .error-number { font-size: 8rem; }
-  .error-title { font-size: 2rem; }
-  .error-description { font-size: 1rem; }
-  .suggestions-links { grid-template-columns: 1fr; }
-  .search-box { flex-direction: column; }
-  .btn-search { width: 100%; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
 }
+
+.err__title {
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 900;
+  margin: 0 0 14px;
+  letter-spacing: -0.02em;
+}
+
+.err__desc {
+  font-size: 0.95rem;
+  color: rgba(240,237,232,0.55);
+  line-height: 1.65;
+  margin: 0 0 36px;
+}
+
+.err__links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.err__btn {
+  padding: 13px 28px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.err__btn--primary {
+  background: #d4af37;
+  color: #0a0a0f;
+  box-shadow: 0 8px 24px rgba(212,175,55,0.3);
+}
+.err__btn--primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(212,175,55,0.4); }
+.err__btn--ghost {
+  background: transparent;
+  color: rgba(240,237,232,0.7);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.err__btn--ghost:hover { color: #f0ede8; border-color: rgba(255,255,255,0.3); }
+
+.err__search {
+  display: flex;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.err__input {
+  flex: 1;
+  padding: 12px 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 100px;
+  color: #f0ede8;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.err__input::placeholder { color: rgba(240,237,232,0.35); }
+.err__input:focus { border-color: rgba(212,175,55,0.5); }
+.err__search-btn {
+  width: 44px; height: 44px;
+  background: rgba(212,175,55,0.15);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 50%;
+  color: #d4af37;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.err__search-btn:hover { background: rgba(212,175,55,0.25); }
 </style>

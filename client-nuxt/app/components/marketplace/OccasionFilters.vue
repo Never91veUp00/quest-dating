@@ -33,13 +33,13 @@ watch(() => props.resetKey, (v) => {
 })
 
 const OCCASIONS = [
-  { id: 'all',       emoji: '✨', label: 'Все' },
-  { id: 'home',      emoji: '🏠', label: 'Дома',         locationType: 'indoor' },
-  { id: 'city',      emoji: '🏙️', label: 'По городу',   locationType: 'city' },
-  { id: 'proposal',  emoji: '💍', label: 'Предложение',  category: 'proposal' },
-  { id: 'romance',   emoji: '🌹', label: 'Романтика',    category: 'romance' },
-  { id: 'adventure', emoji: '🗺️', label: 'Приключение', category: 'adventure' },
-  { id: 'birthday',  emoji: '🎂', label: 'День рождения', category: 'celebrations' },
+  { id: 'all',         emoji: '✨', label: 'Все' },
+  { id: 'home',        emoji: '🏠', label: 'Дома',       category: 'home-quests' },
+  { id: 'city',        emoji: '🏙️', label: 'По городу', category: 'city-quests' },
+  { id: 'proposal',    emoji: '💍', label: 'Предложение', category: 'proposal' },
+  { id: 'park',        emoji: '🌳', label: 'В парке',     category: 'park-adventures' },
+  { id: 'cultural',    emoji: '🎭', label: 'Культурный',  category: 'cultural' },
+  { id: 'gastronomic', emoji: '🍷', label: 'Гастро',      category: 'gastronomic' },
 ]
 
 const activeOccasion = ref('all')
@@ -49,11 +49,11 @@ const hasAny = computed(() => activeOccasion.value !== 'all')
 const buildFilter = () => {
   const occ = OCCASIONS.find(o => o.id === activeOccasion.value) || OCCASIONS[0]
   return {
-    locationType: occ.locationType || null,
-    difficulty:   occ.difficulty   || null,
+    locationType: null,
+    difficulty:   null,
     duration:     null,
-    tag:          occ.tag          || null,
-    category:     occ.category     || null,
+    tag:          null,
+    category:     occ.category || null,
   }
 }
 

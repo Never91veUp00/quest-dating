@@ -122,6 +122,19 @@
       </section>
 
       <!-- ── ПОХОЖИЕ ── -->
+      <!-- FAQ секция — видимый блок + FAQ schema в head -->
+      <section class="qp__section qp__faq">
+        <div class="qp__container">
+          <h2 class="qp__section-title">Частые вопросы</h2>
+          <div class="faq__list">
+            <details class="faq__item" v-for="(item, i) in faqItems" :key="i">
+              <summary class="faq__q">{{ item.q }}</summary>
+              <p class="faq__a">{{ item.a }}</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
       <section class="qp__section qp__section--alt">
         <div class="qp__container">
           <SimilarTemplates :template-slug="date.slug" />
@@ -179,16 +192,98 @@ useSeoMeta({
   ogType:        'product',
 })
 
+// Preload LCP-изображения — улучшает Core Web Vitals (LCP)
+useHead({
+  link: () => {
+    const img = date.value?.cover_image
+    if (!img || !img.startsWith('/uploads/')) return []
+    return [{ rel: 'preload', as: 'image', href: img }]
+  }
+})
+
 if (date.value) {
+  const price = date.value.is_free ? 0 : (date.value.base_price || 0) / 100
+  const pageUrl = `${SITE_URL}/date/${date.value.slug}`
+
   useServerHead({
-    script: [{ type: 'application/ld+json', innerHTML: JSON.stringify({
-      '@context': 'https://schema.org', '@type': 'Product',
-      name: date.value.title,
-      description: date.value.tagline || date.value.description?.substring(0, 160),
-      image: absoluteImageUrl(date.value.cover_image),
-      offers: { '@type': 'Offer', price: date.value.is_free ? 0 : (date.value.base_price || 0) / 100, priceCurrency: 'RUB', availability: 'https://schema.org/InStock' },
-      ...(date.value.rating && { aggregateRating: { '@type': 'AggregateRating', ratingValue: parseFloat(date.value.rating).toFixed(1), reviewCount: date.value.reviews_count || 0 } })
-    })}]
+    script: [
+      // Product schema
+      { type: 'application/ld+json', innerHTML: () => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: date.value.title,
+        description: date.value.tagline || date.value.description?.substring(0, 160),
+        image: absoluteImageUrl(date.value.cover_image),
+        url: pageUrl,
+        offers: {
+          '@type': 'Offer',
+          price,
+          priceCurrency: 'RUB',
+          availability: 'https://schema.org/InStock',
+          url: pageUrl,
+        },
+        ...(date.value.rating && {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: parseFloat(date.value.rating).toFixed(1),
+            reviewCount: date.value.reviews_count || 0,
+          }
+        })
+      })},
+
+      // BreadcrumbList schema
+      { type: 'application/ld+json', innerHTML: () => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Главная', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Сценарии свиданий-квестов', item: `${SITE_URL}/catalog` },
+          { '@type': 'ListItem', position: 3, name: date.value.title, item: pageUrl },
+        ]
+      })},
+
+      // FAQPage schema
+      { type: 'application/ld+json', innerHTML: () => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: `Что такое свидание-квест «${date.value.title}»?`,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: date.value.tagline || `Персональный сценарий свидания-квеста, который Лиза Петри разработает специально под вашу пару.`
+            }
+          },
+          {
+            '@type': 'Question',
+            name: 'Сколько стоит этот свидание-квест?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: date.value.is_free
+                ? 'Этот сценарий доступен бесплатно.'
+                : `Стоимость свидания-квеста «${date.value.title}» — ${price} ₽. Включает персональную разработку сценария под вашу пару.`
+            }
+          },
+          {
+            '@type': 'Question',
+            name: 'Как долго разрабатывается квест?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Лиза Петри разрабатывает персональный сценарий в течение 24 часов после получения информации о вашей паре.'
+            }
+          },
+          {
+            '@type': 'Question',
+            name: 'Можно ли адаптировать сценарий под свою ситуацию?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Да, каждый сценарий адаптируется персонально: ваш город, ваша история, ваши детали. Это не шаблон, а индивидуальная разработка.'
+            }
+          },
+        ]
+      })},
+    ]
   })
 }
 
@@ -206,6 +301,29 @@ const fallbackStyle = computed(() => ({ background: `radial-gradient(ellipse at 
 const locationLabel = computed(() => ({
   indoor: 'Дома', city: 'По городу', park: 'Парк', universal: 'Любое'
 }[date.value?.location_type] || '—'))
+
+const faqItems = computed(() => {
+  if (!date.value) return []
+  const price = date.value.is_free ? 'бесплатно' : `${Math.round((date.value.base_price || 0) / 100)} ₽`
+  return [
+    {
+      q: `Что такое свидание-квест «${date.value.title}»?`,
+      a: date.value.tagline || 'Персональный сценарий свидания-квеста, который Лиза Петри разработает специально под вашу пару.'
+    },
+    {
+      q: 'Сколько стоит этот квест?',
+      a: `Стоимость — ${price}. Цена включает персональную разработку сценария под вашу пару.`
+    },
+    {
+      q: 'Как долго разрабатывается квест?',
+      a: 'Лиза разрабатывает персональный сценарий в течение 24 часов после получения информации о вашей паре.'
+    },
+    {
+      q: 'Можно ли адаптировать под нашу ситуацию?',
+      a: 'Да — ваш город, ваша история, ваши детали. Это не шаблон, а индивидуальная разработка специально для вас.'
+    },
+  ]
+})
 
 const authorData = computed(() => {
   if (!date.value) return null
@@ -341,6 +459,27 @@ export default {
 
 /* Sections */
 .qp__section { padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.qp__faq { background: rgba(212,175,55,0.03); }
+
+.faq__list { display: flex; flex-direction: column; gap: 2px; margin-top: 20px; }
+.faq__item {
+  border: 1px solid rgba(255,255,255,0.07); border-radius: 12px;
+  overflow: hidden; background: rgba(255,255,255,0.03);
+}
+.faq__item[open] { border-color: rgba(212,175,55,0.25); background: rgba(212,175,55,0.05); }
+.faq__q {
+  padding: 16px 20px; font-size: 0.95rem; font-weight: 700;
+  color: #f0ede8; cursor: pointer; list-style: none;
+  display: flex; justify-content: space-between; align-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.faq__q::-webkit-details-marker { display: none; }
+.faq__q::after { content: '+'; color: #d4af37; font-size: 1.2rem; font-weight: 400; flex-shrink: 0; margin-left: 12px; }
+.faq__item[open] .faq__q::after { content: '−'; }
+.faq__a {
+  padding: 0 20px 16px; margin: 0;
+  font-size: 0.9rem; color: rgba(240,237,232,0.65); line-height: 1.6;
+}
 .qp__section--alt { background: rgba(255,255,255,0.02); }
 .qp__section-title {
   font-size: 1.2rem; font-weight: 900; color: #f0ede8;
