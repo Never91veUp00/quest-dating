@@ -1,456 +1,274 @@
 ﻿<template>
-  <div class="about-page">
-    <div class="breadcrumbs-bar">
-      <div class="container">
-        <Breadcrumbs :crumbs="breadcrumbs" />
-      </div>
-    </div>
+  <div class="about">
 
-    <section class="hero">
-      <div class="container">
-        <h1 class="hero-title">Лиза <span class="hero-accent">Петри</span></h1>
-        <p class="hero-description">
-          Помогаю придумать свидание, которое запомнится —<br class="br-desktop"> с вашими местами и вашей историей
-        </p>
+    <!-- ── HERO ── -->
+    <section class="about__hero">
+      <div class="about__hero-bg">
+        <div class="about__hero-orb"></div>
+        <div class="about__hero-grain"></div>
       </div>
-    </section>
-
-    <section class="mission-section">
-      <div class="container">
-        <div class="mission-content">
-          <div class="mission-text">
-            <h2 class="section-title">Моя история</h2>
-            <p class="mission-description">
-              Я знаю, как трудно придумать что-то по-настоящему особенное.
-              Quest Dating появился потому, что однажды я сама хотела устроить
-              незабываемый вечер — и поняла, что ничего готового просто не существует.
-            </p>
-            <p class="mission-description">
-              С тех пор я создаю свидания-квесты для пар. Каждый сценарий пишу с нуля:
-              ваш город, места где вы бывали вместе, детали которые знаете только вы двое.
-            </p>
+      <div class="about__container">
+        <div class="about__hero-inner">
+          <div class="about__photo-wrap">
+            <img :src="`/uploads/avatars/liza.jpg`" alt="Лиза Петри" class="about__photo" />
           </div>
-          <div class="mission-image">
-            <img :src="missionImg" alt="Лиза Петри — создатель свиданий-квестов" />
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="values-section">
-      <div class="container">
-        <h2 class="section-title">Мои принципы</h2>
-        <div class="values-grid">
-          <div class="value-card">
-            <div class="value-icon">🎨</div>
-            <h3 class="value-title">Творческий подход</h3>
-            <p class="value-description">
-              Каждый квест — уникальный сценарий, написанный специально под вашу пару с нуля
-            </p>
-          </div>
-          <div class="value-card">
-            <div class="value-icon">⭐</div>
-            <h3 class="value-title">Качество</h3>
-            <p class="value-description">
-              Я лично прорабатываю каждую деталь — локации, задания, финальный сюрприз
-            </p>
-          </div>
-          <div class="value-card">
-            <div class="value-icon">⏱️</div>
-            <h3 class="value-title">Быстро и чётко</h3>
-            <p class="value-description">
-              Готовый квест за 24–48 часов. Всегда на связи и отвечаю на вопросы
-            </p>
-          </div>
-          <div class="value-card">
-            <div class="value-icon">🤝</div>
-            <h3 class="value-title">Честность</h3>
-            <p class="value-description">
-              Прозрачное ценообразование и гарантия возврата средств
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="how-it-works-section">
-      <div class="container">
-        <h2 class="section-title">Как мы работаем</h2>
-        <div class="process-timeline">
-          <div class="timeline-item">
-            <div class="timeline-number">1</div>
-            <div class="timeline-content">
-              <h3 class="timeline-title">Выбираете квест</h3>
-              <p class="timeline-description">
-                Выбираете идею из каталога сценариев —
-                нравится формат, настроение, тип локации
-              </p>
-            </div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-number">2</div>
-            <div class="timeline-content">
-              <h3 class="timeline-title">Оформляете заказ</h3>
-              <p class="timeline-description">
-                Указываете детали: локацию, дату, особые пожелания.
-                Я адаптирую квест специально под вас двоих
-              </p>
-            </div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-number">3</div>
-            <div class="timeline-content">
-              <h3 class="timeline-title">Получаете квест</h3>
-              <p class="timeline-description">
-                Получаете персональный квест со всеми
-                необходимыми материалами на email
-              </p>
-            </div>
-          </div>
-          <div class="timeline-item">
-            <div class="timeline-number">4</div>
-            <div class="timeline-content">
-              <h3 class="timeline-title">Наслаждаетесь</h3>
-              <p class="timeline-description">
-                Проводите незабываемое свидание и создаёте особенные
-                воспоминания вместе со своей второй половинкой
-              </p>
+          <div class="about__hero-text">
+            <p class="about__hero-label">Создатель квестов</p>
+            <h1 class="about__hero-name">Лиза Петри</h1>
+            <p class="about__hero-sub">Делаю обычные вечера незабываемыми с 2024 года</p>
+            <div class="about__hero-stats">
+              <div class="about__stat">
+                <span class="about__stat-num">{{ stats?.total_templates ?? '7' }}+</span>
+                <span class="about__stat-lbl">квестов</span>
+              </div>
+              <div class="about__stat-div"></div>
+              <div class="about__stat">
+                <span class="about__stat-num">24ч</span>
+                <span class="about__stat-lbl">готовность</span>
+              </div>
+              <div class="about__stat-div"></div>
+              <div class="about__stat">
+                <span class="about__stat-num">100%</span>
+                <span class="about__stat-lbl">персонально</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="stats-section">
-      <div class="container">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-number">{{ stats?.total_templates ?? '...' }}</div>
-            <div class="stat-label">Готовых сценариев</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">за 24ч</div>
-            <div class="stat-label">Срок создания</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">с 2024</div>
-            <div class="stat-label">Создаём квесты</div>
-          </div>
-        </div>
-        <p class="stats-process">Общаемся с парой, уточняем детали, погружаемся в вашу историю</p>
-      </div>
-    </section>
-
-    <section class="team-section">
-      <div class="container">
-        <h2 class="section-title">Лиза Петри</h2>
-        <p class="section-description">
-          Организатор свиданий и автор сценариев свиданий-квестов
-        </p>
-        <div class="team-grid" style="max-width: 400px; margin: 0 auto;">
-          <div class="team-member">
-            <div class="member-avatar">
-              <img :src="withAvatarFallback('/images/avatars/author1.jpg')" alt="Лиза Петри" @error="onImgError" />
-            </div>
-            <h3 class="member-name">Лиза Петри</h3>
-            <div class="member-role">Организатор свиданий · автор сценариев</div>
-            <p class="member-bio">
-              Создаю персональные свидания-квесты с 2024 года.
-              Каждый сценарий — с нуля под вашу пару: от первой подсказки до финального сюрприза.
-            </p>
-          </div>
+    <!-- ── ИСТОРИЯ ── -->
+    <section class="about__section">
+      <div class="about__container">
+        <h2 class="about__section-title">Моя история</h2>
+        <div class="about__story">
+          <p>Всё началось когда мой партнёр хотел устроить мне особенный вечер — и не знал как. Рестораны, цветы, кино — всё это мило, но не запоминается.</p>
+          <p>Тогда он придумал квест. Прямо дома, из записок и загадок. Это был самый необычный вечер в моей жизни.</p>
+          <p>После этого я поняла: такое должно быть доступно каждой паре. Не нужно быть сценаристом — достаточно обратиться ко мне. Я возьму вашу историю и превращу её в приключение.</p>
         </div>
       </div>
     </section>
 
-    <section class="contact-section">
-      <div class="container">
-        <h2 class="section-title">Напишите Лизе</h2>
-        <div class="contact-content">
-          <div class="contact-info">
-            <div class="contact-item">
-              <div class="contact-icon">📧</div>
-              <div class="contact-details">
-                <div class="contact-label">Email</div>
-                <a href="mailto:vp.vlad00@mail.ru" class="contact-value">vp.vlad00@mail.ru</a>
-              </div>
-            </div>
-            <div class="contact-item">
-              <div class="contact-icon">💬</div>
-              <div class="contact-details">
-                <div class="contact-label">Telegram</div>
-                <a href="https://t.me/vinatian00" target="_blank" class="contact-value">@vinatian00</a>
-              </div>
-            </div>
-            <div class="contact-item">
-              <div class="contact-icon">📱</div>
-              <div class="contact-details">
-                <div class="contact-label">Телефон</div>
-                <a href="tel:+79035101495" class="contact-value">+7 903 510-14-95</a>
-              </div>
-            </div>
-            <div class="contact-item">
-              <div class="contact-icon">📍</div>
-              <div class="contact-details">
-                <div class="contact-label">Адрес</div>
-                <div class="contact-value">Москва, Россия</div>
-              </div>
+    <!-- ── ПРИНЦИПЫ ── -->
+    <section class="about__section about__section--alt">
+      <div class="about__container">
+        <h2 class="about__section-title">Как я работаю</h2>
+        <div class="about__principles">
+          <div class="about__principle">
+            <span class="about__principle-icon">✍️</span>
+            <div>
+              <strong>Каждый сценарий — с нуля</strong>
+              <p>Никаких шаблонов «заполни поле». Я пишу историю именно под вас — с вашими местами, шутками и воспоминаниями.</p>
             </div>
           </div>
-
-          <div class="contact-form">
-            <form @submit.prevent="handleSubmit">
-              <div class="form-group">
-                <input v-model="formData.name" type="text" placeholder="Ваше имя" class="form-input" required />
-              </div>
-              <div class="form-group">
-                <input v-model="formData.phone" type="tel" placeholder="Номер телефона (с привязанным Telegram)" class="form-input" required />
-              </div>
-              <div class="form-group">
-                <textarea v-model="formData.message" rows="5" placeholder="Ваше сообщение" class="form-textarea" required></textarea>
-              </div>
-              <button type="submit" class="btn-submit" :disabled="submitting">
-                {{ submitting ? 'Отправка...' : 'Отправить сообщение' }}
-              </button>
-            </form>
-            <div v-if="showSuccess" class="success-message">
-              ✅ Сообщение отправлено! Мы свяжемся с вами в ближайшее время.
+          <div class="about__principle">
+            <span class="about__principle-icon">⚡</span>
+            <div>
+              <strong>Готово за 24 часа</strong>
+              <p>Заказ сегодня — квест завтра. Работаю быстро без потери качества.</p>
+            </div>
+          </div>
+          <div class="about__principle">
+            <span class="about__principle-icon">💬</span>
+            <div>
+              <strong>На связи до финала</strong>
+              <p>Отвечаю на вопросы, вношу правки, помогаю подготовиться к особому моменту.</p>
+            </div>
+          </div>
+          <div class="about__principle">
+            <span class="about__principle-icon">💍</span>
+            <div>
+              <strong>Специализация на особых моментах</strong>
+              <p>Предложения руки и сердца, годовщины, дни рождения — моменты которые запоминаются навсегда.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="cta-section">
-      <div class="container">
-        <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
-        <p class="cta-description">Выберите идею — Лиза создаст свидание-квест под вашу пару</p>
-        <NuxtLink to="/catalog" class="btn-cta">Выбрать квест</NuxtLink>
+    <!-- ── КАК РАБОТАЕМ ── -->
+    <section class="about__section">
+      <div class="about__container">
+        <h2 class="about__section-title">Как это происходит</h2>
+        <div class="about__timeline">
+          <div class="about__tl-item" v-for="(step, i) in STEPS" :key="i">
+            <div class="about__tl-aside">
+              <div class="about__tl-num">{{ i + 1 }}</div>
+              <div v-if="i < STEPS.length - 1" class="about__tl-line"></div>
+            </div>
+            <div class="about__tl-body">
+              <strong>{{ step.title }}</strong>
+              <p>{{ step.desc }}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
+
+    <!-- ── КОНТАКТЫ ── -->
+    <section class="about__section about__section--alt">
+      <div class="about__container">
+        <h2 class="about__section-title">Написать Лизе</h2>
+        <p class="about__contact-sub">Расскажите о вашей паре — и я предложу идею для квеста</p>
+        <div class="about__contacts">
+          <a href="https://t.me/vinatian00" target="_blank" rel="noopener" class="about__contact-btn about__contact-btn--primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+            Написать в Telegram
+          </a>
+          <a href="mailto:vp.vlad00@mail.ru" class="about__contact-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            vp.vlad00@mail.ru
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CTA ── -->
+    <section class="about__cta">
+      <div class="about__container">
+        <h2 class="about__cta-title">Готовы удивить?</h2>
+        <p class="about__cta-sub">Выберите квест — я адаптирую его под вас</p>
+        <NuxtLink to="/catalog" class="about__cta-btn">Выбрать квест →</NuxtLink>
+      </div>
+    </section>
+
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { computed } from 'vue'
 
-const { getStats, sendContact } = useDatesApi()
-const breadcrumbs = [
-  { label: 'Главная', to: '/' },
-  { label: 'О Лизе' },
-]
-const { withAvatarFallback, onImgError } = useImageFallback()
-
-// Динамические пути — Vite не резолвит их статически как модули
-const missionImg = '/images/mission-illustration.svg'
-
-
-useServerHead({
-  script: [{
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Person',
-      name:        'Лиза Петри',
-      url:         'https://questdating.ru/about',
-      jobTitle:    'Организатор свиданий, автор сценариев свиданий-квестов',
-      worksFor: { '@type': 'Organization', name: 'Quest Dating', url: 'https://questdating.ru' },
-      sameAs: ['https://t.me/vinatian00', 'https://vk.com/vladislav_petrov2000'],
-      description: 'Создаю персональные свидания-квесты с 2024 года. Каждый сценарий — с нуля под вашу пару.',
-    })
-  }]
-})
+const { getStats } = useDatesApi()
 
 useSeoMeta({
-  title:       'Лиза Петри — свидания-квесты под вашу пару | Quest Dating',
-  description: 'Не знаете как удивить любимого человека? Лиза Петри создаст свидание-квест под вашу пару — с вашими местами и историей.',
-  ogTitle:     'Лиза Петри — свидания-квесты под вашу пару | Quest Dating',
+  title:       'О Лизе Петри — Quest Dating',
+  description: 'Лиза Петри создаёт персональные свидания-квесты для пар. Каждый сценарий — с нуля, готов за 24 часа.',
+  ogTitle:     'О Лизе Петри — Quest Dating',
+  ogImage:     'https://questdating.ru/uploads/avatars/liza.jpg',
 })
 
 const { data: statsRaw } = await useAsyncData('about-stats', () => getStats())
 const stats = computed(() => statsRaw.value?.data ?? statsRaw.value ?? {})
 
-const formData = reactive({ name: '', phone: '', message: '' })
-const submitting = ref(false)
-const showSuccess = ref(false)
-
-const handleSubmit = async () => {
-  if (submitting.value) return
-  submitting.value = true
-  showSuccess.value = false
-  try {
-    const response = await sendContact({
-      name:    formData.name,
-      phone:   formData.phone,
-      message: formData.message,
-    })
-    if (!response.success) throw new Error(response.message || 'Ошибка отправки')
-    showSuccess.value = true
-    formData.name = ''
-    formData.phone = ''
-    formData.message = ''
-    setTimeout(() => { showSuccess.value = false }, 5000)
-  } catch (error) {
-    console.error('Error sending message:', error)
-    alert('Произошла ошибка. Напишите нам напрямую в Telegram.')
-  } finally {
-    submitting.value = false
-  }
-}
+const STEPS = [
+  { title: 'Выбираете квест или пишете мне', desc: 'Просматриваете каталог или рассказываете о паре в Telegram — я подберу формат.' },
+  { title: 'Я задаю вопросы', desc: 'Узнаю ваши места, шутки, воспоминания — всё что сделает квест живым.' },
+  { title: 'Готово за 24 часа', desc: 'Вы получаете ссылку на персональный квест. Можно делиться сразу.' },
+  { title: 'Партнёр проходит — вы наблюдаете', desc: 'Смотрите на реакцию и наслаждаетесь моментом.' },
+]
 </script>
 
 <style scoped>
-.breadcrumbs-bar { background: white; border-bottom: 1px solid #e2e8f0; }
+.about { background: #0a0a0f; color: #f0ede8; min-height: 100vh; }
+.about__container { max-width: 600px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 768px) { .about__container { max-width: 900px; padding: 0 24px; } }
 
-.about-page { min-height: 100vh; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0 72px; text-align: center; }
-.hero-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 3.5rem;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  margin: 0 0 20px 0;
+/* Hero */
+.about__hero {
+  position: relative; overflow: hidden;
+  padding: calc(80px + env(safe-area-inset-top)) 0 48px;
 }
-.hero-accent {
-  font-style: italic;
-  background: linear-gradient(to right, #f9a8d4, #e879f9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.about__hero-bg { position: absolute; inset: 0; }
+.about__hero-orb {
+  position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(212,175,55,0.08); filter: blur(80px);
+  top: -50px; right: -50px;
 }
-.hero-description { font-size: 1.15rem; opacity: 0.85; margin: 0; font-weight: 300; line-height: 1.6; }
-.br-desktop { display: inline; }
-.mission-section { padding: 100px 0; background: white; }
-.mission-content { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-.section-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0 0 32px 0;
-  letter-spacing: -0.01em;
+.about__hero-grain {
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
-.mission-description { font-size: 1.1rem; line-height: 1.8; color: #4a5568; margin: 0 0 24px 0; }
-.mission-image img { width: 100%; height: auto; }
-.values-section { padding: 100px 0; background: #f7fafc; }
-.values-section .section-title { text-align: center; margin-bottom: 60px; }
-.values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; }
-.value-card { background: white; padding: 40px 32px; border-radius: 16px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: all 0.3s; }
-.value-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-.value-icon { font-size: 4rem; margin-bottom: 24px; }
-.value-title { font-size: 1.25rem; font-weight: 700; color: #2d3748; margin: 0 0 16px 0; }
-.value-description { color: #718096; line-height: 1.6; margin: 0; }
-.how-it-works-section { padding: 100px 0; background: white; }
-.how-it-works-section .section-title { text-align: center; margin-bottom: 60px; }
-.process-timeline { max-width: 800px; margin: 0 auto; }
-.timeline-item { display: flex; gap: 32px; margin-bottom: 48px; position: relative; }
-.timeline-item:not(:last-child)::after { content: ''; position: absolute; left: 30px; top: 60px; width: 2px; height: calc(100% + 20px); background: #e2e8f0; }
-.timeline-number { width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; flex-shrink: 0; position: relative; z-index: 1; }
-.timeline-content { flex: 1; padding-top: 8px; }
-.timeline-title { font-size: 1.5rem; font-weight: 700; color: #2d3748; margin: 0 0 12px 0; }
-.timeline-description { color: #718096; line-height: 1.6; margin: 0; }
-.stats-section { padding: 80px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.stats-process {
+
+.about__hero-inner {
+  position: relative; z-index: 2;
+  display: flex; gap: 24px; align-items: flex-start;
+}
+
+.about__photo-wrap { flex-shrink: 0; }
+.about__photo {
+  width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+  border: 2px solid rgba(212,175,55,0.4);
+}
+@media (min-width: 768px) { .about__photo { width: 120px; height: 120px; } }
+
+.about__hero-text { flex: 1; }
+.about__hero-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #d4af37; margin: 0 0 4px; }
+.about__hero-name { font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 900; margin: 0 0 6px; letter-spacing: -0.02em; }
+.about__hero-sub { font-size: 0.9rem; color: rgba(240,237,232,0.55); margin: 0 0 16px; line-height: 1.5; }
+
+.about__hero-stats { display: flex; align-items: center; gap: 14px; }
+.about__stat { display: flex; flex-direction: column; gap: 1px; }
+.about__stat-num { font-size: 1rem; font-weight: 900; color: #d4af37; }
+.about__stat-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(240,237,232,0.35); }
+.about__stat-div { width: 1px; height: 28px; background: rgba(255,255,255,0.08); }
+
+/* Sections */
+.about__section { padding: 32px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.about__section--alt { background: rgba(255,255,255,0.02); }
+.about__section-title { font-size: 1.2rem; font-weight: 900; color: #f0ede8; margin: 0 0 16px; letter-spacing: -0.01em; }
+
+/* Story */
+.about__story { display: flex; flex-direction: column; gap: 12px; }
+.about__story p { font-size: 0.95rem; color: rgba(240,237,232,0.7); line-height: 1.7; margin: 0; }
+
+/* Principles */
+.about__principles { display: flex; flex-direction: column; gap: 16px; }
+.about__principle {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 14px;
+}
+.about__principle-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+.about__principle strong { display: block; font-size: 0.95rem; font-weight: 800; color: #f0ede8; margin-bottom: 4px; }
+.about__principle p { font-size: 0.82rem; color: rgba(240,237,232,0.55); margin: 0; line-height: 1.5; }
+
+/* Timeline */
+.about__timeline { display: flex; flex-direction: column; }
+.about__tl-item { display: flex; gap: 14px; padding-bottom: 20px; }
+.about__tl-aside { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 32px; }
+.about__tl-num {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.4);
+  color: #d4af37; font-size: 0.8rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.about__tl-line {
+  width: 1px; flex: 1; margin-top: 6px; min-height: 20px;
+  background: linear-gradient(to bottom, rgba(212,175,55,0.3), rgba(212,175,55,0.05));
+}
+.about__tl-body { flex: 1; padding-top: 6px; }
+.about__tl-body strong { display: block; font-size: 0.95rem; font-weight: 800; color: #f0ede8; margin-bottom: 4px; }
+.about__tl-body p { font-size: 0.82rem; color: rgba(240,237,232,0.55); margin: 0; line-height: 1.5; }
+
+/* Contacts */
+.about__contact-sub { font-size: 0.9rem; color: rgba(240,237,232,0.45); margin: 0 0 16px; }
+.about__contacts { display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 480px) { .about__contacts { flex-direction: row; } }
+.about__contact-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 20px; border-radius: 100px;
+  font-size: 0.9rem; font-weight: 700; text-decoration: none;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(240,237,232,0.7); transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.about__contact-btn:hover { border-color: rgba(255,255,255,0.25); color: #f0ede8; }
+.about__contact-btn--primary { background: #d4af37; color: #0a0a0f; border-color: transparent; }
+.about__contact-btn--primary:hover { opacity: 0.9; }
+
+/* CTA */
+.about__cta {
+  padding: 64px 0;
   text-align: center;
-  margin-top: 24px;
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-style: italic;
-  letter-spacing: 0.01em;
+  background: radial-gradient(ellipse at center, rgba(212,175,55,0.1) 0%, transparent 70%);
 }
-
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 48px; }
-.stat-card { text-align: center; }
-.stat-number {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 4rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  line-height: 1;
+.about__cta-title { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: 900; margin: 0 0 10px; letter-spacing: -0.02em; }
+.about__cta-sub { font-size: 1rem; color: rgba(240,237,232,0.5); margin: 0 0 28px; }
+.about__cta-btn {
+  display: inline-block; background: #d4af37; color: #0a0a0f;
+  padding: 16px 40px; border-radius: 100px; font-weight: 800; font-size: 1rem;
+  text-decoration: none; transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
-.stat-label { font-size: 1.1rem; opacity: 0.95; }
-.team-section { padding: 100px 0; background: white; }
-.team-section .section-title { text-align: center; margin-bottom: 12px; }
-.section-description { text-align: center; font-size: 1.1rem; color: #718096; margin: 0 0 60px 0; }
-.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 48px; }
-.team-member { text-align: center; }
-.member-avatar { width: 150px; height: 150px; margin: 0 auto 24px; border-radius: 50%; overflow: hidden; border: 4px solid #e2e8f0; }
-.member-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.member-name { font-size: 1.25rem; font-weight: 700; color: #2d3748; margin: 0 0 8px 0; }
-.member-role { color: #667eea; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
-.member-bio { color: #718096; line-height: 1.6; margin: 0; }
-.contact-section { padding: 100px 0; background: #f7fafc; }
-.contact-section .section-title { text-align: center; margin-bottom: 60px; }
-.contact-content { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
-.contact-info { display: flex; flex-direction: column; gap: 32px; }
-.contact-item { display: flex; gap: 20px; }
-.contact-icon { width: 56px; height: 56px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; flex-shrink: 0; }
-.contact-details { flex: 1; }
-.contact-label { font-size: 0.85rem; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.contact-value { font-size: 1.1rem; font-weight: 600; color: #2d3748; text-decoration: none; }
-.contact-value:hover { color: #667eea; }
-.contact-form { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-.form-group { margin-bottom: 20px; }
-.form-input, .form-textarea { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; font-family: inherit; box-sizing: border-box; }
-.form-input:focus, .form-textarea:focus { outline: none; border-color: #667eea; }
-.form-textarea { resize: vertical; }
-.btn-submit { width: 100%; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; }
-.btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
-.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-.success-message { margin-top: 20px; padding: 16px 20px; background: linear-gradient(to right, #d1fae5, #a7f3d0); border: 2px solid #48bb78; border-radius: 8px; color: #065f46; font-weight: 600; text-align: center; }
-.cta-section { padding: 100px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; }
-.cta-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 600;
-  margin: 0 0 16px 0;
-  letter-spacing: -0.01em;
-}
-.cta-description { font-size: 1.25rem; margin: 0 0 32px 0; opacity: 0.95; }
-.btn-cta { display: inline-block; padding: 16px 48px; background: white; color: #764ba2; border-radius: 50px; font-weight: 600; font-size: 1.1rem; text-decoration: none; transition: all 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.18); letter-spacing: 0.02em; }
-.btn-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
-@media (max-width: 1024px) { .mission-content, .contact-content { grid-template-columns: 1fr; gap: 40px; } }
-@media (max-width: 640px) {
-  .hero { padding: 60px 0 40px; }
-  .hero-title { font-size: 2rem; margin-bottom: 12px; }
-  .hero-description { font-size: 0.95rem; }
-  .br-desktop { display: none; }
-  .mission-section { padding: 24px 0; }
-  .mission-image { display: none; }
-  .section-title { font-size: 1.2rem; margin-bottom: 12px; }
-  .mission-description { font-size: 0.9rem; margin-bottom: 12px; }
-  .values-section { padding: 24px 0; }
-  .values-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .value-card { padding: 16px 12px; }
-  .value-icon { font-size: 2rem; margin-bottom: 8px; }
-  .value-title { font-size: 0.85rem; margin-bottom: 6px; }
-  .value-description { font-size: 0.78rem; line-height: 1.4; }
-  .how-it-works-section { padding: 24px 0; }
-  .timeline-item { gap: 16px; margin-bottom: 20px; }
-  .timeline-item:not(:last-child)::after { display: none; }
-  .timeline-number { width: 36px; height: 36px; font-size: 1rem; }
-  .timeline-title { font-size: 1rem; margin-bottom: 4px; }
-  .timeline-description { font-size: 0.85rem; }
-  .stats-section { padding: 24px 0; }
-  .stats-grid { grid-template-columns: 1fr; gap: 16px; }
-  .stat-number { font-size: 2.2rem; margin-bottom: 4px; }
-  .stat-label { font-size: 0.85rem; }
-  .team-section { padding: 24px 0; }
-  .member-avatar { width: 90px; height: 90px; margin-bottom: 12px; }
-  .member-name { font-size: 1.1rem; }
-  .member-bio { font-size: 0.85rem; }
-  .contact-section { padding: 24px 0; }
-  .contact-form { display: none; }
-  .contact-info { gap: 16px; }
-  .contact-item { gap: 12px; }
-  .contact-icon { width: 40px; height: 40px; font-size: 1.2rem; border-radius: 8px; }
-  .contact-label { font-size: 0.75rem; margin-bottom: 2px; }
-  .contact-value { font-size: 0.95rem; }
-  .cta-section { padding: 28px 0; }
-  .cta-title { font-size: 1.3rem; margin-bottom: 8px; }
-  .cta-description { font-size: 0.95rem; margin-bottom: 20px; }
-  .btn-cta { padding: 14px 32px; font-size: 1rem; }
-}
+.about__cta-btn:hover { opacity: 0.9; }
 </style>

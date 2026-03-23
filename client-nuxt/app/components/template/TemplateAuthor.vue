@@ -1,313 +1,134 @@
 <template>
-  <div class="template-author">
-    <h3 class="section-title">Об авторе</h3>
-    
-    <div class="author-card">
-      <!-- Аватар -->
-      <div class="author-header">
-        <NuxtLink to="/about" class="author-avatar-link">
+  <div class="ta">
+    <h2 class="ta__title">Об авторе</h2>
+
+    <div class="ta__card">
+      <!-- Шапка: фото + имя + статс -->
+      <div class="ta__header">
+        <NuxtLink to="/about" class="ta__avatar-wrap">
           <img
-            :src="withAvatarFallback(author.avatar_url || '/images/avatars/liza.jpg')"
-            alt="Лиза Петри"
-            class="author-avatar"
+            :src="withAvatarFallback(author.avatar_url)"
+            :alt="author.display_name"
+            class="ta__avatar"
             @error="onImgError"
           />
         </NuxtLink>
 
-        <div class="author-info">
-          <NuxtLink to="/about" class="author-name">
-            {{ (author.display_name === "Влад" || !author.display_name) ? "Лиза Петри" : author.display_name }}
-          </NuxtLink>
-          
-          <!-- Статистика создателя -->
-          <div class="author-quick-stats">
-            <div class="stat">
-              <span class="stat-number">{{ author.total_templates || 0 }}</span>
-              <span class="stat-text">сценариев</span>
+        <div class="ta__info">
+          <NuxtLink to="/about" class="ta__name">{{ author.display_name }}</NuxtLink>
+          <p class="ta__role">Создатель свиданий-квестов</p>
+          <div class="ta__stats">
+            <div class="ta__stat">
+              <span class="ta__stat-num">{{ author.total_templates || 7 }}</span>
+              <span class="ta__stat-lbl">квестов</span>
             </div>
-            <div class="stat">
-              <span class="stat-number">за 24ч</span>
-              <span class="stat-text">срок создания</span>
+            <div class="ta__stat-div"></div>
+            <div class="ta__stat">
+              <span class="ta__stat-num">100%</span>
+              <span class="ta__stat-lbl">персонально</span>
+            </div>
+            <div class="ta__stat-div"></div>
+            <div class="ta__stat">
+              <span class="ta__stat-num">24ч</span>
+              <span class="ta__stat-lbl">готовность</span>
             </div>
           </div>
-          <p class="author-process">Общаемся, уточняем детали, погружаемся в вашу историю</p>
         </div>
       </div>
 
-      <!-- Биография -->
-      <p class="author-bio">
-        {{ author.bio || "Создаю персональные свидания-квесты с 2024 года. Каждый сценарий — с нуля под вашу пару." }}
+      <!-- Био -->
+      <p v-if="author.bio" class="ta__bio">{{ author.bio }}</p>
+      <p v-else class="ta__bio">
+        Создаю персональные свидания-квесты с 2024 года. Каждый сценарий — с нуля, под вашу пару. Я знаю как трудно придумать что-то по-настоящему особенное — поэтому беру это на себя.
       </p>
 
-      <!-- Социальные ссылки -->
-      <div v-if="hasSocialLinks" class="author-social">
-        <a 
-          v-if="author.social_links?.instagram"
-          :href="author.social_links.instagram"
-          target="_blank"
-          rel="noopener"
-          class="social-link instagram"
+      <!-- Соцсети -->
+      <div class="ta__social">
+        <a
+          href="https://t.me/vinatian00"
+          target="_blank" rel="noopener"
+          class="ta__social-btn"
         >
-          <span class="social-icon">📷</span>
-          Instagram
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+          Написать в Telegram
         </a>
-        <a 
-          v-if="author.social_links?.telegram"
-          :href="author.social_links.telegram"
-          target="_blank"
-          rel="noopener"
-          class="social-link telegram"
-        >
-          <span class="social-icon">✈️</span>
-          Telegram
-        </a>
-        <a 
-          v-if="author.social_links?.vk"
-          :href="author.social_links.vk"
-          target="_blank"
-          rel="noopener"
-          class="social-link vk"
-        >
-          <span class="social-icon">🔵</span>
-          VK
-        </a>
-        <a 
-          v-if="author.website"
-          :href="author.website"
-          target="_blank"
-          rel="noopener"
-          class="social-link website"
-        >
-          <span class="social-icon">🌐</span>
-          Сайт
-        </a>
+        <NuxtLink to="/about" class="ta__about-link">О Лизе →</NuxtLink>
       </div>
-
-      <!-- Кнопка профиля -->
-      <NuxtLink 
-        to="/about"
-        class="btn-view-profile"
-      >
-        Узнать обо мне →
-      </NuxtLink>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
 const { withAvatarFallback, onImgError } = useImageFallback()
-const props = defineProps({
-  author: {
-    type: Object,
-    required: true
-  }
-})
 
-const hasSocialLinks = computed(() => {
-  const links = props.author.social_links
-  return props.author.website || (links && (links.instagram || links.telegram || links.vk))
+defineProps({
+  author: { type: Object, required: true }
 })
 </script>
 
 <style scoped>
-.template-author {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+.ta__title {
+  font-size: 1.2rem; font-weight: 900; color: #f0ede8;
+  margin: 0 0 16px; letter-spacing: -0.01em;
 }
 
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin: 0 0 24px 0;
+.ta__card {
+  background: rgba(212,175,55,0.05);
+  border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 20px; padding: 20px;
+  display: flex; flex-direction: column; gap: 16px;
 }
 
-.author-card {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* Header */
+.ta__header { display: flex; gap: 16px; align-items: flex-start; }
+
+.ta__avatar-wrap { flex-shrink: 0; text-decoration: none; }
+.ta__avatar {
+  width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+  border: 2px solid rgba(212,175,55,0.4);
+  transition: border-color 0.2s;
+}
+.ta__avatar-wrap:hover .ta__avatar { border-color: #d4af37; }
+
+.ta__info { flex: 1; min-width: 0; }
+.ta__name {
+  font-size: 1.1rem; font-weight: 900; color: #f0ede8;
+  text-decoration: none; display: block; margin-bottom: 2px;
+  transition: color 0.2s;
+}
+.ta__name:hover { color: #d4af37; }
+.ta__role { font-size: 0.8rem; color: rgba(240,237,232,0.4); margin: 0 0 10px; }
+
+.ta__stats { display: flex; align-items: center; gap: 10px; }
+.ta__stat { display: flex; flex-direction: column; gap: 1px; }
+.ta__stat-num { font-size: 0.9rem; font-weight: 800; color: #d4af37; }
+.ta__stat-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(240,237,232,0.35); }
+.ta__stat-div { width: 1px; height: 24px; background: rgba(255,255,255,0.08); }
+
+/* Bio */
+.ta__bio {
+  font-size: 0.88rem; color: rgba(240,237,232,0.6);
+  line-height: 1.65; margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid rgba(212,175,55,0.3);
 }
 
-.author-header {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
+/* Social */
+.ta__social { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.ta__social-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #d4af37; color: #0a0a0f;
+  padding: 10px 16px; border-radius: 100px;
+  font-size: 0.85rem; font-weight: 700; text-decoration: none;
+  -webkit-tap-highlight-color: transparent; transition: opacity 0.2s;
 }
+.ta__social-btn:hover { opacity: 0.9; }
 
-.author-avatar-link {
-  position: relative;
-  flex-shrink: 0;
-  text-decoration: none;
+.ta__about-link {
+  font-size: 0.85rem; font-weight: 700; color: rgba(240,237,232,0.5);
+  text-decoration: none; transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.author-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #e2e8f0;
-  transition: border-color 0.3s;
-}
-
-.author-avatar-link:hover .author-avatar {
-  border-color: #667eea;
-}
-
-.verified-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 26px;
-  height: 26px;
-  background: #48bb78;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 3px solid white;
-}
-
-.author-info {
-  flex: 1;
-}
-
-.author-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  text-decoration: none;
-  display: block;
-  margin-bottom: 4px;
-  transition: color 0.3s;
-}
-
-.author-name:hover {
-  color: #667eea;
-}
-
-.author-username {
-  color: #718096;
-  font-size: 0.95rem;
-  margin-bottom: 12px;
-}
-
-.author-quick-stats {
-  display: flex;
-  gap: 20px;
-  padding-top: 12px;
-}
-
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-}
-
-.stat-number {
-  font-weight: 700;
-  color: #2d3748;
-  font-size: 1.1rem;
-}
-
-.stat-text {
-  color: #718096;
-}
-
-.author-process {
-  margin-top: 8px;
-  font-size: 0.82rem;
-  color: #718096;
-  font-style: italic;
-  line-height: 1.4;
-}
-
-.author-bio {
-  color: #4a5568;
-  line-height: 1.6;
-  margin: 0;
-  padding: 16px;
-  background: #f7fafc;
-  border-left: 4px solid #667eea;
-  border-radius: 8px;
-}
-
-.author-social {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.social-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #4a5568;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.3s;
-}
-
-.social-link:hover {
-  background: #edf2f7;
-  border-color: #cbd5e0;
-  transform: translateY(-2px);
-}
-
-.social-icon {
-  font-size: 1.2rem;
-}
-
-.btn-view-profile {
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: 600;
-  text-align: center;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.btn-view-profile:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
-
-.author-avatar-link:focus,
-.author-name:focus,
-.social-link:focus,
-.btn-view-profile:focus {
-  outline: none;
-}
-
-@media (max-width: 640px) {
-  .template-author {
-    padding: 24px 20px;
-  }
-
-  .author-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .author-avatar {
-    width: 100px;
-    height: 100px;
-  }
-}
+.ta__about-link:hover { color: #f0ede8; }
 </style>

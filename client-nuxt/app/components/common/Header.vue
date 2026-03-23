@@ -1,63 +1,52 @@
 <template>
-  <header class="header" :class="{ scrolled: isScrolled }">
-    <div class="container">
-      <div class="header-content">
+  <header class="header" :class="{ scrolled: isScrolled, 'menu-open': mobileMenuOpen }">
+    <div class="header__inner">
 
-        <NuxtLink to="/" class="logo">
-          <span class="logo-icon">🎯</span>
-          <span class="logo-text">Quest Dating</span>
-        </NuxtLink>
+      <NuxtLink to="/" class="logo" @click="closeMobileMenu">
+        <span class="logo__icon">🎯</span>
+        <span class="logo__text">Quest Dating</span>
+      </NuxtLink>
 
-        <!-- Навигация Desktop -->
-        <nav class="nav-desktop">
-          <NuxtLink to="/" class="nav-link">Главная</NuxtLink>
-          <NuxtLink to="/catalog" class="nav-link">Квесты</NuxtLink>
-          <NuxtLink to="/about" class="nav-link">О Лизе</NuxtLink>
-          <NuxtLink to="/blog" class="nav-link">Блог</NuxtLink>
-          <!-- ❌ Удалено: /authors, /about (О платформе) -->
-        </nav>
+      <!-- Desktop nav -->
+      <nav class="nav-desktop">
+        <NuxtLink to="/" class="nav-link">Главная</NuxtLink>
+        <NuxtLink to="/catalog" class="nav-link">Свидания-квесты</NuxtLink>
+        <NuxtLink to="/about" class="nav-link">О Лизе</NuxtLink>
+        <NuxtLink to="/blog" class="nav-link">Блог</NuxtLink>
+      </nav>
 
-        <div class="header-actions">
-          <!-- ❌ Было: /become-author "Стать автором" -->
-          <NuxtLink to="/catalog" class="btn-author">
-            Заказать квест
-          </NuxtLink>
-          <button @click="toggleMobileMenu" class="btn-mobile-menu">
-            <span class="hamburger" :class="{ active: mobileMenuOpen }">
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-          </button>
-        </div>
+      <div class="header__actions">
+        <NuxtLink to="/catalog" class="btn-cta">Заказать квест</NuxtLink>
+        <button @click="toggleMobileMenu" class="btn-burger" :aria-label="mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'">
+          <span class="burger" :class="{ active: mobileMenuOpen }">
+            <span></span><span></span><span></span>
+          </span>
+        </button>
       </div>
     </div>
 
-    <!-- Мобильное меню -->
-    <transition name="mobile-menu">
-      <div v-if="mobileMenuOpen" class="mobile-menu">
+  </header>
+
+  <!-- Mobile menu — вне header чтобы не растягивать fixed блок -->
+  <Teleport to="body">
+    <transition name="menu-fade">
+      <div v-if="mobileMenuOpen" class="mobile-menu" @click.self="closeMobileMenu">
         <nav class="mobile-nav">
-          <NuxtLink to="/" class="mobile-nav-link" @click="closeMobileMenu">
-            Главная
-          </NuxtLink>
-          <NuxtLink to="/catalog" class="mobile-nav-link" @click="closeMobileMenu">
-            Квесты
-          </NuxtLink>
-          <NuxtLink to="/about" class="mobile-nav-link" @click="closeMobileMenu">
-            О Лизе
-          </NuxtLink>
-          <NuxtLink to="/blog" class="mobile-nav-link" @click="closeMobileMenu">
-            Блог
-          </NuxtLink>
-          <!-- ❌ Удалено: /authors -->
-          <!-- ❌ Было: /become-author "Стать автором" -->
-          <NuxtLink to="/catalog" class="mobile-nav-link highlighted" @click="closeMobileMenu">
-            Заказать квест
+          <NuxtLink to="/" class="mobile-nav__link" @click="closeMobileMenu">Главная</NuxtLink>
+          <NuxtLink to="/catalog" class="mobile-nav__link" @click="closeMobileMenu">Свидания-квесты</NuxtLink>
+          <NuxtLink to="/about" class="mobile-nav__link" @click="closeMobileMenu">О Лизе</NuxtLink>
+          <NuxtLink to="/blog" class="mobile-nav__link" @click="closeMobileMenu">Блог</NuxtLink>
+          <NuxtLink to="/catalog" class="mobile-nav__cta" @click="closeMobileMenu">
+            Заказать квест →
           </NuxtLink>
         </nav>
+        <div class="mobile-menu__footer">
+          <p>Свидания-квесты от Лизы Петри</p>
+          <p>от 499 ₽ · готово за 24 часа</p>
+        </div>
       </div>
     </transition>
-  </header>
+  </Teleport>
 </template>
 
 <script setup>
@@ -66,28 +55,42 @@ import { ref, onMounted, onUnmounted } from 'vue'
 const isScrolled = ref(false)
 const mobileMenuOpen = ref(false)
 
-const handleScroll = () => {
-  isScrolled.value = window.scrollY > 50
-}
+const handleScroll = () => { isScrolled.value = window.scrollY > 20 }
+
+const scrollY = ref(0)
 
 const toggleMobileMenu = () => {
-  mobileMenuOpen.value = !mobileMenuOpen.value
-  if (mobileMenuOpen.value) {
+  if (!mobileMenuOpen.value) {
+    scrollY.value = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY.value}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
     document.body.style.overflow = 'hidden'
   } else {
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.left = ''
+    document.body.style.right = ''
     document.body.style.overflow = ''
+    window.scrollTo(0, scrollY.value)
   }
+  mobileMenuOpen.value = !mobileMenuOpen.value
 }
 
 const closeMobileMenu = () => {
+  if (mobileMenuOpen.value) {
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.left = ''
+    document.body.style.right = ''
+    document.body.style.overflow = ''
+    window.scrollTo(0, scrollY.value)
+  }
   mobileMenuOpen.value = false
-  document.body.style.overflow = ''
 }
 
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
-
+onMounted(() => window.addEventListener('scroll', handleScroll, { passive: true }))
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   document.body.style.overflow = ''
@@ -97,240 +100,263 @@ onUnmounted(() => {
 <style scoped>
 .header {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: white;
-  border-bottom: 1px solid transparent;
-  transition: all 0.3s ease;
+  top: 0; left: 0; right: 0;
+  z-index: 1002;
+  background: transparent;
+  transition: background 0.3s, backdrop-filter 0.3s;
+  /* Safe area для iPhone с Dynamic Island */
+  padding-top: env(safe-area-inset-top);
 }
 
 .header.scrolled {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border-bottom-color: #e2e8f0;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+.header.menu-open {
+  background: rgba(10, 10, 15, 0.98);
 }
 
-.header-content {
+.header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 80px;
+  height: 64px;
+  padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
+/* Logo */
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   text-decoration: none;
+  z-index: 2;
+}
+.logo__icon { font-size: 1.4rem; }
+.logo__text {
   font-weight: 800;
-  font-size: 1.5rem;
-  color: #2d3748;
-  transition: transform 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.logo:hover {
-  transform: scale(1.05);
-}
-
-.logo:focus {
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.logo-icon {
-  font-size: 2rem;
-}
-
-.logo-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #d4af37, #f5d36e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: -0.02em;
 }
 
+/* Desktop nav */
 .nav-desktop {
-  display: flex;
-  gap: 32px;
+  display: none;
 }
-
+@media (min-width: 768px) {
+  .nav-desktop {
+    display: flex;
+    gap: 28px;
+  }
+}
 .nav-link {
   text-decoration: none;
-  color: #4a5568;
+  color: rgba(240,237,232,0.7);
   font-weight: 600;
-  font-size: 1rem;
-  transition: color 0.3s;
-  position: relative;
-  outline: none; /* ← ДОБАВЛЕНО */
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+.nav-link:hover,
+.nav-link.router-link-active {
+  color: #f0ede8;
 }
 
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 0;
-  height: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  transition: width 0.3s;
-}
-
-.nav-link:hover {
-  color: #667eea;
-}
-
-.nav-link:hover::after,
-.nav-link.router-link-active::after,
-.nav-link:focus::after { /* ← ДОБАВЛЕНО */
-  width: 100%;
-}
-
-.nav-link.router-link-active,
-.nav-link:focus { /* ← ДОБАВЛЕНО */
-  color: #667eea;
-}
-
-.header-actions {
+/* Actions */
+.header__actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  z-index: 2;
 }
 
-.btn-author {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.btn-author:hover,
-.btn-author:focus { /* ← ДОБАВЛЕНО */
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
-
-.btn-mobile-menu {
+.btn-cta {
   display: none;
-  background: none;
-  border: none;
+}
+@media (min-width: 768px) {
+  .btn-cta {
+    display: inline-block;
+    padding: 9px 20px;
+    background: #d4af37;
+    color: #0a0a0f;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .btn-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+}
+
+/* Burger */
+.btn-burger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
   cursor: pointer;
-  padding: 8px;
-  outline: none; /* ← ДОБАВЛЕНО */
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
+@media (min-width: 768px) { .btn-burger { display: none; } }
 
-.btn-mobile-menu:focus {
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.hamburger {
-  width: 28px;
-  height: 20px;
+.burger {
+  width: 18px;
+  height: 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
 }
-
-.hamburger span {
+.burger span {
   width: 100%;
-  height: 3px;
-  background: #2d3748;
+  height: 2px;
+  background: #f0ede8;
   border-radius: 2px;
-  transition: all 0.3s;
+  transition: all 0.25s;
+  transform-origin: center;
 }
+.burger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 5px); }
+.burger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.burger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -5px); }
 
-.hamburger.active span:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-
-.hamburger.active span:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -6px);
-}
-
+/* Mobile menu */
 .mobile-menu {
   position: fixed;
-  top: 80px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: white;
-  z-index: 999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #0a0a0f;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(64px + env(safe-area-inset-top));
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
   overflow-y: auto;
 }
 
 .mobile-nav {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  gap: 4px;
+  flex: 1;
+  padding-top: 40px;
+  justify-content: flex-start;
 }
 
-.mobile-nav-link {
-  padding: 16px 20px;
+.mobile-nav__link {
   text-decoration: none;
-  color: #2d3748;
-  font-weight: 600;
+  color: rgba(240,237,232,0.65);
+  font-size: clamp(2rem, 8vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 8px 0;
+  transition: color 0.2s;
+  letter-spacing: -0.02em;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-nav__link:hover,
+.mobile-nav__link.router-link-active {
+  color: #f0ede8;
+}
+
+.mobile-nav__cta {
+  display: inline-block;
+  margin-top: 32px;
+  background: #d4af37;
+  color: #0a0a0f;
+  padding: 16px 32px;
+  border-radius: 100px;
+  font-weight: 800;
   font-size: 1.1rem;
-  border-radius: 8px;
-  transition: all 0.3s;
-  outline: none; /* ← ДОБАВЛЕНО */
-}
-
-.mobile-nav-link:hover,
-.mobile-nav-link:focus, /* ← ДОБАВЛЕНО */
-.mobile-nav-link.router-link-active {
-  background: #f7fafc;
-  color: #667eea;
-}
-
-.mobile-nav-link.highlighted {
-  margin-top: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  text-decoration: none;
   text-align: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.mobile-nav-link.highlighted:hover,
-.mobile-nav-link.highlighted:focus { /* ← ДОБАВЛЕНО */
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  color: white;
+.mobile-menu__footer {
+  color: rgba(240,237,232,0.3);
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
 
-.mobile-menu-enter-active,
-.mobile-menu-leave-active {
-  transition: opacity 0.3s;
+/* Transitions */
+.menu-fade-enter-active,
+.menu-fade-leave-active { transition: opacity 0.25s; }
+.menu-fade-enter-from,
+.menu-fade-leave-to { opacity: 0; }
+
+/* Mobile menu — глобальные стили (Teleport выносит вне scoped) */
+</style>
+<style>
+.mobile-menu {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #0a0a0f;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(64px + env(safe-area-inset-top));
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
+  overflow-y: auto;
 }
-
-.mobile-menu-enter-from,
-.mobile-menu-leave-to {
-  opacity: 0;
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  padding-top: 40px;
 }
-
-@media (max-width: 768px) {
-  .nav-desktop {
-    display: none;
-  }
-
-  .btn-author {
-    display: none;
-  }
-
-  .btn-mobile-menu {
-    display: block;
-  }
+.mobile-nav__link {
+  text-decoration: none;
+  color: rgba(240,237,232,0.65);
+  font-size: clamp(2rem, 8vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 8px 0;
+  transition: color 0.2s;
+  letter-spacing: -0.02em;
+  -webkit-tap-highlight-color: transparent;
+  display: block;
 }
+.mobile-nav__link:hover,
+.mobile-nav__link.router-link-active { color: #f0ede8; }
+.mobile-nav__cta {
+  display: inline-block;
+  margin-top: 32px;
+  background: #d4af37;
+  color: #0a0a0f;
+  padding: 16px 32px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-decoration: none;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu__footer {
+  color: rgba(240,237,232,0.3);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding-top: 24px;
+}
+.mobile-menu__footer p { margin: 0; }
+.menu-fade-enter-active,
+.menu-fade-leave-active { transition: opacity 0.25s; }
+.menu-fade-enter-from,
+.menu-fade-leave-to { opacity: 0; }
 </style>

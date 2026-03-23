@@ -1,5 +1,31 @@
 // nuxt.config.ts
 export default defineNuxtConfig({
+
+  // ── Глобальный <head> — мобильная оптимизация ──────────────────
+  app: {
+    head: {
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+      meta: [
+        // Retina / HiDPI — запрет масштабирования браузером
+        { name: 'format-detection', content: 'telephone=no' },
+        // iOS Safari — полноэкранный режим
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'apple-mobile-web-app-title', content: 'Quest Dating' },
+        // Цвет статус-бара на Android Chrome и iOS Safari
+        { name: 'theme-color', content: '#0a0a0f' },
+        { name: 'msapplication-TileColor', content: '#0a0a0f' },
+      ],
+      link: [
+        // Preconnect к Google Fonts — ускоряет загрузку шрифтов
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        // Cormorant Garamond для Лизы Петри
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap' },
+      ],
+    },
+  },
   devtools: { enabled: true },
 
   modules: [

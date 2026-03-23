@@ -201,7 +201,7 @@ const questService = {
   createSession:  (questId, data = {})       => apiFetch(`/quests/${questId}/session`, { method: 'POST', body: data }),
   updateProgress: (sessionId, data)          => apiFetch(`/quests/session/${sessionId}`, { method: 'PATCH', body: data }),
   completeQuest:  (sessionId, data = {})     => apiFetch(`/quests/session/${sessionId}/complete`, { method: 'POST', body: data }),
-  restartQuest:   (sessionId)                => apiFetch(`/quests/session/${sessionId}/restart`, { method: 'POST' }),
+  restartQuest:   (sessionId, questId)        => apiFetch(`/quests/session/${sessionId}/restart`, { method: 'POST', body: { quest_id: questId } }),
 }
 
 // ─── State ────────────────────────────────────────────────────
@@ -445,7 +445,7 @@ const doRestart = async () => {
   clearInterval(ticker)
 
   if (sessionData.value) {
-    try { await questService.restartQuest(sessionData.value.session_id) } catch { }
+    try { await questService.restartQuest(sessionData.value.session_id, questData.value.id) } catch { }
   }
 
   blockIdx.value     = 0

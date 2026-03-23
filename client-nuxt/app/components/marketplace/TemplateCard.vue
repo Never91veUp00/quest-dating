@@ -1,12 +1,6 @@
 <template>
-  <!--
-    Внешний элемент — article, не <a>.
-    Внутри есть <NuxtLink> для категории — вложенные <a> невалидны в HTML.
-    Навигация через @click + useRouter.push(), keyboard — @keydown.enter/space.
-    Для SEO заголовок h3 обёрнут в отдельный <NuxtLink>.
-  -->
   <article
-    class="template-card"
+    class="tcard"
     @click="navigateToCard"
     @keydown.enter.prevent="navigateToCard"
     @keydown.space.prevent="navigateToCard"
@@ -14,113 +8,68 @@
     role="link"
     :aria-label="template.title"
   >
-    <!-- Изображение -->
-    <div class="card-image">
+    <!-- Фото-фон -->
+    <div class="tcard__bg">
       <img
+        v-if="!coverFailed && isValidImageSrc(template.cover_image)"
         :src="coverSrc"
         :alt="`${template.title} — свидание-квест для двоих`"
         loading="lazy"
-        :class="{ 'is-placeholder': coverFailed || !isValidImageSrc(template.cover_image) }"
+        decoding="async"
+        class="tcard__photo"
         @error="onCoverError"
       />
-      
-      <!-- Бейджи -->
-      <div class="card-badges">
-        <DifficultyBadge :difficulty="template.difficulty" />
-        <span v-if="template.is_premium" class="badge-premium">Premium</span>
-        <span v-if="template.is_free" class="badge-free">Бесплатно</span>
-      </div>
-
-      <!-- Оверлей при наведении -->
-      <div class="card-overlay">
-        <button class="btn-quick-view" @click.prevent.stop="showQuickView">
-          👁️ Быстрый просмотр
-        </button>
-      </div>
+      <!-- Фолбэк без фото — цветной градиент по теме -->
+      <div class="tcard__fallback" :style="fallbackStyle"></div>
+      <!-- Тёмный оверлей поверх фото -->
+      <div class="tcard__overlay"></div>
     </div>
 
-    <!-- Контент -->
-    <div class="card-content">
-      <!-- Категория -->
-      <div class="card-meta">
-        <NuxtLink 
-          :to="`/categories/${template.category_slug}`"
-          class="category-link"
-          :style="{ color: template.category_color }"
-          @click.stop
-          :prefetch="false"
-        >
-          {{ template.category_name }}
-        </NuxtLink>
-        <span class="duration">⏱️ {{ formatDuration(template.duration_minutes) }}</span>
-      </div>
+    <!-- Содержимое -->
+    <div class="tcard__body">
 
-      <!-- Заголовок — NuxtLink для SEO, @click.stop чтобы не дублировать navigateToCard -->
-      <h3 class="card-title">
-        <NuxtLink
-          :to="`/date/${template.slug}`"
-          class="card-title-link"
-          @click.stop
-        >{{ template.title }}</NuxtLink>
-      </h3>
-
-      <!-- Описание -->
-      <p class="card-tagline">{{ template.tagline }}</p>
-
-      <!-- Автор -->
-      <div class="card-author">
-        <div class="author-info">
-          <img
-            :src="avatarSrc"
-            :alt="template.author_name"
-            class="author-avatar"
-            @error="onAvatarErr"
-          />
-          <span class="author-name">{{ template.author_name }}</span>
-        </div>
-      </div>
-
-      <!-- Теги -->
-      <div class="card-tags">
-        <TagBadge 
-          v-for="tag in displayTags" 
-          :key="tag.id"
-          :tag="tag"
-          size="small"
-        />
-        <span v-if="remainingTagsCount > 0" class="tags-more">
-          +{{ remainingTagsCount }}
+      <!-- Верх: бейджи -->
+      <div class="tcard__top">
+        <span class="tcard__badge" :style="difficultyStyle">
+          {{ difficultyLabel }}
         </span>
+        <span v-if="template.is_free" class="tcard__badge tcard__badge--free">Бесплатно</span>
+        <button
+          class="tcard__preview"
+          @click.stop="emit('quickView', template)"
+          aria-label="Быстрый просмотр"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
+        </button>
       </div>
 
-      <!-- Футер -->
-      <div class="card-footer">
-        <!-- Рейтинг -->
-        <div class="card-rating">
-          <RatingStars :rating="template.rating" size="small" />
-          <span class="rating-text">
-            {{ parseFloat(template.rating || 0).toFixed(1) || 'Нет оценок' }}
-          </span>
-          <span class="reviews-count">
-            ({{ template.reviews_count || 0 }})
+      <!-- Низ: основная инфа -->
+      <div class="tcard__bottom">
+        <div class="tcard__cat">{{ template.category_name }}</div>
+        <h3 class="tcard__title">{{ template.title }}</h3>
+        <div class="tcard__meta">
+          <span class="tcard__time">⏱ {{ formatDuration(template.duration_minutes) }}</span>
+          <span v-if="template.rating > 0" class="tcard__rating">
+            ★ {{ parseFloat(template.rating).toFixed(1) }}
           </span>
         </div>
-
-        <!-- Цена -->
-        <PriceTag :price="template.base_price" :isFree="template.is_free" />
+        <div v-if="displayTags.length" class="tcard__tags">
+          <span v-for="tag in displayTags" :key="tag.id" class="tcard__tag">{{ tag.name }}</span>
+          <span v-if="extraTagsCount > 0" class="tcard__tag tcard__tag--more">+{{ extraTagsCount }}</span>
+        </div>
+        <div v-if="socialProof" class="tcard__social">🔥 {{ socialProof }}</div>
+        <div class="tcard__price-row">
+          <span class="tcard__price">
+            {{ template.is_free ? 'Бесплатно' : formatPrice(template.base_price) }}
+          </span>
+          <NuxtLink
+            :to="`/date/${template.slug}`"
+            class="tcard__btn"
+            @click.stop
+          >Смотреть →</NuxtLink>
+        </div>
       </div>
 
-      <!-- Статистика — только на клиенте, чтобы избежать hydration mismatch -->
-      <ClientOnly>
-        <div class="card-stats">
-          <span class="stat-item">
-            👁️ {{ formatNumber(template.views_count) }}
-          </span>
-          <span class="stat-item">
-            🛒 {{ formatNumber(template.orders_count) }}
-          </span>
-        </div>
-      </ClientOnly>
     </div>
   </article>
 </template>
@@ -128,368 +77,217 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-const { withFallback, withAvatarFallback, isValidImageSrc, PLACEHOLDER, AVATAR_PLACEHOLDER } = useImageFallback()
+const props = defineProps({
+  template: { type: Object, required: true }
+})
+const emit = defineEmits(['quickView'])
 
-// Реактивное состояние ошибки загрузки
-// Vue управляет src через эти ref — нет конфликта с гидрацией
+const { withFallback, isValidImageSrc, PLACEHOLDER } = useImageFallback()
+
 const coverFailed = ref(false)
-const avatarFailed = ref(false)
-
 const coverSrc = computed(() =>
   coverFailed.value ? PLACEHOLDER : withFallback(props.template.cover_image)
 )
-const avatarSrc = computed(() =>
-  avatarFailed.value ? AVATAR_PLACEHOLDER : withAvatarFallback(props.template.author_avatar)
-)
-
 const onCoverError = () => { coverFailed.value = true }
-const onAvatarErr  = () => { avatarFailed.value = true }
+
 const router = useRouter()
 const navigateToCard = () => router.push(`/date/${props.template.slug}`)
 
-const props = defineProps({
-  template: {
-    type: Object,
-    required: true
-  }
-})
-
-const emit = defineEmits(['quickView'])
-
-const displayTags = computed(() => props.template.tags?.slice(0, 3) || [])
-
-const remainingTagsCount = computed(() => {
-  const total = props.template.tags?.length || 0
-  return total > 3 ? total - 3 : 0
-})
-
-const showQuickView = (e) => {
-  emit('quickView', props.template)
+// Цвет глоу по сложности (если нет фото)
+const DIFFICULTY_COLORS = {
+  easy:   { glow: '#10b981', label: 'Лёгкий',  badge: 'rgba(16,185,129,0.2)', border: 'rgba(16,185,129,0.5)' },
+  medium: { glow: '#d4af37', label: 'Средний', badge: 'rgba(212,175,55,0.2)', border: 'rgba(212,175,55,0.5)' },
+  hard:   { glow: '#f97316', label: 'Сложный', badge: 'rgba(249,115,22,0.2)', border: 'rgba(249,115,22,0.5)' },
+  expert: { glow: '#ef4444', label: 'Эксперт', badge: 'rgba(239,68,68,0.2)',  border: 'rgba(239,68,68,0.5)' },
 }
 
-function toAbsoluteUrl(url) {
-  if (!url) return null
-  if (url.startsWith('http')) return url
-  const base = useRuntimeConfig().public.apiBase.replace('/api', '')
-  return `${base}${url}`
-}
+const diff = computed(() => DIFFICULTY_COLORS[props.template.difficulty] || DIFFICULTY_COLORS.medium)
+const difficultyLabel = computed(() => diff.value.label)
+const difficultyStyle = computed(() => ({
+  background: diff.value.badge,
+  borderColor: diff.value.border,
+  color: diff.value.border,
+}))
+
+const fallbackStyle = computed(() => ({
+  background: `radial-gradient(ellipse at top right, ${diff.value.glow}30 0%, #0a0a0f 70%)`,
+}))
 
 function formatDuration(minutes) {
-  if (!minutes || minutes === 0) return 'Не указано'
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  if (hours > 0 && mins > 0) return `${hours}ч ${mins}м`
-  if (hours > 0) return `${hours}ч`
-  return `${mins}м`
+  if (!minutes) return '—'
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h > 0 && m > 0) return `${h}ч ${m}м`
+  if (h > 0) return `${h}ч`
+  return `${m}м`
 }
 
-function formatNumber(num) {
-  if (!num || num === 0) return '0'
-  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-  return num.toString()
+const displayTags    = computed(() => props.template.tags?.slice(0, 2) || [])
+const extraTagsCount = computed(() => Math.max(0, (props.template.tags?.length || 0) - 2))
+
+const socialProof = computed(() => {
+  const n = props.template.orders_count || 0
+  if (n >= 50) return `${n} пар прошли`
+  if (n >= 10) return `${n} заказов`
+  if (n > 0)   return `${n} заказа`
+  return null
+})
+
+function formatPrice(price) {
+  if (!price) return '—'
+  return `${Math.round(price / 100)} ₽`
 }
 </script>
 
 <style scoped>
-.template-card {
-  background: white;
-  border-radius: 16px;
+.tcard {
+  position: relative;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   height: 100%;
-  justify-content: space-between;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s;
 }
+.tcard:hover { transform: scale(1.02); }
+.tcard:focus-visible { outline: 2px solid #d4af37; outline-offset: 2px; }
 
-.template-card:focus-visible {
-  outline: 2px solid #667eea;
-  outline-offset: 2px;
-}
-
-.template-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-}
-
-.card-image {
+/* Фон */
+.tcard__bg {
   position: relative;
-  width: 100%;
-  height: 220px;
+  height: 150px;
+  flex-shrink: 0;
+  background: #0f0f14;
   overflow: hidden;
-  background: #f0f4ff;
 }
-
-.card-image img {
-  width: 100%;
-  height: 100%;
+.tcard__photo {
+  width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  position: absolute; inset: 0;
+}
+.tcard__fallback {
+  position: absolute; inset: 0;
+}
+.tcard__overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5) 100%);
+  z-index: 1;
 }
 
-/* Заглушка: центрируем и уменьшаем, не растягиваем на всю карточку */
-.card-image img.is-placeholder {
-  object-fit: contain;
-  padding: 24px;
-  opacity: 0.7;
-}
-
-.template-card:hover .card-image img {
-  transform: scale(1.1);
-}
-
-.card-badges {
-  position: absolute;
-  top: 12px;
-  left: 12px;
+/* Тело */
+.tcard__body {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  flex: 1;
+  padding: 12px;
+  background: #111118;
 }
 
-.badge-premium,
-.badge-free {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+/* Верх — поверх фото */
+.tcard__top {
+  position: absolute;
+  top: 8px; left: 8px; right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 3;
+}
+.tcard__badge {
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 100px;
+  border: 1px solid;
+  backdrop-filter: blur(8px);
 }
-
-.badge-premium {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-  color: #000;
+.tcard__badge--free {
+  background: rgba(16,185,129,0.2);
+  border-color: rgba(16,185,129,0.5);
+  color: #6ee7b7;
 }
-
-.badge-free {
-  background: #48bb78;
-  color: white;
-}
-
-.card-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.template-card:hover .card-overlay {
-  opacity: 1;
-}
-
-.btn-quick-view {
-  padding: 12px 24px;
-  background: white;
-  color: #667eea;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
+.tcard__preview {
+  margin-left: auto;
+  width: 30px; height: 30px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.7);
   cursor: pointer;
-  transition: all 0.3s;
+  backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
 }
+.tcard__preview:hover { background: rgba(255,255,255,0.2); }
 
-.btn-quick-view:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
-}
-
-.card-content {
-  padding: 20px;
+/* Низ */
+.tcard__bottom {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   flex: 1;
-}
-
-.card-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-}
-
-.category-link {
-  font-weight: 600;
-  text-decoration: none;
-  transition: opacity 0.3s;
-}
-
-.category-link:hover {
-  opacity: 0.7;
-}
-
-.duration {
-  color: #718096;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.card-title-link {
-  color: inherit;
-  text-decoration: none;
-}
-
-.card-title-link:hover { color: #667eea; }
-
-.card-tagline {
-  color: #718096;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 0;
-}
-
-.card-author {
-  display: flex;
-  align-items: center;
-  padding: 8px 0;
-  border-top: 1px solid #e2e8f0;
-}
-
-.author-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #4a5568;
-}
-
-.author-info:hover {
-  color: #667eea;
-}
-
-.author-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.author-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.card-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.tags-more {
-  padding: 4px 8px;
-  background: #e2e8f0;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  color: #718096;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-  margin-top: auto;
-}
-
-.card-rating {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rating-text {
-  font-weight: 700;
-  color: #2d3748;
-  font-size: 0.9rem;
-}
-
-.reviews-count {
-  color: #718096;
-  font-size: 0.85rem;
-}
-
-.card-stats {
-  display: flex;
-  gap: 16px;
-  font-size: 0.85rem;
-  color: #718096;
-  padding-top: 8px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
   gap: 4px;
 }
-
-@media (max-width: 640px) {
-  .card-image {
-    height: 120px;
-  }
-
-  .card-content {
-    padding: 10px;
-    gap: 6px;
-  }
-
-  .card-title {
-    font-size: 0.88rem;
-    -webkit-line-clamp: 2;
-  }
-
-  .card-title-link {
-  color: inherit;
+.tcard__cat {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 4px;
+}
+.tcard__title {
+  flex: 1;
+  font-size: clamp(14px, 3.5vw, 16px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.tcard__meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.tcard__time {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+.tcard__rating {
+  font-size: 11px;
+  color: #d4af37;
+}
+.tcard__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 6px;
+}
+.tcard__price {
+  font-size: 18px;
+  font-weight: 900;
+  color: #d4af37;
+  letter-spacing: -0.02em;
+}
+.tcard__btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
   text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 5px 10px;
+  border-radius: 100px;
+  backdrop-filter: blur(8px);
+  transition: color 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.card-title-link:hover { color: #667eea; }
-
-.card-tagline {
-    font-size: 0.75rem;
-    -webkit-line-clamp: 2;
-  }
-
-  .card-author,
-  .card-tags,
-  .card-stats {
-    display: none;
-  }
-
-  .card-footer {
-    padding-top: 8px;
-  }
-
-  .rating-text,
-  .reviews-count {
-    font-size: 0.78rem;
-  }
-
-  .card-meta {
-    font-size: 0.78rem;
-  }
-}
+.tcard__btn:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+.tcard__tags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 5px; }
+.tcard__tag { font-size: 9px; font-weight: 600; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); padding: 2px 6px; border-radius: 4px; }
+.tcard__tag--more { background: rgba(212,175,55,0.15); color: #d4af37; }
+.tcard__social { font-size: 10px; font-weight: 700; color: #fb923c; margin-bottom: 5px; }
 </style>

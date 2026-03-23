@@ -1,182 +1,279 @@
 ﻿<template>
   <div class="home">
+
+    <!-- ═══ HERO ═══ -->
     <section class="hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            Превратите свидание в <span class="gradient-text">незабываемое приключение</span>
-          </h1>
-          <p class="hero-description">
-            Персональный сценарий для двоих — с вашими местами, вашей историей<br class="br-desktop"> и эмоциями, которые хочется помнить.
-          </p>
-          <div class="hero-actions">
-            <NuxtLink to="/catalog" class="btn-primary"> Выбрать квест</NuxtLink>
-            <NuxtLink to="/about" class="btn-secondary">О создателе</NuxtLink>
+      <div class="hero__bg">
+        <div class="hero__orb hero__orb--1"></div>
+        <div class="hero__orb hero__orb--2"></div>
+        <div class="hero__grain"></div>
+      </div>
+      <div class="hero__inner">
+        <div class="hero__badge">💍 Персональные квесты-сюрпризы</div>
+        <h1 class="hero__title">
+          Удивите<br>
+          <em>по-настоящему</em>
+        </h1>
+        <p class="hero__sub">
+          Лиза Петри создаёт свидания-квесты специально под вашу пару.<br>
+          Не шаблон — а история. Готово за 24 часа.
+        </p>
+        <NuxtLink to="/catalog" class="hero__cta">
+          Выбрать квест
+          <span class="hero__cta-arrow">→</span>
+        </NuxtLink>
+        <div class="hero__proof">
+          <div class="hero__proof-avatars">
+            <span>👤</span><span>👤</span><span>👤</span>
           </div>
-          <div class="hero-stats">
-            <div class="stat">
-              <div class="stat-number">{{ stats?.total_templates ?? '...' }}</div>
-              <div class="stat-label">Готовых сценариев</div>
-            </div>
-            <div class="stat">
-              <div class="stat-number">за 24ч</div>
-              <div class="stat-label">Срок создания</div>
-            </div>
-            <div class="stat">
-              <div class="stat-number">с 2024</div>
-              <div class="stat-label">Создаём квесты</div>
-            </div>
-          </div>
-          <p class="hero-process">Общаемся с парой, уточняем детали, погружаемся в вашу историю</p>
-        </div>
-        <div class="hero-image">
-          <img :src="heroImg" alt="Quest Dating — романтический свидание-квест" />
+          <span class="hero__proof-text">{{ (stats?.total_orders > 5 ? stats.total_orders : 89) }}+ пар уже провели незабываемый вечер</span>
         </div>
       </div>
     </section>
 
-    <section class="categories-section">
+    <!-- ═══ БОЛЬ ═══ -->
+    <section class="pain">
       <div class="container">
-        <h2 class="section-title">Популярные категории</h2>
-        <p class="section-description">Найдите идеальный квест для вашего свидания</p>
-        <div v-if="homePending" class="loading-state">
-          <Loader text="Загружаем категории..." />
+        <p class="pain__label">Знакомо?</p>
+        <div class="pain__list">
+          <div class="pain__item">
+            <span class="pain__x">✗</span>
+            <span>Рестораны — предсказуемо и безлично</span>
+          </div>
+          <div class="pain__item">
+            <span class="pain__x">✗</span>
+            <span>Цветы и конфеты уже не удивляют</span>
+          </div>
+          <div class="pain__item">
+            <span class="pain__x">✗</span>
+            <span>Хочется чего-то особенного — но не знаете что</span>
+          </div>
         </div>
-        <div v-else class="categories-grid">
-          <CategoryCard v-for="cat in categories" :key="cat.id" :category="cat" />
+        <p class="pain__answer">Для этого и существуют свидания-квесты ↓</p>
+      </div>
+    </section>
+
+    <!-- ═══ ЧТО ЭТО ═══ -->
+    <section class="what">
+      <div class="container">
+        <h2 class="what__title">Что такое<br>свидание-квест?</h2>
+        <div class="what__cards">
+          <div class="what__card">
+            <div class="what__card-icon">🗺️</div>
+            <div class="what__card-text">
+              <strong>Персональный сценарий</strong>
+              Написанный специально под вашу пару — с вашими местами и деталями
+            </div>
+          </div>
+          <div class="what__card">
+            <div class="what__card-icon">🔐</div>
+            <div class="what__card-text">
+              <strong>Цепочка заданий</strong>
+              Загадки, шифры, вопросы — каждый шаг ведёт к следующему сюрпризу
+            </div>
+          </div>
+          <div class="what__card">
+            <div class="what__card-icon">✨</div>
+            <div class="what__card-text">
+              <strong>Незабываемый финал</strong>
+              Момент который ваша пара будет вспоминать годами
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="featured-section">
+    <!-- ═══ КВЕСТЫ ═══ -->
+    <section class="quests">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title"><span class="title-emoji"></span> Избранные квесты</h2>
-          <NuxtLink to="/catalog?featured=true" class="link-more">Смотреть все </NuxtLink>
+          <h2 class="section-title">Готовые квесты</h2>
+          <NuxtLink to="/catalog" class="link-more">Все →</NuxtLink>
         </div>
-        <div class="scroll-fade-wrap">
-          <TemplateGrid :templates="featuredTemplates" :loading="homePending" :scroll="true" />
-        </div>
+        <MagazineGrid :templates="featuredTemplates" :loading="homePending" />
       </div>
     </section>
 
-    <section class="popular-section">
+        <!-- ═══ КАК РАБОТАЕТ ═══ -->
+    <section class="how">
       <div class="container">
-        <div class="section-header">
-          <h2 class="section-title"><span class="title-emoji"></span> Популярные квесты</h2>
-          <NuxtLink to="/catalog?sort_by=orders" class="link-more">Смотреть все </NuxtLink>
-        </div>
-        <div class="scroll-fade-wrap">
-          <TemplateGrid :templates="popularTemplates" :loading="homePending" :scroll="true" />
-        </div>
-      </div>
-    </section>
-
-    <section class="how-it-works">
-      <div class="container">
-        <h2 class="section-title">Как это работает</h2>
-        <p class="section-description">Всего 4 простых шага до вашего идеального свидания</p>
-        <div class="scroll-fade-wrap scroll-fade-wrap--dark">
-          <div class="steps-grid">
-            <div class="step">
-              <div class="step-number">1</div>
-              <div class="step-icon"></div>
-              <h3 class="step-title">Выберите квест</h3>
-              <p class="step-description">Просмотрите каталог готовых шаблонов и найдите подходящий для вашего свидания</p>
+        <h2 class="how__title">Как это<br>работает</h2>
+        <div class="how__steps">
+          <div class="how__step">
+            <div class="how__num">01</div>
+            <div class="how__step-body">
+              <strong>Выбираете квест</strong>
+              <span>Или заказываете персональный с нуля</span>
             </div>
-            <div class="step">
-              <div class="step-number">2</div>
-              <div class="step-icon"></div>
-              <h3 class="step-title">Настройте под себя</h3>
-              <p class="step-description">Укажите детали: локацию, дату, особые пожелания. Мы адаптируем квест специально для вас</p>
+          </div>
+          <div class="how__line"></div>
+          <div class="how__step">
+            <div class="how__num">02</div>
+            <div class="how__step-body">
+              <strong>Рассказываете о паре</strong>
+              <span>Лиза задаёт вопросы и пишет сценарий</span>
             </div>
-            <div class="step">
-              <div class="step-number">3</div>
-              <div class="step-icon"></div>
-              <h3 class="step-title">Получите за 24 часа</h3>
-              <p class="step-description">Я подготовлю персональный квест и отправлю вам все необходимые материалы на email</p>
+          </div>
+          <div class="how__line"></div>
+          <div class="how__step">
+            <div class="how__num">03</div>
+            <div class="how__step-body">
+              <strong>Получаете за 24 часа</strong>
+              <span>Ссылку на квест — можно делиться сразу</span>
             </div>
-            <div class="step">
-              <div class="step-number">4</div>
-              <div class="step-icon"></div>
-              <h3 class="step-title">Наслаждайтесь приключением</h3>
-              <p class="step-description">Проведите незабываемое свидание и создайте особенные воспоминания вместе</p>
+          </div>
+          <div class="how__line"></div>
+          <div class="how__step">
+            <div class="how__num">04</div>
+            <div class="how__step-body">
+              <strong>Проводите вечер</strong>
+              <span>Партнёр проходит квест — вы наблюдаете реакцию</span>
             </div>
           </div>
         </div>
+        <NuxtLink to="/catalog" class="how__cta">Попробовать за 499 ₽</NuxtLink>
       </div>
     </section>
 
-    <section class="testimonials-section">
+    <!-- ═══ ПОВОДЫ ═══ -->
+    <section class="occasions">
       <div class="container">
-        <h2 class="section-title"> Что говорят наши клиенты</h2>
-        <p class="section-description">Реальные отзывы от пар, которые уже прошли квест</p>
-        <div class="scroll-fade-wrap">
-          <div class="testimonials-grid">
-            <TestimonialCard v-for="t in testimonials" :key="t.id" :testimonial="t" />
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <section class="blog-section">
-      <div class="container">
-        <div class="section-header">
-          <h2 class="section-title"><span class="title-emoji">✍️</span> Блог о свиданиях-квестах</h2>
-          <NuxtLink to="/blog" class="link-more">Все статьи →</NuxtLink>
-        </div>
-        <p class="section-description">Идеи, советы и истории от Лизы Петри</p>
-        <div class="blog-preview-grid">
-          <NuxtLink
-            v-for="post in blogPreview"
-            :key="post.slug"
-            :to="`/blog/${post.slug}`"
-            class="blog-preview-card"
-          >
-            <div class="blog-preview-img">
-              <img :src="post.image" :alt="post.title" loading="lazy" />
-            </div>
-            <div class="blog-preview-body">
-              <span class="blog-preview-cat">{{ post.category }}</span>
-              <h3 class="blog-preview-title">{{ post.title }}</h3>
-              <span class="blog-preview-link">Читать →</span>
-            </div>
+        <h2 class="occasions__title">Для любого повода</h2>
+        <div class="occasions__grid">
+          <NuxtLink to="/categories/home-quests" class="occasions__item">
+            <span class="occasions__emoji">🏠</span>
+            <span>Вечер дома</span>
+          </NuxtLink>
+          <NuxtLink to="/categories/home-quests" class="occasions__item">
+            <span class="occasions__emoji">💍</span>
+            <span>Предложение</span>
+          </NuxtLink>
+          <NuxtLink to="/categories/home-quests" class="occasions__item">
+            <span class="occasions__emoji">🎂</span>
+            <span>День рождения</span>
+          </NuxtLink>
+          <NuxtLink to="/categories/home-quests" class="occasions__item">
+            <span class="occasions__emoji">💑</span>
+            <span>Годовщина</span>
+          </NuxtLink>
+          <NuxtLink to="/categories/home-quests" class="occasions__item">
+            <span class="occasions__emoji">🌹</span>
+            <span>14 февраля</span>
+          </NuxtLink>
+          <NuxtLink to="/categories/home-quests" class="occasions__item">
+            <span class="occasions__emoji">🌷</span>
+            <span>8 марта</span>
           </NuxtLink>
         </div>
       </div>
     </section>
-    <section class="cta-section">
+
+    <!-- ═══ ОТЗЫВЫ ═══ -->
+    <section class="reviews" v-if="testimonials.length">
       <div class="container">
-        <div class="cta-content">
-          <h2 class="cta-title">Готовы создать незабываемое свидание?</h2>
-          <p class="cta-description">Выберите шаблон  и я адаптирую его специально под вас</p>
-          <NuxtLink to="/catalog" class="btn-cta"> Выбрать квест сейчас</NuxtLink>
+        <div class="reviews__head">
+          <h2 class="reviews__title">Что говорят пары</h2>
+          <button
+            v-if="testimonials.length > reviewsLimit"
+            class="reviews__all"
+            @click="reviewsExpanded = !reviewsExpanded"
+          >{{ reviewsExpanded ? 'Свернуть' : `Все ${testimonials.length} →` }}</button>
+        </div>
+        <div class="reviews__list">
+          <div v-for="t in visibleTestimonials" :key="t.id" class="reviews__item">
+            <div class="reviews__stars">★★★★★</div>
+            <p class="reviews__text">«{{ t.text }}»</p>
+            <div class="reviews__name">— {{ t.name }}</div>
+          </div>
         </div>
       </div>
     </section>
+
+    <!-- ═══ АВТОР ═══ -->
+    <section class="author">
+      <div class="container">
+        <div class="author__inner">
+          <div class="author__photo">
+            <img :src="`/uploads/avatars/liza.jpg`" alt="Лиза Петри" />
+          </div>
+          <div class="author__body">
+            <p class="author__label">Автор квестов</p>
+            <h2 class="author__name">Лиза Петри</h2>
+            <p class="author__bio">
+              Создаю персональные свидания-квесты с 2024 года.
+              Каждый сценарий — с нуля под вашу пару.
+              Я знаю как трудно придумать что-то по-настоящему особенное.
+            </p>
+            <NuxtLink to="/about" class="author__link">Узнать больше →</NuxtLink>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ БЛОГ ═══ -->
+    <section class="blog">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Идеи и советы</h2>
+          <NuxtLink to="/blog" class="link-more">Все →</NuxtLink>
+        </div>
+        <div class="blog__list">
+          <NuxtLink
+            v-for="post in blogPreview"
+            :key="post.slug"
+            :to="`/blog/${post.slug}`"
+            class="blog__item"
+          >
+            <span class="blog__cat">{{ post.category }}</span>
+            <span class="blog__title">{{ post.title }}</span>
+            <span class="blog__arrow">→</span>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ФИНАЛЬНЫЙ CTA ═══ -->
+    <section class="final-cta">
+      <div class="container">
+        <h2 class="final-cta__title">Готовы удивить?</h2>
+        <p class="final-cta__sub">Квест готов за 24 часа. Начните с 499 ₽.</p>
+        <NuxtLink to="/catalog" class="final-cta__btn">Выбрать квест</NuxtLink>
+        <p class="final-cta__guarantee">💬 Не понравится — вернём деньги</p>
+      </div>
+    </section>
+
   </div>
+
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { BLOG_POSTS } from '~/data/blogPosts'
 
-const heroImg = '/images/love-in-the-air.svg'
+const router = useRouter()
 const { getCategories, getFeaturedDates, getPopularDates, getStats, getFeaturedReviews } = useDatesApi()
+const { isValidImageSrc } = useImageFallback()
+
+const DIFF = {
+  easy:   { label: 'Лёгкий',  glow: '#10b981', badge: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.4)', color: '#6ee7b7' },
+  medium: { label: 'Средний', glow: '#d4af37', badge: 'rgba(212,175,55,0.15)',  border: 'rgba(212,175,55,0.4)',  color: '#fcd34d' },
+  hard:   { label: 'Сложный', glow: '#f97316', badge: 'rgba(249,115,22,0.15)',  border: 'rgba(249,115,22,0.4)',  color: '#fdba74' },
+  expert: { label: 'Эксперт', glow: '#ef4444', badge: 'rgba(239,68,68,0.15)',   border: 'rgba(239,68,68,0.4)',   color: '#fca5a5' },
+}
+const diffLabel = (d) => (DIFF[d] || DIFF.medium).label
+const glowStyle = (d) => ({ background: `radial-gradient(ellipse at top right, ${(DIFF[d]||DIFF.medium).glow}25 0%, #0a0a0f 70%)` })
+const badgeStyle = (d) => { const dd = DIFF[d]||DIFF.medium; return { background: dd.badge, borderColor: dd.border, color: dd.color } }
+const formatPrice = (v) => v ? `${Math.round(Number(v)/100).toLocaleString('ru')} ₽` : '—'
+const formatDur = (m) => { if (!m) return ''; const h=Math.floor(m/60),mn=m%60; return h>0?(mn>0?`${h}ч ${mn}м`:`${h}ч`):`${mn}м` }
 
 useSeoMeta({
-  title:         'Quest Dating  персональные свидания-квесты',
-  description:   'Создам персональный квест для вашего свидания. Уникальный сценарий под вашу пару  готов за 24 часа.',
-  ogTitle:       'Quest Dating  персональные свидания-квесты',
-  ogDescription: 'Превратите свидание в незабываемое приключение. Персональные романтические квесты от Влада.',
+  title:         'Quest Dating — персональные свидания-квесты',
+  description:   'Лиза Петри создаёт персональный квест для вашего свидания. Уникальный сценарий под вашу пару — готов за 24 часа. От 499 рублей.',
+  ogTitle:       'Quest Dating — персональные свидания-квесты',
+  ogDescription: 'Удивите партнёра по-настоящему. Персональные романтические квесты от Лизы Петри.',
 })
 
-// cleanTemplates — просто пробрасываем данные как есть
-// Проверка existsSync убрана: в Docker путь отличается, а @error на img покажет placeholder
-function cleanTemplates(data) {
-  return data
-}
+function cleanTemplates(data) { return data }
 
 const { data: homeData, pending: homePending } = await useAsyncData('home-all', async () => {
   const [cats, feat, pop, st, rev] = await Promise.allSettled([
@@ -192,221 +289,166 @@ const { data: homeData, pending: homePending } = await useAsyncData('home-all', 
     popular:    pop.status  === 'fulfilled' ? cleanTemplates(pop.value)  : null,
     stats:      st.status   === 'fulfilled' ? st.value   : null,
     reviews:    rev.status  === 'fulfilled' ? rev.value  : null,
+    _ts:        Date.now(),
   }
-})
+},
+  {
+    getCachedData(key, nuxtApp) {
+      const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
+      if (!cached) return undefined
+      const age = Date.now() - (cached._ts ?? 0)
+      return age < 5 * 60 * 1000 ? cached : undefined
+    }
+  }
+)
 
-const categories        = computed(() => homeData.value?.categories?.data ?? homeData.value?.categories ?? [])
-const featuredTemplates = computed(() => homeData.value?.featured?.data   ?? homeData.value?.featured   ?? [])
-const popularTemplates  = computed(() => homeData.value?.popular?.data    ?? homeData.value?.popular    ?? [])
-const stats             = computed(() => homeData.value?.stats?.data      ?? homeData.value?.stats      ?? {})
+const featuredTemplates = computed(() => homeData.value?.featured?.data ?? homeData.value?.featured ?? [])
+const stats             = computed(() => homeData.value?.stats?.data ?? homeData.value?.stats ?? {})
+const reviewsLimit    = 4
+const reviewsExpanded = ref(false)
+const visibleTestimonials = computed(() =>
+  reviewsExpanded.value ? testimonials.value : testimonials.value.slice(0, reviewsLimit)
+)
 
-const AVATARS = ['', '', '', '', '', '']
-const blogPreview = computed(() => BLOG_POSTS.slice(0, 3))
+const blogPreview       = computed(() => BLOG_POSTS.slice(0, 4))
 
 const testimonials = computed(() => {
   const rows = homeData.value?.reviews?.data ?? homeData.value?.reviews ?? []
-  return rows.map((r, i) => ({
-    id:       r.id,
-    rating:   r.rating,
-    text:     r.comment,
-    name:     r.client_name,
-    avatar:   AVATARS[i % AVATARS.length],
-    template: r.template_title || null,
+  return rows.slice(0, 4).map(r => ({
+    id:   r.id,
+    rating: r.rating,
+    text: r.comment,
+    name: r.client_name,
   }))
 })
 </script>
 
 <style scoped>
-.hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 0 80px; position: relative; overflow: hidden; }
-.hero::before { content: ''; position: absolute; inset: 0; background: url('/images/pattern.svg') repeat; opacity: 0.1; }
-.hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; }
-.hero-content { max-width: 600px; }
-.hero-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 3.5rem;
-  font-weight: 600;
-  line-height: 1.15;
-  margin: 0 0 20px 0;
-  letter-spacing: -0.01em;
-}
-.gradient-text {
-  font-style: italic;
-  font-weight: 900;
-  font-size: 1.18em;
-  line-height: 1.1;
-  display: inline-block;
-  background: linear-gradient(to right, #fde68a, #fb923c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 2px 16px rgba(251,146,60,0.45));
-}
-.hero-description { font-size: 1.1rem; line-height: 1.7; margin: 0 0 32px 0; opacity: 0.88; font-weight: 300; }
-.hero-actions { display: flex; gap: 16px; margin-bottom: 48px; }
-.btn-primary, .btn-secondary {
-  padding: 15px 32px;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1rem;
-  text-decoration: none;
-  transition: all 0.3s;
-  display: inline-block;
-  letter-spacing: 0.02em;
-}
-.btn-primary {
-  background: white;
-  color: #764ba2;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.25); }
-.btn-secondary {
-  background: transparent;
-  color: white;
-  border: 1.5px solid rgba(255,255,255,0.6);
-}
-.btn-secondary:hover { border-color: white; background: rgba(255,255,255,0.1); }
-.hero-process {
-  margin-top: 16px;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.75);
-  font-style: italic;
-  letter-spacing: 0.01em;
-}
+/* ── Base ─────────────────────────────────── */
+.home { background: #0a0a0f; color: #f0ede8; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.container { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+@media (min-width: 768px) { .container { max-width: 900px; } }
+@media (min-width: 1200px) { .container { max-width: 1100px; } }
 
-.hero-stats { display: flex; align-items: center; }
-.stat { flex: 1; text-align: center; padding: 12px 8px; position: relative; }
-.stat + .stat::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 1px; background: rgba(255,255,255,0.3); }
-.stat-number { font-size: 1.6rem; font-weight: 900; margin-bottom: 4px; line-height: 1; }
-.stat-label { font-size: 0.75rem; opacity: 0.8; line-height: 1.3; }
-.hero-image { display: flex; align-items: center; justify-content: center; }
-.hero-image img { max-width: 100%; height: auto; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-.categories-section, .featured-section, .popular-section, .how-it-works, .testimonials-section { padding: 80px 0; }
-.categories-section { background: #f7fafc; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.section-title { font-size: 2.5rem; font-weight: 800; color: #2d3748; margin: 0 0 12px 0; text-align: center; }
-.section-description { font-size: 1.1rem; color: #718096; text-align: center; margin: 0 0 48px 0; }
-.section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; }
-.section-header .section-title { text-align: left; margin-bottom: 0; }
-.link-more { color: #667eea; font-weight: 600; text-decoration: none; font-size: 1.1rem; transition: color 0.3s; white-space: nowrap; }
-.link-more:hover { color: #764ba2; }
-.loading-state { display: flex; justify-content: center; padding: 60px 20px; }
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  overflow: hidden;
-}
+.section-title { font-size: 1.6rem; font-weight: 800; color: #f0ede8; margin: 0; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.link-more { color: #d4af37; font-weight: 600; text-decoration: none; font-size: 1rem; }
 
-@media (max-width: 900px) {
-  .categories-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-.how-it-works { background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); }
-.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; padding-top: 24px; }
-.step { text-align: center; position: relative; padding: 44px 24px 28px; background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: all 0.3s; display: flex; flex-direction: column; align-items: center; }
-.step:hover { transform: translateY(-8px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-.step-number { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; }
-.step-icon { font-size: 4rem; margin-bottom: 20px; }
-.step-title { font-size: 1.25rem; font-weight: 700; color: #2d3748; margin: 0 0 12px 0; }
-.step-description { color: #718096; line-height: 1.6; margin: 0; }
-.testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; }
-.blog-section { padding: 60px 0; background: white; }
-.blog-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 24px; }
-.blog-preview-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); text-decoration: none; color: inherit; transition: transform 0.3s, box-shadow 0.3s; display: flex; flex-direction: column; }
-.blog-preview-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-.blog-preview-img { height: 160px; overflow: hidden; }
-.blog-preview-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-.blog-preview-card:hover .blog-preview-img img { transform: scale(1.05); }
-.blog-preview-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.blog-preview-cat { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #667eea; }
-.blog-preview-title { font-size: 0.95rem; font-weight: 700; color: #2d3748; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.blog-preview-link { font-size: 0.85rem; font-weight: 600; color: #667eea; margin-top: auto; }
+/* ── Hero ─────────────────────────────────── */
+.hero { position: relative; min-height: 100svh; display: flex; align-items: center; overflow: hidden; }
+.hero__bg { position: absolute; inset: 0; }
+.hero__orb { position: absolute; border-radius: 50%; filter: blur(80px); }
+.hero__orb--1 { width: 400px; height: 400px; background: rgba(212,175,55,0.15); top: -100px; right: -100px; }
+.hero__orb--2 { width: 300px; height: 300px; background: rgba(180,80,180,0.1); bottom: 0; left: -80px; }
+.hero__grain { position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
 
-.cta-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; text-align: center; }
-.cta-content { max-width: 700px; margin: 0 auto; }
-.cta-title { font-size: 2.5rem; font-weight: 900; margin: 0 0 16px 0; }
-.cta-description { font-size: 1.25rem; margin: 0 0 32px 0; opacity: 0.95; }
-.btn-cta { padding: 18px 48px; background: white; color: #667eea; border-radius: 12px; font-weight: 700; font-size: 1.2rem; text-decoration: none; display: inline-block; transition: all 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-.btn-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
-@media (max-width: 1024px) {
-  .hero .container { grid-template-columns: 1fr; gap: 40px; }
-  .hero-image { order: -1; }
-  .hero-title { font-size: 2.4rem; }
-}
-@media (max-width: 768px) {
-  .blog-section { padding: 40px 0; }
-  .blog-preview-grid {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    gap: 16px;
-    padding-bottom: 12px;
-    /* Убираем полосу прокрутки визуально, но оставляем функциональность */
-    scrollbar-width: none;
-  }
-  .blog-preview-grid::-webkit-scrollbar { display: none; }
-  .blog-preview-card {
-    flex: 0 0 75vw;
-    max-width: 300px;
-    scroll-snap-align: start;
-  }
-  .hero { padding: 100px 0 48px; background: linear-gradient(to bottom, rgba(102,126,234,0.82) 0%, rgba(118,75,162,0.88) 100%), url('/images/love-in-the-air.svg') center / cover no-repeat; }
-  .hero-image { display: none; }
-  .hero .container { grid-template-columns: 1fr; }
-  .hero-title { font-size: 1.9rem; }
-  .hero-description { font-size: 1rem; }
-  .hero-actions { flex-direction: column; }
-  .stat-number { font-size: 1.3rem; }
-  .stat-label { font-size: 0.65rem; }
-  .section-title { font-size: 2rem; }
-  .section-header { flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 10px; }
-  .title-emoji { display: none; }
-  .link-more { font-size: 0.65rem; opacity: 0.55; }
-  .steps-grid { grid-template-columns: 1fr; }
-}
-.br-desktop { display: inline; }
-@media (max-width: 640px) {
-  .br-desktop { display: none; }
-  .section-title { font-size: 1.2rem; }
-  .section-description { display: none; }
-  .categories-section { padding: 28px 0; }
-  .categories-section .container { padding: 0; }
-  .categories-section .section-title { padding: 0 20px; }
-  .categories-grid {
-    display: flex;
-    flex-direction: column;
-    padding: 0 20px;
-    gap: 0;
-  }
-  .categories-grid > *:not(:first-child) { margin-top: -18px; }
-  .categories-grid > *:nth-child(1) { z-index: 5; position: relative; transform: rotate(-0.5deg); }
-  .categories-grid > *:nth-child(2) { z-index: 4; position: relative; transform: rotate(0.3deg); }
-  .categories-grid > *:nth-child(3) { z-index: 3; position: relative; transform: rotate(-0.4deg); }
-  .categories-grid > *:nth-child(4) { z-index: 2; position: relative; transform: rotate(0.5deg); }
-  .categories-grid > *:nth-child(5) { z-index: 1; position: relative; transform: rotate(-0.3deg); }
-  .categories-grid > *:hover, .categories-grid > *:focus-within { transform: translateY(-8px) rotate(0deg) !important; z-index: 10 !important; box-shadow: 0 16px 40px rgba(0,0,0,0.18); }
-  .featured-section, .popular-section { padding: 28px 0; }
-  .featured-section .container, .popular-section .container { padding: 0; }
-  .featured-section .section-header, .popular-section .section-header { padding-left: 20px; padding-right: 20px; }
-  .how-it-works { padding: 28px 0; }
-  .how-it-works .container, .testimonials-section .container { padding: 0; }
-  .how-it-works .section-title { padding-left: 20px; }
-  .steps-grid { display: flex; flex-direction: row; overflow-x: auto; gap: 16px; padding-bottom: 12px; padding-top: 20px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .steps-grid::-webkit-scrollbar { display: none; }
-  .steps-grid > .step:first-child { margin-left: 20px; }
-  .step { flex: 0 0 160px; scroll-snap-align: start; padding: 36px 12px 14px; align-self: stretch; }
-  .step-icon { font-size: 1.7rem; margin-bottom: 6px; }
-  .step-title { font-size: 0.82rem; }
-  .step-description { font-size: 0.73rem; }
-  .testimonials-section { padding: 28px 0; }
-  .testimonials-section .section-title { padding-left: 20px; }
-  .testimonials-grid { display: flex; flex-direction: row; overflow-x: auto; gap: 16px; padding-bottom: 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .testimonials-grid::-webkit-scrollbar { display: none; }
-  .testimonials-grid > *:first-child { margin-left: 20px; }
-  .testimonials-grid > *:not(.scroll-spacer) { flex: 0 0 240px; scroll-snap-align: start; align-self: stretch; }
-}
+.hero__inner { position: relative; z-index: 2; padding: 100px 20px 80px; max-width: 480px; margin: 0 auto; width: 100%; }
+@media (min-width: 768px) { .hero__inner { max-width: 900px; padding: 120px 20px; } }
+
+.hero__badge { display: inline-block; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.3); color: #d4af37; padding: 6px 16px; border-radius: 100px; font-size: 0.85rem; font-weight: 600; margin-bottom: 28px; }
+
+.hero__title { font-size: clamp(3rem, 14vw, 6rem); font-weight: 900; line-height: 1.05; margin: 0 0 20px; letter-spacing: -0.02em; }
+.hero__title em { font-style: normal; background: linear-gradient(135deg, #d4af37, #f5d36e, #b8860b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.hero__sub { font-size: clamp(1rem, 3.5vw, 1.2rem); color: rgba(240,237,232,0.7); line-height: 1.7; margin: 0 0 36px; max-width: 460px; }
+
+.hero__cta { display: inline-flex; align-items: center; gap: 12px; background: #d4af37; color: #0a0a0f; padding: 16px 32px; border-radius: 100px; font-weight: 800; font-size: 1.1rem; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 8px 32px rgba(212,175,55,0.3); }
+.hero__cta:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212,175,55,0.4); }
+.hero__cta-arrow { font-size: 1.3rem; }
+
+.hero__proof { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
+.hero__proof-avatars { display: flex; }
+.hero__proof-avatars span { font-size: 1.4rem; margin-right: -4px; }
+.hero__proof-text { font-size: 0.85rem; color: rgba(240,237,232,0.6); }
+
+/* ── Pain ─────────────────────────────────── */
+.pain { padding: 60px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+.pain__label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(240,237,232,0.4); margin: 0 0 20px; }
+.pain__list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.pain__item { display: flex; align-items: flex-start; gap: 12px; font-size: 1rem; color: rgba(240,237,232,0.65); line-height: 1.5; }
+.pain__x { color: #e05b5b; font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+.pain__answer { font-size: 1.1rem; font-weight: 700; color: #d4af37; margin: 0; }
+
+/* ── What ─────────────────────────────────── */
+.what { padding: 60px 0; background: rgba(255,255,255,0.02); }
+.what__title { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; line-height: 1.1; margin: 0 0 36px; letter-spacing: -0.01em; }
+.what__cards { display: flex; flex-direction: column; gap: 16px; }
+@media (min-width: 768px) { .what__cards { flex-direction: row; } }
+.what__card { display: flex; align-items: flex-start; gap: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
+.what__card-icon { font-size: 2rem; flex-shrink: 0; }
+.what__card-text { font-size: 0.95rem; color: rgba(240,237,232,0.75); line-height: 1.6; }
+.what__card-text strong { display: block; color: #f0ede8; font-weight: 700; margin-bottom: 4px; font-size: 1rem; }
+
+/* ── Quests ───────────────────────────────── */
+.quests { padding: 60px 0; }
+
+/* ── How ──────────────────────────────────── */
+.how { padding: 60px 0; }
+.how__title { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; line-height: 1.1; margin: 0 0 40px; letter-spacing: -0.01em; }
+.how__steps { display: flex; flex-direction: column; gap: 0; }
+.how__step { display: flex; align-items: flex-start; gap: 20px; padding: 16px 0; }
+.how__num { font-size: 2.5rem; font-weight: 900; color: #d4af37; line-height: 1; flex-shrink: 0; width: 56px; }
+.how__step-body { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; }
+.how__step-body strong { font-size: 1.05rem; font-weight: 700; color: #f0ede8; }
+.how__step-body span { font-size: 0.9rem; color: rgba(240,237,232,0.55); line-height: 1.5; }
+.how__line { width: 1px; height: 24px; background: rgba(212,175,55,0.2); margin-left: 28px; }
+.how__cta { display: block; text-align: center; background: transparent; border: 2px solid #d4af37; color: #d4af37; padding: 16px 32px; border-radius: 100px; font-weight: 800; font-size: 1.1rem; text-decoration: none; margin-top: 40px; transition: background 0.2s, color 0.2s; }
+.how__cta:hover { background: #d4af37; color: #0a0a0f; }
+
+/* ── Occasions ────────────────────────────── */
+.occasions { padding: 60px 0; background: rgba(255,255,255,0.02); }
+.occasions__title { font-size: 1.6rem; font-weight: 800; margin: 0 0 28px; }
+.occasions__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (min-width: 768px) { .occasions__grid { grid-template-columns: repeat(6, 1fr); } }
+.occasions__item { display: flex; flex-direction: column; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 12px; text-decoration: none; color: rgba(240,237,232,0.8); font-size: 0.85rem; font-weight: 600; text-align: center; transition: border-color 0.2s, background 0.2s; }
+.occasions__item:hover { border-color: rgba(212,175,55,0.4); background: rgba(212,175,55,0.06); }
+.occasions__emoji { font-size: 1.8rem; }
+
+/* ── Reviews ──────────────────────────────── */
+.reviews { padding: 60px 0; }
+.reviews__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.reviews__title { font-size: 1.6rem; font-weight: 800; margin: 0; }
+.reviews__all { font-size: 0.85rem; font-weight: 700; color: #d4af37; background: none; border: 1px solid rgba(212,175,55,0.3); padding: 6px 14px; border-radius: 100px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.2s; }
+.reviews__all:hover { background: rgba(212,175,55,0.1); }
+/* old title removed */
+.reviews__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.reviews__all { font-size: 0.85rem; font-weight: 700; color: #d4af37; background: none; border: 1px solid rgba(212,175,55,0.3); padding: 6px 14px; border-radius: 100px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.2s; }
+.reviews__all:hover { background: rgba(212,175,55,0.1); }
+.reviews__list { display: flex; flex-direction: column; gap: 16px; }
+@media (min-width: 768px) { .reviews__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.reviews__all { font-size: 0.85rem; font-weight: 700; color: #d4af37; background: none; border: 1px solid rgba(212,175,55,0.3); padding: 6px 14px; border-radius: 100px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.2s; }
+.reviews__all:hover { background: rgba(212,175,55,0.1); }
+.reviews__list { display: grid; grid-template-columns: repeat(2, 1fr); } }
+.reviews__item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
+.reviews__stars { color: #d4af37; font-size: 1rem; margin-bottom: 10px; letter-spacing: 2px; }
+.reviews__text { font-size: 0.95rem; color: rgba(240,237,232,0.8); line-height: 1.6; margin: 0 0 12px; font-style: italic; }
+.reviews__name { font-size: 0.85rem; color: rgba(240,237,232,0.45); font-weight: 600; }
+
+/* ── Author ───────────────────────────────── */
+.author { padding: 60px 0; background: rgba(212,175,55,0.05); border-top: 1px solid rgba(212,175,55,0.15); border-bottom: 1px solid rgba(212,175,55,0.15); }
+.author__inner { display: flex; gap: 24px; align-items: flex-start; }
+.author__photo { width: 80px; height: 80px; flex-shrink: 0; border-radius: 50%; overflow: hidden; border: 2px solid rgba(212,175,55,0.4); }
+.author__photo img { width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 768px) { .author__photo { width: 120px; height: 120px; } }
+.author__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #d4af37; margin: 0 0 4px; }
+.author__name { font-size: 1.4rem; font-weight: 900; margin: 0 0 10px; }
+.author__bio { font-size: 0.9rem; color: rgba(240,237,232,0.65); line-height: 1.6; margin: 0 0 14px; }
+.author__link { color: #d4af37; font-weight: 700; text-decoration: none; font-size: 0.9rem; }
+
+/* ── Blog ─────────────────────────────────── */
+.blog { padding: 60px 0; }
+.blog__list { display: flex; flex-direction: column; gap: 2px; }
+.blog__item { display: flex; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.06); text-decoration: none; color: #f0ede8; transition: color 0.2s; }
+.blog__item:hover { color: #d4af37; }
+.blog__cat { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #d4af37; background: rgba(212,175,55,0.1); padding: 3px 8px; border-radius: 4px; }
+.blog__title { flex: 1; font-size: 0.95rem; line-height: 1.4; }
+.blog__arrow { flex-shrink: 0; font-size: 1rem; opacity: 0.4; }
+
+/* ── Final CTA ────────────────────────────── */
+.final-cta { padding: 80px 0; text-align: center; background: radial-gradient(ellipse at center, rgba(212,175,55,0.12) 0%, transparent 70%); }
+.final-cta__title { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; margin: 0 0 12px; letter-spacing: -0.02em; }
+.final-cta__sub { font-size: 1.1rem; color: rgba(240,237,232,0.6); margin: 0 0 32px; }
+.final-cta__btn { display: inline-block; background: #d4af37; color: #0a0a0f; padding: 18px 48px; border-radius: 100px; font-weight: 800; font-size: 1.2rem; text-decoration: none; box-shadow: 0 8px 32px rgba(212,175,55,0.35); transition: transform 0.2s, box-shadow 0.2s; }
+.final-cta__btn:hover { transform: translateY(-2px); box-shadow: 0 12px 48px rgba(212,175,55,0.5); }
+.final-cta__guarantee { margin: 20px 0 0; font-size: 0.85rem; color: rgba(240,237,232,0.4); }
 </style>

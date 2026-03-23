@@ -11,7 +11,7 @@ router.post('/', orderLimiter, [
   body('template_id').isInt().withMessage('template_id обязателен'),
   body('client_name').trim().notEmpty().withMessage('Имя обязательно'),
   body('client_email').isEmail().withMessage('Email обязателен'),
-  body('description').optional({ checkFalsy: true })
+  body('description').trim().notEmpty().withMessage('Описание обязательно')
 ], orderController.createOrder)
 
 // Admin-only — всё остальное

@@ -118,6 +118,22 @@
         </div>
       </template>
 
+      <template v-else-if="theme.id === 'proposal'">
+        <div class="intro__proposal-bg">
+          <div v-for="n in 10" :key="n" class="intro__proposal-ring" :style="proposalRing(n)"></div>
+          <span v-for="n in 20" :key="'s'+n" class="intro__proposal-spark" :style="proposalSpark(n)">✦</span>
+        </div>
+        <div class="intro__proposal-body">
+          <div class="intro__proposal-icon">💍</div>
+          <div class="intro__proposal-title">Особый вечер</div>
+          <div class="intro__proposal-line">Этот момент создан специально</div>
+          <div class="intro__proposal-line">только для тебя</div>
+          <div v-if="questData.client_name" class="intro__proposal-name">
+            {{ questData.client_name }}
+          </div>
+        </div>
+      </template>
+
       <div class="intro__skip">нажми чтобы пропустить</div>
     </div>
   </transition>
@@ -145,6 +161,7 @@ onMounted(() => {
   if (props.theme.id === 'city')      initCity()
   if (props.theme.id === 'mystery')   initMystery()
   if (props.theme.id === 'treasure')  initTreasure()
+  if (props.theme.id === 'proposal')  initProposal()
 })
 onUnmounted(() => { clearTimeout(endTimer); cancelAnimationFrame(rafId) })
 
@@ -235,6 +252,22 @@ const treasureCoin = (n) => ({
 
 const initTreasure = () => {
   // Анимация управляется CSS — JS не нужен
+}
+
+const proposalRing = (n) => ({
+  '--size': (60 + n * 35) + 'px',
+  '--x': (5 + n * 9) + '%',
+  '--y': (15 + (n % 5) * 15) + '%',
+  '--delay': (n * 0.3) + 's',
+})
+const proposalSpark = (n) => ({
+  '--x': (Math.sin(n * 0.8) * 45 + 50) + '%',
+  '--y': (Math.cos(n * 0.6) * 40 + 50) + '%',
+  '--delay': (n * 0.18) + 's',
+  '--size': (0.7 + (n % 3) * 0.4) + 'rem',
+})
+const initProposal = () => {
+  // Анимация управляется CSS
 }
 
 /* ── CITY ────────────────────────────────────────────────────── */
@@ -677,4 +710,52 @@ const initCity = () => {
   50%      { transform: scale(1.1); opacity: 1; }
 }
 
+
+/* ── Proposal ─────────────────────────── */
+.intro--proposal { background: radial-gradient(ellipse at center, #18121e 0%, #080508 100%); }
+.intro__proposal-bg { position: absolute; inset: 0; overflow: hidden; }
+.intro__proposal-ring {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  width: var(--size); height: var(--size);
+  border-radius: 50%;
+  border: 1.5px solid rgba(212,175,55,0.3);
+  transform: translate(-50%, -50%);
+  animation: prop-ring 3s ease-in-out var(--delay) infinite;
+}
+.intro__proposal-spark {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  font-size: var(--size);
+  color: rgba(212,175,55,0.7);
+  animation: prop-spark 4s ease-in-out var(--delay) infinite;
+}
+@keyframes prop-ring {
+  0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.2; }
+  50%      { transform: translate(-50%,-50%) scale(1.2); opacity: 0.5; }
+}
+@keyframes prop-spark {
+  0%,100% { transform: translateY(0) scale(1); opacity: 0.4; }
+  50%      { transform: translateY(-15px) scale(1.2); opacity: 0.9; }
+}
+.intro__proposal-body {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 40px 32px; text-align: center;
+}
+.intro__proposal-icon { font-size: 4rem; animation: prop-ring 2s ease-in-out infinite; }
+.intro__proposal-title {
+  font-family: var(--font-d, "Cormorant Garamond", serif);
+  font-size: 2rem; font-weight: 300; letter-spacing: 0.15em;
+  color: #d4af37;
+}
+.intro__proposal-line {
+  font-size: 1rem; color: rgba(240,230,211,0.7); letter-spacing: 0.05em;
+}
+.intro__proposal-name {
+  margin-top: 8px;
+  font-family: var(--font-d, "Cormorant Garamond", serif);
+  font-size: 1.6rem; font-weight: 600; color: #f0e6d3;
+  letter-spacing: 0.08em;
+}
 </style>

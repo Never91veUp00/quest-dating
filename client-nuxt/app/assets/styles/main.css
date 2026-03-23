@@ -16,10 +16,16 @@
 html {
   font-size: 16px;
   line-height: var(--line-height-normal);
+  /* Чёткость текста на Retina (iPhone 12-17, 2x/3x DPR) */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Запрет автоизменения размера текста iOS */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Безопасные зоны для iPhone с чёлкой/Dynamic Island */
+  padding-top: env(safe-area-inset-top);
 }
 
 body {
@@ -30,8 +36,35 @@ body {
   font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
   color: var(--color-gray-700);
-  background-color: var(--color-white);
+  background-color: #0a0a0f;
   overflow-x: hidden;
+  /* Safe area для iPhone с Dynamic Island / Home Bar */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Чёткость изображений на Retina */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* SVG тоже чёткие */
+img[src$=".svg"] {
+  image-rendering: auto;
+}
+
+/* Tap highlight убираем — iOS добавляет серый прямоугольник */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Но оставляем выделение текста */
+p, h1, h2, h3, h4, h5, h6, span, li {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Typography */

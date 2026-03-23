@@ -447,7 +447,7 @@ const decorItem = (i) => ({
   font-size: 1.2rem;
   opacity: 0.12;
   animation: decor-pulse 4s ease-in-out infinite;
-  animation-delay: calc(var(--angle) / 360deg * 3s);
+  animation-delay: calc(var(--angle) * 3s / 360);
 }
 @keyframes decor-pulse { 0%,100%{opacity:.08;transform:rotate(var(--angle)) translateY(calc(-1 * var(--r))) scale(.9)} 50%{opacity:.2;transform:rotate(var(--angle)) translateY(calc(-1 * var(--r))) scale(1.1)} }
 

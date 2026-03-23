@@ -1,248 +1,221 @@
 <template>
-  <div class="order-form">
+  <div class="of">
 
-    <!-- Прогресс-бар -->
-    <div class="form-progress">
+    <!-- Прогресс -->
+    <div class="of__progress">
       <div
-        v-for="(step, index) in steps"
-        :key="index"
-        class="progress-step"
+        v-for="(step, i) in STEPS"
+        :key="i"
+        class="of__step"
         :class="{
-          active: currentStep === index + 1,
-          completed: currentStep > index + 1
+          'of__step--active': currentStep === i + 1,
+          'of__step--done': currentStep > i + 1
         }"
       >
-        <div class="step-number">{{ index + 1 }}</div>
-        <div class="step-label">{{ step }}</div>
+        <div class="of__step-dot">
+          <span v-if="currentStep > i + 1">✓</span>
+          <span v-else>{{ i + 1 }}</span>
+        </div>
+        <span class="of__step-label">{{ step }}</span>
       </div>
+      <div class="of__progress-line" :style="{ width: progressWidth }"></div>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="form-container">
+    <form @submit.prevent="handleSubmit" class="of__form">
 
-      <!-- Шаг 1: Контактная информация -->
-      <div v-if="currentStep === 1" class="form-step">
-        <h3 class="step-title">Контактная информация</h3>
-        <p class="step-description">Как с вами связаться и когда планируете свидание?</p>
+      <!-- ── Шаг 1: Контакты ── -->
+      <transition name="step-fade" mode="out-in">
+      <div v-if="currentStep === 1" key="1" class="of__step-body">
+        <h2 class="of__step-title">Как с вами связаться?</h2>
+        <p class="of__step-sub">Лиза напишет вам для уточнения деталей</p>
 
-        <div class="form-group">
-          <label for="client_name" class="form-label">Ваше имя *</label>
+        <div class="of__field">
+          <label class="of__label">Ваше имя *</label>
+          <input v-model="form.client_name" type="text" class="of__input" placeholder="Иван" autocomplete="given-name" />
+        </div>
+        <div class="of__field">
+          <label class="of__label">Email *</label>
+          <input v-model="form.client_email" type="email" class="of__input" placeholder="ivan@example.com" autocomplete="email" />
+          <p class="of__hint">Пришлём ссылку на готовый квест</p>
+        </div>
+        <div class="of__field">
+          <label class="of__label">Telegram или телефон</label>
+          <input v-model="form.client_phone" type="text" class="of__input" placeholder="@username или +7 999 ..." autocomplete="tel" />
+          <p class="of__hint">Для быстрой связи по деталям</p>
+        </div>
+        <div class="of__field">
+          <label class="of__label">Когда планируете квест? *</label>
+          <input v-model="form.event_date" type="date" class="of__input" :min="minDate" />
+        </div>
+        <div v-if="isCity" class="of__field">
+          <label class="of__label">Город *</label>
+          <input v-model="form.event_city" type="text" class="of__input" placeholder="Москва" />
+          <p class="of__hint">Лиза подберёт маршрут в вашем городе</p>
+        </div>
+      </div>
+      </transition>
+
+      <!-- ── Шаг 2: О паре ── -->
+      <transition name="step-fade" mode="out-in">
+      <div v-if="currentStep === 2" key="2" class="of__step-body">
+        <h2 class="of__step-title">Расскажите о вашей паре</h2>
+        <p class="of__step-sub">Это поможет сделать квест личным</p>
+
+        <div class="of__field">
+          <label class="of__label">Имя партнёра *</label>
+          <input v-model="form.partner_name" type="text" class="of__input" placeholder="Как зовут вашего партнёра?" />
+        </div>
+        <div class="of__field">
+          <label class="of__label">Как долго вы вместе?</label>
+          <div class="of__pills">
+            <button
+              v-for="opt in TOGETHER_OPTIONS"
+              :key="opt"
+              type="button"
+              class="of__pill"
+              :class="{ 'of__pill--active': form.together === opt }"
+              @click="form.together = opt"
+            >{{ opt }}</button>
+          </div>
+        </div>
+        <div class="of__field">
+          <label class="of__label">Повод для квеста *</label>
+          <div class="of__pills">
+            <button
+              v-for="opt in OCCASION_OPTIONS"
+              :key="opt"
+              type="button"
+              class="of__pill"
+              :class="{ 'of__pill--active': form.occasion === opt }"
+              @click="form.occasion = opt"
+            >{{ opt }}</button>
+          </div>
+        </div>
+        <div class="of__field">
+          <label class="of__label">Чем увлекается партнёр?</label>
+          <div class="of__pills of__pills--wrap">
+            <button
+              v-for="opt in HOBBY_OPTIONS"
+              :key="opt"
+              type="button"
+              class="of__pill"
+              :class="{ 'of__pill--active': form.hobbies.includes(opt) }"
+              @click="toggleHobby(opt)"
+            >{{ opt }}</button>
+          </div>
+        </div>
+        <div class="of__field">
+          <label class="of__label">Настроение квеста</label>
+          <div class="of__pills">
+            <button
+              v-for="opt in MOOD_OPTIONS"
+              :key="opt.value"
+              type="button"
+              class="of__pill"
+              :class="{ 'of__pill--active': form.mood === opt.value }"
+              @click="form.mood = opt.value"
+            >{{ opt.label }}</button>
+          </div>
+        </div>
+      </div>
+      </transition>
+
+      <!-- ── Шаг 3: Детали под категорию ── -->
+      <transition name="step-fade" mode="out-in">
+      <div v-if="currentStep === 3" key="3" class="of__step-body">
+        <h2 class="of__step-title">{{ categoryQuestions.title }}</h2>
+        <p class="of__step-sub">{{ categoryQuestions.subtitle }}</p>
+
+        <div
+          v-for="q in categoryQuestions.questions"
+          :key="q.field"
+          class="of__field"
+        >
+          <label class="of__label">{{ q.label }}</label>
+
+          <!-- Textarea -->
+          <textarea
+            v-if="q.type === 'textarea'"
+            v-model="form.details[q.field]"
+            class="of__textarea"
+            :placeholder="q.placeholder"
+            rows="3"
+          ></textarea>
+
+          <!-- Pills одиночный выбор -->
+          <div v-else-if="q.type === 'pills'" class="of__pills of__pills--wrap">
+            <button
+              v-for="opt in q.options"
+              :key="opt"
+              type="button"
+              class="of__pill"
+              :class="{ 'of__pill--active': form.details[q.field] === opt }"
+              @click="form.details[q.field] = opt"
+            >{{ opt }}</button>
+          </div>
+
+          <!-- Обычный input -->
           <input
-            id="client_name"
-            name="client_name"
-            v-model="formData.client_name"
+            v-else
+            v-model="form.details[q.field]"
             type="text"
-            class="form-input"
-            placeholder="Иван"
-            :required="currentStep === 1"
+            class="of__input"
+            :placeholder="q.placeholder"
           />
+
+          <p v-if="q.hint" class="of__hint">{{ q.hint }}</p>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="client_email" class="form-label">Email *</label>
-            <input
-              id="client_email"
-              name="client_email"
-              v-model="formData.client_email"
-              type="email"
-              class="form-input"
-              placeholder="ivan@example.com"
-              :required="currentStep === 1"
-            />
-          </div>
-          <div class="form-group">
-            <label for="client_phone" class="form-label">Telegram или телефон</label>
-            <input
-              id="client_phone"
-              name="client_phone"
-              v-model="formData.client_phone"
-              type="tel"
-              class="form-input"
-              placeholder="+7 999 123-45-67"
-            />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="event_date" class="form-label">Дата свидания *</label>
-            <input
-              id="event_date"
-              name="event_date"
-              v-model="formData.event_date"
-              type="date"
-              class="form-input"
-              :min="minDate"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="event_city" class="form-label">Город</label>
-            <input
-              id="event_city"
-              name="event_city"
-              v-model="formData.event_city"
-              type="text"
-              class="form-input"
-              placeholder="Москва"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Шаг 2: Кастомизация -->
-      <div v-if="currentStep === 2" class="form-step">
-        <h3 class="step-title">Настройка квеста</h3>
-        <p class="step-description">Выберите дополнительные опции под ваш формат</p>
-
-        <CustomizationOptions
-          v-if="template"
-          :template="template"
-          v-model="formData.customization"
-          v-model:selected-features="formData.selected_features"
-          @update:featuresData="featuresData = $event; emit('update:featuresData', $event)"
-        />
-      </div>
-
-      <!-- Шаг 3: Вопросы о паре -->
-      <div v-if="currentStep === 3" class="form-step">
-        <h3 class="step-title">Расскажите о вашей паре</h3>
-        <p class="step-description">Эти детали помогут сделать квест по-настоящему вашим</p>
-
-        <div class="qa-hint">
-          💡 Чем честнее и подробнее ответы — тем точнее получится квест. Не бойтесь писать простыми словами.
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Как зовут вашу вторую половинку и сколько ей/ему лет?</label>
-          <input
-            v-model="formData.qa_partner_name"
-            type="text"
-            class="form-input"
-            placeholder="Например: Маша, 26 лет"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Как давно вы вместе? Есть ли какая-то особая дата или повод?</label>
+        <!-- Дополнительные пожелания -->
+        <div class="of__field">
+          <label class="of__label">Что ещё важно учесть?</label>
           <textarea
-            v-model="formData.qa_occasion"
-            class="form-textarea"
+            v-model="form.extra"
+            class="of__textarea"
+            placeholder="Любые пожелания, ограничения, особые детали..."
             rows="3"
-            placeholder="Например: вместе 2 года, это годовщина / просто хочу сделать сюрприз без повода"
           ></textarea>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Чем увлекается ваша вторая половинка? Что любит, что её/его радует?</label>
-          <textarea
-            v-model="formData.qa_interests"
-            class="form-textarea"
-            rows="3"
-            placeholder="Например: любит кино, обожает кофе, интересуется историей, фанат настолок..."
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Есть ли места в вашем городе, которые для вас особенные? Где вы любите бывать вместе?</label>
-          <textarea
-            v-model="formData.qa_places"
-            class="form-textarea"
-            rows="3"
-            placeholder="Например: парк где познакомились, любимое кафе, набережная..."
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Как она/он обычно реагирует на сюрпризы? Есть ли что-то чего точно не стоит делать?</label>
-          <textarea
-            v-model="formData.qa_surprises"
-            class="form-textarea"
-            rows="3"
-            placeholder="Например: любит активности / предпочитает спокойный формат / не любит большие компании..."
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Шаг 4: Пожелания к квесту -->
-      <div v-if="currentStep === 4" class="form-step">
-        <h3 class="step-title">Пожелания к квесту</h3>
-        <p class="step-description">Что хотите получить в итоге? Любые детали, идеи, настроение</p>
-
-        <div class="form-group">
-          <label class="form-label">Какое настроение или атмосферу хотите создать?</label>
-          <textarea
-            v-model="formData.wish_mood"
-            class="form-textarea"
-            rows="3"
-            placeholder="Например: романтично и нежно / весело и с приключениями / камерно и по-домашнему..."
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Есть ли конкретные идеи, которые хотите включить в квест?</label>
-          <textarea
-            v-model="formData.wish_ideas"
-            class="form-textarea"
-            rows="3"
-            placeholder="Необязательно — но если есть идея, записки, задание или финальный сюрприз, расскажите"
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Что-то ещё важное, о чём стоит знать?</label>
-          <textarea
-            v-model="formData.wish_other"
-            class="form-textarea"
-            rows="3"
-            placeholder="Любая деталь которая поможет сделать квест именно для вас двоих"
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-label" @click="formData.agree_terms = !formData.agree_terms; termsError = false">
-            <div class="checkbox-box" :class="{ checked: formData.agree_terms, error: termsError && !formData.agree_terms }">
-              <span v-if="formData.agree_terms" class="checkbox-tick">✓</span>
+        <!-- Согласие -->
+        <div class="of__field">
+          <label class="of__agree" :class="{ 'of__agree--error': agreeError && !form.agree }" @click="form.agree = !form.agree; agreeError = false">
+            <div class="of__checkbox" :class="{ 'of__checkbox--checked': form.agree, 'of__checkbox--error': agreeError && !form.agree }">
+              <span v-if="form.agree">✓</span>
             </div>
             <span>
-              Я согласен с
-              <a href="/terms" target="_blank" @click.stop>условиями использования</a> и
+              Согласен с
+              <a href="/terms" target="_blank" @click.stop>условиями</a> и
               <a href="/privacy" target="_blank" @click.stop>политикой конфиденциальности</a>
             </span>
           </label>
-          <p v-if="termsError && !formData.agree_terms" class="terms-error">
-            Пожалуйста, примите условия использования чтобы продолжить
-          </p>
         </div>
       </div>
+      </transition>
 
       <!-- Навигация -->
-      <div class="form-navigation">
+      <div class="of__nav">
         <button
           v-if="currentStep > 1"
           type="button"
-          @click="previousStep"
-          class="btn-nav btn-prev"
-        >
-          ← Назад
-        </button>
+          class="of__btn of__btn--back"
+          @click="prevStep"
+        >← Назад</button>
 
         <button
-          v-if="currentStep < 4"
+          v-if="currentStep < 3"
           type="button"
+          class="of__btn of__btn--next"
           @click="nextStep"
-          class="btn-nav btn-next"
-        >
-          Далее →
-        </button>
+        >Далее →</button>
 
         <button
-          v-if="currentStep === 4"
+          v-if="currentStep === 3"
           type="submit"
-          class="btn-submit"
+          class="of__btn of__btn--submit"
           :disabled="submitting"
         >
-          {{ submitting ? 'Отправка...' : 'Отправить заявку' }}
+          {{ submitting ? 'Отправка...' : 'Отправить заявку ✓' }}
         </button>
       </div>
 
@@ -251,61 +224,129 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import { useToast } from '@/composables/useToast'
+import { ref, reactive, computed } from 'vue'
 
 const props = defineProps({
   template: { type: Object, default: null }
 })
-
 const emit = defineEmits(['submit', 'update:features', 'update:customization', 'update:featuresData'])
-const toast = useToast()
 
+const toast = useToast()
 const currentStep = ref(1)
 const submitting  = ref(false)
-const submitted   = ref(false)
-const featuresData = ref([])
-const termsError  = ref(false)
+const agreeError  = ref(false)
 
-const steps = ['Контакты', 'Настройка', 'О паре', 'Пожелания']
+const STEPS = ['Контакты', 'О паре', 'Детали']
 
-const formData = reactive({
-  template_id:        props.template?.id || null,
-  client_name:        '',
-  client_email:       '',
-  client_phone:       '',
-  event_date:         '',
-  event_city:         '',
-  customization:      {},
-  selected_features:  [],
-  // Шаг 3 — вопросы о паре
-  qa_partner_name:    '',
-  qa_occasion:        '',
-  qa_interests:       '',
-  qa_places:          '',
-  qa_surprises:       '',
-  // Шаг 4 — пожелания
-  wish_mood:          '',
-  wish_ideas:         '',
-  wish_other:         '',
-  agree_terms:        false,
-  // Собираем в description для бэкенда
-  get description() {
-    const parts = []
-    if (this.qa_partner_name) parts.push(`Партнёр: ${this.qa_partner_name}`)
-    if (this.qa_occasion)     parts.push(`Повод: ${this.qa_occasion}`)
-    if (this.qa_interests)    parts.push(`Интересы: ${this.qa_interests}`)
-    if (this.qa_places)       parts.push(`Места: ${this.qa_places}`)
-    if (this.qa_surprises)    parts.push(`Реакция на сюрпризы: ${this.qa_surprises}`)
-    if (this.wish_mood)       parts.push(`Настроение: ${this.wish_mood}`)
-    if (this.wish_ideas)      parts.push(`Идеи: ${this.wish_ideas}`)
-    if (this.wish_other)      parts.push(`Дополнительно: ${this.wish_other}`)
-    return parts.length ? parts.join('\n\n') : 'Пожелания не указаны'
+const isCity   = computed(() => props.template?.location_type === 'city')
+const catSlug  = computed(() => props.template?.category_slug || '')
+const locType  = computed(() => props.template?.location_type || 'indoor')
+
+const form = reactive({
+  client_name:  '',
+  client_email: '',
+  client_phone: '',
+  event_date:   '',
+  event_city:   '',
+  partner_name: '',
+  together:     '',
+  occasion:     '',
+  hobbies:      [],
+  mood:         '',
+  details:      {},
+  extra:        '',
+  agree:        false,
+})
+
+const TOGETHER_OPTIONS = ['Меньше года', '1–2 года', '2–5 лет', 'Больше 5 лет']
+const OCCASION_OPTIONS = ['День рождения', 'Годовщина', 'Просто так', 'Предложение', '14 февраля', '8 марта']
+const HOBBY_OPTIONS    = ['Кино', 'Музыка', 'Спорт', 'Путешествия', 'Еда', 'Игры', 'Книги', 'Природа', 'Искусство', 'Технологии']
+const MOOD_OPTIONS     = [
+  { value: 'romantic', label: '🌹 Романтично' },
+  { value: 'fun',      label: '😄 Весело' },
+  { value: 'mystery',  label: '🔮 Загадочно' },
+  { value: 'touching', label: '💌 Трогательно' },
+]
+
+// Вопросы зависят от типа квеста
+const categoryQuestions = computed(() => {
+  const loc = locType.value
+  const cat = catSlug.value
+
+  // Предложение руки и сердца
+  if (cat === 'proposal' || props.template?.slug?.includes('proposal')) {
+    return {
+      title: 'Детали предложения',
+      subtitle: 'Этот момент должен быть идеальным',
+      questions: [
+        { field: 'proposal_place', type: 'textarea', label: 'Где планируете сделать предложение? *', placeholder: 'Опишите место — дома в гостиной, любимое кафе, парк...' },
+        { field: 'story', type: 'textarea', label: 'Как вы познакомились? *', placeholder: 'Несколько предложений о вашей истории — квест будет строиться на ней' },
+        { field: 'ring', type: 'pills', label: 'Кольцо уже есть?', options: ['Да, куплено', 'Ещё нет', 'Планирую купить'] },
+        { field: 'partner_character', type: 'textarea', label: 'Какой характер у партнёра?', placeholder: 'Романтик или прагматик? Любит сюрпризы или предпочитает спокойствие?' },
+        { field: 'memorable_moment', type: 'textarea', label: 'Самый важный момент в ваших отношениях', placeholder: 'Что стало поворотным моментом? Куда ездили? Что пережили вместе?' },
+      ]
+    }
+  }
+
+  // Городской квест
+  if (loc === 'city') {
+    return {
+      title: 'Детали городского квеста',
+      subtitle: 'Маршрут будет построен специально для вас',
+      questions: [
+        { field: 'city_area', type: 'textarea', label: 'Любимые места в городе *', placeholder: 'Парки, кафе, улицы, районы — где вы бывали или хотите побывать вместе' },
+        { field: 'transport', type: 'pills', label: 'Как будете передвигаться?', options: ['Пешком', 'На авто', 'Метро/транспорт', 'Всё вместе'] },
+        { field: 'duration_pref', type: 'pills', label: 'Желаемая длительность прогулки', options: ['1–2 часа', '2–3 часа', '3–4 часа', 'Полдня'] },
+        { field: 'story', type: 'textarea', label: 'Значимые места для вашей пары', placeholder: 'Место первого свидания, любимое кафе, памятное место — включим в маршрут' },
+        { field: 'final_spot', type: 'textarea', label: 'Где хотите завершить квест?', placeholder: 'Ресторан, смотровая, дома — финальная точка маршрута' },
+      ]
+    }
+  }
+
+  // Домашний квест
+  if (loc === 'indoor') {
+    return {
+      title: 'Детали домашнего квеста',
+      subtitle: 'Квест будет проходить дома — сделаем его уютным и личным',
+      questions: [
+        { field: 'story', type: 'textarea', label: 'Ваша история знакомства *', placeholder: 'Где познакомились, первое свидание, важные моменты — используем в заданиях' },
+        { field: 'inside_jokes', type: 'textarea', label: 'Что-то особенное только для вас двоих', placeholder: 'Шутки, прозвища, любимые фильмы/песни, традиции — сделает квест живым' },
+        { field: 'difficulty_pref', type: 'pills', label: 'Партнёр хорошо решает загадки?', options: ['Да, любит сложные', 'Средне', 'Лучше попроще', 'Не знаю'] },
+        { field: 'surprise', type: 'textarea', label: 'Финальный сюрприз — что планируете?', placeholder: 'Подарок, ужин, поход в кино — квест должен привести к нему' },
+        { field: 'avoid', type: 'textarea', label: 'Что точно не подходит?', placeholder: 'Темы, шутки или форматы которых лучше избежать' },
+      ]
+    }
+  }
+
+  // Годовщина
+  if (cat?.includes('anniversary') || form.occasion === 'Годовщина') {
+    return {
+      title: 'Детали квеста на годовщину',
+      subtitle: 'Путешествие по вашей общей истории',
+      questions: [
+        { field: 'how_met', type: 'textarea', label: 'Как вы познакомились? *', placeholder: 'Расскажите историю знакомства — квест будет строиться на ней' },
+        { field: 'milestones', type: 'textarea', label: 'Важные моменты за эти годы', placeholder: 'Первая поездка, совместное жильё, преодолённые трудности...' },
+        { field: 'years', type: 'input', label: 'Сколько лет вместе?', placeholder: 'Например: 3 года' },
+        { field: 'partner_character', type: 'textarea', label: 'Что партнёр больше всего ценит в ваших отношениях?', placeholder: 'Стабильность, приключения, нежность, юмор...' },
+        { field: 'surprise', type: 'textarea', label: 'Как хотите завершить вечер?', placeholder: 'Ужин, подарок, поездка — финал квеста должен к этому вести' },
+      ]
+    }
+  }
+
+  // Дефолт — универсальный
+  return {
+    title: 'Детали квеста',
+    subtitle: 'Чем больше расскажете — тем личнее получится',
+    questions: [
+      { field: 'story', type: 'textarea', label: 'История вашей пары *', placeholder: 'Как познакомились, важные моменты, что объединяет — основа для сценария' },
+      { field: 'partner_character', type: 'textarea', label: 'Расскажите о партнёре', placeholder: 'Характер, увлечения, чувство юмора, что любит и не любит' },
+      { field: 'surprise', type: 'textarea', label: 'Что будет в финале квеста?', placeholder: 'Подарок, ужин, предложение, просто особый вечер' },
+      { field: 'avoid', type: 'textarea', label: 'Что стоит избежать?', placeholder: 'Темы, форматы или детали которые не подходят' },
+    ]
   }
 })
 
-watch(() => formData.selected_features, (val) => emit('update:features', val), { deep: true })
-watch(() => formData.customization,     (val) => emit('update:customization', val), { deep: true })
+const progressWidth = computed(() => `${((currentStep.value - 1) / (STEPS.length - 1)) * 100}%`)
 
 const minDate = computed(() => {
   const d = new Date()
@@ -313,54 +354,81 @@ const minDate = computed(() => {
   return d.toISOString().split('T')[0]
 })
 
-const nextStep = () => {
-  if (validateCurrentStep()) {
-    currentStep.value++
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+const toggleHobby = (h) => {
+  const i = form.hobbies.indexOf(h)
+  if (i > -1) form.hobbies.splice(i, 1)
+  else form.hobbies.push(h)
 }
 
-const previousStep = () => {
-  currentStep.value--
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const validateCurrentStep = () => {
+const validate = () => {
   if (currentStep.value === 1) {
-    if (!formData.client_name.trim()) {
-      toast.error('Пожалуйста, введите ваше имя')
-      return false
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.client_email)) {
-      toast.error('Пожалуйста, введите корректный email')
-      return false
-    }
-    if (!formData.event_date) {
-      toast.error('Пожалуйста, укажите дату свидания')
-      return false
-    }
+    if (!form.client_name.trim())   { toast.error('Введите ваше имя'); return false }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.client_email)) { toast.error('Введите корректный email'); return false }
+    if (!form.event_date)           { toast.error('Укажите дату события'); return false }
+    if (isCity.value && !form.event_city.trim()) { toast.error('Укажите город'); return false }
   }
-  if (currentStep.value === 4) {
-    if (!formData.agree_terms) {
-      termsError.value = true
-      toast.error('Необходимо согласиться с условиями использования')
-      return false
+  if (currentStep.value === 2) {
+    if (!form.partner_name.trim())  { toast.error('Введите имя партнёра'); return false }
+    if (!form.occasion)             { toast.error('Выберите повод'); return false }
+  }
+  if (currentStep.value === 3) {
+    const firstRequired = categoryQuestions.value.questions.find(q => q.label.includes('*'))
+    if (firstRequired && !form.details[firstRequired.field]?.trim()) {
+      toast.error('Заполните обязательные поля'); return false
     }
-    termsError.value = false
+    if (!form.agree) { toast.error('Примите условия использования'); agreeError.value = true; return false }
   }
   return true
 }
 
+const nextStep = () => {
+  if (validate()) {
+    currentStep.value++
+    if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+const prevStep = () => {
+  currentStep.value--
+  if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// Собираем все детали в одну строку description для API
+const buildDescription = () => {
+  const parts = []
+  if (form.partner_name)  parts.push(`Партнёр: ${form.partner_name}`)
+  if (form.together)      parts.push(`Вместе: ${form.together}`)
+  if (form.occasion)      parts.push(`Повод: ${form.occasion}`)
+  if (form.hobbies.length) parts.push(`Увлечения: ${form.hobbies.join(', ')}`)
+  if (form.mood)          parts.push(`Настроение: ${form.mood}`)
+
+  const cq = categoryQuestions.value
+  cq.questions.forEach(q => {
+    const val = form.details[q.field]
+    if (val?.trim()) parts.push(`${q.label.replace(' *', '')}: ${val}`)
+  })
+
+  if (form.extra?.trim()) parts.push(`Дополнительно: ${form.extra}`)
+  return parts.join('\n\n')
+}
+
 const handleSubmit = async () => {
-  if (!validateCurrentStep()) return
-  if (submitting.value || submitted.value) return
+  if (!validate()) return
+  if (submitting.value) return
   submitting.value = true
   try {
-    await emit('submit', formData)
-    submitted.value = true
-  } catch (error) {
-    console.error('Error submitting order:', error)
-    toast.error(error.message || 'Произошла ошибка. Пожалуйста, попробуйте снова.')
+    await emit('submit', {
+      template_id:  props.template?.id,
+      client_name:  form.client_name,
+      client_email: form.client_email,
+      client_phone: form.client_phone,
+      event_date:   form.event_date,
+      event_city:   form.event_city,
+      description:  buildDescription(),
+      customization: {},
+      selected_features: [],
+    })
+  } catch (e) {
+    toast.error(e.message || 'Ошибка при отправке')
   } finally {
     submitting.value = false
   }
@@ -368,145 +436,129 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.order-form { max-width: 800px; margin: 0 auto; }
+.of { color: #f0ede8; }
 
-.form-progress {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 48px;
-  position: relative;
+/* Прогресс */
+.of__progress {
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; margin-bottom: 28px; padding: 0 8px;
 }
-.form-progress::before {
-  content: '';
-  position: absolute;
-  top: 20px; left: 20px; right: 20px;
-  height: 2px;
-  background: #e2e8f0;
-  z-index: 0;
+.of__progress-line {
+  position: absolute; top: 14px; left: 8px;
+  height: 2px; background: #d4af37;
+  transition: width 0.4s ease; z-index: 0;
 }
-.progress-step {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 8px;
+.of__step {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
   position: relative; z-index: 1;
 }
-.step-number {
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: white;
-  border: 2px solid #e2e8f0;
+.of__step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700; color: #718096;
+  font-size: 0.75rem; font-weight: 700; color: rgba(240,237,232,0.4);
   transition: all 0.3s;
 }
-.progress-step.active .step-number {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea; color: white; transform: scale(1.1);
+.of__step--active .of__step-dot {
+  background: #d4af37; border-color: #d4af37; color: #0a0a0f;
+  transform: scale(1.1);
 }
-.progress-step.completed .step-number {
-  background: #48bb78; border-color: #48bb78; color: white; font-size: 0;
+.of__step--done .of__step-dot {
+  background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.5); color: #4ade80;
 }
-.progress-step.completed .step-number::after { content: '✓'; font-size: 1rem; }
-.step-label { font-size: 0.85rem; color: #718096; font-weight: 600; }
-.progress-step.active .step-label { color: #667eea; }
+.of__step-label { font-size: 0.7rem; color: rgba(240,237,232,0.35); font-weight: 600; }
+.of__step--active .of__step-label { color: #d4af37; }
 
-.form-container {
-  background: white; border-radius: 16px; padding: 40px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-.form-step { animation: fadeIn 0.3s; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Form */
+.of__form {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; padding: 24px 20px;
 }
 
-.step-title { font-size: 1.75rem; font-weight: 700; color: #2d3748; margin: 0 0 8px; }
-.step-description { color: #718096; margin: 0 0 28px; font-size: 1.05rem; }
+.of__step-body { animation: step-in 0.25s ease; }
+@keyframes step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-.qa-hint {
-  background: #f0f4ff;
-  border-left: 3px solid #667eea;
-  border-radius: 0 8px 8px 0;
-  padding: 12px 16px;
-  font-size: 0.9rem;
-  color: #4a5568;
-  margin-bottom: 28px;
-  line-height: 1.5;
-}
+.of__step-title { font-size: 1.2rem; font-weight: 900; color: #f0ede8; margin: 0 0 4px; letter-spacing: -0.01em; }
+.of__step-sub { font-size: 0.85rem; color: rgba(240,237,232,0.45); margin: 0 0 24px; }
 
-.form-group { margin-bottom: 24px; position: relative; }
-.form-label { display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 0.95rem; }
+/* Fields */
+.of__field { margin-bottom: 20px; }
+.of__label { display: block; font-size: 0.85rem; font-weight: 700; color: rgba(240,237,232,0.75); margin-bottom: 8px; }
 
-.form-input, .form-textarea {
-  width: 100%; padding: 12px 16px;
-  border: 2px solid #e2e8f0; border-radius: 8px;
-  font-size: 1rem; transition: border-color 0.3s; font-family: inherit;
+.of__input, .of__textarea {
+  width: 100%; padding: 12px 14px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px; font-size: 0.95rem; color: #f0ede8;
+  transition: border-color 0.2s; font-family: inherit;
   box-sizing: border-box;
 }
-.form-input:focus, .form-textarea:focus { outline: none; border-color: #667eea; }
-.form-textarea { resize: vertical; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.of__input::placeholder, .of__textarea::placeholder { color: rgba(240,237,232,0.25); }
+.of__input:focus, .of__textarea:focus { outline: none; border-color: #d4af37; }
+.of__textarea { resize: vertical; min-height: 80px; }
+.of__hint { font-size: 0.75rem; color: rgba(240,237,232,0.3); margin: 5px 0 0; }
 
-.checkbox-label {
-  display: flex; align-items: flex-start; gap: 12px;
-  cursor: pointer; font-size: 0.95rem; color: #4a5568;
-  line-height: 1.5; user-select: none;
+/* Pills */
+.of__pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.of__pill {
+  padding: 7px 14px; border-radius: 100px; font-size: 0.82rem; font-weight: 600;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(240,237,232,0.6); cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
-.checkbox-box {
-  width: 20px; height: 20px; min-width: 20px;
-  border: 2px solid #cbd5e0; border-radius: 5px;
+.of__pill:hover { border-color: rgba(255,255,255,0.2); color: #f0ede8; }
+.of__pill--active {
+  background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.5); color: #d4af37;
+}
+
+/* Agree */
+.of__agree {
+  display: flex; align-items: flex-start; gap: 10px;
+  cursor: pointer; font-size: 0.82rem; color: rgba(240,237,232,0.55); line-height: 1.5;
+  user-select: none;
+}
+.of__checkbox {
+  width: 20px; height: 20px; min-width: 20px; border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06);
   display: flex; align-items: center; justify-content: center;
-  margin-top: 1px; transition: all 0.2s; background: white;
+  font-size: 0.75rem; color: #4ade80; transition: all 0.2s; margin-top: 1px;
 }
-.checkbox-box.checked {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
-}
-.checkbox-box.error {
-  border-color: #e53e3e;
-  background: #fff5f5;
-  animation: shake 0.3s ease;
-}
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
-.terms-error {
-  color: #e53e3e;
-  font-size: 0.85rem;
-  margin: 6px 0 0 32px;
-}
-.checkbox-tick { color: white; font-size: 0.75rem; font-weight: 700; line-height: 1; }
-.checkbox-label:hover .checkbox-box:not(.checked) { border-color: #667eea; }
-.checkbox-label a { color: #667eea; text-decoration: none; }
-.checkbox-label a:hover { text-decoration: underline; }
+.of__checkbox--checked { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); }
+.of__checkbox--error { border-color: #ef4444; background: rgba(239,68,68,0.1); animation: shake 0.3s ease; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.of__agree--error { color: rgba(240,237,232,0.8); }
+.of__agree--error::after { content: ' — обязательно'; color: #ef4444; font-size: 0.75rem; }
+.of__agree a { color: #d4af37; text-decoration: none; }
 
-.form-navigation {
-  display: flex; gap: 16px; justify-content: space-between;
-  margin-top: 32px; padding-top: 32px; border-top: 2px solid #e2e8f0;
+/* Navigation */
+.of__nav {
+  display: flex; gap: 10px; justify-content: space-between;
+  margin-top: 24px; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
-.btn-nav, .btn-submit {
-  padding: 14px 32px; border-radius: 50px;
-  font-weight: 600; font-size: 1rem;
-  cursor: pointer; transition: all 0.3s; border: none;
-  letter-spacing: 0.02em;
+.of__btn {
+  padding: 13px 24px; border-radius: 100px; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; border: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.btn-prev { background: white; color: #667eea; border: 2px solid #667eea; }
-.btn-prev:hover { background: #f7fafc; }
-.btn-next { background: #667eea; color: white; margin-left: auto; }
-.btn-next:hover { background: #764ba2; transform: translateY(-2px); }
-.btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white; box-shadow: 0 6px 20px rgba(102,126,234,0.4); margin-left: auto;
+.of__btn--back {
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(240,237,232,0.5);
 }
-.btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,0.5); }
-.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.of__btn--back:hover { color: #f0ede8; border-color: rgba(255,255,255,0.25); }
+.of__btn--next {
+  background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.4);
+  color: #d4af37; margin-left: auto;
+}
+.of__btn--next:hover { background: rgba(212,175,55,0.25); }
+.of__btn--submit {
+  background: #d4af37; color: #0a0a0f; margin-left: auto;
+  box-shadow: 0 4px 20px rgba(212,175,55,0.3);
+}
+.of__btn--submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.of__btn--submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-@media (max-width: 768px) {
-  .form-container { padding: 24px 20px; }
-  .form-row { grid-template-columns: 1fr; }
-  .step-label { display: none; }
-  .form-navigation { flex-direction: column; }
-  .btn-next, .btn-submit { margin-left: 0; }
-}
+/* Transition */
+.step-fade-enter-active, .step-fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.step-fade-enter-from { opacity: 0; transform: translateX(20px); }
+.step-fade-leave-to { opacity: 0; transform: translateX(-20px); }
 </style>

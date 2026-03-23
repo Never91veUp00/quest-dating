@@ -25,6 +25,7 @@
         @open-order="openOrder"
         @create-quest="createQuestFromOrder"
         @row-action="handleOrderRowAction"
+        @deleted="id => orders.splice(orders.findIndex(o => o.id === id), 1)"
       />
 
       <AdminQuestsTab
@@ -97,7 +98,9 @@ if (!auth.isAuthenticated) {
 }
 
 // ─── Tab ──────────────────────────────────────────────────────
-const activeTab = ref('dashboard')
+const route2 = useRoute()
+const VALID_TABS = ['dashboard', 'orders', 'quests', 'templates']
+const activeTab = ref(VALID_TABS.includes(route2.query.tab) ? route2.query.tab : 'dashboard')
 
 // ─── State ────────────────────────────────────────────────────
 const statsLoading     = ref(false)
@@ -175,6 +178,8 @@ watch(activeTab, (tab) => {
   if (tab === 'orders')    loadOrders()
   if (tab === 'quests')    loadQuests()
   if (tab === 'templates') loadTemplates()
+  // Сохраняем вкладку в URL
+  router.replace({ query: { ...route2.query, tab: tab === 'dashboard' ? undefined : tab } })
 })
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -328,7 +333,7 @@ const saveTemplate = async (form) => {
       ...form,
       features:   form.featuresText.split('\n').map(s => s.trim()).filter(Boolean),
       base_price: form.is_free ? 0 : form.base_price,
-      gallery:    form.gallery.map(item => typeof item === 'string' ? item : item.url).filter(Boolean),
+      gallery:    form.gallery.map(item => item.url),
       tag_ids:    form.tag_ids || [],
     }
     delete payload.featuresText
@@ -336,12 +341,12 @@ const saveTemplate = async (form) => {
       await put(`/admin/templates/${editingTemplate.value.id}`, payload)
       templates.value = []
       await loadTemplates()
-      showToast('Шаблон обновлён')
+      showToast('Сценарий обновлён')
     } else {
       await post('/admin/templates/create', payload)
       templates.value = []
       await loadTemplates()
-      showToast('Шаблон создан')
+      showToast('Сценарий создан')
     }
     closeTemplateForm()
   } catch (e) {
@@ -358,7 +363,7 @@ const quickStatusChange = async (t, status) => {
     t.status = res?.data?.status || status
     const found = templates.value.find(x => x.id === t.id)
     if (found) found.status = t.status
-    showToast(status === 'published' ? 'Шаблон опубликован' : 'Шаблон снят с публикации')
+    showToast(status === 'published' ? 'Сценарий опубликован' : 'Сценарий снят с публикации')
   } catch (e) {
     showToast('Ошибка смены статуса: ' + (e?.message || 'неизвестная ошибка'))
   }
@@ -367,13 +372,13 @@ const quickStatusChange = async (t, status) => {
 const deleteTemplate = (t) => {
   confirmDialog.value = {
     show: true,
-    title: 'Удалить шаблон?',
+    title: 'Удалить сценарий?',
     message: `«${t.title}» будет удалён без возможности восстановления.`,
     onConfirm: async () => {
       try {
         await del(`/admin/templates/${t.id}`)
         templates.value = templates.value.filter(x => x.id !== t.id)
-        showToast('Шаблон удалён')
+        showToast('Сценарий удалён')
       } catch {
         showToast('Ошибка удаления')
       }
@@ -385,6 +390,9 @@ const deleteTemplate = (t) => {
 onMounted(() => {
   loadDashboard()
   loadOrders()
+  // Загружаем данные активной вкладки если она восстановлена из URL
+  if (activeTab.value === 'quests')    loadQuests()
+  if (activeTab.value === 'templates') loadTemplates()
 })
 </script>
 

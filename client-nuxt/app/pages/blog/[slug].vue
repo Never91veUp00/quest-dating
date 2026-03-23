@@ -1,63 +1,100 @@
 <template>
-  <div class="article-page">
-    <div v-if="!post" class="error-container">
-      <div class="container">
-        <h1>Статья не найдена</h1>
-        <NuxtLink to="/blog" class="btn-back">← Вернуться в блог</NuxtLink>
-      </div>
+  <div class="art">
+
+    <div v-if="!post" class="art__error">
+      <h1>Статья не найдена</h1>
+      <NuxtLink to="/blog" class="art__back">← В блог</NuxtLink>
     </div>
 
     <template v-else>
-      <div class="breadcrumbs-bar">
-        <div class="container">
-          <Breadcrumbs :crumbs="breadcrumbs" />
-        </div>
-      </div>
 
-      <section class="article-hero" :style="{ backgroundImage: `url(${post.image})` }">
-        <div class="article-hero__overlay" />
-        <div class="container">
-          <div class="article-hero__content">
-            <span class="article-category">{{ post.category }}</span>
-            <h1 class="article-title">{{ post.title }}</h1>
-            <div class="article-meta">
-              <img :src="withFallback(AUTHOR_AVATAR)" alt="Лиза Петри" class="author-avatar" @error="onImgError" />
-              <span class="author-name">Лиза Петри</span>
-              <span class="sep">·</span>
-              <time :datetime="post.date">{{ formatDate(post.date) }}</time>
-              <span class="sep">·</span>
-              <span>{{ post.readingTime }} мин чтения</span>
-            </div>
+      <!-- Hero с фото -->
+      <section class="art__hero" :style="post.image ? `--bg: url(${post.image})` : ''">
+        <div class="art__hero-bg"></div>
+        <div class="art__container">
+          <NuxtLink to="/blog" class="art__back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Блог
+          </NuxtLink>
+          <span class="art__cat">{{ post.category }}</span>
+          <h1 class="art__title">{{ post.title }}</h1>
+          <div class="art__meta">
+            <img :src="`/uploads/avatars/liza.jpg`" alt="Лиза Петри" class="art__author-img" @error="e => e.target.style.display='none'" />
+            <span class="art__author">Лиза Петри</span>
+            <span class="art__sep">·</span>
+            <time>{{ formatDate(post.date) }}</time>
+            <span class="art__sep">·</span>
+            <span>{{ post.readingTime }} мин чтения</span>
           </div>
         </div>
       </section>
 
-      <div class="article-body">
-        <div class="container">
-          <div class="article-layout">
-            <article class="article-content" v-html="post.content" />
-            <aside class="article-sidebar">
-              <div class="sidebar-cta">
-                <p class="sidebar-cta__text">Хотите свой романтический квест?</p>
-                <NuxtLink to="/catalog" class="btn-cta">Смотреть квесты</NuxtLink>
-              </div>
+      <!-- Тело статьи -->
+      <div class="art__container art__body">
+        <div class="art__layout">
 
-              <div class="sidebar-posts">
-                <h3 class="sidebar-title">Другие статьи</h3>
-                <NuxtLink
-                  v-for="other in otherPosts"
-                  :key="other.slug"
-                  :to="`/blog/${other.slug}`"
-                  class="sidebar-post"
-                >
-                  <img :src="other.image" :alt="other.title" class="sidebar-post__img" />
-                  <span class="sidebar-post__title">{{ other.title }}</span>
-                </NuxtLink>
+          <!-- Контент -->
+          <article class="art__content" v-html="post.content"></article>
+
+          <!-- Inline CTA (вставляется через CSS после половины контента — sticky) -->
+          <aside class="art__aside">
+            <div class="art__cta-card">
+              <div class="art__cta-icon">💍</div>
+              <h3 class="art__cta-title">Хотите такой квест?</h3>
+              <p class="art__cta-text">Лиза создаст персональный сценарий для вашей пары за 24 часа — от 499 ₽</p>
+              <NuxtLink to="/catalog" class="art__cta-btn">Смотреть квесты</NuxtLink>
+              <a href="https://t.me/vinatian00" target="_blank" rel="noopener" class="art__cta-tg">
+                Написать Лизе →
+              </a>
+            </div>
+
+            <!-- Другие статьи -->
+            <div class="art__other">
+              <h4 class="art__other-title">Читать ещё</h4>
+              <NuxtLink
+                v-for="other in otherPosts"
+                :key="other.slug"
+                :to="`/blog/${other.slug}`"
+                class="art__other-item"
+              >
+                <div class="art__other-img">
+                  <img :src="other.image" :alt="other.title" loading="lazy" />
+                </div>
+                <span class="art__other-text">{{ other.title }}</span>
+              </NuxtLink>
+            </div>
+          </aside>
+
+        </div>
+
+        <!-- Другие статьи — мобильные -->
+        <div class="art__mobile-other">
+          <h4 class="art__mobile-other-title">Читать ещё</h4>
+          <div class="art__mobile-other-list">
+            <NuxtLink
+              v-for="other in otherPosts"
+              :key="other.slug"
+              :to="`/blog/${other.slug}`"
+              class="art__other-item"
+            >
+              <div class="art__other-img">
+                <img :src="other.image" :alt="other.title" loading="lazy" />
               </div>
-            </aside>
+              <span class="art__other-text">{{ other.title }}</span>
+            </NuxtLink>
           </div>
         </div>
+
+        <!-- Mobile CTA — после статьи -->
+        <div class="art__mobile-cta">
+          <div class="art__mobile-cta-inner">
+            <p>Вдохновились? Лиза создаст квест для вас за 24 часа</p>
+            <NuxtLink to="/catalog" class="art__cta-btn">Выбрать квест</NuxtLink>
+          </div>
+        </div>
+
       </div>
+
     </template>
   </div>
 </template>
@@ -65,8 +102,7 @@
 <script setup>
 import { BLOG_POSTS } from '~/data/blogPosts'
 
-const { onImgError, withFallback } = useImageFallback()
-const AUTHOR_AVATAR = '/images/avatars/liza.jpg'
+const { onImgError } = useImageFallback()
 const route = useRoute()
 const post = BLOG_POSTS.find(p => p.slug === route.params.slug) ?? null
 
@@ -75,12 +111,6 @@ if (!post) {
 }
 
 const otherPosts = BLOG_POSTS.filter(p => p.slug !== post.slug).slice(0, 3)
-
-const breadcrumbs = [
-  { label: 'Главная', to: '/' },
-  { label: 'Блог', to: '/blog' },
-  { label: post.title },
-]
 
 const formatDate = (iso) => new Date(iso).toLocaleDateString('ru-RU', {
   day: 'numeric', month: 'long', year: 'numeric'
@@ -99,265 +129,158 @@ useHead({
   script: [{
     type: 'application/ld+json',
     innerHTML: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline:      post.title,
-      description:   post.excerpt,
-      image:         `https://questdating.ru${post.image}`,
+      '@context': 'https://schema.org', '@type': 'Article',
+      headline: post.title, description: post.excerpt,
+      image: `https://questdating.ru${post.image}`,
       datePublished: post.date,
-      author: {
-        '@type': 'Person',
-        name: 'Лиза Петри',
-        url: 'https://questdating.ru/about',
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: 'Quest Dating',
-        url: 'https://questdating.ru',
-      },
-    })
-  }, {
-    type: 'application/ld+json',
-    innerHTML: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Главная',       item: 'https://questdating.ru/' },
-        { '@type': 'ListItem', position: 2, name: 'Блог',          item: 'https://questdating.ru/blog' },
-        { '@type': 'ListItem', position: 3, name: post.title,      item: `https://questdating.ru/blog/${post.slug}` },
-      ]
+      author: { '@type': 'Person', name: 'Лиза Петри', url: 'https://questdating.ru/about' },
+      publisher: { '@type': 'Organization', name: 'Quest Dating', url: 'https://questdating.ru' },
     })
   }]
 })
 </script>
 
 <style scoped>
-.breadcrumbs-bar {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
+.art { background: #0a0a0f; color: #f0ede8; min-height: 100vh; }
+.art__container { max-width: 600px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 1024px) { .art__container { max-width: 1100px; padding: 0 24px; } }
+
+/* Error */
+.art__error { text-align: center; padding: 100px 20px; }
+.art__back { color: #d4af37; text-decoration: none; font-weight: 700; }
+
+/* Hero */
+.art__hero {
+  position: relative; min-height: 50svh;
+  display: flex; align-items: flex-end;
+  padding-bottom: 32px;
+  background: var(--bg) center/cover no-repeat, #111118;
+  padding-top: calc(70px + env(safe-area-inset-top));
+}
+.art__hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.75) 100%);
+}
+.art__container { position: relative; z-index: 2; }
+
+.art__back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.6);
+  text-decoration: none; margin-bottom: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+.art__back-btn:hover { color: #fff; }
+
+.art__cat {
+  display: block; font-size: 0.75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: #d4af37; margin-bottom: 10px;
+}
+.art__title {
+  font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 900;
+  color: #fff; margin: 0 0 16px; line-height: 1.15; letter-spacing: -0.02em;
+}
+.art__meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.art__author-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(212,175,55,0.4); }
+.art__author { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+.art__sep { color: rgba(255,255,255,0.3); }
+.art__meta time, .art__meta span { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+/* Body */
+.art__body { padding: 32px 16px 60px; }
+@media (min-width: 1024px) { .art__body { padding: 40px 24px 80px; } }
+
+.art__layout {
+  display: grid; grid-template-columns: 1fr;
+  gap: 32px;
+}
+@media (min-width: 1024px) {
+  .art__layout { grid-template-columns: 1fr 300px; gap: 48px; }
 }
 
-.article-hero {
-  position: relative;
-  padding: 60px 0 48px;
-  background-size: cover;
-  background-position: center;
-  color: white;
-  min-height: 320px;
-  display: flex;
-  align-items: flex-end;
+/* Article content */
+.art__content {
+  font-size: 1rem; line-height: 1.8; color: rgba(240,237,232,0.8);
+  max-width: 680px;
 }
-
-.article-hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%);
+.art__content :deep(h2) {
+  font-size: 1.3rem; font-weight: 900; color: #f0ede8;
+  margin: 32px 0 12px; letter-spacing: -0.01em;
 }
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  position: relative;
-  z-index: 1;
-  width: 100%;
+.art__content :deep(h3) {
+  font-size: 1.05rem; font-weight: 800; color: #f0ede8;
+  margin: 24px 0 8px;
 }
+.art__content :deep(p) { margin: 0 0 16px; }
+.art__content :deep(strong) { color: #f0ede8; font-weight: 700; }
+.art__content :deep(blockquote) {
+  border-left: 3px solid #d4af37; padding: 12px 16px;
+  background: rgba(212,175,55,0.07); border-radius: 0 10px 10px 0;
+  color: rgba(240,237,232,0.7); font-style: italic; margin: 20px 0;
+}
+.art__content :deep(ul), .art__content :deep(ol) {
+  padding-left: 20px; margin: 0 0 16px;
+}
+.art__content :deep(li) { margin-bottom: 6px; }
+.art__content :deep(a) { color: #d4af37; text-decoration: underline; text-decoration-color: rgba(212,175,55,0.4); }
 
-.article-hero__content { margin-top: 0; }
+/* Aside */
+.art__aside { display: none; }
+@media (min-width: 1024px) { .art__aside { display: block; } }
 
-.article-category {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 12px;
+.art__cta-card {
+  background: rgba(212,175,55,0.07); border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 20px; padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  position: sticky; top: 90px;
+}
+.art__cta-icon { font-size: 2rem; }
+.art__cta-title { font-size: 1rem; font-weight: 900; color: #f0ede8; margin: 0; }
+.art__cta-text { font-size: 0.82rem; color: rgba(240,237,232,0.55); margin: 0; line-height: 1.5; }
+.art__cta-btn {
+  display: block; text-align: center; background: #d4af37; color: #0a0a0f;
+  padding: 12px; border-radius: 100px; font-weight: 800; font-size: 0.9rem;
+  text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+.art__cta-tg {
+  display: block; text-align: center; font-size: 0.82rem; font-weight: 700;
+  color: rgba(240,237,232,0.5); text-decoration: none;
+}
+.art__cta-tg:hover { color: #f0ede8; }
+
+.art__other { margin-top: 24px; }
+.art__other-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(240,237,232,0.3); margin: 0 0 12px; }
+.art__other-item {
+  display: flex; gap: 10px; align-items: center;
+  text-decoration: none; padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  -webkit-tap-highlight-color: transparent;
+}
+.art__other-item:last-child { border-bottom: none; }
+.art__other-img { width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #111118; }
+.art__other-img img { width: 100%; height: 100%; object-fit: cover; }
+.art__other-text { font-size: 0.8rem; font-weight: 600; color: rgba(240,237,232,0.6); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.art__other-item:hover .art__other-text { color: #f0ede8; }
+
+/* Mobile CTA */
+.art__mobile-other {
+  margin-top: 32px; padding: 20px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
   border-radius: 20px;
-  text-transform: uppercase;
-  display: inline-block;
-  margin-bottom: 12px;
 }
-
-.article-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 600;
-  margin: 0 0 20px;
-  line-height: 1.2;
-  max-width: 800px;
-  letter-spacing: -0.01em;
+@media (min-width: 1024px) { .art__mobile-other { display: none; } }
+.art__mobile-other-title {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: rgba(240,237,232,0.3); margin: 0 0 14px;
 }
+.art__mobile-other-list { display: flex; flex-direction: column; }
 
-.article-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
-  opacity: 0.9;
+.art__mobile-cta {
+  margin-top: 32px;
+  background: rgba(212,175,55,0.07); border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 20px; padding: 20px; text-align: center;
 }
-
-.author-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255,255,255,0.6);
-}
-
-.author-name { font-weight: 600; }
-.sep { opacity: 0.5; }
-
-.article-body {
-  padding: 48px 0 80px;
-  background: #f7fafc;
-}
-
-.article-layout {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 48px;
-  align-items: start;
-}
-
-.article-content {
-  background: white;
-  border-radius: 16px;
-  padding: 48px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  line-height: 1.8;
-  font-size: 1.05rem;
-  color: #2d3748;
-}
-
-.article-content :deep(h2) {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin: 40px 0 16px;
-  color: #1a202c;
-  letter-spacing: -0.01em;
-}
-
-.article-content :deep(h3) {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin: 28px 0 12px;
-  color: #2d3748;
-  letter-spacing: -0.01em;
-}
-
-.article-content :deep(p) { margin: 0 0 20px; }
-
-.article-content :deep(ul), .article-content :deep(ol) {
-  margin: 0 0 20px;
-  padding-left: 24px;
-}
-
-.article-content :deep(li) { margin-bottom: 8px; }
-
-.article-content :deep(strong) { color: #1a202c; }
-
-.article-content :deep(blockquote) {
-  border-left: 4px solid #667eea;
-  background: #f0f4ff;
-  margin: 24px 0;
-  padding: 16px 24px;
-  border-radius: 0 8px 8px 0;
-  font-style: italic;
-  color: #4a5568;
-}
-
-.article-sidebar { position: sticky; top: 100px; }
-
-.sidebar-cta {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  padding: 24px;
-  color: white;
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.sidebar-cta__text {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 16px;
-}
-
-.btn-cta {
-  display: inline-block;
-  background: white;
-  color: #764ba2;
-  font-weight: 600;
-  padding: 10px 24px;
-  border-radius: 50px;
-  text-decoration: none;
-  transition: transform 0.2s;
-  letter-spacing: 0.02em;
-}
-
-.btn-cta:hover { transform: translateY(-2px); }
-
-.sidebar-posts {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-}
-
-.sidebar-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0 0 16px;
-  letter-spacing: -0.01em;
-}
-
-.sidebar-post {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-  padding: 8px 0;
-  border-bottom: 1px solid #e2e8f0;
-  transition: color 0.2s;
-}
-
-.sidebar-post:last-child { border-bottom: none; }
-.sidebar-post:hover { color: #667eea; }
-
-.sidebar-post__img {
-  width: 56px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.sidebar-post__title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.error-container { padding: 120px 0; text-align: center; }
-.btn-back { color: #667eea; font-weight: 600; }
-
-@media (max-width: 1024px) {
-  .article-layout { grid-template-columns: 1fr; }
-  .article-sidebar { position: static; }
-}
-
-@media (max-width: 640px) {
-  .article-hero { padding: 32px 0 32px; min-height: 240px; }
-  .article-title { font-size: 1.4rem; line-height: 1.25; }
-  .article-meta { flex-wrap: wrap; gap: 6px; font-size: 0.82rem; }
-  .article-content { padding: 20px 16px; }
-}
+@media (min-width: 1024px) { .art__mobile-cta { display: none; } }
+.art__mobile-cta-inner { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.art__mobile-cta p { font-size: 0.9rem; color: rgba(240,237,232,0.65); margin: 0; line-height: 1.5; }
 </style>

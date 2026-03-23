@@ -285,6 +285,35 @@ export const updateOrderStatus = async (req, res, next) => {
 }
 
 // Получить статистику заказов
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    // Проверяем что заказ существует и имеет статус cancelled
+    const check = await pool.query(
+      'SELECT id, status FROM orders WHERE id = $1',
+      [id]
+    )
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Заказ не найден' })
+    }
+
+    if (check.rows[0].status !== 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Удалить можно только отменённые заказы'
+      })
+    }
+
+    await pool.query('DELETE FROM orders WHERE id = $1', [id])
+
+    res.json({ success: true, message: 'Заказ удалён' })
+  } catch (err) {
+    next(err)
+  }
+}
+
 export const getOrdersStats = async (req, res, next) => {
   try {
     const result = await pool.query(`

@@ -1,209 +1,188 @@
 <template>
-  <div class="template-structure">
-    <h3 class="section-title">Как устроен квест</h3>
+  <div class="ts">
+    <h2 class="ts__title">Как устроен квест</h2>
 
-    <div class="structure-visual">
+    <!-- Таймлайн -->
+    <div class="ts__timeline">
       <div
-        v-for="(block, index) in displayBlocks"
-        :key="index"
-        class="phase-card"
+        v-for="(block, i) in displayBlocks"
+        :key="i"
+        class="ts__block"
+        :class="{ 'ts__block--last': i === displayBlocks.length - 1 }"
       >
-        <div class="phase-header">
-          <div class="phase-number">{{ index + 1 }}</div>
-          <h4 class="phase-title">Блок {{ index + 1 }}</h4>
+        <!-- Линия + номер -->
+        <div class="ts__block-aside">
+          <div class="ts__block-num">{{ i + 1 }}</div>
+          <div v-if="i < displayBlocks.length - 1" class="ts__block-line"></div>
         </div>
 
-        <p v-if="block.description" class="phase-description">{{ block.description }}</p>
+        <!-- Контент -->
+        <div class="ts__block-body">
+          <h3 class="ts__block-title">{{ block.title || `Блок ${i + 1}` }}</h3>
+          <p v-if="block.description" class="ts__block-desc">{{ block.description }}</p>
 
-        <div v-if="block.tasks && block.tasks.length" class="phase-items">
-          <div
-            v-for="(task, ti) in block.tasks"
-            :key="ti"
-            class="phase-item"
-          >
-            <span class="item-icon">{{ taskIcon(task.type) }}</span>
-            <span class="item-text">{{ taskLabel(task.type) }}</span>
+          <!-- Задания -->
+          <div v-if="block.tasks?.length" class="ts__tasks">
+            <div
+              v-for="(task, ti) in block.tasks"
+              :key="ti"
+              class="ts__task"
+            >
+              <span class="ts__task-icon">{{ taskIcon(task) }}</span>
+              <span class="ts__task-text">{{ task.title || taskLabel(task.type) }}</span>
+            </div>
           </div>
         </div>
-
-        <div v-if="index < displayBlocks.length - 1" class="phase-arrow">↓</div>
       </div>
     </div>
 
-    <!-- Характеристики из реальных данных шаблона -->
-    <div class="quest-specs">
-      <div class="spec-item">
-        <div class="spec-icon">⏱️</div>
-        <div class="spec-label">Длительность</div>
-        <div class="spec-value">{{ formatDuration(template.duration_minutes) }}</div>
+    <!-- Итого -->
+    <div class="ts__summary">
+      <div class="ts__summary-item">
+        <span class="ts__summary-num">{{ displayBlocks.length }}</span>
+        <span class="ts__summary-lbl">блоков</span>
       </div>
-      <div class="spec-item">
-        <div class="spec-icon">📱</div>
-        <div class="spec-label">Формат</div>
-        <div class="spec-value">Веб-квест</div>
+      <div class="ts__summary-div"></div>
+      <div class="ts__summary-item">
+        <span class="ts__summary-num">{{ totalTasks }}</span>
+        <span class="ts__summary-lbl">заданий</span>
       </div>
-      <div class="spec-item">
-        <div class="spec-icon">🎯</div>
-        <div class="spec-label">Сложность</div>
-        <div class="spec-value">
-          <DifficultyBadge :difficulty="template.difficulty" />
-        </div>
-      </div>
-      <div class="spec-item">
-        <div class="spec-icon">📍</div>
-        <div class="spec-label">Локация</div>
-        <div class="spec-value">{{ locationLabel(template.location_type) }}</div>
+      <div class="ts__summary-div"></div>
+      <div class="ts__summary-item">
+        <span class="ts__summary-num">{{ formatDuration(template.duration_minutes) }}</span>
+        <span class="ts__summary-lbl">времени</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   template: { type: Object, required: true }
 })
 
+
 const TASK_ICONS = {
-  simple:        '✅',
-  riddle:        '🧩',
-  code_physical: '🔑',
-  location:      '📍',
-  selfie:        '🤳',
-  photo:         '📷',
-  text_answer:   '✍️',
-  media:         '🎬',
-  qr:            '📲',
-  mini_game:     '🎮',
+  simple:      '✅',
+  riddle:      '🧩',
+  text_answer: '✍️',
+  mini_game:   '🎮',
+  photo:       '📷',
+  selfie:      '🤳',
+  location:    '📍',
+  qr:          '📲',
+  media:       '🎬',
 }
 const TASK_LABELS = {
-  simple:        'Задание',
-  riddle:        'Загадка',
-  code_physical: 'Физический код',
-  location:      'Локация',
-  selfie:        'Селфи',
-  photo:         'Фото-задание',
-  text_answer:   'Текстовый ответ',
-  media:         'Медиа-контент',
-  qr:            'QR-код',
-  mini_game:     'Мини-игра',
+  simple:      'Задание',
+  riddle:      'Загадка',
+  text_answer: 'Текстовый ответ',
+  mini_game:   'Мини-игра',
+  photo:       'Фото-задание',
+  selfie:      'Селфи',
+  location:    'Локация',
+  qr:          'QR-код',
+  media:       'Медиа',
 }
 
-const taskIcon  = (type) => TASK_ICONS[type]  || '🎯'
+const taskIcon  = (task) => {
+  if (task.type === 'mini_game') return task.game_type === 'quiz' ? '🧠' : task.game_type === 'pairs' ? '🔗' : '🎮'
+  return TASK_ICONS[task.type] || '🎯'
+}
 const taskLabel = (type) => TASK_LABELS[type] || 'Задание'
-
-// Дефолтные блоки — если демо-квест не выбран
-const DEFAULT_BLOCKS = [
-  {
-    title: 'Начало приключения',
-    description: 'Вступительная история погружает вас в атмосферу квеста',
-    tasks: [
-      { type: 'simple',  title: 'Сценарий и легенда' },
-      { type: 'location', title: 'Постановка задачи' },
-    ]
-  },
-  {
-    title: 'Прохождение заданий',
-    description: 'Выполняйте задания, разгадывайте загадки и двигайтесь по маршруту',
-    tasks: [
-      { type: 'riddle',  title: 'Загадки и головоломки' },
-      { type: 'photo',   title: 'Фото-задания' },
-      { type: 'selfie',  title: 'Совместные селфи' },
-      { type: 'qr',      title: 'QR-охота' },
-    ]
-  },
-  {
-    title: 'Финал',
-    description: 'Завершающий этап с особенным сюрпризом для вашей пары',
-    tasks: [
-      { type: 'mini_game', title: 'Финальное испытание' },
-      { type: 'media',     title: 'Видео-сюрприз' },
-    ]
-  }
-]
 
 const displayBlocks = computed(() => {
   try {
-    const raw = props.template?.demo_blocks
-    if (!raw) return DEFAULT_BLOCKS
-    const blocks = typeof raw === 'string' ? JSON.parse(raw) : raw
-    if (Array.isArray(blocks) && blocks.length) return blocks
+    const raw = props.template?.structure
+    if (!raw) return []
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+    // Массив блоков напрямую
+    if (Array.isArray(parsed) && parsed.length) return parsed
+    // Объект с полем blocks
+    if (parsed.blocks && Array.isArray(parsed.blocks)) return parsed.blocks
   } catch {}
-  return DEFAULT_BLOCKS
+  return []
 })
 
-const formatDuration = (minutes) => {
-  if (!minutes) return 'Не указано'
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h > 0) return m > 0 ? `${h}ч ${m}м` : `${h}ч`
+const totalTasks = computed(() =>
+  displayBlocks.value.reduce((acc, b) => acc + (b.tasks?.length || 0), 0)
+)
+
+function formatDuration(minutes) {
+  if (!minutes) return '—'
+  const h = Math.floor(minutes / 60), m = minutes % 60
+  if (h > 0 && m > 0) return `${h}ч ${m}м`
+  if (h > 0) return `${h}ч`
   return `${m}м`
 }
-
-const locationLabel = (type) => ({
-  city:      'По городу',
-  park:      'Парк / природа',
-  indoor:    'В помещении',
-  universal: 'Универсальный'
-}[type] || type || '—')
 </script>
 
 <style scoped>
-.template-structure {
-  background: white; border-radius: 16px;
-  padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-.section-title {
-  font-size: 1.5rem; font-weight: 700; color: #2d3748;
-  margin: 0 0 32px 0; text-align: center;
-}
-.structure-visual { display: flex; flex-direction: column; gap: 0; margin-bottom: 40px; }
-.phase-card {
-  background: linear-gradient(to bottom, #f7fafc 0%, white 100%);
-  border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px; position: relative;
-}
-.phase-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
-.phase-number {
-  width: 40px; height: 40px; flex-shrink: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 1.2rem;
-}
-.phase-title { font-size: 1.25rem; font-weight: 700; color: #2d3748; margin: 0; }
-.phase-description { color: #718096; line-height: 1.6; margin: 0 0 8px 0; padding-left: 56px; }
-.phase-items {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px; padding-left: 56px;
-}
-.phase-item {
-  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
-  background: white; border: 1px solid #e2e8f0; border-radius: 8px;
-  font-size: 0.9rem; color: #4a5568;
-}
-.item-icon { font-size: 1.1rem; }
-.phase-arrow {
-  text-align: center; font-size: 2rem; color: #667eea; margin: 16px 0;
-  animation: bounce 2s ease-in-out infinite;
-}
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(8px); }
-}
-.quest-specs {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px; padding: 24px; background: #f7fafc; border-radius: 12px;
-}
-.spec-item { text-align: center; }
-.spec-icon { font-size: 2rem; margin-bottom: 8px; }
-.spec-label { font-size: 0.85rem; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.spec-value { font-weight: 700; color: #2d3748; font-size: 1.1rem; display: flex; justify-content: center; }
+.ts { padding: 0; }
 
-@media (max-width: 768px) {
-  .template-structure { padding: 24px 20px; }
-  .phase-items { grid-template-columns: 1fr; padding-left: 0; }
-  .phase-description, .phase-location { padding-left: 0; }
-  .quest-specs { grid-template-columns: repeat(2, 1fr); }
+.ts__title {
+  font-size: 1.2rem; font-weight: 900; color: #f0ede8;
+  margin: 0 0 20px; letter-spacing: -0.01em;
 }
+
+/* Таймлайн */
+.ts__timeline { display: flex; flex-direction: column; gap: 0; }
+
+.ts__block {
+  display: flex; gap: 14px; padding-bottom: 20px;
+}
+.ts__block--last { padding-bottom: 0; }
+
+/* Левая часть — номер + линия */
+.ts__block-aside {
+  display: flex; flex-direction: column; align-items: center;
+  flex-shrink: 0; width: 32px;
+}
+.ts__block-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.4);
+  color: #d4af37; font-size: 0.8rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ts__block-line {
+  width: 1px; flex: 1; margin-top: 6px;
+  background: linear-gradient(to bottom, rgba(212,175,55,0.3), rgba(212,175,55,0.05));
+  min-height: 20px;
+}
+
+/* Правая часть — контент */
+.ts__block-body { flex: 1; padding-top: 6px; }
+.ts__block-title {
+  font-size: 0.95rem; font-weight: 800; color: #f0ede8;
+  margin: 0 0 4px; line-height: 1.2;
+}
+.ts__block-desc {
+  font-size: 0.82rem; color: rgba(240,237,232,0.5);
+  margin: 0 0 10px; line-height: 1.5;
+}
+
+/* Задания */
+.ts__tasks { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.ts__task {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 5px 9px;
+  font-size: 0.78rem; color: rgba(240,237,232,0.65);
+}
+.ts__task-icon { font-size: 12px; }
+
+/* Итого */
+.ts__summary {
+  display: flex; align-items: center;
+  background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.15);
+  border-radius: 14px; padding: 14px; margin-top: 20px; gap: 0;
+}
+.ts__summary-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.ts__summary-num { font-size: 1.2rem; font-weight: 900; color: #d4af37; }
+.ts__summary-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(240,237,232,0.35); }
+.ts__summary-div { width: 1px; height: 32px; background: rgba(212,175,55,0.15); }
 </style>

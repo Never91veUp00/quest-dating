@@ -1,134 +1,213 @@
 ﻿<template>
-  <div class="templates-page">
-    <div class="container">
-      <Breadcrumbs :crumbs="breadcrumbs" />
-    </div>
+  <div class="cat">
 
-    <section class="page-header">
-      <div class="container">
-        <h1 class="page-title">Свидания-квесты — сценарии для пар</h1>
-        <p class="page-description">
-          Выберите сценарий — Лиза Петри адаптирует его специально под вас
-        </p>
-        <div class="search-wrapper">
-          <SearchBar
-            v-model="searchQuery"
-            placeholder="Искать свидания-квесты..."
-            :suggestions="searchSuggestions"
-            @search="handleSearch"
-            @select-category="handleSelectCategory"
+    <!-- ── Шапка ── -->
+    <section class="cat__head">
+      <div class="cat__container">
+        <h1 class="cat__title">Свидания-квесты</h1>
+        <p class="cat__sub">Выберите сценарий — Лиза адаптирует под вас</p>
+      </div>
+    </section>
+
+    <div class="cat__container">
+
+      <!-- ── Поводы ── -->
+      <OccasionFilters :reset-key="occasionResetKey" @filter="handleOccasionFilter" />
+
+      <!-- ── Выбор Лизы ── -->
+      <LizaPick :template="lizaPickTemplate" />
+
+      <!-- ── Тулбар ── -->
+      <div class="cat__toolbar">
+        <div class="cat__count">
+          <span v-if="pending">Загружаем...</span>
+          <span v-else>
+            {{ allDates.length ? `${allDates.length} ${pluralQuests(allDates.length)}` : 'Нет квестов' }}
+          </span>
+
+        </div>
+        <div class="cat__toolbar-right">
+          <select v-model="sortBy" @change="handleSortChange" class="cat__sort">
+            <option value="newest">Новые</option>
+            <option value="rating">По рейтингу</option>
+            <option value="orders">Популярные</option>
+            <option value="price">По цене</option>
+          </select>
+          <button class="cat__filter-btn" @click="sheetOpen = true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/>
+            </svg>
+            Фильтры
+            <span v-if="activeFiltersCount" class="cat__filter-badge">{{ activeFiltersCount }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Активные фильтры ── -->
+      <div v-if="hasActiveFilters" class="cat__chips">
+        <div v-if="filters.difficulty" class="cat__chip">
+          {{ difficultyLabel(filters.difficulty) }}
+          <button @click="removeFilter('difficulty')">×</button>
+        </div>
+        <div v-if="filters.locationType" class="cat__chip">
+          {{ locationLabel(filters.locationType) }}
+          <button @click="removeFilter('locationType')">×</button>
+        </div>
+        <div v-if="filters.duration" class="cat__chip">
+          {{ durationLabel(filters.duration) }}
+          <button @click="removeFilter('duration')">×</button>
+        </div>
+        <div v-if="filters.category" class="cat__chip">
+          {{ getCategoryName(filters.category) }}
+          <button @click="removeFilter('category')">×</button>
+        </div>
+        <div v-for="tagId in filters.tags" :key="tagId" class="cat__chip">
+          {{ getTagName(tagId) }}
+          <button @click="removeSingleTag(tagId)">×</button>
+        </div>
+        <button class="cat__chip cat__chip--reset" @click="handleFiltersReset">
+          Сбросить все
+        </button>
+      </div>
+
+      <!-- ── Карточки ── -->
+      <div v-if="pending && visibleDates.length === 0" class="cat__loading">
+        <Loader text="Загружаем квесты..." />
+      </div>
+
+      <div v-else-if="filteredDates.length === 0" class="cat__empty">
+        <div class="cat__empty-icon">🔍</div>
+        <h3>Квесты не найдены</h3>
+        <p>Попробуйте изменить фильтры</p>
+        <button @click="handleFiltersReset" class="cat__empty-btn">Сбросить фильтры</button>
+      </div>
+
+      <div v-else>
+        <div class="cat__grid">
+          <TemplateCard
+            v-for="t in visibleDates"
+            :key="t.id"
+            :template="t"
+            @quickView="openQuickView(t)"
           />
         </div>
-      </div>
-    </section>
 
-    <section class="templates-content">
-      <div class="container">
-        <div class="content-layout">
-          <aside class="filters-sidebar" :class="{ 'filters-sidebar--open': filtersOpen }">
-            <TemplateFilters
-              v-model:filters="filters"
-              :categories="categories"
-              :tags="popularTags"@reset="handleFiltersReset"
-            />
-          </aside>
-
-          <button class="filters-toggle" @click="filtersOpen = !filtersOpen">
-            <span class="filters-toggle__icon">🎛</span>
-            <span>Фильтры</span>
-            <span v-if="activeFiltersCount" class="filters-toggle__badge">{{ activeFiltersCount }}</span>
-            <span class="filters-toggle__arrow" :class="{ rotated: filtersOpen }">▼</span>
+        <!-- Загрузить ещё -->
+        <div v-if="hasMore" class="cat__more">
+          <button class="cat__more-btn" @click="loadMore" :disabled="pending">
+            <span v-if="pending">Загружаем...</span>
+            <span v-else>Показать ещё {{ Math.min(pageSize, filteredDates.length - visibleCount) }} {{ pluralQuests(Math.min(pageSize, filteredDates.length - visibleCount)) }}</span>
           </button>
-
-          <main class="templates-main">
-            <!-- Тулбар: результат + сортировка -->
-            <div class="templates-toolbar">
-              <div class="results-count">
-                <span v-if="hasActiveFilters">
-                  Найдено: <strong>{{ allDates.length }}</strong>
-                  <span class="results-count__of"> из {{ totalCount }}</span>
-                </span>
-                <span v-else>Всего квестов: <strong>{{ totalCount }}</strong></span>
-              </div>
-              <div class="sorting">
-                <label for="sort">Сортировка:</label>
-                <select id="sort" v-model="sortBy" @change="handleSortChange" class="sort-select">
-                  <option value="newest">Новые</option>
-                  <option value="rating">По рейтингу</option>
-                  <option value="orders">По популярности</option>
-                  <option value="price">По цене</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Активные фильтры -->
-            <div v-if="hasActiveFilters" class="active-filters">
-              <div class="active-filters__chips">
-                <!-- Категория -->
-                <div v-if="filters.category" class="af-chip">
-                  <span class="af-chip__type">Категория:</span>
-                  <span class="af-chip__value">{{ getCategoryName(filters.category) }}</span>
-                  <button class="af-chip__remove" @click="removeFilter('category')">×</button>
-                </div>
-                <!-- Теги — каждый отдельным чипом -->
-                <div v-for="tagId in filters.tags" :key="'tag-' + tagId" class="af-chip">
-                  <span class="af-chip__type">Тег:</span>
-                  <span class="af-chip__value">{{ getTagName(tagId) }}</span>
-                  <button class="af-chip__remove" @click="removeSingleTag(tagId)">×</button>
-                </div>
-                <!-- Сложность -->
-                <div v-if="filters.difficulty" class="af-chip">
-                  <span class="af-chip__type">Сложность:</span>
-                  <span class="af-chip__value">{{ difficultyLabel(filters.difficulty) }}</span>
-                  <button class="af-chip__remove" @click="removeFilter('difficulty')">×</button>
-                </div>
-                <!-- Цена -->
-                <div v-if="filters.minPrice || filters.maxPrice" class="af-chip">
-                  <span class="af-chip__type">Цена:</span>
-                  <span class="af-chip__value">{{ filters.minPrice || 0 }} — {{ filters.maxPrice || '∞' }} ₽</span>
-                  <button class="af-chip__remove" @click="removeFilter('price')">×</button>
-                </div>
-                <!-- Длительность -->
-                <div v-if="filters.duration" class="af-chip">
-                  <span class="af-chip__type">Длительность:</span>
-                  <span class="af-chip__value">{{ durationLabel(filters.duration) }}</span>
-                  <button class="af-chip__remove" @click="removeFilter('duration')">×</button>
-                </div>
-                <!-- Место -->
-                <div v-if="filters.locationType" class="af-chip">
-                  <span class="af-chip__type">Место:</span>
-                  <span class="af-chip__value">{{ locationLabel(filters.locationType) }}</span>
-                  <button class="af-chip__remove" @click="removeFilter('locationType')">×</button>
-                </div>
-                <!-- Поиск -->
-                <div v-if="filters.search" class="af-chip">
-                  <span class="af-chip__type">Поиск:</span>
-                  <span class="af-chip__value">{{ filters.search }}</span>
-                  <button class="af-chip__remove" @click="removeFilter('search')">×</button>
-                </div>
-
-                <button class="af-reset" @click="handleFiltersReset">Сбросить все</button>
-              </div>
-            </div>
-
-            <div class="results-area" :class="{ 'results-area--loading': pending }">
-              <TemplateGrid
-                :templates="paginatedDates"
-                :loading="pending"
-                @reset-filters="handleFiltersReset"
-              />
-            </div>
-
-            <Pagination
-              v-if="totalPages > 1"
-              :current-page="currentPage"
-              :total-pages="totalPages"
-              @page-change="handlePageChange"
-            />
-          </main>
+          <p class="cat__more-hint">Показано {{ visibleCount }} из {{ filteredDates.length }}</p>
         </div>
       </div>
-    </section>
+
+    </div>
+
+    <!-- ── Bottom Sheet фильтры ── -->
+    <Teleport to="body">
+      <transition name="sheet-fade">
+        <div v-if="sheetOpen" class="sheet-overlay" @click.self="sheetOpen = false">
+          <div class="sheet">
+            <div class="sheet__handle"></div>
+            <div class="sheet__head">
+              <h3 class="sheet__title">Фильтры</h3>
+              <button class="sheet__close" @click="sheetOpen = false">×</button>
+            </div>
+            <div class="sheet__body">
+
+              <!-- Сложность -->
+              <div class="sheet__section">
+                <p class="sheet__label">Сложность</p>
+                <div class="sheet__pills">
+                  <button
+                    v-for="d in DIFFICULTIES"
+                    :key="d.value"
+                    class="sheet__pill"
+                    :class="{ 'sheet__pill--active': filters.difficulty === d.value }"
+                    @click="toggleFilter('difficulty', d.value)"
+                  >{{ d.label }}</button>
+                </div>
+              </div>
+
+              <!-- Место -->
+              <div class="sheet__section">
+                <p class="sheet__label">Где проходит</p>
+                <div class="sheet__pills">
+                  <button
+                    v-for="l in LOCATIONS"
+                    :key="l.value"
+                    class="sheet__pill"
+                    :class="{ 'sheet__pill--active': filters.locationType === l.value }"
+                    @click="toggleFilter('locationType', l.value)"
+                  >{{ l.label }}</button>
+                </div>
+              </div>
+
+              <!-- Длительность -->
+              <div class="sheet__section">
+                <p class="sheet__label">Длительность</p>
+                <div class="sheet__pills">
+                  <button
+                    v-for="d in DURATIONS"
+                    :key="d.value"
+                    class="sheet__pill"
+                    :class="{ 'sheet__pill--active': filters.duration === d.value }"
+                    @click="toggleFilter('duration', d.value)"
+                  >{{ d.label }}</button>
+                </div>
+              </div>
+
+              <!-- Категории -->
+              <div class="sheet__section">
+                <p class="sheet__label">Категория</p>
+                <div class="sheet__pills">
+                  <button
+                    v-for="c in categories"
+                    :key="c.id"
+                    class="sheet__pill"
+                    :class="{ 'sheet__pill--active': filters.category === c.id }"
+                    @click="toggleFilter('category', c.id)"
+                  >{{ c.name }}</button>
+                </div>
+              </div>
+
+              <!-- Теги -->
+              <div class="sheet__section">
+                <p class="sheet__label">Теги</p>
+                <div class="sheet__pills">
+                  <button
+                    v-for="tag in popularTags"
+                    :key="tag.id"
+                    class="sheet__pill"
+                    :class="{ 'sheet__pill--active': filters.tags.includes(tag.id) }"
+                    @click="toggleTag(tag.id)"
+                  >{{ tag.name }}</button>
+                </div>
+              </div>
+
+            </div>
+            <div class="sheet__foot">
+              <button class="sheet__reset" @click="handleFiltersReset">Сбросить</button>
+              <button class="sheet__apply" @click="sheetOpen = false">
+                Показать {{ filteredDates.length }} квестов
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </Teleport>
+
+    <!-- ── Quick View ── -->
+    <QuickViewModal
+      :template="quickViewTemplate"
+      :is-open="showQuickView"
+      @close="showQuickView = false"
+    />
+
+    <!-- ── Sticky CTA ── -->
+    <StickyCTA />
+
   </div>
 </template>
 
@@ -138,87 +217,56 @@ import { ref, computed, watch } from 'vue'
 const route  = useRoute()
 const router = useRouter()
 const { getDates, getCategories, getPopularTags } = useDatesApi()
+
 useSeoMeta({
-  title:         'Свидания-квесты — сценарии для пар | Quest Dating',
-  description:   'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 990 руб.',
-  ogTitle:       'Свидания-квесты — сценарии для пар | Quest Dating',
-  ogDescription: 'Готовые сценарии свиданий-квестов. Лиза Петри разработает персональный квест специально для вашей пары.',
-  ogImage:       'https://questdating.ru/og-image.jpg',
+  title:       'Свидания-квесты — сценарии для пар | Quest Dating',
+  description: 'Выберите сценарий свидания-квеста — Лиза Петри адаптирует его персонально под вас. Романтические квесты для пар от 499 руб.',
 })
 
-
 const {
-  filters, getActiveFilters, activeFiltersCount,
-  hasActiveFilters, getApiParams,
+  filters, activeFiltersCount, hasActiveFilters, getApiParams,
   resetFilters, resetFilter
 } = useFilters()
 
-const searchQuery       = ref(route.query.search || '')
-const sortBy            = ref(route.query.sort_by || 'newest')
-const currentPage       = ref(Number(route.query.page) || 1)
-const filtersOpen       = ref(false)
-const searchSuggestions = ref([])
+const sortBy    = ref(route.query.sort_by || 'newest')
+const occasionResetKey = ref(0)  // инкремент = сигнал сброса
+// Фильтры установленные через поводы — не показываем как chips, не считаем в счётчике
+const occasionFilters = ref({ locationType: null, difficulty: null, category: null })
+const sheetOpen = ref(false)
+const pageSize  = 6
+const visibleCount = ref(pageSize)
 
+const showQuickView     = ref(false)
+const quickViewTemplate = ref(null)
+const openQuickView = (t) => { quickViewTemplate.value = t; showQuickView.value = true }
+
+// Данные
 const { data: datesData, pending, refresh: refreshDates } = await useAsyncData(
   'catalog-dates',
-  () => getDates(getApiParams.value)
+  () => getDates({
+    ...getApiParams.value,
+    ...(occasionFilters.value.locationType ? { location_type: occasionFilters.value.locationType } : {}),
+    ...(occasionFilters.value.difficulty   ? { difficulty:    occasionFilters.value.difficulty }   : {}),
+    ...(occasionFilters.value.category     ? { category:      occasionFilters.value.category }     : {}),
+  })
 )
+const { data: categoriesData } = await useAsyncData('catalog-categories', () => getCategories(), {
+  getCachedData(key, nuxtApp) {
+    const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
+    if (!cached) return undefined
+    return (Date.now() - (cached._ts ?? 0)) < 10 * 60 * 1000 ? cached : undefined
+  }
+})
+const { data: tagsData }       = await useAsyncData('catalog-tags', () => getPopularTags())
 
-// watch напрямую на filters — надёжнее чем watch на computed
 watch(filters, () => {
-  currentPage.value = 1
-  updateUrl()
+  visibleCount.value = pageSize
   refreshDates()
-  if (import.meta.client && window.innerWidth <= 1024) filtersOpen.value = false
 }, { deep: true })
 
-const { data: categoriesData } = await useAsyncData(
-  'catalog-categories',
-  () => getCategories()
-)
-
-const { data: tagsData } = await useAsyncData(
-  'catalog-tags',
-  () => getPopularTags()
-)
-
-const allDates    = computed(() => datesData.value?.data      || datesData.value      || [])
-
-useHead(() => ({
-  script: [
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type':    'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Главная',                    item: 'https://questdating.ru/' },
-          { '@type': 'ListItem', position: 2, name: 'Сценарии свиданий-квестов',  item: 'https://questdating.ru/catalog' },
-        ],
-      }),
-    },
-    ...(allDates.value?.length ? [{
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context':       'https://schema.org',
-        '@type':          'ItemList',
-        name:             'Сценарии свиданий-квестов',
-        description:      'Готовые сценарии свиданий-квестов от Лизы Петри — персональная адаптация под каждую пару.',
-        numberOfItems:    allDates.value.length,
-        itemListElement:  allDates.value.slice(0, 20).map((d, i) => ({
-          '@type':    'ListItem',
-          position:   i + 1,
-          name:       d.title,
-          url:        `https://questdating.ru/date/${d.slug}`,
-          image:      d.cover_image || 'https://questdating.ru/og-image.jpg',
-          description: d.tagline || d.description?.substring(0, 120) || '',
-        })),
-      }),
-    }] : []),
-  ],
-}))
+const allDates    = computed(() => datesData.value?.data || datesData.value || [])
 const categories  = computed(() => categoriesData.value?.data || categoriesData.value || [])
-const popularTags = computed(() => tagsData.value?.data       || tagsData.value       || [])
+const popularTags = computed(() => tagsData.value?.data || tagsData.value || [])
 
 const filteredDates = computed(() => {
   let list = [...allDates.value]
@@ -231,243 +279,259 @@ const filteredDates = computed(() => {
   return list
 })
 
-const totalPages = computed(() => Math.ceil(filteredDates.value.length / 12))
+const visibleDates = computed(() => filteredDates.value.slice(0, visibleCount.value))
+const hasMore      = computed(() => visibleCount.value < filteredDates.value.length)
 
-const paginatedDates = computed(() => {
-  const start = (currentPage.value - 1) * 12
-  return filteredDates.value.slice(start, start + 12)
-})
+const loadMore = () => { visibleCount.value += pageSize }
 
-const activeFilters = computed(() => getActiveFilters.value)
+// Якорный квест
+const lizaPickTemplate = computed(() =>
+  allDates.value.find(t => t.rating >= 4.5) || allDates.value[0] || null
+)
 
-const breadcrumbs = computed(() => [
-  { label: 'Главная', to: '/' },
-  { label: 'Сценарии свиданий-квестов' }
-])
+// Справочники
+const DIFFICULTIES = [
+  { value: 'easy',   label: '😊 Лёгкий' },
+  { value: 'medium', label: '🧠 Средний' },
+  { value: 'hard',   label: '🔥 Сложный' },
+]
+const LOCATIONS = [
+  { value: 'indoor',    label: '🏠 Дома' },
+  { value: 'city',      label: '🏙 По городу' },
+  { value: 'park',      label: '🌳 Парк' },
+  { value: 'universal', label: '🌍 Любое' },
+]
+const DURATIONS = [
+  { value: '0-60',   label: 'До 1 часа' },
+  { value: '60-120', label: '1–2 часа' },
+  { value: '120+',   label: '2+ часа' },
+]
 
-const formatFilterValue = (filter) => {
-  if (Array.isArray(filter.value)) {
-    return filter.value.length > 1 ? `${filter.value.length} выбрано` : filter.value[0]
-  }
-  return filter.value
+// Хелперы
+const difficultyLabel = (v) => ({ easy: 'Лёгкий', medium: 'Средний', hard: 'Сложный', expert: 'Эксперт' }[v] || v)
+const locationLabel   = (v) => ({ indoor: 'Дома', city: 'По городу', park: 'Парк', universal: 'Любое' }[v] || v)
+const durationLabel   = (v) => ({ '0-60': 'До 1 ч', '60-120': '1–2 ч', '120+': '2+ ч' }[v] || v)
+const getCategoryName = (id) => categories.value.find(c => c.id === id || c.id === Number(id))?.name || `#${id}`
+const getTagName      = (id) => popularTags.value.find(t => t.id === id || t.id === Number(id))?.name || `#${id}`
+
+const toggleTag = (id) => {
+  const idx = filters.value.tags.indexOf(id)
+  if (idx > -1) filters.value.tags.splice(idx, 1)
+  else filters.value.tags.push(id)
 }
 
-const totalCount = computed(() => {
-  const p = datesData.value?.pagination
-  return p ? p.total : allDates.value.length
-})
-
-const getCategoryName = (id) => {
-  const cat = categories.value.find(c => c.id === id || c.id === Number(id))
-  return cat ? cat.name : `#${id}`
+const toggleFilter = (key, value) => {
+  filters.value[key] = filters.value[key] === value ? null : value
 }
-
-const getTagName = (tagId) => {
-  const tag = popularTags.value.find(t => t.id === tagId || t.id === Number(tagId))
-  return tag ? tag.name : `#${tagId}`
-}
-
-const difficultyLabel = (v) => ({ easy: 'Легко', medium: 'Средне', hard: 'Сложно', expert: 'Эксперт' }[v] || v)
-const durationLabel   = (v) => ({ '0-60': 'До 1 ч', '60-120': '1–2 ч', '120-180': '2–3 ч', '180+': '3+ ч' }[v] || v)
-const locationLabel   = (v) => ({ city: 'По городу', park: 'Парк', indoor: 'В помещении', universal: 'Универсальный' }[v] || v)
-
-const removeSingleTag = (tagId) => {
-  filters.value.tags = filters.value.tags.filter(id => id !== tagId)
-}
-
-const handleSearch = (query) => {
-  searchQuery.value    = query
-  filters.value.search = query
-  currentPage.value    = 1
-  updateUrl()
-}
-
-const handleSelectCategory = (category) => {
-  filters.value.category = category.id
-  currentPage.value      = 1
-  updateUrl()
-}
-
-
+const removeFilter    = (key) => { filters.value[key] = null }
+const removeSingleTag = (id)  => { filters.value.tags = filters.value.tags.filter(t => t !== id) }
 
 const handleFiltersReset = () => {
   resetFilters()
-  searchQuery.value = ''
-  sortBy.value      = 'newest'
-  currentPage.value = 1
-  updateUrl()
+  sortBy.value = 'newest'
+  visibleCount.value = pageSize
+  sheetOpen.value = false
+  occasionFilters.value = { locationType: null, difficulty: null, category: null }
+  occasionResetKey.value++  // сигнализируем OccasionFilters о сбросе
 }
 
-const removeFilter = (filterName) => {
-  resetFilter(filterName)
-  if (filterName === 'search') searchQuery.value = ''
-  currentPage.value = 1
-  updateUrl()
+function pluralQuests(n) {
+  const mod10  = n % 10
+  const mod100 = n % 100
+  if (mod100 >= 11 && mod100 <= 19) return 'квестов'
+  if (mod10 === 1) return 'квест'
+  if (mod10 >= 2 && mod10 <= 4) return 'квеста'
+  return 'квестов'
 }
 
 const handleSortChange = () => {
   filters.value.sortBy = sortBy.value
-  currentPage.value    = 1
-  updateUrl()
+  visibleCount.value = pageSize
 }
 
-const handlePageChange = (page) => {
-  currentPage.value = page
-  updateUrl()
-  if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const updateUrl = () => {
-  const query = {
-    ...(searchQuery.value         && { search:  searchQuery.value }),
-    ...(sortBy.value !== 'newest' && { sort_by: sortBy.value }),
-    ...(currentPage.value > 1     && { page:    currentPage.value })
+const handleOccasionFilter = (f) => {
+  const isReset = !f.locationType && !f.difficulty && !f.duration && !f.tag && !f.category
+  // Сохраняем в отдельный объект — не попадает в activeFiltersCount
+  occasionFilters.value = {
+    locationType: isReset ? null : (f.locationType || null),
+    difficulty:   isReset ? null : (f.difficulty   || null),
+    category:     isReset ? null : (f.category     || null),
   }
-  router.push({ query })
+  visibleCount.value = pageSize
+  refreshDates()
 }
 
-watch(() => route.query, (newQ, oldQ) => {
-  if (JSON.stringify(newQ) !== JSON.stringify(oldQ)) {
-    if (newQ.search)  { searchQuery.value = newQ.search; filters.value.search = newQ.search }
-    if (newQ.sort_by)   sortBy.value      = newQ.sort_by
-    if (newQ.page)      currentPage.value = Number(newQ.page)
+// Блокируем скролл при открытом sheet
+watch(sheetOpen, (open) => {
+  if (import.meta.client) {
+    document.body.style.overflow = open ? 'hidden' : ''
   }
 })
 </script>
 
 <style scoped>
-.templates-page { min-height: 100vh; background: #f7fafc; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-.page-header { background: white; padding: 40px 0; border-bottom: 1px solid #e2e8f0; }
-.page-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #2d3748;
-  margin: 0 0 12px 0;
+.cat { background: #0a0a0f; min-height: 100vh; color: #f0ede8; padding-bottom: 100px; }
+.cat__container { max-width: 600px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 768px) { .cat__container { max-width: 900px; padding: 0 24px; } }
+@media (min-width: 1200px) { .cat__container { max-width: 1100px; } }
+
+/* Head */
+.cat__head {
+  background: linear-gradient(to bottom, #111118, #0a0a0f);
+  padding: 32px 0 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 20px;
 }
-.page-description { font-size: 1.1rem; color: #718096; margin: 0 0 32px 0; }
-.search-wrapper { max-width: 600px; }
-.templates-content { padding: 40px 0 80px; }
-.content-layout { display: grid; grid-template-columns: 280px 1fr; gap: 40px; }
-.filters-sidebar { position: sticky; top: 100px; align-self: flex-start; }
-.templates-main { display: flex; flex-direction: column; gap: 24px; }
-.active-filters { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.active-filters-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.filters-count { font-weight: 600; color: #4a5568; }
-.btn-clear-all { padding: 6px 16px; background: transparent; border: 1px solid #e2e8f0; border-radius: 6px; color: #718096; font-size: 0.9rem; cursor: pointer; transition: all 0.3s; }
-.btn-clear-all:hover { border-color: #667eea; color: #667eea; }
-.filters-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.filter-tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: #edf2f7; border-radius: 20px; font-size: 0.85rem; color: #4a5568; }
-.btn-remove { width: 18px; height: 18px; background: #cbd5e0; border: none; border-radius: 50%; color: #4a5568; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.btn-remove:hover { background: #a0aec0; color: white; }
-.templates-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.results-count { color: #4a5568; font-size: 0.95rem; }
-.results-count strong { color: #2d3748; font-weight: 700; }
-.sorting { display: flex; align-items: center; gap: 12px; }
-.sorting label { color: #718096; font-size: 0.9rem; }
-.sort-select { padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; color: #4a5568; background: white; cursor: pointer; transition: border-color 0.3s; }
-.sort-select:focus { outline: none; border-color: #667eea; }
-.results-area {
-  position: relative;
-  transition: opacity 0.2s ease;
-  /* Фиксируем минимальную высоту чтобы страница не прыгала при смене данных */
-  min-height: 400px;
-  /* Отключаем scroll anchoring — браузер не должен корректировать позицию скролла */
-  overflow-anchor: none;
+.cat__title {
+  font-size: clamp(1.5rem, 6vw, 2.2rem); font-weight: 900;
+  margin: 0 0 6px; letter-spacing: -0.02em;
 }
-.results-area--loading {
-  opacity: 0.45;
-  pointer-events: none;
+.cat__sub { font-size: 0.9rem; color: rgba(240,237,232,0.45); margin: 0; }
+
+/* Toolbar */
+.cat__toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 16px 0 12px; gap: 10px;
 }
-.loading-state { display: flex; justify-content: center; padding: 80px 20px; }
-.empty-state { text-align: center; padding: 80px 20px; background: white; border-radius: 12px; }
-.empty-icon { font-size: 5rem; margin-bottom: 24px; opacity: 0.5; }
-.empty-state h3 { font-size: 1.5rem; font-weight: 700; color: #2d3748; margin: 0 0 12px 0; }
-.empty-state p { color: #718096; margin: 0 0 24px 0; }
-.btn-reset { padding: 11px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; letter-spacing: 0.02em; }
-.btn-reset:hover { transform: translateY(-2px); }
-.filters-toggle { display: none; }
-@media (max-width: 1024px) {
-  .content-layout { grid-template-columns: 1fr; }
-  .filters-toggle { display: flex; align-items: center; gap: 8px; order: -1; width: 100%; padding: 14px 20px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.95rem; font-weight: 600; color: #4a5568; cursor: pointer; }
-  .filters-toggle__badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 0.75rem; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
-  .filters-toggle__arrow { margin-left: auto; transition: transform 0.25s; }
-  .filters-toggle__arrow.rotated { transform: rotate(180deg); }
-  .filters-sidebar { position: static; display: none; order: -1; }
-  .filters-sidebar--open { display: block; }
+.cat__count { font-size: 0.85rem; color: rgba(240,237,232,0.45); }
+.cat__toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+.cat__sort {
+  padding: 7px 10px; font-size: 0.82rem;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: #f0ede8; cursor: pointer;
 }
-@media (max-width: 768px) {
-  .page-title { font-size: 2rem; }
-  .templates-toolbar { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .sorting { width: 100%; justify-content: space-between; }
+.cat__sort option { background: #1a1a24; }
+
+.cat__filter-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 10px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: #f0ede8; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: border-color 0.2s;
+}
+.cat__filter-btn:hover { border-color: #d4af37; }
+.cat__filter-badge {
+  background: #d4af37; color: #0a0a0f;
+  font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 100px;
 }
 
-/* ── Активные фильтры ───────────────────────────────────────── */
-.active-filters {
-  margin-bottom: 16px;
+/* Chips */
+.cat__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.cat__chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 100px; font-size: 0.78rem; font-weight: 600;
+  background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25);
+  color: #d4af37;
 }
-.active-filters__chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+.cat__chip button {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-size: 14px; line-height: 1; padding: 0; opacity: 0.7;
 }
-.af-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  background: var(--color-primary-light, #ede9fe);
-  border: 1px solid var(--color-primary, #7c3aed);
-  border-radius: 20px;
-  font-size: 0.82rem;
-  color: var(--color-primary-dark, #5b21b6);
-  white-space: nowrap;
+.cat__chip--reset {
+  background: transparent; border-color: rgba(239,68,68,0.3); color: #f87171; cursor: pointer;
 }
-.af-chip__type {
-  opacity: 0.7;
-  font-weight: 500;
+
+/* Grid */
+.cat__grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  margin-bottom: 20px; align-items: start;
 }
-.af-chip__value {
-  font-weight: 700;
+@media (min-width: 640px)  { .cat__grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+@media (min-width: 1024px) { .cat__grid { grid-template-columns: repeat(4, 1fr); gap: 18px; } }
+
+/* Load more */
+.cat__more { text-align: center; padding: 8px 0 16px; }
+.cat__more-btn {
+  padding: 14px 32px; border-radius: 100px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  color: #f0ede8; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent; width: 100%; max-width: 320px;
 }
-.af-chip__remove {
-  margin-left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-primary, #7c3aed);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 11px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  opacity: 0.8;
-  transition: opacity 0.15s;
+.cat__more-btn:hover { border-color: #d4af37; background: rgba(212,175,55,0.06); }
+.cat__more-btn:disabled { opacity: 0.5; cursor: default; }
+.cat__more-hint { font-size: 0.78rem; color: rgba(240,237,232,0.3); margin: 8px 0 0; }
+
+/* States */
+.cat__loading { padding: 60px 0; text-align: center; }
+.cat__empty { text-align: center; padding: 60px 20px; }
+.cat__empty-icon { font-size: 3rem; opacity: 0.3; margin-bottom: 16px; }
+.cat__empty h3 { font-size: 1.2rem; font-weight: 700; color: #f0ede8; margin: 0 0 8px; }
+.cat__empty p { color: rgba(240,237,232,0.4); margin: 0 0 20px; font-size: 0.9rem; }
+.cat__empty-btn {
+  padding: 12px 28px; background: #d4af37; color: #0a0a0f;
+  border: none; border-radius: 100px; font-weight: 700; cursor: pointer;
 }
-.af-chip__remove:hover { opacity: 1; }
-.af-reset {
-  padding: 5px 14px;
-  background: transparent;
-  border: 1px solid var(--color-gray-300, #d1d5db);
-  border-radius: 20px;
-  font-size: 0.82rem;
-  color: var(--color-gray-500, #6b7280);
-  cursor: pointer;
-  transition: all 0.15s;
+
+/* ── Bottom Sheet ── */
+.sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px); z-index: 2000;
+  display: flex; align-items: flex-end;
 }
-.af-reset:hover {
-  border-color: var(--color-danger, #ef4444);
-  color: var(--color-danger, #ef4444);
+.sheet {
+  width: 100%; background: #111118;
+  border-radius: 24px 24px 0 0;
+  max-height: 85svh; display: flex; flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
 }
-.results-count__of {
-  color: var(--color-gray-400, #9ca3af);
-  font-size: 0.9em;
+.sheet__handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,0.15); margin: 12px auto 0;
 }
+.sheet__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sheet__title { font-size: 1rem; font-weight: 800; color: #f0ede8; margin: 0; }
+.sheet__close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: none;
+  color: rgba(240,237,232,0.6); font-size: 1.2rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sheet__body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 20px; }
+
+.sheet__section {}
+.sheet__label {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: rgba(240,237,232,0.35); margin: 0 0 10px;
+}
+.sheet__pills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.sheet__pill {
+  padding: 6px 12px; border-radius: 100px; font-size: 0.8rem; font-weight: 600;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(240,237,232,0.65); cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent; white-space: nowrap;
+}
+.sheet__pill:hover { border-color: rgba(255,255,255,0.2); color: #f0ede8; }
+.sheet__pill--active {
+  background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.5); color: #d4af37;
+}
+
+.sheet__foot {
+  display: flex; gap: 10px; padding: 14px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.sheet__reset {
+  flex: 1; padding: 13px; border-radius: 100px;
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(240,237,232,0.5); font-weight: 700; font-size: 0.9rem; cursor: pointer;
+}
+.sheet__apply {
+  flex: 2; padding: 13px; border-radius: 100px;
+  background: #d4af37; border: none; color: #0a0a0f;
+  font-weight: 800; font-size: 0.9rem; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Transitions */
+.sheet-fade-enter-active, .sheet-fade-leave-active { transition: opacity 0.25s; }
+.sheet-fade-enter-from, .sheet-fade-leave-to { opacity: 0; }
+.sheet-fade-enter-active .sheet, .sheet-fade-leave-active .sheet { transition: transform 0.25s ease; }
+.sheet-fade-enter-from .sheet, .sheet-fade-leave-to .sheet { transform: translateY(100%); }
 </style>

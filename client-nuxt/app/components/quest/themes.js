@@ -179,6 +179,48 @@ export const THEMES = {
   },
 
 
+
+  // ══════════════════════════════════════════════════════════════
+  // 💍 ПРЕДЛОЖЕНИЕ — бриллианты, золото, шампанское
+  // ══════════════════════════════════════════════════════════════
+  proposal: {
+    id: 'proposal',
+    label: 'Предложение',
+    icon: '💍',
+
+    accent:     '#d4af37',   // золото
+    accentDim:  '#8b6914',
+    bg:         '#080508',
+    bg2:        '#100d14',
+    surface:    '#18121e',
+    border:     'rgba(212,175,55,0.2)',
+    text:       '#f0e6d3',
+    dim:        '#5a4020',
+
+    fonts: {
+      display: "'Cormorant Garamond', serif",
+      body:    "'Lato', sans-serif",
+      googleFonts: 'Cormorant+Garamond:wght@300;400;600;700&family=Lato:wght@300;400'
+    },
+
+    copy: {
+      eyebrow:       'Особый вечер',
+      startBtn:      'Начать ✨',
+      taskDone:      'Шаг сделан',
+      hintBtn:       '💌 Подсказка (-10 очков)',
+      photoZone:     'Сохранить момент',
+      finishEyebrow: 'Этот момент — навсегда',
+      shareBtn:      'Поделиться 💍',
+      blockPrefix:   'Момент',
+      pointsLabel:   'искр',
+    },
+
+    bg_animation: 'rings',   // кольца + блики
+
+    splash_decor: ['💍', '✨', '🥂', '💎', '🌹'],
+
+    overlay: 'soft_glow',
+  },
   city: {
     id: 'city',
     label: 'Город',

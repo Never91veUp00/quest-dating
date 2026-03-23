@@ -34,7 +34,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in filteredTemplates" :key="t.id" class="adm-table__row" @click="$emit('edit', t)">
+          <tr v-for="t in pagedTemplates" :key="t.id" class="adm-table__row" @click="$emit('edit', t)">
             <td class="adm-table__id">#{{ t.id }}</td>
             <td>
               <div class="adm-table__name">{{ t.title }}</div>
@@ -65,11 +65,17 @@
         </tbody>
       </table>
     </div>
+
+    <div v-if="totalTemplatePages > 1" class="adm-pagination">
+      <button class="adm-pag__btn" :disabled="templatePage === 1" @click="templatePage--">←</button>
+      <span class="adm-pag__info">{{ templatePage }} / {{ totalTemplatePages }}</span>
+      <button class="adm-pag__btn" :disabled="templatePage === totalTemplatePages" @click="templatePage++">→</button>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 function formatRub(v) { return v ? `${Math.round(Number(v) / 100).toLocaleString('ru')} ₽` : '—' }
 
 const props = defineProps({
@@ -104,6 +110,15 @@ const filteredTemplates = computed(() => {
     t.category_name?.toLowerCase().includes(q)
   )
 })
+
+const PER_PAGE = 15
+const templatePage = ref(1)
+const totalTemplatePages = computed(() => Math.ceil(filteredTemplates.value.length / PER_PAGE))
+const pagedTemplates = computed(() => {
+  const start = (templatePage.value - 1) * PER_PAGE
+  return filteredTemplates.value.slice(start, start + PER_PAGE)
+})
+watch([() => props.templates, statusFilter], () => { templatePage.value = 1 })
 
 const difficultyLabel = (d) => DIFFICULTY_LABELS[d] || d
 const tStatusLabel    = (s) => ({ draft: 'Черновик', published: 'Опубликован', archived: 'Архив' }[s] || s)

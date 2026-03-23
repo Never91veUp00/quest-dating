@@ -639,6 +639,23 @@ router.patch('/orders/:id/status', [
   }
 })
 
+// ─── DELETE /api/admin/orders/:id (удалить отменённый заказ) ────────────────
+router.delete('/orders/:id', async (req, res, next) => {
+  try {
+    const check = await pool.query('SELECT id, status FROM orders WHERE id = $1', [req.params.id])
+    if (!check.rows.length) {
+      return res.status(404).json({ success: false, message: 'Заказ не найден' })
+    }
+    if (check.rows[0].status !== 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Удалить можно только отменённые заказы' })
+    }
+    await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id])
+    res.json({ success: true, message: 'Заказ удалён' })
+  } catch (error) {
+    next(error)
+  }
+})
+
 // ─── GET /api/admin/categories (для селекта категорий в форме) ────────────────
 router.get('/categories', async (req, res, next) => {
   try {

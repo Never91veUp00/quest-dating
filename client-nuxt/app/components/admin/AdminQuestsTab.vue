@@ -12,7 +12,7 @@
       <button class="adm-btn adm-btn--primary" @click="$emit('create')">Создать первый квест</button>
     </div>
     <div v-else class="adm-quests-grid">
-      <div v-for="q in quests" :key="q.id" class="adm-quest-card">
+      <div v-for="q in pagedQuests" :key="q.id" class="adm-quest-card">
         <div class="adm-quest-card__theme" :data-theme="q.theme">
           {{ themeIcon(q.theme) }}
         </div>
@@ -33,15 +33,30 @@
         </div>
       </div>
     </div>
+
+  <div v-if="totalQuestPages > 1" class="adm-pagination">
+    <button class="adm-pag__btn" :disabled="questPage === 1" @click="questPage--">←</button>
+    <span class="adm-pag__info">{{ questPage }} / {{ totalQuestPages }}</span>
+    <button class="adm-pag__btn" :disabled="questPage === totalQuestPages" @click="questPage++">→</button>
+  </div>
   </section>
 </template>
 
 <script setup>
-defineProps({
-  quests:  { type: Array,   default: () => [] },
-  loading: { type: Boolean, default: false },
-})
 defineEmits(['create', 'edit', 'delete', 'copy-link', 'open-quest'])
+
+import { ref, computed, watch } from 'vue'
+
+const PER_PAGE = 15
+const questPage = ref(1)
+const props = defineProps({ quests: { type: Array, default: () => [] }, loading: { type: Boolean, default: false } })
+const totalQuestPages = computed(() => Math.ceil((props.quests?.length || 0) / PER_PAGE))
+const pagedQuests = computed(() => {
+  const list = props.quests || []
+  const start = (questPage.value - 1) * PER_PAGE
+  return list.slice(start, start + PER_PAGE)
+})
+watch(() => props.quests, () => { questPage.value = 1 })
 
 const themeIcon = (t) => ({ detective: '🕵️', romantic: '❤️', city: '🏙️', mystery: '🔮' }[t] || '🕵️')
 </script>
@@ -78,4 +93,9 @@ const themeIcon = (t) => ({ detective: '🕵️', romantic: '❤️', city: '�
   display: flex; gap: 4px; padding: 8px 12px;
   border-top: 1px solid rgba(255,255,255,0.05);
 }
+.adm-pagination { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 16px; }
+.adm-pag__btn { padding: 6px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #f0ede8; cursor: pointer; font-weight: 700; transition: all 0.2s; }
+.adm-pag__btn:hover:not(:disabled) { border-color: #d4af37; color: #d4af37; }
+.adm-pag__btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.adm-pag__info { font-size: 0.85rem; color: rgba(240,237,232,0.45); min-width: 60px; text-align: center; }
 </style>

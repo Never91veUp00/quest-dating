@@ -31,7 +31,7 @@ const tabs = [
   { id: 'dashboard', icon: '📊', label: 'Дашборд' },
   { id: 'orders',    icon: '📋', label: 'Заказы' },
   { id: 'quests',    icon: '🗺️', label: 'Квесты' },
-  { id: 'templates', icon: '📦', label: 'Шаблоны' },
+  { id: 'templates', icon: '📦', label: 'Сценарии' },
 ]
 </script>
 

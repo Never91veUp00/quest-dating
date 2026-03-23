@@ -69,15 +69,6 @@ export function useFilters(initialFilters = {}) {
     }
   }
 
-  // Синхронизация minPrice/maxPrice при любом внешнем обновлении priceRange
-  // (например через v-model:filters из TemplateFilters)
-  watch(() => filters.value.priceRange, (range) => {
-    if (Array.isArray(range)) {
-      filters.value.minPrice = range[0]
-      filters.value.maxPrice = range[1]
-    }
-  }, { deep: true })
-
   const addTag    = (tagId) => { if (!filters.value.tags.includes(tagId)) filters.value.tags.push(tagId) }
   const removeTag = (tagId) => { filters.value.tags = filters.value.tags.filter(id => id !== tagId) }
   const toggleTag = (tagId) => filters.value.tags.includes(tagId) ? removeTag(tagId) : addTag(tagId)
@@ -111,7 +102,7 @@ export function useFilters(initialFilters = {}) {
     if (filters.value.category)          active.push({ name: 'category',     label: 'Категория',    value: filters.value.category })
     if (filters.value.tags.length > 0)   active.push({ name: 'tags',         label: 'Теги',         value: filters.value.tags })
     if (filters.value.difficulty)        active.push({ name: 'difficulty',   label: 'Сложность',    value: filters.value.difficulty })
-    if (filters.value.minPrice || filters.value.maxPrice)
+    if (filters.value.minPrice || (filters.value.maxPrice && filters.value.maxPrice < 10000))
       active.push({ name: 'price', label: 'Цена', value: `${filters.value.minPrice || 0} - ${filters.value.maxPrice || 10000} ₽` })
     if (filters.value.duration)          active.push({ name: 'duration',     label: 'Длительность', value: filters.value.duration })
     if (filters.value.locationType)      active.push({ name: 'locationType', label: 'Место',        value: filters.value.locationType })
@@ -127,10 +118,8 @@ export function useFilters(initialFilters = {}) {
     if (filters.value.category)              params.category      = filters.value.category
     if (filters.value.tags.length > 0)       params.tags          = filters.value.tags.join(',')
     if (filters.value.difficulty)            params.difficulty    = filters.value.difficulty
-    // Читаем из priceRange — он всегда актуален (minPrice/maxPrice могут не синхронизироваться)
-    const [priceMin, priceMax] = filters.value.priceRange || [0, 10000]
-    if (priceMin > 0)     params.min_price = priceMin
-    if (priceMax < 10000) params.max_price = priceMax
+    if (filters.value.minPrice !== null)     params.min_price     = filters.value.minPrice
+    if (filters.value.maxPrice !== null)     params.max_price     = filters.value.maxPrice
     if (filters.value.duration)              params.duration      = filters.value.duration
     if (filters.value.locationType)          params.location_type = filters.value.locationType
     if (filters.value.search)                params.search        = filters.value.search

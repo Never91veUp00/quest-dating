@@ -93,9 +93,9 @@ const handlePageChange = (page) => {
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 32px;
-  margin-bottom: 48px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
 @media (max-width: 640px) {
