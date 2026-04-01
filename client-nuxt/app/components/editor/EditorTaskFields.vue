@@ -257,6 +257,6 @@ defineEmits(['generate-qr', 'add-pair-image', 'remove-pair-image', 'puzzle-uploa
 
 const previewMedia = ref(false)
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
 const mediaFullUrl = (url) => url?.startsWith('http') ? url : API_BASE + url
 </script>

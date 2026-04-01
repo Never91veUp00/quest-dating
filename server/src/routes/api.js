@@ -9,6 +9,7 @@ import authRoutes from './auth.js'
 import adminRoutes from './admin.js'
 import contactRoutes from './contact.js'
 import { getPlatformStats } from '../services/statsService.js'
+import pool from '../config/database.js'
 
 const router = express.Router()
 
@@ -17,6 +18,27 @@ router.get('/stats', async (req, res, next) => {
   try {
     const stats = await getPlatformStats()
     res.json({ success: true, data: stats })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// Sitemap URLs
+router.get('/sitemap-urls', async (req, res, next) => {
+  try {
+    const templates = await pool.query(
+      "SELECT slug FROM quest_templates WHERE status = 'published'"
+    )
+    const categories = await pool.query(
+      'SELECT slug FROM categories'
+    )
+    res.json({
+      success: true,
+      data: {
+        templates: templates.rows.map(r => r.slug),
+        categories: categories.rows.map(r => r.slug)
+      }
+    })
   } catch (error) {
     next(error)
   }

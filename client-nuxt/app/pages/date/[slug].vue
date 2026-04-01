@@ -19,8 +19,8 @@
       <section class="qp__hero">
         <div class="qp__hero-img">
           <img
-            v-if="isValidImageSrc(date.cover_image)"
-            :src="date.cover_image"
+            v-if="isValidImageSrc(activePhoto)"
+            :src="activePhoto"
             :alt="date.title"
             loading="eager"
             decoding="async"
@@ -45,6 +45,20 @@
             <span v-if="date.rating > 0" class="qp__badge qp__badge--rating">
               ★ {{ parseFloat(date.rating).toFixed(1) }}
             </span>
+          </div>
+          <!-- Галерея миниатюр -->
+          <div v-if="galleryList.length > 1" class="qp__gallery">
+            <div class="qp__gallery-scroll">
+              <button
+                v-for="(img, idx) in galleryList"
+                :key="idx"
+                class="qp__gallery-thumb"
+                :class="{ 'qp__gallery-thumb--active': activePhoto === img }"
+                @click="activePhoto = img"
+              >
+                <img :src="img" :alt="date.title + ' фото ' + (idx + 1)" loading="lazy" />
+              </button>
+            </div>
           </div>
           <h1 class="qp__hero-title">{{ date.title }}</h1>
           <p v-if="date.tagline" class="qp__hero-tagline">{{ date.tagline }}</p>
@@ -162,7 +176,7 @@
 import { computed, onMounted } from 'vue'
 
 const route = useRoute()
-const { getDate } = useDatesApi()
+const { getDate, getDateReviews } = useDatesApi()
 const { post } = useApi()
 const { isValidImageSrc } = useImageFallback()
 
@@ -171,6 +185,38 @@ const { data: dateRaw, pending, error } = await useAsyncData(
   () => getDate(route.params.slug)
 )
 const date = computed(() => dateRaw.value?.data ?? dateRaw.value ?? null)
+
+// SSR-fetch одного отзыва для JSON-LD (schema.org review)
+const { data: reviewsRaw } = await useAsyncData(
+  `reviews-${route.params.slug}`,
+  () => date.value?.id ? getDateReviews(date.value.id, { limit: 1 }) : null
+)
+const topReview = computed(() => {
+  const r = reviewsRaw.value
+  return r?.data?.[0] ?? r?.reviews?.[0] ?? (Array.isArray(r) ? r[0] : null) ?? null
+})
+const galleryList = computed(() => {
+  const g = date.value?.gallery
+  if (Array.isArray(g) && g.length > 0) return g
+  if (date.value?.cover_image) return [date.value.cover_image]
+  return []
+})
+const activePhoto = ref(null)
+watch(date, (val) => {
+  if (val) activePhoto.value = val.cover_image || galleryList.value[0] || null
+}, { immediate: true })
+
+let galleryTimer = null
+watch(galleryList, (list) => {
+  if (galleryTimer) clearInterval(galleryTimer)
+  if (list.length > 1) {
+    galleryTimer = setInterval(() => {
+      const idx = list.indexOf(activePhoto.value)
+      activePhoto.value = list[(idx + 1) % list.length]
+    }, 8000)
+  }
+}, { immediate: true })
+onUnmounted(() => { if (galleryTimer) clearInterval(galleryTimer) })
 
 onMounted(() => {
   post(`/templates/${route.params.slug}/view`).catch(() => {})
@@ -215,20 +261,48 @@ if (date.value) {
         description: date.value.tagline || date.value.description?.substring(0, 160),
         image: absoluteImageUrl(date.value.cover_image),
         url: pageUrl,
+        brand: { '@type': 'Brand', name: 'Quest Dating' },
         offers: {
           '@type': 'Offer',
           price,
           priceCurrency: 'RUB',
           availability: 'https://schema.org/InStock',
           url: pageUrl,
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'RU',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+            returnFees: 'https://schema.org/FreeReturn',
+          },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: { '@type': 'MonetaryAmount', value: '0', currency: 'RUB' },
+            shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'RU' },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+              transitTime:  { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
+            },
+          },
         },
-        ...(date.value.rating && {
+        ...(parseFloat(date.value.rating) > 0 && (date.value.reviews_count || 0) > 0 && {
           aggregateRating: {
             '@type': 'AggregateRating',
-            ratingValue: parseFloat(date.value.rating).toFixed(1),
-            reviewCount: date.value.reviews_count || 0,
+            ratingValue:  parseFloat(date.value.rating).toFixed(1),
+            reviewCount:  date.value.reviews_count,
+            bestRating:   5,
+            worstRating:  1,
           }
-        })
+        }),
+        ...(topReview.value && {
+          review: [{
+            '@type': 'Review',
+            author: { '@type': 'Person', name: topReview.value.client_name },
+            reviewRating: { '@type': 'Rating', ratingValue: topReview.value.rating, bestRating: 5, worstRating: 1 },
+            reviewBody:    topReview.value.comment || topReview.value.title || '',
+            datePublished: new Date(topReview.value.created_at).toISOString().split('T')[0],
+          }]
+        }),
       })},
 
       // BreadcrumbList schema
@@ -523,4 +597,11 @@ export default {
   transition: opacity 0.2s; flex-shrink: 0;
 }
 .qp__sticky-btn:hover { opacity: 0.9; }
+.qp__gallery { padding: 8px 0 4px; background: transparent; }
+.qp__gallery-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.qp__gallery-scroll::-webkit-scrollbar { display: none; }
+.qp__gallery-thumb { flex-shrink: 0; width: 56px; height: 56px; border-radius: 8px; overflow: hidden; border: 2px solid rgba(255,255,255,0.3); cursor: pointer; opacity: 0.75; transition: opacity .2s, border-color .2s; background: #111; padding: 0; }
+.qp__gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.qp__gallery-thumb--active { border-color: #d4af37; opacity: 1; }
+.qp__gallery-thumb:hover { opacity: 1; }
 </style>

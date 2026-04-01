@@ -314,7 +314,7 @@ const galleryUploading      = ref(false)
 const galleryUploadProgress = ref(0)
 let   galleryDragSrcIdx     = -1
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
 const imgSrc   = (url) => (!url ? '' : url.startsWith('http') ? url : API_BASE + url)
 
 const uploadFiles = async (files) => {

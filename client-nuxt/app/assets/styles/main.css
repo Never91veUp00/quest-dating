@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-heading);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
-  color: var(--color-gray-800);
+  color: inherit;
 }
 
 h1 {
@@ -219,7 +219,7 @@ td {
 
 th {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-800);
+  color: inherit;
   background-color: var(--color-gray-50);
 }
 

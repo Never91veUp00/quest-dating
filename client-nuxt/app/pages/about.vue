@@ -166,6 +166,10 @@ useServerHead({
         '@type': 'Organization',
         name: 'Quest Dating',
         url: SITE_URL,
+        address: {
+          '@type': 'PostalAddress',
+          addressCountry: 'RU',
+        },
       },
       sameAs: [
         'https://t.me/vinatian00',

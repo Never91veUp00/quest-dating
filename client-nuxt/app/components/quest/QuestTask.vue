@@ -664,7 +664,7 @@ const isYoutube = computed(() => {
   return url.includes('youtube.com') || url.includes('youtu.be')
 })
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
 const mediaFullUrl = (url) => url?.startsWith('http') ? url : API_BASE + url
 
 const resolvedMediaType = (task) => {

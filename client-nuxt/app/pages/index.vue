@@ -289,6 +289,12 @@ useServerHead({
       founder: { '@type': 'Person', name: 'Лиза Петри', url: `${SITE_URL}/about` },
       contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', url: 'https://t.me/vinatian00' },
       sameAs: ['https://t.me/vinatian00'],
+      image: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+      },
     })},
     { type: 'application/ld+json', innerHTML: () => JSON.stringify({
       '@context': 'https://schema.org',

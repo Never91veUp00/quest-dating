@@ -2,9 +2,7 @@
   <div class="qp" :style="cssVars">
 
     <!-- Подключаем шрифты текущей темы динамически -->
-    <component :is="'style'">
-      @import url('https://fonts.googleapis.com/css2?family={{ themeObj.fonts.googleFonts }}&display=swap');
-    </component>
+
 
     <!-- Оверлей текстуры -->
     <div v-if="themeObj.overlay === 'scanlines'" class="qp-overlay qp-overlay--scanlines" aria-hidden="true"></div>
@@ -195,6 +193,34 @@ const apiFetch = (path, opts = {}) => {
 }
 
 // ─── Quest service (inline) ───────────────────────────────────
+// ─── SSR SEO (только мета-теги для превью) ───────────────────
+const { data: seoData } = await useAsyncData(
+  () => `quest-seo-${slug.value}`,
+  async () => {
+    try {
+      const baseURL = import.meta.server
+        ? (useRuntimeConfig().apiBaseInternal || 'http://server:5000/api')
+        : useRuntimeConfig().public.apiBase
+      const res = await $fetch(`${baseURL}/quests/${slug.value}`)
+      return res?.data ?? res ?? null
+    } catch { return null }
+  }
+)
+const SITE_URL = 'https://questdating.ru'
+useSeoMeta({
+  title: () => seoData.value?.title ? `${seoData.value.title} — Quest Dating` : 'Quest Dating',
+  ogTitle: () => seoData.value?.title || 'Свидание-квест',
+  ogDescription: () => seoData.value?.tagline || 'Персональный квест-сюрприз для вашей пары',
+  ogImage: () => seoData.value?.cover_image
+    ? `${SITE_URL}${seoData.value.cover_image}`
+    : `${SITE_URL}/og-image-quest.jpg`,
+  ogUrl: () => `${SITE_URL}/quest/${slug.value}`,
+  twitterCard: 'summary_large_image',
+  twitterImage: () => seoData.value?.cover_image
+    ? `${SITE_URL}${seoData.value.cover_image}`
+    : `${SITE_URL}/og-image-quest.jpg`,
+})
+
 const questService = {
   getBySlug:      (slug, params = {})        => apiFetch(`/quests/${slug}`, { params }),
   submitAccessCode: (slug, code)             => apiFetch(`/quests/${slug}/access`, { method: 'POST', body: { access_code: code } }),
@@ -231,6 +257,16 @@ let ticker = null
 // ─── Theme ────────────────────────────────────────────────────
 const themeObj = computed(() => getTheme(questData.value?.theme || 'city'))
 const cssVars  = computed(() => themeToCssVars(themeObj.value))
+
+watchEffect(() => {
+  if (!themeObj.value?.fonts?.googleFonts) return
+  useHead({
+    link: [{
+      rel: 'stylesheet',
+      href: `https://fonts.googleapis.com/css2?family=${themeObj.value.fonts.googleFonts}&display=swap`,
+    }]
+  })
+})
 
 // ─── Computed ─────────────────────────────────────────────────
 const blocks       = computed(() => questData.value?.blocks || [])

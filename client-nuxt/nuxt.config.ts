@@ -64,6 +64,7 @@ export default defineNuxtConfig({
   routeRules: {
     // Production proxy: Nuxt проксирует /api/** на Express
     // /uploads/** обрабатывается через server/routes/uploads/[...path].js
+    '/sitemap-urls': { ssr: true },
     '/api/**':    { proxy: { to: 'http://server:5000/api/**' } },
     '/':              { ssr: true, swr: 300   },
     '/catalog':       { ssr: true, swr: 300   },
@@ -76,7 +77,7 @@ export default defineNuxtConfig({
     '/privacy':       { ssr: true },
     '/admin/**':      { ssr: false },
     '/order/**':      { ssr: false },
-    '/quest/**':      { ssr: false },
+    '/quest/**':      { ssr: true },
     '/templates':     { redirect: { to: '/catalog', statusCode: 301 } },
     '/template/**':   { redirect: { to: '/date/**', statusCode: 301 } },
     '/authors':       { redirect: { to: '/about',   statusCode: 301 } },
@@ -89,25 +90,24 @@ export default defineNuxtConfig({
     name:          'Quest Dating',
     description:   'Лиза Петри разработает и организует ваше свидание-квест: персональный сценарий для двоих.',
     defaultLocale: 'ru',
+    titleSeparator: '—',
+  },
+  app: {
+    head: {
+      titleTemplate: '%s',
+    },
   },
 
   sitemap: {
-    exclude: ['/admin/**', '/quest/**', '/order/**'],
+    exclude: ['/admin/**', '/quest/**', '/order/**', '/sitemap-urls'],
     sources: [
       // Динамические URL: все /date/:slug и /categories/:slug из БД
-      '/api/sitemap-urls',
+      '/sitemap-urls',
     ],
     // Статические страницы подхватываются автоматически из routeRules
   },
 
   robots: {
-    groups: [
-      {
-        userAgent: ['*'],
-        disallow: ['/admin/', '/quest/', '/order/'],
-        allow: ['/'],
-      }
-    ],
     sitemap: ['https://questdating.ru/sitemap.xml'],
   },
 

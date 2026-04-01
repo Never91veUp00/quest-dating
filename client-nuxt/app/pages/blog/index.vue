@@ -81,6 +81,20 @@ import { BLOG_POSTS } from '~/data/blogPosts'
 
 const posts = BLOG_POSTS
 
+useServerHead({
+  script: [{
+    type: 'application/ld+json',
+    innerHTML: JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://questdating.ru/' },
+        { '@type': 'ListItem', position: 2, name: 'Блог', item: 'https://questdating.ru/blog' },
+      ]
+    })
+  }]
+})
+
 useSeoMeta({
   title: 'Блог о свиданиях-квестах — советы и идеи | Quest Dating',
   description: 'Идеи для романтических свиданий-квестов, советы по организации и вдохновляющие истории. Блог Лизы Петри — создателя персональных квестов для пар.',

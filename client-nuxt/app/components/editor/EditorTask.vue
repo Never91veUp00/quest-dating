@@ -92,7 +92,7 @@ let pairReplaceIdx   = null
 let mediaInput       = null
 let mediaTask        = null
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
 
 const handlePuzzleUpload = () => puzzleInput?.click()
 

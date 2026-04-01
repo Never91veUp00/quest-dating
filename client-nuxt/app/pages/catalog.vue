@@ -7,12 +7,7 @@
         <h1 class="cat__title">Свидания-квесты</h1>
         <p class="cat__sub">Выберите сценарий — Лиза адаптирует под вас</p>
         <p class="cat__seo">
-          Свидание-квест — это персональный сценарий романтического вечера, который Лиза Петри
-          разрабатывает специально под вашу пару. Не шаблон, а живая история: с вашими местами,
-          вашими деталями и вашим финалом. Выберите формат — домашний квест-сюрприз, городское
-          приключение или предложение руки и сердца — и получите готовый сценарий за 24 часа.
-          Каждый квест-сюрприз для девушки или парня создаётся с нуля и подходит для любого повода:
-          день рождения, годовщина, 14 февраля или просто романтический вечер.
+          Персональный сценарий романтического вечера — с вашими местами, вашей историей, вашим финалом. Готов за 24 часа.
         </p>
       </div>
     </section>
@@ -238,7 +233,19 @@ useSeoMeta({
 
 // ItemList — вызываем на верхнем уровне setup, данные через геттер
 useServerHead({
-  script: [{
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://questdating.ru/' },
+          { '@type': 'ListItem', position: 2, name: 'Свидания-квесты', item: 'https://questdating.ru/catalog' },
+        ]
+      })
+    },
+    {
     type: 'application/ld+json',
     innerHTML: () => {
       const dates = datesData.value?.data || datesData.value || []
@@ -454,14 +461,14 @@ watch(sheetOpen, (open) => {
 .cat__filter-btn:hover { border-color: #d4af37; }
 .cat__filter-badge {
   background: #d4af37; color: #0a0a0f;
-  font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 100px;
+  font-size: 12px; font-weight: 800; padding: 1px 5px; border-radius: 100px;
 }
 
 /* Chips */
 .cat__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
 .cat__chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 100px; font-size: 0.78rem; font-weight: 600;
+  padding: 4px 10px; border-radius: 100px; font-size: 0.8rem; font-weight: 600;
   background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25);
   color: #d4af37;
 }
@@ -492,7 +499,7 @@ watch(sheetOpen, (open) => {
 }
 .cat__more-btn:hover { border-color: #d4af37; background: rgba(212,175,55,0.06); }
 .cat__more-btn:disabled { opacity: 0.5; cursor: default; }
-.cat__more-hint { font-size: 0.78rem; color: rgba(240,237,232,0.3); margin: 8px 0 0; }
+.cat__more-hint { font-size: 0.8rem; color: rgba(240,237,232,0.3); margin: 8px 0 0; }
 
 /* States */
 .cat__loading { padding: 60px 0; text-align: center; }
@@ -538,7 +545,7 @@ watch(sheetOpen, (open) => {
 
 .sheet__section {}
 .sheet__label {
-  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.08em; color: rgba(240,237,232,0.35); margin: 0 0 10px;
 }
 .sheet__pills { display: flex; flex-wrap: wrap; gap: 6px; }

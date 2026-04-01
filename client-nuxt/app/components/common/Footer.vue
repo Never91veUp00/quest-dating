@@ -1,5 +1,8 @@
 <template>
   <footer class="footer" itemscope itemtype="https://schema.org/LocalBusiness">
+    <span itemprop="name" style="display:none">Quest Dating</span>
+    <span itemprop="telephone" style="display:none">+79035101495</span>
+    <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" style="display:none"><span itemprop="addressCountry">RU</span></span>
     <div class="footer__inner">
 
       <!-- Top: logo + tagline -->
