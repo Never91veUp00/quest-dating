@@ -46,9 +46,9 @@
         />
       </transition>
 
-      <!-- ── ПЛЕЕР ── -->
+      <!-- ── ПЛЕЕР V1 ── -->
       <transition name="player-in">
-        <div v-if="started && currentBlock && !isComplete" class="qp-player">
+        <div v-if="started && currentBlock && !isComplete && playerVersion === 'v1'" class="qp-player">
 
           <!-- HUD -->
           <header class="qp-hud">
@@ -59,11 +59,15 @@
               <span class="qp-hud__step">{{ blockIdx + 1 }}<span class="qp-hud__step-of">/{{ totalBlocks }}</span></span>
               <span class="qp-hud__name">{{ questData.title }}</span>
               <span class="qp-hud__time">{{ elapsedStr }}</span>
+              <button class="qp-hud__ver-btn" @click.stop="togglePlayerVersion" :title="'Новый дизайн (V2)'">✨</button>
               <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню">⋮</button>
             </div>
             <!-- Desktop dropdown -->
             <transition name="fade">
               <div v-if="showMenu" class="qp-hud__dropdown">
+                <button class="qp-hud__dropdown-item" @click="togglePlayerVersion">
+                  ✨ Новый дизайн (V2)
+                </button>
                 <button class="qp-hud__dropdown-item" @click="confirmRestart">
                   🔄 Начать сначала
                 </button>
@@ -76,6 +80,10 @@
                   <div class="qp-menu-sheet__panel">
                     <div class="qp-menu-sheet__handle"></div>
                     <div class="qp-menu-sheet__title">Меню</div>
+                    <button class="qp-menu-sheet__item" @click="togglePlayerVersion; showMenu = false">
+                      <span class="qp-menu-sheet__ico">✨</span>
+                      <span>Новый дизайн (V2)</span>
+                    </button>
                     <button class="qp-menu-sheet__item" @click="confirmRestart">
                       <span class="qp-menu-sheet__ico">🔄</span>
                       <span>Начать сначала</span>
@@ -127,6 +135,28 @@
         </div>
       </transition>
 
+      <!-- ── ПЛЕЕР V2 ── -->
+      <QuestPlayerV2
+        v-if="started && currentBlock && !isComplete && playerVersion === 'v2'"
+        :key="'v2-' + blockIdx"
+        :block="currentBlock"
+        :theme="themeObj"
+        :index="blockIdx"
+        :total="totalBlocks"
+        :allBlocks="blocks"
+        :completedIds="completedIds"
+        :isLast="isLast"
+        :points="points"
+        :elapsedStr="elapsedStr"
+        @complete-task="onTaskComplete"
+        @use-hint="onHint"
+        @prev="prev"
+        @next="next"
+        @finish="finish"
+        @skip-task="onSkipTask"
+        @menu="showMenu = !showMenu"
+      />
+
       <!-- ── ФИНАЛ ── -->
       <transition name="fade">
         <QuestFinish
@@ -175,6 +205,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
+import QuestPlayerV2 from '~/components/quest/QuestPlayerV2.vue'
 
 
 const route = useRoute()
@@ -237,6 +268,12 @@ const loading      = ref(true)
 const fatalError   = ref(null)
 const requiresCode = ref(false)
 const codeError    = ref('')
+
+const playerVersion = ref('v1')
+const togglePlayerVersion = () => {
+  playerVersion.value = playerVersion.value === 'v1' ? 'v2' : 'v1'
+  if (typeof localStorage !== 'undefined') localStorage.setItem('quest_player_v', playerVersion.value)
+}
 
 const started             = ref(false)
 const showIntro           = ref(false)
@@ -539,6 +576,9 @@ const closeMenu = (e) => {
 
 // ─── Lifecycle ────────────────────────────────────────────────
 onMounted(() => {
+  if (typeof localStorage !== 'undefined') {
+    playerVersion.value = localStorage.getItem('quest_player_v') || 'v1'
+  }
   loadQuest()
   document.addEventListener('click', closeMenu)
 })
@@ -574,6 +614,8 @@ onUnmounted(() => {
 .qp-hud__step-of { color: var(--dim); }
 .qp-hud__name { flex: 1; font-size: .8rem; color: var(--dim); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-hud__time { font-family: var(--font-d); font-size: .7rem; color: var(--dim); white-space: nowrap; }
+.qp-hud__ver-btn { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; padding: 4px 6px; line-height: 1; border-radius: 4px; transition: transform .2s, opacity .2s; opacity: .7; }
+.qp-hud__ver-btn:hover { opacity: 1; transform: scale(1.15); }
 .qp-hud__menu-btn { background: none; border: none; color: var(--dim); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1; border-radius: 4px; transition: color .2s; }
 .qp-hud__menu-btn:hover { color: var(--text); }
 .qp-hud__dropdown { position: absolute; top: 100%; right: 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: 8px; padding: 4px; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
