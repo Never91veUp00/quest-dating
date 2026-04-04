@@ -27,6 +27,7 @@ export default defineNuxtConfig({
         // Favicon — явно для Яндекса и других поисковиков
         { rel: 'shortcut icon', href: '/favicon.ico', type: 'image/x-icon' },
         { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon', sizes: '32x32' },
+        { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
       ],
     },
   },
