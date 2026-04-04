@@ -22,6 +22,7 @@ export const getQuestBySlug = async (req, res, next) => {
         cq.started_count,
         cq.completed_count,
         cq.published_at,
+        cq.player_version,
         qt.duration_minutes,
         c.name  AS category_name,
         c.icon  AS category_icon

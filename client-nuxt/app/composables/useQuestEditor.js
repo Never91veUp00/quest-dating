@@ -13,7 +13,7 @@ export function useQuestEditor() {
   const form = ref({
     title: '', client_name: '', slug: '', theme: 'detective',
     show_intro: true, access_code: '', final_message: '',
-    is_public: false, order_id: null, template_id: null, blocks: []
+    is_public: false, order_id: null, template_id: null, blocks: [], player_version: 'v1'
   })
 
   const saving           = ref(false)

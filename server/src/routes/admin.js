@@ -126,7 +126,7 @@ router.post('/quests', [
       title, client_name, slug, theme = 'detective',
       final_message, blocks, access_code,
       order_id, template_id, is_public = false,
-      expires_at, show_intro = true
+      expires_at, show_intro = true, player_version = 'v1'
     } = req.body
 
     // Проверка уникальности slug
@@ -144,15 +144,16 @@ router.post('/quests', [
     const result = await pool.query(`
       INSERT INTO created_quests
         (title, client_name, slug, theme, final_message, blocks,
-         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END)
+         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13)
       RETURNING *
     `, [
       title, client_name, slug, theme, final_message || null,
       JSON.stringify(blocks), access_code || null,
       order_id || null, template_id || null, is_public,
       show_intro !== false,
-      expires_at || null
+      expires_at || null,
+      player_version || 'v1'
     ])
 
     const quest = result.rows[0]
@@ -185,7 +186,7 @@ router.put('/quests/:id', [
   try {
     const {
       title, client_name, theme, final_message,
-      blocks, access_code, is_public, expires_at, show_intro
+      blocks, access_code, is_public, expires_at, show_intro, player_version
     } = req.body
 
     const result = await pool.query(`
@@ -199,15 +200,17 @@ router.put('/quests/:id', [
         is_public     = $7,
         expires_at    = $8,
         show_intro    = $9,
+        player_version = $10,
         published_at  = CASE WHEN $7 AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at    = NOW()
-      WHERE id = $10
+      WHERE id = $11
       RETURNING *
     `, [
       title, client_name, theme || 'detective', final_message || null,
       JSON.stringify(blocks), access_code || null,
       is_public, expires_at || null,
       show_intro !== false,
+      player_version || 'v1',
       req.params.id
     ])
 
