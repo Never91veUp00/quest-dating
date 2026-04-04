@@ -59,40 +59,16 @@
               <span class="qp-hud__step">{{ blockIdx + 1 }}<span class="qp-hud__step-of">/{{ totalBlocks }}</span></span>
               <span class="qp-hud__name">{{ questData.title }}</span>
               <span class="qp-hud__time">{{ elapsedStr }}</span>
-              <button class="qp-hud__ver-btn" @click.stop="togglePlayerVersion" :title="'Новый дизайн (V2)'">✨</button>
               <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню">⋮</button>
             </div>
             <!-- Desktop dropdown -->
             <transition name="fade">
               <div v-if="showMenu" class="qp-hud__dropdown">
-                <button class="qp-hud__dropdown-item" @click="togglePlayerVersion">
-                  ✨ Новый дизайн (V2)
-                </button>
                 <button class="qp-hud__dropdown-item" @click="confirmRestart">
                   🔄 Начать сначала
                 </button>
               </div>
             </transition>
-            <!-- Mobile bottom sheet -->
-            <teleport to="body">
-              <transition name="sheet">
-                <div v-if="showMenu" class="qp-menu-sheet" @click.self="showMenu = false">
-                  <div class="qp-menu-sheet__panel">
-                    <div class="qp-menu-sheet__handle"></div>
-                    <div class="qp-menu-sheet__title">Меню</div>
-                    <button class="qp-menu-sheet__item" @click="togglePlayerVersion; showMenu = false">
-                      <span class="qp-menu-sheet__ico">✨</span>
-                      <span>Новый дизайн (V2)</span>
-                    </button>
-                    <button class="qp-menu-sheet__item" @click="confirmRestart">
-                      <span class="qp-menu-sheet__ico">🔄</span>
-                      <span>Начать сначала</span>
-                    </button>
-                    <button class="qp-menu-sheet__close" @click="showMenu = false">Закрыть</button>
-                  </div>
-                </div>
-              </transition>
-            </teleport>
           </header>
 
           <!-- Блок -->
@@ -156,6 +132,23 @@
         @skip-task="onSkipTask"
         @menu="showMenu = !showMenu"
       />
+
+      <!-- ── ОБЩЕЕ МЕНЮ (V1 + V2) ── -->
+      <teleport to="body">
+        <transition name="sheet">
+          <div v-if="showMenu" class="qp-menu-sheet" @click.self="showMenu = false">
+            <div class="qp-menu-sheet__panel">
+              <div class="qp-menu-sheet__handle"></div>
+              <div class="qp-menu-sheet__title">Меню</div>
+              <button class="qp-menu-sheet__item" @click="confirmRestart">
+                <span class="qp-menu-sheet__ico">🔄</span>
+                <span>Начать сначала</span>
+              </button>
+              <button class="qp-menu-sheet__close" @click="showMenu = false">Закрыть</button>
+            </div>
+          </div>
+        </transition>
+      </teleport>
 
       <!-- ── ФИНАЛ ── -->
       <transition name="fade">
@@ -269,11 +262,7 @@ const fatalError   = ref(null)
 const requiresCode = ref(false)
 const codeError    = ref('')
 
-const playerVersion = ref('v1')
-const togglePlayerVersion = () => {
-  playerVersion.value = playerVersion.value === 'v1' ? 'v2' : 'v1'
-  if (typeof localStorage !== 'undefined') localStorage.setItem('quest_player_v', playerVersion.value)
-}
+const playerVersion = computed(() => questData.value?.player_version || 'v1')
 
 const started             = ref(false)
 const showIntro           = ref(false)
@@ -576,9 +565,6 @@ const closeMenu = (e) => {
 
 // ─── Lifecycle ────────────────────────────────────────────────
 onMounted(() => {
-  if (typeof localStorage !== 'undefined') {
-    playerVersion.value = localStorage.getItem('quest_player_v') || 'v1'
-  }
   loadQuest()
   document.addEventListener('click', closeMenu)
 })
