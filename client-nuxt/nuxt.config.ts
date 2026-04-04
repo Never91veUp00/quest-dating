@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+      titleTemplate: '%s',
       meta: [
         // Retina / HiDPI — запрет масштабирования браузером
         { name: 'format-detection', content: 'telephone=no' },
@@ -23,6 +24,9 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         // Cormorant Garamond для Лизы Петри
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap' },
+        // Favicon — явно для Яндекса и других поисковиков
+        { rel: 'shortcut icon', href: '/favicon.ico', type: 'image/x-icon' },
+        { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon', sizes: '32x32' },
       ],
     },
   },
@@ -92,11 +96,7 @@ export default defineNuxtConfig({
     defaultLocale: 'ru',
     titleSeparator: '—',
   },
-  app: {
-    head: {
-      titleTemplate: '%s',
-    },
-  },
+
 
   sitemap: {
     exclude: ['/admin/**', '/quest/**', '/order/**', '/sitemap-urls'],
