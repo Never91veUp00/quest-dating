@@ -168,11 +168,24 @@
           </NuxtLink>
         </div>
         <div class="qp__sticky-trust">
-          <span>⚡ Готово за 24 часа</span>
-          <span>•</span>
-          <span>✉️ Лиза свяжется сразу</span>
-          <span>•</span>
-          <span>🔒 Гарантия возврата</span>
+          <div class="qp__trust-track">
+            <span>⚡ Готово за 24 часа</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>✉️ Лиза свяжется сразу</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>🔒 Гарантия возврата</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>💬 Бесплатная консультация</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>⚡ Готово за 24 часа</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>✉️ Лиза свяжется сразу</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>🔒 Гарантия возврата</span>
+            <span class="qp__trust-sep">✦</span>
+            <span>💬 Бесплатная консультация</span>
+            <span class="qp__trust-sep">✦</span>
+          </div>
         </div>
       </div>
 
@@ -622,15 +635,32 @@ export default {
 .qp__gallery-thumb:hover { opacity: 1; }
 
 .qp__sticky-trust {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 16px 5px;
-  font-size: 0.62rem;
-  color: rgba(240,237,232,0.45);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
   overflow: hidden;
+  padding: 4px 0 6px;
+  border-top: 1px solid rgba(212,175,55,0.12);
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+.qp__trust-track {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+  width: max-content;
+  animation: trustScroll 22s linear infinite;
+  font-size: 0.65rem;
+  color: rgba(240,237,232,0.45);
+  letter-spacing: 0.02em;
+}
+.qp__trust-track:hover {
+  animation-play-state: paused;
+}
+.qp__trust-sep {
+  color: rgba(212,175,55,0.5);
+  font-size: 0.5rem;
+}
+@keyframes trustScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 </style>
