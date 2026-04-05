@@ -232,9 +232,17 @@ const absoluteImageUrl = (path) => {
 
 useSeoMeta({
   title:         () => date.value ? `${date.value.title} — свидание-квест | Quest Dating` : 'Квест | Quest Dating',
-  description:   () => date.value?.tagline || date.value?.description?.substring(0, 160),
+  description:   () => {
+    if (!date.value) return null
+    const raw = date.value.tagline || (date.value.description?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim())
+    return raw?.substring(0, 160) || null
+  },
   ogTitle:       () => date.value?.title,
-  ogDescription: () => date.value?.tagline || date.value?.description?.substring(0, 160),
+  ogDescription: () => {
+    if (!date.value) return null
+    const raw = date.value.tagline || (date.value.description?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim())
+    return raw?.substring(0, 160) || null
+  },
   ogImage:       () => absoluteImageUrl(date.value?.cover_image),
   ogType:        'product',
 })

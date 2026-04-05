@@ -124,9 +124,9 @@ const SITE_URL = 'https://questdating.ru'
 
 useSeoMeta({
   title:         () => category.value ? `${category.value.name} — свидание-квест | Quest Dating` : 'Категория | Quest Dating',
-  description:   () => category.value?.description ?? null,
+  description:   () => category.value?.description || (category.value ?  : null,
   ogTitle:       () => category.value?.name ?? null,
-  ogDescription: () => category.value?.description ?? null,
+  ogDescription: () => category.value?.description || (category.value ?  : null,
   ogImage:       `${SITE_URL}/og-image.jpg`,
 })
 
