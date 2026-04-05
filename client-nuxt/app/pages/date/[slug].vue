@@ -167,6 +167,13 @@
             Заказать квест →
           </NuxtLink>
         </div>
+        <div class="qp__sticky-trust">
+          <span>⚡ Готово за 24 часа</span>
+          <span>•</span>
+          <span>✉️ Лиза свяжется сразу</span>
+          <span>•</span>
+          <span>🔒 Гарантия возврата</span>
+        </div>
       </div>
 
     </template>
@@ -613,4 +620,16 @@ export default {
 .qp__gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .qp__gallery-thumb--active { border-color: #d4af37; opacity: 1; }
 .qp__gallery-thumb:hover { opacity: 1; }
+
+.qp__sticky-trust {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px 8px;
+  font-size: 0.72rem;
+  color: rgba(240,237,232,0.5);
+  letter-spacing: 0.01em;
+  flex-wrap: wrap;
+}
 </style>

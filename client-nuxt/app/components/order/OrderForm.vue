@@ -50,11 +50,12 @@
           <p class="of__hint">Для быстрой связи по деталям</p>
         </div>
         <div class="of__field">
-          <label class="of__label">Когда планируете квест? *</label>
+          <label class="of__label">Когда планируете квест?</label>
           <input v-model="form.event_date" type="date"
             class="of__input" :class="{ 'of__input--error': err.event_date }"
             :min="minDate"
             @change="clearErr('event_date')" />
+          <p class="of__hint">Можно уточнить позже — Лиза уточнит при переписке</p>
         </div>
         <div v-if="isCity" class="of__field">
           <label class="of__label">Город *</label>
@@ -402,7 +403,6 @@ const validate = () => {
   if (currentStep.value === 1) {
     if (!form.client_name.trim())   { setErr('client_name'); valid = false }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.client_email)) { setErr('client_email'); valid = false }
-    if (!form.event_date)           { setErr('event_date'); valid = false }
     if (isCity.value && !form.event_city.trim()) { setErr('event_city'); valid = false }
   }
 
