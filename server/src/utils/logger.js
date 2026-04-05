@@ -37,7 +37,7 @@ export const httpLogger = (req, res, next) => {
     const status = res.statusCode
     const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'http'
     // Skip health checks to avoid noise
-    if (req.path === '/health' || req.path === '/') return next && null
+    if (req.originalUrl === '/health' || req.originalUrl === '/') return
     log(level, `${req.method} ${req.originalUrl}`, {
       status, ms: `${ms}ms`,
       ip: req.headers['x-real-ip'] || req.ip,
