@@ -1,5 +1,6 @@
 import pool from '../config/database.js'
 import { TEMPLATE_STATUS } from '../config/constants.js'
+import { cache } from '../utils/cache.js'
 
 // Получить все категории
 export const getAllCategories = async (req, res, next) => {

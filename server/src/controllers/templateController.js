@@ -1,5 +1,6 @@
 import pool from '../config/database.js'
 import { TEMPLATE_STATUS, PAGINATION } from '../config/constants.js'
+import { cache } from '../utils/cache.js'
 
 // ─── Утилиты ────────────────────────────────────────────────────────────────
 
@@ -211,16 +212,18 @@ export const getAllTemplates = async (req, res, next) => {
 export const getPopularTemplates = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.status = $1
-      ${BASE_GROUP_BY}
-      ORDER BY qt.orders_count DESC, qt.rating DESC
-      LIMIT $2
-    `, [TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:popular:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.status = $1
+        ${BASE_GROUP_BY}
+        ORDER BY qt.orders_count DESC, qt.rating DESC
+        LIMIT $2
+      `, [TEMPLATE_STATUS.PUBLISHED, limit])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -230,16 +233,18 @@ export const getPopularTemplates = async (req, res, next) => {
 export const getFeaturedTemplates = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.status = $1 AND qt.is_premium = true
-      ${BASE_GROUP_BY}
-      ORDER BY qt.rating DESC
-      LIMIT $2
-    `, [TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:featured:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.status = $1 AND qt.is_premium = true
+        ${BASE_GROUP_BY}
+        ORDER BY qt.rating DESC
+        LIMIT $2
+      `, [TEMPLATE_STATUS.PUBLISHED, limit])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -249,16 +254,18 @@ export const getFeaturedTemplates = async (req, res, next) => {
 export const getNewestTemplates = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.status = $1
-      ${BASE_GROUP_BY}
-      ORDER BY qt.published_at DESC
-      LIMIT $2
-    `, [TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:newest:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.status = $1
+        ${BASE_GROUP_BY}
+        ORDER BY qt.published_at DESC
+        LIMIT $2
+      `, [TEMPLATE_STATUS.PUBLISHED, limit])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -326,11 +333,8 @@ export const getTemplateBySlug = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Шаблон не найден' })
     }
 
-    // Увеличиваем счётчик просмотров асинхронно — не блокируем ответ
-    pool.query(
-      'UPDATE quest_templates SET views_count = views_count + 1 WHERE id = $1',
-      [result.rows[0].id]
-    ).catch(err => console.error('Ошибка обновления views_count:', err))
+    // Батчевое обновление просмотров — не бьём в БД при каждом запросе
+    viewsBuffer.add(result.rows[0].id)
 
     res.json({ success: true, data: normalizeTemplate(result.rows[0]) })
   } catch (error) {
@@ -343,40 +347,49 @@ export const getSimilarTemplates = async (req, res, next) => {
   try {
     const { slug } = req.params
     const { limit = 4 } = req.query
-
-    const currentTemplate = await pool.query(
-      'SELECT id, category_id FROM quest_templates WHERE slug = $1',
-      [slug]
-    )
-
-    if (currentTemplate.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Шаблон не найден' })
-    }
-
-    const { id, category_id } = currentTemplate.rows[0]
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.id != $1 AND qt.category_id = $2 AND qt.status = $3
-      ${BASE_GROUP_BY}
-      ORDER BY qt.rating DESC
-      LIMIT $4
-    `, [id, category_id, TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:similar:${slug}:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.id != (SELECT id FROM quest_templates WHERE slug = $1)
+          AND qt.category_id = (SELECT category_id FROM quest_templates WHERE slug = $1)
+          AND qt.status = $2
+        ${BASE_GROUP_BY}
+        ORDER BY qt.rating DESC
+        LIMIT $3
+      `, [slug, TEMPLATE_STATUS.PUBLISHED, parseInt(limit)])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
 }
 
+// ── Views batch writer ──────────────────────────────────────────
+const viewsBuffer = {
+  _counts: new Map(),
+  add(id) { this._counts.set(id, (this._counts.get(id) || 0) + 1) },
+  async flush() {
+    if (this._counts.size === 0) return
+    const entries = [...this._counts.entries()]
+    this._counts.clear()
+    for (const [id, count] of entries) {
+      pool.query(
+        'UPDATE quest_templates SET views_count = views_count + $1 WHERE id = $2',
+        [count, id]
+      ).catch(err => console.error('views flush error:', err))
+    }
+  }
+}
+setInterval(() => viewsBuffer.flush(), 30_000).unref()
+
 // Инкремент просмотров — POST /templates/:slug/view
 export const incrementView = async (req, res, next) => {
   try {
     const { slug } = req.params
-    await pool.query(
-      'UPDATE quest_templates SET views_count = views_count + 1 WHERE slug = $1',
-      [slug]
-    )
+    const r = await pool.query('SELECT id FROM quest_templates WHERE slug = $1', [slug])
+    if (r.rows.length > 0) viewsBuffer.add(r.rows[0].id)
     res.json({ success: true })
   } catch (error) {
     next(error)

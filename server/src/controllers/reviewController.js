@@ -1,6 +1,7 @@
 import pool from '../config/database.js'
 import { validationResult } from 'express-validator'
 import { RATING_RANGE } from '../config/constants.js'
+import { cache } from '../utils/cache.js'
 
 const ALLOWED_SORT = {
   newest:  'created_at DESC',
@@ -13,17 +14,20 @@ const ALLOWED_SORT = {
 export const getFeaturedReviews = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-    const result = await pool.query(`
-      SELECT r.*, qt.title as template_title
-      FROM reviews r
-      LEFT JOIN quest_templates qt ON r.template_id = qt.id
-      WHERE r.rating >= 4
-        AND LENGTH(r.comment) > 20
-      ORDER BY r.is_verified DESC, r.rating DESC, r.created_at DESC
-      LIMIT $1
-    `, [parseInt(limit)])
-
-    res.json({ success: true, data: result.rows })
+    const key = `reviews:featured:${limit}`
+    const data = await cache.getOrSet(key, 180, async () => {
+      const result = await pool.query(`
+        SELECT r.*, qt.title as template_title
+        FROM reviews r
+        LEFT JOIN quest_templates qt ON r.template_id = qt.id
+        WHERE r.rating >= 4
+          AND LENGTH(r.comment) > 20
+        ORDER BY r.is_verified DESC, r.rating DESC, r.created_at DESC
+        LIMIT $1
+      `, [parseInt(limit)])
+      return result.rows
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -107,6 +111,12 @@ export const createReview = async (req, res, next) => {
         reviews_count = (SELECT COUNT(*) FROM reviews WHERE template_id = $1)
       WHERE id = $1
     `, [template_id])
+
+    // Инвалидируем затронутые кэши
+    cache.delByPrefix('reviews:featured')
+    cache.delByPrefix(`reviews:template:${template_id}`)
+    cache.delByPrefix('templates:slug:')
+    cache.delByPrefix('templates:popular')
 
     res.status(201).json({
       success: true,
