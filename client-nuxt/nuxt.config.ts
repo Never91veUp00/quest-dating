@@ -105,7 +105,15 @@ export default defineNuxtConfig({
       // Динамические URL: все /date/:slug и /categories/:slug из БД
       '/sitemap-urls',
     ],
-    // Статические страницы подхватываются автоматически из routeRules
+    // Приоритеты и частота обновления для статических страниц
+    urls: [
+      { loc: '/',        priority: 1.0, changefreq: 'weekly'  },
+      { loc: '/catalog', priority: 0.9, changefreq: 'weekly'  },
+      { loc: '/about',   priority: 0.7, changefreq: 'monthly' },
+      { loc: '/blog',    priority: 0.8, changefreq: 'weekly'  },
+      { loc: '/privacy', priority: 0.2, changefreq: 'yearly'  },
+      { loc: '/terms',   priority: 0.2, changefreq: 'yearly'  },
+    ],
   },
 
   robots: {
