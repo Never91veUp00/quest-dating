@@ -5,7 +5,7 @@ const COLORS = {
   http:  '\x1b[35m', debug: '\x1b[90m', reset: '\x1b[0m'
 }
 const isProd = process.env.NODE_ENV === 'production'
-const MIN_LEVEL = isProd ? LEVELS.info : LEVELS.debug
+const MIN_LEVEL = isProd ? LEVELS.http : LEVELS.debug
 
 const fmt = (level, msg, meta) => {
   const ts = new Date().toISOString().replace('T', ' ').slice(0, 19)
