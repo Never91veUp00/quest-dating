@@ -110,6 +110,7 @@ export default defineNuxtConfig({
 
   robots: {
     sitemap: ['https://questdating.ru/sitemap.xml'],
+    disallow: ['/admin', '/quest', '/order', '/feedbacks', '/memberid'],
   },
 
   nitro: {
