@@ -15,6 +15,8 @@ const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../uploa
 
 export const createApp = () => {
   const app = express()
+  // Trust nginx proxy (required for correct IP in rate limiting and logs)
+  app.set('trust proxy', 1)
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
 
   app.use(helmet())
