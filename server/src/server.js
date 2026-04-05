@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import { createApp } from './app.js'
+import { logger } from './utils/logger.js'
 
 dotenv.config()
 
@@ -7,16 +8,14 @@ const PORT = process.env.PORT || 5000
 const app = createApp()
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`)
-  console.log(`📍 Environment: ${process.env.NODE_ENV}`)
-  console.log(`🌐 API available at http://localhost:${PORT}/api`)
+  logger.info('Server started', { port: PORT, env: process.env.NODE_ENV })
 })
 
 // Graceful shutdown
 const shutdown = (signal) => {
-  console.log(`\n🛑 ${signal} received. Shutting down gracefully...`)
+  logger.warn(`${signal} received. Shutting down gracefully...`)
   server.close(() => {
-    console.log('✅ HTTP server closed')
+    logger.info('HTTP server closed')
     process.exit(0)
   })
   setTimeout(() => { process.exit(1) }, 10000)

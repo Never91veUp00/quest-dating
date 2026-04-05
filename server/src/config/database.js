@@ -1,5 +1,6 @@
 import pg from 'pg'
 import dotenv from 'dotenv'
+import { logger } from '../utils/logger.js'
 
 dotenv.config()
 
@@ -16,21 +17,17 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 })
 
-pool.on('connect', () => {
-  console.log('✅ Database connected')
-})
-
+// Only log unexpected errors, NOT every pool connection (that's just spam)
 pool.on('error', (err) => {
-  console.error('❌ Unexpected database error:', err)
-  // Пул pg автоматически переподключается — не убиваем процесс
+  logger.error('Unexpected database pool error', { code: err.code, msg: err.message })
 })
 
-// Тестовое подключение
+// One-time startup connectivity check
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('❌ Database connection test failed:', err)
+    logger.error('Database connection failed at startup', { error: err.message })
   } else {
-    console.log('✅ Database connection test successful:', res.rows[0].now)
+    logger.info('Database connected', { time: res.rows[0].now })
   }
 })
 
