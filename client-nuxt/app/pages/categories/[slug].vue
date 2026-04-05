@@ -124,9 +124,9 @@ const SITE_URL = 'https://questdating.ru'
 
 useSeoMeta({
   title:         () => category.value ? `${category.value.name} — свидание-квест | Quest Dating` : 'Категория | Quest Dating',
-  description:   () => category.value?.description || (category.value ?  : null,
+  description:   () => category.value?.description || (category.value ? `Квесты-свидания «${category.value.name}» — персональные сценарии для пар от Лизы Петри. Готово за 24 часа от 499 ₽.` : null),
   ogTitle:       () => category.value?.name ?? null,
-  ogDescription: () => category.value?.description || (category.value ?  : null,
+  ogDescription: () => category.value?.description || (category.value ? `Квесты-свидания «${category.value.name}» — персональные сценарии для пар от Лизы Петри. Готово за 24 часа от 499 ₽.` : null),
   ogImage:       `${SITE_URL}/og-image.jpg`,
 })
 
