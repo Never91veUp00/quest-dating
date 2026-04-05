@@ -194,7 +194,7 @@
       <div class="container">
         <div class="author__inner">
           <div class="author__photo">
-            <img src="/uploads/avatars/liza.jpg" alt="Лиза Петри" loading="lazy" width="200" height="200" />
+            <img :src="'/uploads/avatars/liza.jpg'" alt="Лиза Петри" loading="lazy" width="200" height="200" />
           </div>
           <div class="author__body">
             <p class="author__label">Автор квестов</p>
