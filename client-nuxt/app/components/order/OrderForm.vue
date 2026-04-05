@@ -21,7 +21,7 @@
       <div class="of__progress-line" :style="{ width: progressWidth }"></div>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="of__form">
+    <form class="of__form">
 
       <!-- ── Шаг 1: Контакты ── -->
       <transition name="step-fade" mode="out-in">
@@ -231,9 +231,10 @@
 
         <button
           v-if="currentStep === 3"
-          type="submit"
+          type="button"
           class="of__btn of__btn--submit"
           :disabled="submitting"
+          @click="handleSubmit"
         >
           {{ submitting ? 'Отправка...' : 'Отправить заявку ✓' }}
         </button>
@@ -459,6 +460,7 @@ const handleSubmit = async () => {
   if (submitting.value) return
   submitting.value = true
   try {
+    if (typeof window !== 'undefined' && window.ym) ym(108293057, 'reachGoal', 'order_form_submit')
     await emit('submit', {
       template_id:  props.template?.id,
       client_name:  form.client_name,
