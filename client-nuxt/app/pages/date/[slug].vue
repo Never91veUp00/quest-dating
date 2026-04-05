@@ -625,11 +625,12 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  padding: 6px 20px 8px;
-  font-size: 0.72rem;
-  color: rgba(240,237,232,0.5);
+  gap: 5px;
+  padding: 3px 16px 5px;
+  font-size: 0.62rem;
+  color: rgba(240,237,232,0.45);
   letter-spacing: 0.01em;
-  flex-wrap: wrap;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
