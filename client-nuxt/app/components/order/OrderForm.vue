@@ -31,11 +31,17 @@
 
         <div class="of__field">
           <label class="of__label">Ваше имя *</label>
-          <input v-model="form.client_name" type="text" class="of__input" placeholder="Иван" autocomplete="given-name" />
+          <input v-model="form.client_name" type="text"
+            class="of__input" :class="{ 'of__input--error': err.client_name }"
+            placeholder="Иван" autocomplete="given-name"
+            @input="clearErr('client_name')" />
         </div>
         <div class="of__field">
           <label class="of__label">Email *</label>
-          <input v-model="form.client_email" type="email" class="of__input" placeholder="ivan@example.com" autocomplete="email" />
+          <input v-model="form.client_email" type="email"
+            class="of__input" :class="{ 'of__input--error': err.client_email }"
+            placeholder="ivan@example.com" autocomplete="email"
+            @input="clearErr('client_email')" />
           <p class="of__hint">Пришлём ссылку на готовый квест</p>
         </div>
         <div class="of__field">
@@ -45,11 +51,17 @@
         </div>
         <div class="of__field">
           <label class="of__label">Когда планируете квест? *</label>
-          <input v-model="form.event_date" type="date" class="of__input" :min="minDate" />
+          <input v-model="form.event_date" type="date"
+            class="of__input" :class="{ 'of__input--error': err.event_date }"
+            :min="minDate"
+            @change="clearErr('event_date')" />
         </div>
         <div v-if="isCity" class="of__field">
           <label class="of__label">Город *</label>
-          <input v-model="form.event_city" type="text" class="of__input" placeholder="Москва" />
+          <input v-model="form.event_city" type="text"
+            class="of__input" :class="{ 'of__input--error': err.event_city }"
+            placeholder="Москва"
+            @input="clearErr('event_city')" />
           <p class="of__hint">Лиза подберёт маршрут в вашем городе</p>
         </div>
       </div>
@@ -63,7 +75,10 @@
 
         <div class="of__field">
           <label class="of__label">Имя партнёра *</label>
-          <input v-model="form.partner_name" type="text" class="of__input" placeholder="Как зовут вашего партнёра?" />
+          <input v-model="form.partner_name" type="text"
+            class="of__input" :class="{ 'of__input--error': err.partner_name }"
+            placeholder="Как зовут вашего партнёра?"
+            @input="clearErr('partner_name')" />
         </div>
         <div class="of__field">
           <label class="of__label">Как долго вы вместе?</label>
@@ -80,14 +95,14 @@
         </div>
         <div class="of__field">
           <label class="of__label">Повод для квеста *</label>
-          <div class="of__pills">
+          <div class="of__pills" :class="{ 'of__pills--error': err.occasion }">
             <button
               v-for="opt in OCCASION_OPTIONS"
               :key="opt"
               type="button"
               class="of__pill"
               :class="{ 'of__pill--active': form.occasion === opt }"
-              @click="form.occasion = opt"
+              @click="form.occasion = opt; clearErr('occasion')"
             >{{ opt }}</button>
           </div>
         </div>
@@ -137,20 +152,23 @@
           <textarea
             v-if="q.type === 'textarea'"
             v-model="form.details[q.field]"
-            class="of__textarea"
+            class="of__textarea" :class="{ 'of__input--error': err['d_' + q.field] }"
             :placeholder="q.placeholder"
             rows="3"
+            @input="clearErr('d_' + q.field)"
           ></textarea>
 
           <!-- Pills одиночный выбор -->
-          <div v-else-if="q.type === 'pills'" class="of__pills of__pills--wrap">
+          <div v-else-if="q.type === 'pills'"
+            class="of__pills of__pills--wrap"
+            :class="{ 'of__pills--error': err['d_' + q.field] }">
             <button
               v-for="opt in q.options"
               :key="opt"
               type="button"
               class="of__pill"
               :class="{ 'of__pill--active': form.details[q.field] === opt }"
-              @click="form.details[q.field] = opt"
+              @click="form.details[q.field] = opt; clearErr('d_' + q.field)"
             >{{ opt }}</button>
           </div>
 
@@ -159,8 +177,9 @@
             v-else
             v-model="form.details[q.field]"
             type="text"
-            class="of__input"
+            class="of__input" :class="{ 'of__input--error': err['d_' + q.field] }"
             :placeholder="q.placeholder"
+            @input="clearErr('d_' + q.field)"
           />
 
           <p v-if="q.hint" class="of__hint">{{ q.hint }}</p>
@@ -179,8 +198,8 @@
 
         <!-- Согласие -->
         <div class="of__field">
-          <label class="of__agree" :class="{ 'of__agree--error': agreeError && !form.agree }" @click="form.agree = !form.agree; agreeError = false">
-            <div class="of__checkbox" :class="{ 'of__checkbox--checked': form.agree, 'of__checkbox--error': agreeError && !form.agree }">
+          <label class="of__agree" :class="{ 'of__agree--error': err.agree }" @click="form.agree = !form.agree; clearErr('agree')">
+            <div class="of__checkbox" :class="{ 'of__checkbox--checked': form.agree, 'of__checkbox--error': err.agree }">
               <span v-if="form.agree">✓</span>
             </div>
             <span>
@@ -206,6 +225,7 @@
           v-if="currentStep < 3"
           type="button"
           class="of__btn of__btn--next"
+          :class="{ 'of__btn--shake': shaking }"
           @click="nextStep"
         >Далее →</button>
 
@@ -224,17 +244,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, nextTick } from 'vue'
 
 const props = defineProps({
   template: { type: Object, default: null }
 })
 const emit = defineEmits(['submit', 'update:features', 'update:customization', 'update:featuresData'])
 
-const toast = useToast()
 const currentStep = ref(1)
 const submitting  = ref(false)
-const agreeError  = ref(false)
+const shaking     = ref(false)
+
+// Ошибки — объект с именами полей
+const err = reactive({})
+const setErr = (field) => { err[field] = true }
+const clearErr = (field) => { delete err[field] }
+const hasErrors = () => Object.keys(err).length > 0
 
 const STEPS = ['Контакты', 'О паре', 'Детали']
 
@@ -273,7 +298,6 @@ const categoryQuestions = computed(() => {
   const loc = locType.value
   const cat = catSlug.value
 
-  // Предложение руки и сердца
   if (cat === 'proposal' || props.template?.slug?.includes('proposal')) {
     return {
       title: 'Детали предложения',
@@ -288,7 +312,6 @@ const categoryQuestions = computed(() => {
     }
   }
 
-  // Городской квест
   if (loc === 'city') {
     return {
       title: 'Детали городского квеста',
@@ -303,7 +326,6 @@ const categoryQuestions = computed(() => {
     }
   }
 
-  // Домашний квест
   if (loc === 'indoor') {
     return {
       title: 'Детали домашнего квеста',
@@ -318,7 +340,6 @@ const categoryQuestions = computed(() => {
     }
   }
 
-  // Годовщина
   if (cat?.includes('anniversary') || form.occasion === 'Годовщина') {
     return {
       title: 'Детали квеста на годовщину',
@@ -333,7 +354,6 @@ const categoryQuestions = computed(() => {
     }
   }
 
-  // Дефолт — универсальный
   return {
     title: 'Детали квеста',
     subtitle: 'Чем больше расскажете — тем личнее получится',
@@ -360,39 +380,62 @@ const toggleHobby = (h) => {
   else form.hobbies.push(h)
 }
 
+// Подсветить невалидные поля и скроллнуть к первому
+const triggerShake = () => {
+  shaking.value = true
+  setTimeout(() => { shaking.value = false }, 500)
+}
+
+const scrollToFirstError = async () => {
+  await nextTick()
+  const el = document.querySelector('.of__input--error, .of__pills--error, .of__checkbox--error')
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 const validate = () => {
+  // Сброс старых ошибок текущего шага
+  Object.keys(err).forEach(k => delete err[k])
+
+  let valid = true
+
   if (currentStep.value === 1) {
-    if (!form.client_name.trim())   { toast.error('Введите ваше имя'); return false }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.client_email)) { toast.error('Введите корректный email'); return false }
-    if (!form.event_date)           { toast.error('Укажите дату события'); return false }
-    if (isCity.value && !form.event_city.trim()) { toast.error('Укажите город'); return false }
+    if (!form.client_name.trim())   { setErr('client_name'); valid = false }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.client_email)) { setErr('client_email'); valid = false }
+    if (!form.event_date)           { setErr('event_date'); valid = false }
+    if (isCity.value && !form.event_city.trim()) { setErr('event_city'); valid = false }
   }
+
   if (currentStep.value === 2) {
-    if (!form.partner_name.trim())  { toast.error('Введите имя партнёра'); return false }
-    if (!form.occasion)             { toast.error('Выберите повод'); return false }
+    if (!form.partner_name.trim())  { setErr('partner_name'); valid = false }
+    if (!form.occasion)             { setErr('occasion'); valid = false }
   }
+
   if (currentStep.value === 3) {
     const firstRequired = categoryQuestions.value.questions.find(q => q.label.includes('*'))
     if (firstRequired && !form.details[firstRequired.field]?.trim()) {
-      toast.error('Заполните обязательные поля'); return false
+      setErr('d_' + firstRequired.field); valid = false
     }
-    if (!form.agree) { toast.error('Примите условия использования'); agreeError.value = true; return false }
+    if (!form.agree) { setErr('agree'); valid = false }
   }
-  return true
+
+  return valid
 }
 
-const nextStep = () => {
+const nextStep = async () => {
   if (validate()) {
     currentStep.value++
     if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+    triggerShake()
+    scrollToFirstError()
   }
 }
+
 const prevStep = () => {
   currentStep.value--
   if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// Собираем все детали в одну строку description для API
 const buildDescription = () => {
   const parts = []
   if (form.partner_name)  parts.push(`Партнёр: ${form.partner_name}`)
@@ -412,7 +455,7 @@ const buildDescription = () => {
 }
 
 const handleSubmit = async () => {
-  if (!validate()) return
+  if (!validate()) { triggerShake(); scrollToFirstError(); return }
   if (submitting.value) return
   submitting.value = true
   try {
@@ -428,7 +471,7 @@ const handleSubmit = async () => {
       selected_features: [],
     })
   } catch (e) {
-    toast.error(e.message || 'Ошибка при отправке')
+    console.error(e)
   } finally {
     submitting.value = false
   }
@@ -489,13 +532,32 @@ const handleSubmit = async () => {
   width: 100%; padding: 12px 14px;
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
   border-radius: 12px; font-size: 0.95rem; color: #f0ede8;
-  transition: border-color 0.2s; font-family: inherit;
+  transition: border-color 0.25s, box-shadow 0.25s; font-family: inherit;
   box-sizing: border-box;
 }
 .of__input::placeholder, .of__textarea::placeholder { color: rgba(240,237,232,0.25); }
 .of__input:focus, .of__textarea:focus { outline: none; border-color: #d4af37; }
 .of__textarea { resize: vertical; min-height: 80px; }
 .of__hint { font-size: 0.75rem; color: rgba(240,237,232,0.3); margin: 5px 0 0; }
+
+/* ── Error state — мягкое розовое свечение ── */
+.of__input--error {
+  border-color: rgba(251, 113, 133, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.08), inset 0 0 0 1px rgba(251, 113, 133, 0.1);
+  animation: field-pulse 0.4s ease;
+}
+.of__pills--error {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 113, 133, 0.45);
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.07);
+  animation: field-pulse 0.4s ease;
+}
+@keyframes field-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(251,113,133,0.25); }
+  40%  { box-shadow: 0 0 0 6px rgba(251,113,133,0.1); }
+  100% { box-shadow: 0 0 0 3px rgba(251,113,133,0.07); }
+}
 
 /* Pills */
 .of__pills { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -523,10 +585,12 @@ const handleSubmit = async () => {
   font-size: 0.75rem; color: #4ade80; transition: all 0.2s; margin-top: 1px;
 }
 .of__checkbox--checked { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); }
-.of__checkbox--error { border-color: #ef4444; background: rgba(239,68,68,0.1); animation: shake 0.3s ease; }
-@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.of__checkbox--error {
+  border-color: rgba(251,113,133,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(251,113,133,0.1);
+  animation: field-pulse 0.4s ease;
+}
 .of__agree--error { color: rgba(240,237,232,0.8); }
-.of__agree--error::after { content: ' — обязательно'; color: #ef4444; font-size: 0.75rem; }
 .of__agree a { color: #d4af37; text-decoration: none; }
 
 /* Navigation */
@@ -556,6 +620,16 @@ const handleSubmit = async () => {
 }
 .of__btn--submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
 .of__btn--submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Shake кнопки при невалидной форме */
+.of__btn--shake { animation: btn-shake 0.4s ease; }
+@keyframes btn-shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-5px); }
+  40%     { transform: translateX(5px); }
+  60%     { transform: translateX(-3px); }
+  80%     { transform: translateX(3px); }
+}
 
 /* Transition */
 .step-fade-enter-active, .step-fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
