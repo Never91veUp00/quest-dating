@@ -1,4 +1,4 @@
-// Уведомления через Telegram Bot API и Email (SMTP)
+// Уведомления через Telegram Bot API и Email (Resend)
 import { logger } from '../utils/logger.js'
 
 // ─── Telegram ────────────────────────────────────────────────────────────────
@@ -23,43 +23,27 @@ const sendTelegramMessage = async (text) => {
   } catch (e) { logger.error('Telegram send failed', { msg: e.message }) }
 }
 
-// ─── Email ────────────────────────────────────────────────────────────────────
-let _transport = null
-
-const getTransport = async () => {
-  if (_transport) return _transport
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null
-  try {
-    const { default: nodemailer } = await import('nodemailer')
-    const port = parseInt(process.env.SMTP_PORT || '465')
-    _transport = nodemailer.createTransport({
-      host: process.env.SMTP_HOST, port, secure: port === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    })
-    await _transport.verify()
-    logger.info('SMTP ready', { host: process.env.SMTP_HOST })
-    return _transport
-  } catch (e) {
-    logger.error('SMTP init failed', { msg: e.message })
-    _transport = null
-    return null
-  }
-}
-
+// ─── Email (Resend HTTP API) ──────────────────────────────────────────────────
 const sendEmail = async (subject, html) => {
-  const t = await getTransport()
-  if (!t) return
+  if (!process.env.RESEND_API_KEY) { logger.warn('Resend API key не настроен'); return }
   try {
-    await t.sendMail({
-      from: `"Quest Dating" <${process.env.SMTP_FROM}>`,
-      to: process.env.SMTP_TO,
-      subject, html,
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Quest Dating <noreply@questdating.ru>',
+        to:   [process.env.NOTIFY_EMAIL || 'vp.vlad00@mail.ru'],
+        subject,
+        html,
+      }),
     })
-    logger.info('Email sent', { subject })
-  } catch (e) {
-    logger.error('Email failed', { msg: e.message })
-    _transport = null
-  }
+    const data = await r.json()
+    if (!r.ok) { logger.error('Resend error', { status: r.status, err: data }); return }
+    logger.info('Email sent', { id: data.id, subject })
+  } catch (e) { logger.error('Email send failed', { msg: e.message }) }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -76,7 +60,6 @@ const FEATURE_LABELS = {
   qr_codes:          'QR-коды',
   partner_surprises: 'Сюрпризы',
 }
-
 const STATUS_LABELS = {
   confirmed:   'Подтверждён',
   in_progress: 'В работе',
@@ -84,13 +67,21 @@ const STATUS_LABELS = {
   cancelled:   'Отменён',
 }
 
-const emailWrap = (body) =>
-  `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">${body}
-   <p style="color:#999;font-size:12px;margin-top:24px">Quest Dating &middot; ${fmtNow()} МСК</p></div>`
+const emailWrap = (body) => `
+<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:24px;background:#f5f5f5;font-family:sans-serif">
+<div style="max-width:580px;margin:0 auto;background:#fff;border-radius:8px;
+            padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+  ${body}
+  <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+  <p style="color:#aaa;font-size:12px;margin:0">Quest Dating · ${fmtNow()} МСК</p>
+</div></body></html>`
 
 const row = (label, value) =>
-  `<tr><td style="padding:5px 12px 5px 0;color:#777;white-space:nowrap">${label}</td>
-       <td style="padding:5px 0">${value}</td></tr>`
+  `<tr>
+     <td style="padding:6px 16px 6px 0;color:#888;white-space:nowrap;vertical-align:top">${label}</td>
+     <td style="padding:6px 0;color:#1a1a1a">${value}</td>
+   </tr>`
 
 // ─── New order ────────────────────────────────────────────────────────────────
 export const notifyNewOrder = async (order, templateTitle) => {
@@ -101,12 +92,10 @@ export const notifyNewOrder = async (order, templateTitle) => {
     : null
 
   const tgLines = [
-    `<b>Новый заказ #${order.id}</b>`,
-    ``,
+    `<b>Новый заказ #${order.id}</b>`, ``,
     `Клиент: <b>${order.client_name}</b>`,
     `Email: ${order.client_email}`,
-    order.client_phone ? `Тел: ${order.client_phone}` : null,
-    ``,
+    order.client_phone ? `Тел: ${order.client_phone}` : null, ``,
     `Квест: ${templateTitle}`,
     `Дата: ${date}`,
     order.event_city ? `Город: ${order.event_city}` : null,
@@ -114,30 +103,29 @@ export const notifyNewOrder = async (order, templateTitle) => {
     features ? `Опции: ${features}` : null,
     order.description ? `` : null,
     order.description ? `<i>${order.description.slice(0, 400)}</i>` : null,
-    ``,
-    `${fmtNow()} МСК`,
+    ``, `${fmtNow()} МСК`,
   ]
 
   const rows = [
-    row('Клиент', `<b>${order.client_name}</b>`),
-    row('Email', `<a href="mailto:${order.client_email}">${order.client_email}</a>`),
+    row('Клиент',  `<strong>${order.client_name}</strong>`),
+    row('Email',   `<a href="mailto:${order.client_email}" style="color:#c8960c">${order.client_email}</a>`),
     order.client_phone ? row('Телефон', order.client_phone) : '',
-    row('Квест', templateTitle),
-    row('Дата', date),
+    row('Квест',   templateTitle),
+    row('Дата',    date),
     order.event_city ? row('Город', order.event_city) : '',
-    row('Сумма', `<b style="color:#c8960c">${price}</b>`),
+    row('Сумма',   `<strong style="color:#c8960c">${price}</strong>`),
     features ? row('Опции', features) : '',
-  ]
+  ].filter(Boolean)
 
   const html = emailWrap(`
-    <h2 style="color:#c8960c;border-bottom:2px solid #eee;padding-bottom:8px">
-      Новый заказ #${order.id}</h2>
+    <h2 style="margin:0 0 4px;color:#c8960c;font-size:20px">🎯 Новый заказ #${order.id}</h2>
+    <p style="margin:0 0 20px;color:#888;font-size:14px">${templateTitle}</p>
     <table style="border-collapse:collapse;width:100%">${rows.join('')}</table>
     ${order.description ? `
-    <div style="margin-top:16px;padding:12px 16px;background:#fdf8ee;
-                border-left:3px solid #c8960c;border-radius:0 4px 4px 0">
-      <div style="font-size:12px;color:#999;margin-bottom:4px">Пожелания</div>
-      ${order.description.replace(/\n/g, '<br>')}
+    <div style="margin-top:20px;padding:14px 16px;background:#fdf8ee;
+                border-left:3px solid #c8960c;border-radius:0 6px 6px 0">
+      <div style="font-size:11px;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Пожелания клиента</div>
+      <div style="color:#333;line-height:1.6">${order.description.replace(/\n/g, '<br>')}</div>
     </div>` : ''}`)
 
   await Promise.allSettled([
@@ -158,11 +146,11 @@ export const notifyOrderStatusChange = async (order, newStatus) => {
   ]
 
   const html = emailWrap(`
-    <h2 style="color:#c8960c">Заказ #${order.id} — статус изменён</h2>
-    <table style="border-collapse:collapse">
+    <h2 style="margin:0 0 20px;color:#c8960c;font-size:20px">🔄 Заказ #${order.id} — статус изменён</h2>
+    <table style="border-collapse:collapse;width:100%">
       ${row('Клиент', order.client_name)}
-      ${row('Email', order.client_email)}
-      ${row('Статус', `<b>${label}</b>`)}
+      ${row('Email',  order.client_email)}
+      ${row('Статус', `<strong>${label}</strong>`)}
       ${order.admin_notes ? row('Заметка', order.admin_notes) : ''}
     </table>`)
 
@@ -175,23 +163,21 @@ export const notifyOrderStatusChange = async (order, newStatus) => {
 // ─── Contact form ─────────────────────────────────────────────────────────────
 export const notifyContactMessage = async ({ name, phone, message }) => {
   const tg = [
-    `<b>Сообщение с сайта</b>`,
-    ``,
+    `<b>Сообщение с сайта</b>`, ``,
     `Имя: <b>${name}</b>`,
-    `Тел: ${phone}`,
-    ``,
+    `Тел: ${phone}`, ``,
     `<i>${message}</i>`,
   ]
 
   const html = emailWrap(`
-    <h2 style="color:#c8960c">Сообщение с сайта</h2>
-    <table style="border-collapse:collapse">
-      ${row('Имя', `<b>${name}</b>`)}
-      ${row('Телефон', phone)}
+    <h2 style="margin:0 0 20px;color:#c8960c;font-size:20px">✉️ Сообщение с сайта</h2>
+    <table style="border-collapse:collapse;width:100%">
+      ${row('Имя',      `<strong>${name}</strong>`)}
+      ${row('Телефон',  phone)}
     </table>
-    <div style="margin-top:16px;padding:12px 16px;background:#fdf8ee;
-                border-left:3px solid #c8960c;border-radius:0 4px 4px 0">
-      ${message.replace(/\n/g, '<br>')}
+    <div style="margin-top:20px;padding:14px 16px;background:#fdf8ee;
+                border-left:3px solid #c8960c;border-radius:0 6px 6px 0">
+      <div style="color:#333;line-height:1.6">${message.replace(/\n/g, '<br>')}</div>
     </div>`)
 
   await Promise.allSettled([
