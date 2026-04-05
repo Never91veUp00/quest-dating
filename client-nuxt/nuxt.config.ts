@@ -23,7 +23,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         // Cormorant Garamond для Лизы Петри
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap' },
+        { rel: 'preload', as: 'style', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&display=swap', onload: "this.onload=null;this.rel='stylesheet'" },
         // Favicon — явно для Яндекса и других поисковиков
         { rel: 'shortcut icon', href: '/favicon.ico', type: 'image/x-icon' },
         { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon', sizes: '32x32' },

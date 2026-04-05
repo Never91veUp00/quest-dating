@@ -23,6 +23,7 @@
             :src="activePhoto"
             :alt="date.title"
             loading="eager"
+            fetchpriority="high"
             decoding="async"
             class="qp__hero-photo"
           />

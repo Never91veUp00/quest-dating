@@ -46,8 +46,8 @@ body {
 
 /* Чёткость изображений на Retina */
 img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  /* crisp-edges causes pixelation on photos; auto lets browser handle scaling */
+  image-rendering: auto;
 }
 
 /* SVG тоже чёткие */
