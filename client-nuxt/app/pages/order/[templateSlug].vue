@@ -104,8 +104,8 @@
                 <strong>#{{ orderId }}</strong>
               </div>
               <div class="op__success-actions">
-                <NuxtLink to="/" class="op__success-btn op__success-btn--primary">На главную</NuxtLink>
-                <NuxtLink to="/catalog" class="op__success-btn">Другие квесты</NuxtLink>
+                <button class="op__success-btn op__success-btn--primary" @click="restoreScroll(); navigateTo('/')">На главную</button>
+                <button class="op__success-btn" @click="restoreScroll(); navigateTo('/catalog')">Другие квесты</button>
               </div>
             </div>
           </div>
@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const route  = useRoute()
 const toast  = useToast()
@@ -174,6 +174,16 @@ function formatPrice(v) { return v ? `${Math.round(Number(v)/100).toLocaleString
 function formatDur(m) { if (!m) return ''; const h=Math.floor(m/60),mn=m%60; return h>0?(mn>0?`${h}ч ${mn}м`:`${h}ч`):`${mn}м` }
 
 onMounted(loadTemplate)
+
+// Восстанавливаем скролл при уходе со страницы — на случай если модалка
+// была открыта и пользователь ушёл через NuxtLink (SPA-навигация не перезагружает страницу)
+onUnmounted(() => {
+  if (import.meta.client) document.body.style.overflow = ''
+})
+
+const restoreScroll = () => {
+  if (import.meta.client) document.body.style.overflow = ''
+}
 </script>
 
 <style scoped>
