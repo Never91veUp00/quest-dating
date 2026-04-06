@@ -36,6 +36,13 @@
 
           <!-- Форма -->
           <div class="op__form-wrap">
+            <!-- Ошибка заказа — всегда видна если toast не работает -->
+            <transition name="err-slide">
+              <div v-if="orderError" class="op__order-error">
+                <span>⚠️ {{ orderError }}</span>
+                <button @click="orderError = ''" class="op__order-error-close">×</button>
+              </div>
+            </transition>
             <OrderForm
               :template="template"
               :on-submit="handleSubmit"
@@ -122,6 +129,7 @@ const error       = ref(null)
 const showSuccess = ref(false)
 const orderId     = ref(null)
 const orderEmail  = ref('')
+const orderError  = ref('')
 
 useSeoMeta({
   title: () => template.value ? `Заказать «${template.value.title}» | Quest Dating` : 'Оформление заказа | Quest Dating',
@@ -152,7 +160,13 @@ const handleSubmit = async (orderData) => {
     showSuccess.value = true
     if (import.meta.client) document.body.style.overflow = 'hidden'
   } catch (e) {
-    toast.error(e.message || 'Ошибка при оформлении заказа')
+    const msg = e.message || 'Ошибка при оформлении заказа'
+    // Используем toast если доступен, иначе — встроенный alert (надёжно на мобильных)
+    if (toast.error) {
+      toast.error(msg)
+    }
+    // Всегда показываем встроенную ошибку — toast может не работать
+    orderError.value = msg
   }
 }
 
@@ -251,4 +265,32 @@ onMounted(loadTemplate)
 
 .success-fade-enter-active, .success-fade-leave-active { transition: opacity 0.25s; }
 .success-fade-enter-from, .success-fade-leave-to { opacity: 0; }
+
+/* Order error banner */
+.op__order-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(248,113,113,0.12);
+  border: 1px solid rgba(248,113,113,0.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: #fca5a5;
+}
+.op__order-error-close {
+  background: none;
+  border: none;
+  color: #fca5a5;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.err-slide-enter-active, .err-slide-leave-active { transition: opacity 0.3s; }
+.err-slide-enter-from, .err-slide-leave-to { opacity: 0; }
+
 </style>
