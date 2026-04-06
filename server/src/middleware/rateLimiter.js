@@ -38,7 +38,8 @@ export const questLimiter = rateLimit({
 // Жёсткий лимит для создания заказов
 export const orderLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 час
-  max: 5, // не более 5 заказов в час с одного IP
+  max: 10, // не более 10 попыток в час с одного IP (было 5 — слишком мало при тихих ошибках)
+  skipFailedRequests: false,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
