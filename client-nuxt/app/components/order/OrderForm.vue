@@ -199,7 +199,15 @@
 
         <!-- Согласие -->
         <div class="of__field">
-          <label class="of__agree" :class="{ 'of__agree--error': err.agree }" @click="form.agree = !form.agree; clearErr('agree')">
+          <div
+            class="of__agree"
+            :class="{ 'of__agree--error': err.agree }"
+            role="checkbox"
+            :aria-checked="form.agree"
+            tabindex="0"
+            @click="form.agree = !form.agree; clearErr('agree')"
+            @keydown.space.prevent="form.agree = !form.agree; clearErr('agree')"
+          >
             <div class="of__checkbox" :class="{ 'of__checkbox--checked': form.agree, 'of__checkbox--error': err.agree }">
               <span v-if="form.agree">✓</span>
             </div>
@@ -208,9 +216,14 @@
               <a href="/terms" target="_blank" @click.stop>условиями</a> и
               <a href="/privacy" target="_blank" @click.stop>политикой конфиденциальности</a>
             </span>
-          </label>
+          </div>
         </div>
       </div>
+      </transition>
+
+      <!-- Ошибка валидации -->
+      <transition name="val-err">
+        <p v-if="validationMsg" class="of__val-error">⚠️ {{ validationMsg }}</p>
       </transition>
 
       <!-- Навигация -->
@@ -249,13 +262,14 @@
 import { ref, reactive, computed, nextTick } from 'vue'
 
 const props = defineProps({
-  template: { type: Object, default: null }
+  template:  { type: Object,   default: null },
+  onSubmit:  { type: Function, default: null },   // ← принимает async fn, await работает правильно
 })
-const emit = defineEmits(['submit', 'update:features', 'update:customization', 'update:featuresData'])
 
 const currentStep = ref(1)
 const submitting  = ref(false)
-const shaking     = ref(false)
+const shaking        = ref(false)
+const validationMsg  = ref('')
 
 // Ошибки — объект с именами полей
 const err = reactive({})
@@ -388,6 +402,20 @@ const triggerShake = () => {
   setTimeout(() => { shaking.value = false }, 500)
 }
 
+const showValidationError = () => {
+  const msgs = {
+    client_name:  'Введите ваше имя',
+    client_email: 'Введите корректный email',
+    event_city:   'Укажите город',
+    partner_name: 'Введите имя партнёра',
+    occasion:     'Выберите повод для квеста',
+    agree:        'Необходимо согласие с условиями',
+  }
+  const firstKey = Object.keys(err)[0]
+  validationMsg.value = msgs[firstKey] || 'Пожалуйста, заполните все обязательные поля'
+  setTimeout(() => { validationMsg.value = '' }, 4000)
+}
+
 const scrollToFirstError = async () => {
   await nextTick()
   const el = document.querySelector('.of__input--error, .of__pills--error, .of__checkbox--error')
@@ -428,6 +456,7 @@ const nextStep = async () => {
     if (import.meta.client) window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
     triggerShake()
+    showValidationError()
     scrollToFirstError()
   }
 }
@@ -456,17 +485,19 @@ const buildDescription = () => {
 }
 
 const handleSubmit = async () => {
-  if (!validate()) { triggerShake(); scrollToFirstError(); return }
+  if (!validate()) { triggerShake(); showValidationError(); scrollToFirstError(); return }
   if (submitting.value) return
   submitting.value = true
+  validationMsg.value = ''
   try {
     if (typeof window !== 'undefined' && window.ym) ym(108293057, 'reachGoal', 'order_form_submit')
-    await emit('submit', {
+    if (!props.onSubmit) throw new Error('onSubmit prop не передан')
+    await props.onSubmit({
       template_id:  props.template?.id,
       client_name:  form.client_name,
       client_email: form.client_email,
       client_phone: form.client_phone,
-      event_date:   form.event_date,
+      event_date:   form.event_date || null,
       event_city:   form.event_city,
       description:  buildDescription(),
       customization: {},
@@ -637,4 +668,28 @@ const handleSubmit = async () => {
 .step-fade-enter-active, .step-fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .step-fade-enter-from { opacity: 0; transform: translateX(20px); }
 .step-fade-leave-to { opacity: 0; transform: translateX(-20px); }
+
+/* Agree checkbox — мобильная надёжность */
+.of__agree {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ошибка валидации — видимая подсказка */
+.of__val-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  text-align: center;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 8px;
+}
+.val-err-enter-active, .val-err-leave-active { transition: opacity 0.3s; }
+.val-err-enter-from, .val-err-leave-to { opacity: 0; }
+
 </style>

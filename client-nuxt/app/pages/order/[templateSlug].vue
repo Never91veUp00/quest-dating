@@ -38,7 +38,7 @@
           <div class="op__form-wrap">
             <OrderForm
               :template="template"
-              @submit="handleSubmit"
+              :on-submit="handleSubmit"
             />
           </div>
 
