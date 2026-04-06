@@ -104,12 +104,12 @@
     <!-- Шаблон -->
     <div class="qe-section">
       <div class="qe-section__title">Шаблон</div>
-      <select :value="selectedTemplate" class="qe-select"
+      <select :value="selectedTemplate?.id ?? (selectedTemplate || '')" class="qe-select"
         @change="e => $emit('load-template', e.target.value)">
         <option value="">— Начать с нуля —</option>
         <option v-for="t in templates" :key="t.id" :value="t.id">{{ t.title }}</option>
       </select>
-      <div v-if="selectedTemplate" class="qe-hint">
+      <div v-if="selectedTemplate?.id" class="qe-hint">
         Блоки шаблона загружены. Можно редактировать.
       </div>
     </div>
@@ -122,7 +122,7 @@ import { ref, computed } from 'vue'
 const props = defineProps({
   form:             { type: Object, required: true },
   templates:        { type: Array,  default: () => [] },
-  selectedTemplate: { type: [String, Object], default: '' },
+  selectedTemplate: { type: [String, Object], default: null },
   origin:           { type: String, default: '' },
 })
 defineEmits(['auto-slug', 'load-template'])

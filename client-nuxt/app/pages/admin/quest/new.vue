@@ -76,7 +76,7 @@ const {
   loadTemplate, autoSlug, save, previewQuest,
 } = useQuestEditor()
 
-const onLoadTemplate = () => loadTemplate()
+const onLoadTemplate = (tplId) => loadTemplate(tplId)
 const pluralBlock = (n) =>
   ['блок', 'блока', 'блоков'][n % 100 > 10 && n % 100 < 20 ? 2 : [2, 0, 1, 1, 1, 2][Math.min(n % 10, 5)]]
 </script>

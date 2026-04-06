@@ -20,7 +20,7 @@ export function useQuestEditor() {
   const errors           = ref([])
   const openBlocks       = ref([])
   const templates        = ref([])
-  const selectedTemplate = ref('')
+  const selectedTemplate = ref(null)
   const toast            = ref(null)
   let   toastTimer       = null
 
@@ -87,12 +87,18 @@ export function useQuestEditor() {
   }
 
   // ─── Templates ────────────────────────────────────────────────
-  const loadTemplate = () => {
+  const loadTemplate = (tplId) => {
+    // Если передан ID (из дропдауна) — обновляем selectedTemplate
+    if (tplId !== undefined) {
+      if (!tplId) { selectedTemplate.value = null; return }
+      const found = templates.value.find(t => t.id === Number(tplId))
+      selectedTemplate.value = found || null
+    }
     if (!selectedTemplate.value) return
     const hasContent = form.value.blocks.length > 1 ||
-      (form.value.blocks.length === 1 && form.value.blocks[0].tasks.length)
+      (form.value.blocks.length === 1 && form.value.blocks[0].tasks?.length)
     if (hasContent && !confirm('Заменить текущие блоки блоками шаблона?')) {
-      selectedTemplate.value = ''; return
+      selectedTemplate.value = null; return
     }
     applyTemplate(selectedTemplate.value)
   }
