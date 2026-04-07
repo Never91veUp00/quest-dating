@@ -11,6 +11,8 @@ const router = express.Router()
 
 // Все роуты — только для админа
 router.use(requireAdmin)
+// Отключаем HTTP-кэш для всех admin-роутов (ETag/304 ломает свежие данные)
+router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next() })
 
 // ─── GET /api/admin/dashboard ─────────────────────────────────
 // Статистика для дашборда
