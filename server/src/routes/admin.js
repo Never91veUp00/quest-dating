@@ -319,7 +319,8 @@ router.post('/upload/media',
 router.get('/templates', async (req, res, next) => {
   try {
     const result = await pool.query(`
-      SELECT id, title, slug, structure, difficulty, duration_minutes
+      SELECT id, title, slug, structure, difficulty, duration_minutes,
+             default_theme, default_player_version, default_show_intro
       FROM quest_templates
       WHERE status = 'published'
       ORDER BY title
@@ -397,10 +398,12 @@ router.post('/templates/create', [
         base_price, is_free, is_premium,
         features, cover_image, gallery, structure,
         demo_quest_id, quick_view_description, status,
+        default_theme, default_player_version, default_show_intro,
         published_at
       ) VALUES (
         (SELECT id FROM authors ORDER BY id LIMIT 1),
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
+        $23,$24,$25,
         CASE WHEN $22 = 'published' THEN NOW() ELSE NULL END)
       RETURNING *
     `, [
@@ -417,7 +420,10 @@ router.post('/templates/create', [
       demo_quest_id || null,
       quick_view_description || null,
       status,
-      status
+      status,
+      req.body.default_theme || 'detective',
+      req.body.default_player_version || 'v1',
+      req.body.default_show_intro !== false
     ])
     // Сохраняем теги
     const tagIds = Array.isArray(req.body.tag_ids) ? req.body.tag_ids : []
@@ -520,6 +526,9 @@ router.put('/templates/:id', [
         demo_quest_id         = $18,
         quick_view_description= $19,
         status                = $20,
+        default_theme         = $23,
+        default_player_version= $24,
+        default_show_intro    = $25,
         published_at          = CASE WHEN $21 THEN NOW() ELSE published_at END,
         updated_at            = NOW()
       WHERE id = $22
@@ -546,7 +555,10 @@ router.put('/templates/:id', [
       quick_view_description || null,
       status || 'draft',
       becomesPublished,
-      req.params.id
+      req.params.id,
+      req.body.default_theme || 'detective',
+      req.body.default_player_version || 'v1',
+      req.body.default_show_intro !== false
     ])
 
     // Сохраняем теги
