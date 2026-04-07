@@ -140,6 +140,35 @@
             <div class="adm-tform__hint">Выберите готовый квест — его структура отобразится на публичной странице шаблона</div>
           </div>
 
+          <!-- Тема и параметры редактора квестов -->
+          <div class="adm-tform__row adm-tform__row--3">
+            <div class="adm-tform__field">
+              <label>Тема оформления по умолчанию</label>
+              <select v-model="form.default_theme" class="adm-tform__select">
+                <option value="detective">🕵️ Детектив</option>
+                <option value="romantic">❤️ Романтик</option>
+                <option value="city">🏙️ Город</option>
+                <option value="mystery">🔮 Мистика</option>
+                <option value="treasure">🗺️ Искатель клада</option>
+                <option value="proposal">💍 Предложение</option>
+              </select>
+              <div class="adm-tform__hint">Применяется автоматически в редакторе при выборе шаблона</div>
+            </div>
+            <div class="adm-tform__field">
+              <label>Версия плеера по умолчанию</label>
+              <select v-model="form.default_player_version" class="adm-tform__select">
+                <option value="v1">🎮 Стандартный</option>
+                <option value="v2">✨ Иммерсивный</option>
+              </select>
+            </div>
+            <div class="adm-tform__field adm-tform__field--checkbox" style="padding-top:24px;">
+              <label class="adm-tform__check-label">
+                <input type="checkbox" v-model="form.default_show_intro" />
+                <span>Показывать заставку по умолчанию</span>
+              </label>
+            </div>
+          </div>
+
           <!-- Галерея -->
           <div class="adm-tform__field">
             <label>Галерея изображений</label>
@@ -261,7 +290,8 @@ const emptyForm = () => ({
   min_locations: null, max_locations: null, demo_video_url: '',
   base_price: 0, is_free: false, is_premium: false,
   featuresText: '', cover_image: '', gallery: [],
-  tag_ids: [], demo_quest_id: null, status: 'draft'
+  tag_ids: [], demo_quest_id: null, status: 'draft',
+  default_theme: 'detective', default_player_version: 'v1', default_show_intro: true
 })
 
 
@@ -297,6 +327,9 @@ watch(() => props.editingTemplate, (t) => {
       status:           t.status           || 'draft',
       demo_quest_id:    t.demo_quest_id    || null,
       tag_ids:          Array.isArray(t.tags) ? t.tags.map(tg => tg.id) : [],
+      default_theme:          t.default_theme          || 'detective',
+      default_player_version: t.default_player_version || 'v1',
+      default_show_intro:     t.default_show_intro !== undefined ? t.default_show_intro : true,
     }
   } else {
     form.value = emptyForm()
