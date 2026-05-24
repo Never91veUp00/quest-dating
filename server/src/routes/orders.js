@@ -14,12 +14,16 @@ router.post('/', orderLimiter, [
   body('description').trim().notEmpty().withMessage('Описание обязательно')
 ], orderController.createOrder)
 
-// Admin-only — всё остальное
-router.get('/', requireAdmin, orderController.getAllOrders)
-router.get('/stats', requireAdmin, orderController.getOrdersStats)
-router.get('/:id', requireAdmin, orderController.getOrderById)
+// Публичный — просмотр заказа по токену (должен быть ДО /:id)
+router.get('/by-token/:token', orderController.getOrderByToken)
+
+// Admin-only
+router.get('/',           requireAdmin, orderController.getAllOrders)
+router.get('/stats',      requireAdmin, orderController.getOrdersStats)
+router.get('/:id',        requireAdmin, orderController.getOrderById)
 router.patch('/:id/status', requireAdmin, [
   body('status').notEmpty().withMessage('Статус обязателен')
 ], orderController.updateOrderStatus)
+router.delete('/:id',     requireAdmin, orderController.deleteOrder)
 
 export default router

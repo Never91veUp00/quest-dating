@@ -8,6 +8,7 @@ import questsRoutes from './quests.js'
 import authRoutes from './auth.js'
 import adminRoutes from './admin.js'
 import contactRoutes from './contact.js'
+import telegramRoutes from './telegram.js'
 import { getPlatformStats } from '../services/statsService.js'
 import pool from '../config/database.js'
 
@@ -54,6 +55,7 @@ router.use('/quests', questsRoutes)
 router.use('/auth', authRoutes)
 router.use('/admin', adminRoutes)
 router.use('/contact', contactRoutes)
+router.use('/telegram', telegramRoutes)
 
 // Базовый endpoint для проверки API
 router.get('/', (req, res) => {

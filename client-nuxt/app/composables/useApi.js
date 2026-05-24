@@ -95,6 +95,7 @@ export function useDatesApi() {
     // Заказы
     createOrder:      (data)             => post('/orders', data),
     getOrder:         (id)               => get(`/orders/${id}`),
+    getOrderByToken:  (token)             => get('/orders/by-token/' + token),
 
     // Поиск
     searchDates:      (q, params = {})   => get('/search', { q, ...params }),

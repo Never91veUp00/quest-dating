@@ -44,7 +44,7 @@ Quest Dating — сервис персональных романтически�
 
 ### Инфраструктура
 
-VPS на рег.ру, развёрнуто через Docker Compose (4 контейнера: postgres, server, client, nginx). Telegram-бот для уведомлений о заказах.
+VPS на рег.ру, развёрнуто через Docker Compose (4 контейнера: postgres, server, client, nginx). Telegram-бот: уведомления администратору + вебхук для клиентов (по ссылке из письма). Resend — email клиентам при оформлении заказа.
 
 ---
 
@@ -91,6 +91,7 @@ quest-dating/
 │   │   │   ├── categories/[slug].vue  # /categories/:slug (SSR)
 │   │   │   ├── blog/            # /blog, /blog/:slug (SSR + SWR 3600s)
 │   │   │   ├── order/[templateSlug].vue  # /order/:slug (CSR)
+│   │   │   ├── my-order/[token].vue      # /my-order/:token (CSR, noindex)
 │   │   │   ├── quest/[slug].vue          # /quest/:slug (CSR)
 │   │   │   └── admin/           # /admin/** (CSR)
 │   │   ├── components/
@@ -100,8 +101,9 @@ quest-dating/
 │   │   │   ├── order/           # OrderForm (3 шага)
 │   │   │   └── quest/           # QuestSplash, QuestBlock, QuestTimer...
 │   │   ├── composables/
-│   │   │   ├── useApi.js        # Все API вызовы
+│   │   │   ├── useApi.js        # Все API вызовы (useDatesApi, useAdminApi)
 │   │   │   ├── useFilters.js    # Фильтры каталога
+│   │   │   ├── useQuestEditor.js    # Редактор квестов (блоки, шаблоны, applyTemplate)
 │   │   │   └── useImageFallback.js  # Fallback для изображений
 │   │   ├── stores/
 │   │   │   └── auth.js          # JWT через useCookie
@@ -131,6 +133,9 @@ quest-dating/
 │       │   ├── rateLimiter.js
 │       │   ├── auth.js          # JWT requireAdmin
 │       │   └── sanitize.js      # DOMPurify
+│       ├── services/
+│       │   ├── notificationService.js  # Email (Resend) + Telegram уведомления
+│       │   └── statsService.js
 │       └── config/
 │           └── database.js      # pg pool
 │
@@ -155,6 +160,7 @@ quest-dating/
 /blog/**         → SSR + SWR 3600s
 /terms, /privacy → SSR
 /order/**        → CSR               (форма заказа)
+/my-order/**     → CSR               (страница отслеживания заказа, noindex)
 /quest/**        → CSR               (quest player)
 /admin/**        → CSR               (защищённая зона)
 ```
@@ -215,11 +221,11 @@ router.get('/:id', ...)       // ← потом
 
 ### Основные таблицы
 
-**quest_templates** — сценарии квестов (`slug`, `title`, `base_price` в копейках, `category_id`, `difficulty`, `features[]`, `structure{}`, `orders_count`, `status`)
+**quest_templates** — сценарии квестов (`slug`, `title`, `base_price` в копейках, `category_id`, `difficulty`, `features[]`, `structure{}`, `orders_count`, `status`, `default_theme`, `default_player_version`, `default_show_intro`)
 
 **created_quests** — квесты созданные по заказу (`slug`, `template_id`, `client_name`, `access_code`, `blocks[]`, `is_public`)
 
-**orders** — заказы (`template_id`, `client_name`, `client_email`, `status`, `total_price`, `description`)
+**orders** — заказы (`template_id`, `client_name`, `client_email`, `status`, `total_price`, `description`, `view_token` UUID — публичный токен для страницы отслеживания)
 
 **categories** — категории (`name`, `slug`, `description`, `icon`, `color`)
 
@@ -271,3 +277,26 @@ router.get('/:id', ...)       // ← потом
 - **Access codes:** только в теле POST, никогда в URL
 - **Rate limiting:** многоуровневый
 - **Uploads:** сохраняются в Docker volume, отдаются через Nginx напрямую
+
+---
+
+## Уведомления о заказах
+
+При создании заказа (`POST /orders`) отправляются **два потока уведомлений**:
+
+### Администратору
+- Telegram-сообщение в чат (`TELEGRAM_CHAT_ID`) с деталями заказа
+- Email на `NOTIFY_EMAIL` через Resend
+
+### Клиенту
+- Email на `client_email` с деталями, ссылкой `/my-order/<view_token>` и кнопкой Telegram-бота
+- Telegram: клиент переходит по ссылке `t.me/questdating_bot?start=<view_token>` из письма → бот присылает детали заказа в чат
+
+### Страница отслеживания `/my-order/[token]`
+Публичная CSR-страница. Данные загружаются через `GET /api/orders/by-token/:token`.
+Показывает: статус, шаблон, дату, город, сумму, email, дополнения, кнопку Telegram-бота.
+Не индексируется (`robots: noindex,nofollow` + исключена из sitemap).
+
+### Telegram Webhook
+`POST /api/telegram/webhook` — зарегистрирован через `setWebhook`.
+Обрабатывает команду `/start <view_token>`: находит заказ по токену, отправляет сводку в чат клиента.

@@ -45,6 +45,9 @@ Get-Content database/update_category_descriptions.sql | docker exec -i quest-dat
 
 # Пересборка клиента
 docker compose build --no-cache client && docker compose up -d client
+
+# Зарегистрировать Telegram webhook (один раз после деплоя)
+curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://questdating.ru/api/telegram/webhook&drop_pending_updates=true"
 ```
 
 ---
@@ -65,6 +68,8 @@ JWT_SECRET=минимум-32-символа
 JWT_EXPIRES_IN=7d
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
+RESEND_API_KEY=          # Resend.com API key для email клиентам
+NOTIFY_EMAIL=            # Email администратора для уведомлений
 ```
 
 ---

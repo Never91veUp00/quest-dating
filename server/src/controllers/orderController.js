@@ -1,7 +1,7 @@
 import pool from '../config/database.js'
 import { validationResult } from 'express-validator'
 import { ORDER_STATUS, FEATURE_PRICES } from '../config/constants.js'
-import { notifyNewOrder, notifyOrderStatusChange } from '../services/notificationService.js'
+import { notifyNewOrder, notifyOrderStatusChange, sendClientOrderEmail } from '../services/notificationService.js'
 
 // Получить все заказы (для админки в будущем)
 export const getAllOrders = async (req, res, next) => {
@@ -180,10 +180,10 @@ export const createOrder = async (req, res, next) => {
       client.release()
     }
 
-    // Уведомление в Telegram — не блокируем ответ клиенту
-    notifyNewOrder(order, templateResult.rows[0].title).catch(
-      err => console.error('Ошибка уведомления о заказе:', err)
-    )
+    // Уведомления — не блокируем ответ клиенту
+    const tplTitle = templateResult.rows[0].title
+    notifyNewOrder(order, tplTitle).catch(err => console.error('Ошибка admin-уведомления:', err))
+    sendClientOrderEmail(order, tplTitle).catch(err => console.error('Ошибка client-уведомления:', err))
     
     res.status(201).json({
       success: true,
@@ -192,11 +192,48 @@ export const createOrder = async (req, res, next) => {
         ...order,
         base_price: parseFloat(order.base_price),
         additional_costs: parseFloat(order.additional_costs),
-        total_price: parseFloat(order.total_price)
+        total_price: parseFloat(order.total_price),
+        view_token: order.view_token
       }
     })
   } catch (error) {
     next(error)
+  }
+}
+
+
+// Получить заказ по view_token (публичный)
+export const getOrderByToken = async (req, res, next) => {
+  try {
+    const { token } = req.params
+    const result = await pool.query(`
+      SELECT
+        o.id, o.client_name, o.client_email, o.event_date, o.event_city,
+        o.base_price, o.additional_costs, o.total_price, o.status,
+        o.selected_features, o.created_at, o.view_token,
+        qt.title as template_title, qt.slug as template_slug,
+        qt.cover_image as template_image
+      FROM orders o
+      LEFT JOIN quest_templates qt ON o.template_id = qt.id
+      WHERE o.view_token = $1
+    `, [token])
+
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: 'Заказ не найден' })
+    }
+
+    const o = result.rows[0]
+    res.json({
+      success: true,
+      data: {
+        ...o,
+        base_price: parseFloat(o.base_price),
+        additional_costs: parseFloat(o.additional_costs),
+        total_price: parseFloat(o.total_price),
+      }
+    })
+  } catch (err) {
+    next(err)
   }
 }
 

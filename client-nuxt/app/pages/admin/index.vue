@@ -87,15 +87,14 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 
+definePageMeta({ middleware: ['admin'] })
+
 
 const router = useRouter()
 const auth   = useAuthStore()
 const { get, post, put, patch, del } = useApi()
 
-// Защита роута — редирект если не авторизован
-if (!auth.isAuthenticated) {
-  await navigateTo('/admin/login')
-}
+// Защита роута — через middleware/admin.js (definePageMeta выше)
 
 // ─── Tab ──────────────────────────────────────────────────────
 const route2 = useRoute()

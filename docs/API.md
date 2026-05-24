@@ -75,7 +75,19 @@ POST /orders
   "event_city": "Москва"
 }
 ```
-Rate limit: 5 заказов/час с одного IP. Отправляет Telegram уведомление.
+Rate limit: 5 заказов/час с одного IP.
+
+Ответ включает `view_token` — UUID для публичной страницы отслеживания заказа.
+
+При создании заказа автоматически отправляется:
+- Email клиенту (Resend) с деталями и ссылкой на `/my-order/<view_token>`
+- Telegram-уведомление администратору
+
+```
+GET /orders/by-token/:token
+```
+Публичный (без авторизации). Возвращает детали заказа по `view_token`.
+Поля: `id`, `client_name`, `client_email`, `event_date`, `event_city`, `total_price`, `status`, `selected_features`, `view_token`, `template_title`, `template_image`.
 
 ### Квесты (прохождение)
 
@@ -148,6 +160,23 @@ GET  /admin/categories         → для селекта при создании
 POST /admin/upload/image       → multipart/form-data (field: image) → { url }
 POST /admin/upload/images      → multipart/form-data (field: images[]) → [urls]
 ```
+
+---
+
+## Telegram Webhook
+
+```
+POST /telegram/webhook
+```
+
+Вебхук Telegram Bot API. Зарегистрирован через `setWebhook` на `https://questdating.ru/api/telegram/webhook`.
+
+Обрабатывает входящие сообщения боту `@questdating_bot`:
+
+- `/start` (без токена) — приветственное сообщение
+- `/start <view_token>` — находит заказ по токену, отвечает сводкой: название квеста, статус, дата, город, сумма, ссылка на сайт
+
+Всегда отвечает HTTP 200 немедленно (до обработки), как того требует Telegram.
 
 ---
 

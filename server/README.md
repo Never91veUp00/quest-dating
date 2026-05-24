@@ -11,6 +11,7 @@ Express REST API для сервиса романтических свидани
 - **express-rate-limit** — защита от спама
 - **DOMPurify** — XSS-защита контента
 - **bcrypt** — хеширование паролей
+- **Resend HTTP API** — транзакционные email клиентам
 - **multer** — загрузка изображений
 
 ---
@@ -46,8 +47,10 @@ npm start
 | `DB_PASSWORD` | Пароль БД | ✓ |
 | `JWT_SECRET` | Секрет для JWT (мин. 32 символа) | ✓ |
 | `JWT_EXPIRES_IN` | Срок жизни токена (по умолчанию `7d`) | — |
-| `TELEGRAM_BOT_TOKEN` | Токен Telegram-бота | — |
-| `TELEGRAM_CHAT_ID` | Chat ID для уведомлений | — |
+| `TELEGRAM_BOT_TOKEN` | Токен Telegram-бота (`@questdating_bot`) | — |
+| `TELEGRAM_CHAT_ID` | Chat ID администратора для уведомлений | — |
+| `RESEND_API_KEY` | Resend.com API key — email клиентам | — |
+| `NOTIFY_EMAIL` | Email администратора (fallback для уведомлений) | — |
 | `ALLOWED_ORIGINS` | CORS origins через запятую | — |
 | `MAX_FILE_SIZE` | Максимальный размер файла в байтах (по умолчанию 5 MB) | — |
 
@@ -68,8 +71,10 @@ GET  /api/categories             # Все категории
 GET  /api/categories/:slug       # Категория по slug
 GET  /api/tags/popular           # Популярные теги
 GET  /api/stats                  # Счётчики платформы
-POST /api/orders                 # Оформить заказ (rate limited)
+POST /api/orders                 # Оформить заказ (rate limited) → возвращает view_token
+GET  /api/orders/by-token/:token # Детали заказа по view_token (публичный)
 POST /api/contact                # Форма связи (rate limited)
+POST /api/telegram/webhook       # Telegram Bot вебхук
 GET  /api/reviews/featured       # Отзывы для главной
 POST /api/reviews                # Оставить отзыв
 ```
@@ -136,9 +141,11 @@ server/
 │   │   ├── reviews.js
 │   │   ├── quests.js
 │   │   ├── auth.js
+│   │   ├── telegram.js          # /telegram/webhook — бот-вебхук
 │   │   └── admin.js
 │   ├── services/
-│   │   └── telegramService.js
+│   │   ├── notificationService.js   # Email (Resend) + Telegram — admin и client
+│   └── statsService.js
 │   └── server.js
 ├── uploads/                     # Загруженные изображения
 ├── .env

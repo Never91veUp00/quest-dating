@@ -82,6 +82,7 @@ export default defineNuxtConfig({
     '/privacy':       { ssr: true },
     '/admin/**':      { ssr: false },
     '/order/**':      { ssr: false },
+    '/my-order/**':   { ssr: false },
     '/quest/**':      { ssr: true },
     '/templates':     { redirect: { to: '/catalog', statusCode: 301 } },
     '/template/**':   { redirect: { to: '/date/**', statusCode: 301 } },
@@ -100,7 +101,7 @@ export default defineNuxtConfig({
 
 
   sitemap: {
-    exclude: ['/admin/**', '/quest/**', '/order/**', '/sitemap-urls'],
+    exclude: ['/admin/**', '/quest/**', '/order/**', '/my-order/**', '/sitemap-urls'],
     sources: [
       // Динамические URL: все /date/:slug и /categories/:slug из БД
       '/sitemap-urls',
@@ -118,7 +119,7 @@ export default defineNuxtConfig({
 
   robots: {
     sitemap: ['https://questdating.ru/sitemap.xml'],
-    disallow: ['/admin', '/quest', '/order', '/feedbacks', '/memberid'],
+    disallow: ['/admin', '/quest', '/order', '/my-order', '/feedbacks', '/memberid'],
   },
 
   nitro: {

@@ -64,6 +64,7 @@ client-nuxt/
 │   │   │   ├── index.vue        # Блог (SSG)
 │   │   │   └── [slug].vue       # Статья (SSG)
 │   │   ├── order/[templateSlug].vue # Форма заказа (CSR, 4 шага)
+│   │   ├── my-order/[token].vue # Страница отслеживания заказа (CSR, noindex)
 │   │   ├── quest/[slug].vue     # Плеер квеста (CSR)
 │   │   └── admin/               # Админ-панель (CSR)
 │   ├── components/
@@ -73,7 +74,8 @@ client-nuxt/
 │   │   ├── template/            # TemplateAuthor, TemplateGallery, TemplateFeatures...
 │   │   └── quest/               # QuestSplash, QuestBlock, QuestTimer...
 │   ├── composables/
-│   │   ├── useApi.js            # Все API вызовы
+│   │   ├── useApi.js            # Все API вызовы (useDatesApi + useAdminApi)
+│   │   ├── useQuestEditor.js    # Редактор квестов (блоки, шаблоны)
 │   │   └── useFilters.js        # Фильтры каталога
 │   ├── data/
 │   │   └── blogPosts.js         # Статические статьи блога
@@ -112,6 +114,7 @@ client-nuxt/
 | `/`, `/catalog`, `/date/*`, `/categories/*` | SSR | SEO, актуальные данные |
 | `/blog`, `/blog/*` | SSG | Статический контент |
 | `/order/*`, `/quest/*`, `/admin/*` | CSR | Не индексируется |
+| `/my-order/*` | CSR | Страница отслеживания заказа (noindex) |
 
 ---
 
@@ -144,6 +147,8 @@ client-nuxt/
 | 2. Настройка | Дополнительные опции квеста |
 | 3. О паре | 5 наводящих вопросов о партнёре и паре |
 | 4. Пожелания | Настроение, идеи, дополнительно + согласие |
+
+После успешного оформления: модальное окно показывает кнопку **«Детали заказа →»** ведущую на `/my-order/<view_token>`.
 
 Ответы шагов 3–4 автоматически собираются в поле `description` через геттер — бэкенд не менялся.
 
@@ -180,5 +185,7 @@ npm run test:e2e:ui
 **JWT через `useCookie`** — не `localStorage` (недоступен при SSR).
 
 **Все API вызовы через `useApi.js`** — не создавай прямые `$fetch` в компонентах.
+
+**`useDatesApi().getOrderByToken(token)`** — загружает публичные данные заказа по `view_token` для страницы `/my-order/[token]`.
 
 **Градиент бренда:** `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`

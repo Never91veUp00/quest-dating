@@ -13,7 +13,7 @@
 | Frontend | Nuxt 4, Vue 3, `@nuxtjs/seo`, Playwright |
 | Backend | Node.js, Express, PostgreSQL, JWT |
 | Инфраструктура | Docker Compose, Nginx, Orange Pi 5 Pro |
-| Интеграции | Telegram Bot (уведомления), DOMPurify (XSS) |
+| Интеграции | Telegram Bot (уведомления + вебхук), Resend (email), DOMPurify (XSS) |
 
 ---
 
@@ -102,6 +102,9 @@ JWT_EXPIRES_IN=7d
 
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
+
+RESEND_API_KEY=         # Resend.com — email клиентам
+NOTIFY_EMAIL=           # куда приходят уведомления администратору
 
 ALLOWED_ORIGINS=https://questdating.ru
 MAX_FILE_SIZE=5242880

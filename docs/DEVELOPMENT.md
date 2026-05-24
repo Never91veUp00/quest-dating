@@ -57,6 +57,16 @@ const { data } = await useAsyncData('key', () => getDates())
 | Культурный | `cultural` |
 | Гастро | `gastronomic` |
 
+### useQuestEditor.js
+
+Центральный composable редактора квестов в `/admin/quest/`.
+
+`applyTemplate(tpl)` — применяет шаблон: копирует `structure` в блоки, устанавливает `theme`, `player_version`, `show_intro` из `default_*` полей шаблона.
+
+`loadTemplate(tplId?)` — если передан ID, ищет шаблон в `templates.value`, запрашивает подтверждение если есть контент, вызывает `applyTemplate`.
+
+При создании квеста из заказа (`/admin/quest/new?order_id=X&template_id=Y`): onMounted автоматически вызывает `loadTemplate(template_id)`.
+
 ### useApi.js
 
 Единственное место для всех API запросов.
@@ -83,12 +93,21 @@ router.get('/templates/all', ...)  // специфичные ДО
 router.get('/templates/:id', ...)  // параметрических
 ```
 
-### Telegram
+### Telegram / Email уведомления
 
 ```javascript
-res.json({ success: true, data: order })         // сначала ответ
-notifyNewOrder(order).catch(console.error)        // потом уведомление
+// Порядок в createOrder: сначала ответ клиенту, потом уведомления
+res.status(201).json({ success: true, data: { ...order, view_token } })
+notifyNewOrder(order, tplTitle).catch(...)         // admin: Telegram + Email
+sendClientOrderEmail(order, tplTitle).catch(...)   // client: Email (Resend)
 ```
+
+`notificationService.js` — единая точка для всех уведомлений:
+- `sendEmail(subject, html, to?)` — `to` опционален (по умолчанию `NOTIFY_EMAIL`)
+- `sendClientOrderEmail(order, templateTitle)` — красивое письмо клиенту с view_token ссылкой
+- `notifyNewOrder` / `notifyOrderStatusChange` / `notifyContactMessage` — для администратора
+
+Telegram-вебхук (`routes/telegram.js`) обрабатывает `/start <token>` — клиент переходит по ссылке из письма, бот отвечает деталями заказа.
 
 ---
 

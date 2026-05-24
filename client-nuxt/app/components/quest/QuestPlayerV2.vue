@@ -57,12 +57,9 @@
       class="qpv2__sheet"
       :class="{ 'qpv2__sheet--done': blockComplete }"
       :style="sheetOffset !== 0 ? { transform: `translateY(${sheetOffset}px)` } : {}"
-      @touchstart.stop="stDragStart"
-      @touchmove.stop.prevent="stDragMove"
-      @touchend.stop="stDragEnd"
       @click.stop
     >
-      <div class="qpv2__handle" @touchstart.stop="stDragStart" />
+      <div class="qpv2__handle" @touchstart.stop.prevent="stDragStart" @touchmove.stop.prevent="stDragMove" @touchend.stop="stDragEnd" />
 
       <!-- Trail dots -->
       <div class="qpv2__trail" v-if="block.tasks && block.tasks.length > 1">
@@ -310,7 +307,7 @@ watch(() => activeTaskIdx.value, () => { sheetOffset.value = 0 })
 .qpv2__trail-dot.active { background: var(--v2a); transform: scaleY(1.6); transform-origin: center; }
 
 /* Task wrap */
-.qpv2__task-wrap { flex: 1; overflow-y: auto; padding: 0 18px 18px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.qpv2__task-wrap { flex: 1; overflow-y: auto; padding: 0 18px 18px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; scrollbar-width: none; } .qpv2__task-wrap::-webkit-scrollbar { display: none; }
 
 /* Task header */
 .qpv2__task-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }

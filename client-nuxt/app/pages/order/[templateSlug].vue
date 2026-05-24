@@ -104,8 +104,8 @@
                 <strong>#{{ orderId }}</strong>
               </div>
               <div class="op__success-actions">
-                <button class="op__success-btn op__success-btn--primary" @click="restoreScroll(); navigateTo('/')">На главную</button>
-                <button class="op__success-btn" @click="restoreScroll(); navigateTo('/catalog')">Другие квесты</button>
+                <button v-if="viewToken" class="op__success-btn op__success-btn--primary" @click="restoreScroll(); navigateTo('/my-order/' + viewToken)">Детали заказа →</button>
+                <button class="op__success-btn" @click="restoreScroll(); navigateTo('/')">На главную</button>
               </div>
             </div>
           </div>
@@ -129,6 +129,7 @@ const error       = ref(null)
 const showSuccess = ref(false)
 const orderId     = ref(null)
 const orderEmail  = ref('')
+const viewToken   = ref('')
 const orderError  = ref('')
 
 useSeoMeta({
@@ -157,6 +158,7 @@ const handleSubmit = async (orderData) => {
     const res = await createOrder({ ...orderData, template_id: template.value.id })
     orderId.value    = res?.data?.id ?? res?.id
     orderEmail.value = orderData.client_email
+    viewToken.value   = res?.data?.view_token ?? ''
     showSuccess.value = true
     if (import.meta.client) document.body.style.overflow = 'hidden'
   } catch (e) {
