@@ -90,4 +90,4 @@ temp/
 .fusebox/
 .dynamodb/
 .tern-port
-.vscode-test
+.vscode-testbackups/
