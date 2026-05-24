@@ -27,7 +27,8 @@ const sendTelegramMessage = async (text, chatId = null) => {
 // ─── Email (Resend HTTP API) ──────────────────────────────────────────────────
 const sendEmail = async (subject, html, to = null) => {
   if (!process.env.RESEND_API_KEY) { logger.warn('Resend API key не настроен'); return }
-  const recipient = to || process.env.NOTIFY_EMAIL || 'vp.vlad00@mail.ru'
+  const recipient = to || process.env.NOTIFY_EMAIL
+  if (!recipient) { logger.warn('NOTIFY_EMAIL не задан — email не отправлен'); return }
   try {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
