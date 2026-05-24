@@ -2,10 +2,18 @@ import rateLimit from 'express-rate-limit'
 
 const isProd = process.env.NODE_ENV === 'production'
 
+// Пропускаем rate limit для локальных запросов в dev/test (E2E тесты, SSR, devProxy)
+const skipLocalhost = (req) => {
+  if (isProd) return false
+  const ip = req.ip || req.socket?.remoteAddress || ''
+  return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1'
+}
+
 // Общий лимит для всех API запросов
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 минут
   max: isProd ? 300 : 1000,  // в dev режиме — без ограничений по сути
+  skip: skipLocalhost,       // localhost не ограничиваем в dev (E2E тесты)
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -18,6 +26,7 @@ export const generalLimiter = rateLimit({
 export const questLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProd ? 200 : 1000,
+  skip: skipLocalhost,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -29,7 +38,8 @@ export const questLimiter = rateLimit({
 // Жёсткий лимит для создания заказов
 export const orderLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 час
-  max: 5, // не более 5 заказов в час с одного IP
+  max: 10, // не более 10 попыток в час с одного IP (было 5 — слишком мало при тихих ошибках)
+  skipFailedRequests: false,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

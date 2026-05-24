@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Закрыть технические и несуществующие разделы
+Disallow: /admin/
+Disallow: /quest/
+Disallow: /order/
+Disallow: /feedbacks
+
+# Закрыть URL чужих сайтов (попадают от спам-ботов)
+Disallow: /gal/
+Disallow: /memberid
+Disallow: /memberid/
+
+Sitemap: https://questdating.ru/sitemap.xml

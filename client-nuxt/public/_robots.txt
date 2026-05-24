@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /quest/
+Disallow: /order/
+Allow: /
+
+Sitemap: https://questdating.ru/sitemap.xml

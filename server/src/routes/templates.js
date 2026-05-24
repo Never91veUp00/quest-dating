@@ -21,4 +21,7 @@ router.get('/:slug', templateController.getTemplateBySlug)
 // GET /api/templates/:slug/similar - Похожие шаблоны
 router.get('/:slug/similar', templateController.getSimilarTemplates)
 
+// POST /api/templates/:slug/view - Инкремент просмотров
+router.post('/:slug/view', templateController.incrementView)
+
 export default router

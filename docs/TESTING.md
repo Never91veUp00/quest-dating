@@ -4,136 +4,125 @@
 
 | Слой | Инструмент | Для чего |
 |------|-----------|---------|
-| Backend unit | Vitest | middleware, utils, services |
-| Backend integration | Vitest + Supertest | HTTP API без реальной БД |
-| Frontend unit | Vitest + Vue Test Utils + jsdom | validators, formatters, компоненты |
-| E2E | Playwright | полные пользовательские сценарии |
+| Unit | Vitest + Vue Test Utils | validators, formatters, helpers |
+| E2E | Playwright | пользовательские сценарии |
 
 ---
 
-## Установка
+## Быстрый старт
 
 ```bash
-# Backend
-cd server
+cd client-nuxt
 npm install
+npx playwright install chromium   # один раз
 
-# Frontend
-cd client
-npm install
-npx playwright install chromium  # браузеры для E2E
+npm run test          # unit
+npm run dev &         # нужен для E2E
+npm run test:e2e      # E2E
 ```
 
 ---
 
-## Запуск
-
-### Backend
+## Unit тесты (Vitest)
 
 ```bash
-cd server
-
-npm test                    # все тесты
-npm run test:watch          # watch-режим (при разработке)
-npm run test:coverage       # с отчётом покрытия
-npm run test:unit           # только unit
-npm run test:integration    # только integration
+npm run test          # все
+npm run test:watch    # watch-режим
 ```
 
-### Frontend unit
+### Покрытие
 
-```bash
-cd client
-
-npm test                    # все unit тесты
-npm run test:watch          # watch-режим
-npm run test:coverage       # с отчётом покрытия
 ```
-
-### E2E (Playwright)
-
-```bash
-cd client
-
-# Требует запущенный frontend (порт 3000) и backend (порт 5000)
-npm run dev &               # в отдельном терминале
-
-npm run test:e2e            # headless
-npm run test:e2e:ui         # визуальный UI Playwright
-
-# Для тестов квеста — укажи реальный slug:
-E2E_TEST_QUEST_SLUG=my-quest npm run test:e2e
+tests/unit/
+├── validators.test.ts   # isValidEmail, isValidPhone, validateOrderForm
+├── formatters.test.ts   # formatPrice, formatDuration, pluralize, formatDate
+└── helpers.test.ts      # slugify, truncateText, debounce, groupBy
 ```
 
 ---
 
-## Структура
+## E2E тесты (Playwright)
+
+```bash
+# Нужен запущенный dev сервер!
+npm run test:e2e        # headless
+npm run test:e2e:ui     # визуальный UI
+```
+
+### Проекты
+
+| Проект | Viewport |
+|--------|----------|
+| `chromium` | Desktop 1280px |
+| `mobile` | iPhone 13 390px |
+
+### Файлы тестов
 
 ```
-server/tests/
-├── setup.js                    # env + моки БД и Telegram
-├── unit/
-│   ├── middleware/
-│   │   ├── auth.test.js        # requireAdmin: токены, роли, истечение
-│   │   └── validator.test.js   # sanitizeQuery: page/limit
-│   ├── utils/
-│   │   └── slugGenerator.test.js  # транслитерация, уникальность
-│   └── services/
-│       ├── statsService.test.js    # кеш, запросы к БД
-│       └── notificationService.test.js  # Telegram, маскировка телефона
-└── integration/api/
-    ├── auth.test.js            # POST /api/auth/login
-    ├── contact.test.js         # POST /api/contact
-    ├── quests.test.js          # сессии, прогресс, безопасность
-    └── orders.test.js          # создание, статус, уведомления
+tests/e2e/
+├── fixtures/
+│   ├── api.ts        # MOCK_TEMPLATE, MOCK_STATS, MOCK_CATEGORY...
+│   └── mockApi.ts    # mockHomepageApi() — мок публичных GET
+├── about.spec.ts     # /about — Person JSON-LD, CTA
+├── catalog.spec.ts   # /catalog — карточки, фильтры
+├── date-slug.spec.ts # /date/:slug — FAQ блок, Product JSON-LD, BreadcrumbList
+├── header.spec.ts    # навигация, мобильное меню
+├── homepage.spec.ts  # / — заголовок, og:image, Organization JSON-LD
+├── order.spec.ts     # форма заказа (3 шага)
+└── quest-player.spec.ts  # прохождение квеста, защита кодом
+```
 
-client/tests/
-├── setup.js                    # Vue Test Utils + моки api
-├── unit/
-│   ├── utils/
-│   │   ├── validators.test.js  # isValidEmail, validateOrderForm, ...
-│   │   └── formatters.test.js  # formatPrice, pluralize, ...
-│   └── components/
-│       └── SearchBar.test.js   # XSS, подсветка, localStorage
-└── e2e/
-    ├── order.spec.js           # полный флоу заказа
-    ├── contact.spec.js         # форма обратной связи
-    └── quest-player.spec.js    # прохождение квеста
+### mockHomepageApi()
+
+Мокирует `/stats`, `/categories`, `/reviews/featured`, `/templates/featured`, `/templates/popular`, `/tags/popular` через `page.route()`. Нужен чтобы не выбивать rate limiter при повторных запусках.
+
+```typescript
+import { mockHomepageApi } from './fixtures/mockApi'
+
+test.beforeEach(async ({ page }) => {
+  await mockHomepageApi(page)
+  await page.goto('/')
+})
+```
+
+### Моки POST
+
+```typescript
+// Мокировать оба URL (devProxy + прямой)
+await page.route('**/api/orders', route => route.fulfill({ status: 201, ... }))
+await page.route('http://localhost:5000/api/orders', route => route.fulfill({ status: 201, ... }))
 ```
 
 ---
 
-## Что покрыто
+## Особенности компонентов
 
-### Безопасность (критично)
-- ✅ JWT: отсутствие токена, истечение, неверная роль, подпись другим ключом
-- ✅ Изоляция сессий: нельзя обновить сессию чужого квеста
-- ✅ XSS в SearchBar: экранирование HTML в v-html
-- ✅ Маскировка телефона в Telegram уведомлениях
+**TemplateCard** — внешний `<article>`, не `<a>`. Для ссылок внутри: `a[href*="/date/"]`.
 
-### Бизнес-логика
-- ✅ Расчёт цены заказа (база + доп. фичи)
-- ✅ Кеш статистики (БД вызывается только при cache miss)
-- ✅ Транслитерация и уникальность slug
-- ✅ Уведомления не блокируют HTTP-ответ
+**OrderForm** — 3 шага. Шаг 3 адаптируется к типу квеста (домашний, городской, предложение и т.д.).
 
-### Валидация
-- ✅ Все поля формы заказа
-- ✅ Форма отзыва
-- ✅ Формы на backend (contact, auth)
-- ✅ sanitizeQuery: page/limit границы
+**Quest Player** — `restart` требует `quest_id` в теле запроса.
 
-### Форматирование
-- ✅ Цены (копейки → рубли + локаль)
-- ✅ Склонение (1 квест / 2 квеста / 5 квестов)
-- ✅ Телефон, дата, длительность, рейтинг
+**date-slug** — breadcrumb: `toContainText('Сценарии свиданий-квестов')`.
+
+**Контактная форма** — скрыта на мобильном, тесты только для desktop.
 
 ---
 
 ## Переменные для E2E
 
 ```env
-E2E_BASE_URL=http://localhost:3000       # URL фронтенда
-E2E_TEST_QUEST_SLUG=test-quest           # slug публичного квеста
-E2E_PROTECTED_QUEST_SLUG=protected-quest # slug квеста с кодом
+E2E_BASE_URL=http://localhost:3000
+E2E_TEST_QUEST_SLUG=test-quest   # slug публичного квеста в БД
 ```
+
+---
+
+## Текущий статус
+
+```
+Unit:  182 passed
+E2E:   ~40 passed, 2 skipped (quest-player без реального квеста в БД)
+```
+
+Пропущенные E2E тесты — нормально. Для полного покрытия создай тестовый квест и передай slug через `E2E_TEST_QUEST_SLUG`.

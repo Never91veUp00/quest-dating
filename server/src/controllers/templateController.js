@@ -1,5 +1,6 @@
 import pool from '../config/database.js'
 import { TEMPLATE_STATUS, PAGINATION } from '../config/constants.js'
+import { cache } from '../utils/cache.js'
 
 // ─── Утилиты ────────────────────────────────────────────────────────────────
 
@@ -41,14 +42,22 @@ const BASE_GROUP_BY = `
 // Строит WHERE-условия по фильтрам и возвращает { conditions, params }
 // startIndex — с какого $N начинать нумерацию параметров
 const buildFilterConditions = (filters, startIndex = 2) => {
-  const { category, difficulty, location_type, min_price, max_price, search } = filters
+  const { category, difficulty, location_type, min_price, max_price, duration, search } = filters
   const conditions = []
   const params = []
   let i = startIndex
 
   if (category) {
-    conditions.push(`c.slug = $${i++}`)
-    params.push(category)
+    const categoryId = parseInt(category)
+    if (!isNaN(categoryId)) {
+      // Числовой id — фильтруем по id
+      conditions.push(`qt.category_id = $${i++}`)
+      params.push(categoryId)
+    } else {
+      // Строковый slug — фильтруем по slug категории (обратная совместимость)
+      conditions.push(`c.slug = $${i++}`)
+      params.push(category)
+    }
   }
 
   if (difficulty) {
@@ -69,6 +78,20 @@ const buildFilterConditions = (filters, startIndex = 2) => {
   if (max_price) {
     conditions.push(`qt.base_price <= $${i++}`)
     params.push(parseInt(max_price) * 100)
+  }
+
+  // duration — строка вида '0-60', '60-120', '120-180', '180+'
+  if (duration) {
+    if (duration === '180+') {
+      conditions.push(`qt.duration_minutes >= $${i++}`)
+      params.push(180)
+    } else {
+      const [min, max] = duration.split('-').map(Number)
+      conditions.push(`qt.duration_minutes >= $${i++}`)
+      params.push(min)
+      conditions.push(`qt.duration_minutes < $${i++}`)
+      params.push(max)
+    }
   }
 
   if (search) {
@@ -99,8 +122,8 @@ const ALLOWED_ORDER = new Set(['ASC', 'DESC'])
 export const getAllTemplates = async (req, res, next) => {
   try {
     const {
-      page     = PAGINATION.DEFAULT_PAGE,
-      limit    = PAGINATION.DEFAULT_LIMIT,
+      page:     _page     = PAGINATION.DEFAULT_PAGE,
+      limit:    _limit    = PAGINATION.DEFAULT_LIMIT,
       category,
       difficulty,
       location_type,
@@ -112,6 +135,8 @@ export const getAllTemplates = async (req, res, next) => {
       order    = 'DESC'
     } = req.query
 
+    const page  = parseInt(_page,  10) || PAGINATION.DEFAULT_PAGE
+    const limit = parseInt(_limit, 10) || PAGINATION.DEFAULT_LIMIT
     const offset = (page - 1) * limit
 
     // Валидация сортировки — не доверяем query-параметрам
@@ -119,7 +144,8 @@ export const getAllTemplates = async (req, res, next) => {
     const sortOrder   = ALLOWED_ORDER.has(order?.toUpperCase()) ? order.toUpperCase() : 'DESC'
 
     // Строим фильтры один раз — используем для обоих запросов
-    const filters = { category, difficulty, location_type, min_price, max_price, search }
+    const { duration } = req.query
+    const filters = { category, difficulty, location_type, min_price, max_price, duration, search }
     const { conditions, params: filterParams, nextIndex } = buildFilterConditions(filters)
 
     const whereClause = conditions.length
@@ -134,13 +160,15 @@ export const getAllTemplates = async (req, res, next) => {
       ${BASE_GROUP_BY}
     `
 
-    // Фильтр по тегам (после GROUP BY)
+    // Фильтр по тегам (после GROUP BY) — tags приходят как строка id через запятую: '1,2,3'
     let tagIndex = nextIndex
     if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : [tags]
-      mainQuery += ` HAVING COUNT(DISTINCT t.id) FILTER (WHERE t.slug = ANY($${tagIndex})) = $${tagIndex + 1}`
-      mainParams.push(tagArray, tagArray.length)
-      tagIndex += 2
+      const tagArray = (Array.isArray(tags) ? tags : tags.split(',')).map(Number).filter(Boolean)
+      if (tagArray.length > 0) {
+        mainQuery += ` HAVING COUNT(DISTINCT t.id) FILTER (WHERE t.id = ANY($${tagIndex}::int[])) = $${tagIndex + 1}`
+        mainParams.push(tagArray, tagArray.length)
+        tagIndex += 2
+      }
     }
 
     mainQuery += ` ORDER BY ${sortColumn} ${sortOrder}`
@@ -175,6 +203,7 @@ export const getAllTemplates = async (req, res, next) => {
       }
     })
   } catch (error) {
+    console.error('❌ getAllTemplates PG error:', error.code, error.message, '| params:', JSON.stringify(error))
     next(error)
   }
 }
@@ -183,16 +212,18 @@ export const getAllTemplates = async (req, res, next) => {
 export const getPopularTemplates = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.status = $1
-      ${BASE_GROUP_BY}
-      ORDER BY qt.orders_count DESC, qt.rating DESC
-      LIMIT $2
-    `, [TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:popular:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.status = $1
+        ${BASE_GROUP_BY}
+        ORDER BY qt.orders_count DESC, qt.rating DESC
+        LIMIT $2
+      `, [TEMPLATE_STATUS.PUBLISHED, limit])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -202,16 +233,18 @@ export const getPopularTemplates = async (req, res, next) => {
 export const getFeaturedTemplates = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.status = $1 AND qt.is_premium = true
-      ${BASE_GROUP_BY}
-      ORDER BY qt.rating DESC
-      LIMIT $2
-    `, [TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:featured:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.status = $1 AND qt.is_premium = true
+        ${BASE_GROUP_BY}
+        ORDER BY qt.rating DESC
+        LIMIT $2
+      `, [TEMPLATE_STATUS.PUBLISHED, limit])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -221,16 +254,18 @@ export const getFeaturedTemplates = async (req, res, next) => {
 export const getNewestTemplates = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.status = $1
-      ${BASE_GROUP_BY}
-      ORDER BY qt.published_at DESC
-      LIMIT $2
-    `, [TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+    const key = `templates:newest:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.status = $1
+        ${BASE_GROUP_BY}
+        ORDER BY qt.published_at DESC
+        LIMIT $2
+      `, [TEMPLATE_STATUS.PUBLISHED, limit])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
   } catch (error) {
     next(error)
   }
@@ -298,11 +333,8 @@ export const getTemplateBySlug = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Шаблон не найден' })
     }
 
-    // Увеличиваем счётчик просмотров асинхронно — не блокируем ответ
-    pool.query(
-      'UPDATE quest_templates SET views_count = views_count + 1 WHERE id = $1',
-      [result.rows[0].id]
-    ).catch(err => console.error('Ошибка обновления views_count:', err))
+    // Батчевое обновление просмотров — не бьём в БД при каждом запросе
+    viewsBuffer.add(result.rows[0].id)
 
     res.json({ success: true, data: normalizeTemplate(result.rows[0]) })
   } catch (error) {
@@ -315,27 +347,50 @@ export const getSimilarTemplates = async (req, res, next) => {
   try {
     const { slug } = req.params
     const { limit = 4 } = req.query
+    const key = `templates:similar:${slug}:${limit}`
+    const data = await cache.getOrSet(key, 120, async () => {
+      const result = await pool.query(`
+        ${BASE_SELECT}
+        WHERE qt.id != (SELECT id FROM quest_templates WHERE slug = $1)
+          AND qt.category_id = (SELECT category_id FROM quest_templates WHERE slug = $1)
+          AND qt.status = $2
+        ${BASE_GROUP_BY}
+        ORDER BY qt.rating DESC
+        LIMIT $3
+      `, [slug, TEMPLATE_STATUS.PUBLISHED, parseInt(limit)])
+      return result.rows.map(normalizeTemplate)
+    })
+    res.json({ success: true, data })
+  } catch (error) {
+    next(error)
+  }
+}
 
-    const currentTemplate = await pool.query(
-      'SELECT id, category_id FROM quest_templates WHERE slug = $1',
-      [slug]
-    )
-
-    if (currentTemplate.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Шаблон не найден' })
+// ── Views batch writer ──────────────────────────────────────────
+const viewsBuffer = {
+  _counts: new Map(),
+  add(id) { this._counts.set(id, (this._counts.get(id) || 0) + 1) },
+  async flush() {
+    if (this._counts.size === 0) return
+    const entries = [...this._counts.entries()]
+    this._counts.clear()
+    for (const [id, count] of entries) {
+      pool.query(
+        'UPDATE quest_templates SET views_count = views_count + $1 WHERE id = $2',
+        [count, id]
+      ).catch(err => console.error('views flush error:', err))
     }
+  }
+}
+setInterval(() => viewsBuffer.flush(), 30_000).unref()
 
-    const { id, category_id } = currentTemplate.rows[0]
-
-    const result = await pool.query(`
-      ${BASE_SELECT}
-      WHERE qt.id != $1 AND qt.category_id = $2 AND qt.status = $3
-      ${BASE_GROUP_BY}
-      ORDER BY qt.rating DESC
-      LIMIT $4
-    `, [id, category_id, TEMPLATE_STATUS.PUBLISHED, limit])
-
-    res.json({ success: true, data: result.rows.map(normalizeTemplate) })
+// Инкремент просмотров — POST /templates/:slug/view
+export const incrementView = async (req, res, next) => {
+  try {
+    const { slug } = req.params
+    const r = await pool.query('SELECT id FROM quest_templates WHERE slug = $1', [slug])
+    if (r.rows.length > 0) viewsBuffer.add(r.rows[0].id)
+    res.json({ success: true })
   } catch (error) {
     next(error)
   }

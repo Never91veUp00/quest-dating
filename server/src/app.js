@@ -4,29 +4,31 @@ import helmet from 'helmet'
 import compression from 'compression'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import pool from './config/database.js'
 import apiRoutes from './routes/api.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { sanitizeQuery } from './middleware/validator.js'
 import { generalLimiter, adminLimiter } from './middleware/rateLimiter.js'
+import { httpLogger, logger } from './utils/logger.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const UPLOADS_DIR = path.resolve(__dirname, '../../server/uploads')
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.resolve(__dirname, '../uploads')
 
-/**
- * Фабрика Express-приложения — вынесена из server.js чтобы тесты могли
- * создавать изолированный экземпляр без реального запуска сервера на порту.
- */
 export const createApp = () => {
   const app = express()
+  // Trust nginx proxy (required for correct IP in rate limiting and logs)
+  app.set('trust proxy', 1)
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
 
   app.use(helmet())
   app.use(compression())
   app.use(cors({
     origin: (origin, callback) => {
+      // Запросы без origin (server-to-server, Nuxt SSR, curl) — всегда разрешаем
       if (!origin) return callback(null, true)
       if (allowedOrigins.includes(origin)) return callback(null, true)
-      if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+      // В dev и при локальном запуске — разрешаем localhost
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
         return callback(null, true)
       }
       callback(new Error(`CORS: origin ${origin} not allowed`))
@@ -36,23 +38,45 @@ export const createApp = () => {
   app.use(express.json({ limit: '2mb' }))
   app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 
-  // В тестах rate limiting отключаем чтобы не мешал повторным запросам
   if (process.env.NODE_ENV !== 'test') {
     app.use('/api/admin', adminLimiter)
     app.use('/api', generalLimiter)
   }
 
   app.use(sanitizeQuery)
+  app.use(httpLogger)
 
   app.use('/uploads', (req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     next()
-  }, express.static(UPLOADS_DIR))
+  }, express.static(UPLOADS_DIR), (req, res) => {
+    // Файл не найден локально — отдаём заглушку вместо 404
+    logger.debug(`[uploads fallback] ${req.url} -> placeholder.svg`, { uploadsDir: UPLOADS_DIR })
+    const placeholderPath = path.resolve(__dirname, '../../client-nuxt/public/images/placeholder.svg')
+    res.setHeader('Content-Type', 'image/svg+xml')
+    res.setHeader('Cache-Control', 'public, max-age=60')
+    res.sendFile(placeholderPath, (err) => {
+      if (err) {
+        logger.error(`[uploads fallback] placeholder not found at: ${placeholderPath}`)
+        res.status(404).json({ error: 'File not found' })
+      }
+    })
+  })
 
   app.use('/api', apiRoutes)
 
-  app.get('/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString(), uptime: process.uptime() })
+  app.get('/health', async (req, res) => {
+    try {
+      await pool.query('SELECT 1')
+      res.set('Cache-Control', 'no-store')
+        .json({ status: 'OK', db: 'connected',
+                timestamp: new Date().toISOString(), uptime: process.uptime() })
+    } catch (err) {
+      res.set('Cache-Control', 'no-store')
+        .status(503)
+        .json({ status: 'DEGRADED', db: 'disconnected',
+                error: err.message, timestamp: new Date().toISOString() })
+    }
   })
 
   app.get('/', (req, res) => {

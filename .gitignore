@@ -91,3 +91,4 @@ temp/
 .dynamodb/
 .tern-port
 .vscode-test
+backups/

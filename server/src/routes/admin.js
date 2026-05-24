@@ -11,6 +11,8 @@ const router = express.Router()
 
 // Все роуты — только для админа
 router.use(requireAdmin)
+// Отключаем HTTP-кэш для всех admin-роутов (ETag/304 ломает свежие данные)
+router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next() })
 
 // ─── GET /api/admin/dashboard ─────────────────────────────────
 // Статистика для дашборда
@@ -126,7 +128,7 @@ router.post('/quests', [
       title, client_name, slug, theme = 'detective',
       final_message, blocks, access_code,
       order_id, template_id, is_public = false,
-      expires_at, show_intro = true
+      expires_at, show_intro = true, player_version = 'v1'
     } = req.body
 
     // Проверка уникальности slug
@@ -144,15 +146,16 @@ router.post('/quests', [
     const result = await pool.query(`
       INSERT INTO created_quests
         (title, client_name, slug, theme, final_message, blocks,
-         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END)
+         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13)
       RETURNING *
     `, [
       title, client_name, slug, theme, final_message || null,
       JSON.stringify(blocks), access_code || null,
       order_id || null, template_id || null, is_public,
       show_intro !== false,
-      expires_at || null
+      expires_at || null,
+      player_version || 'v1'
     ])
 
     const quest = result.rows[0]
@@ -185,7 +188,7 @@ router.put('/quests/:id', [
   try {
     const {
       title, client_name, theme, final_message,
-      blocks, access_code, is_public, expires_at, show_intro
+      blocks, access_code, is_public, expires_at, show_intro, player_version
     } = req.body
 
     const result = await pool.query(`
@@ -199,15 +202,17 @@ router.put('/quests/:id', [
         is_public     = $7,
         expires_at    = $8,
         show_intro    = $9,
+        player_version = $10,
         published_at  = CASE WHEN $7 AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at    = NOW()
-      WHERE id = $10
+      WHERE id = $11
       RETURNING *
     `, [
       title, client_name, theme || 'detective', final_message || null,
       JSON.stringify(blocks), access_code || null,
       is_public, expires_at || null,
       show_intro !== false,
+      player_version || 'v1',
       req.params.id
     ])
 
@@ -316,7 +321,8 @@ router.post('/upload/media',
 router.get('/templates', async (req, res, next) => {
   try {
     const result = await pool.query(`
-      SELECT id, title, slug, structure, difficulty, duration_minutes
+      SELECT id, title, slug, structure, difficulty, duration_minutes,
+             default_theme, default_player_version, default_show_intro
       FROM quest_templates
       WHERE status = 'published'
       ORDER BY title
@@ -394,10 +400,12 @@ router.post('/templates/create', [
         base_price, is_free, is_premium,
         features, cover_image, gallery, structure,
         demo_quest_id, quick_view_description, status,
+        default_theme, default_player_version, default_show_intro,
         published_at
       ) VALUES (
         (SELECT id FROM authors ORDER BY id LIMIT 1),
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,
+        $23,$24,$25,
         CASE WHEN $22 = 'published' THEN NOW() ELSE NULL END)
       RETURNING *
     `, [
@@ -414,7 +422,10 @@ router.post('/templates/create', [
       demo_quest_id || null,
       quick_view_description || null,
       status,
-      status
+      status,
+      req.body.default_theme || 'detective',
+      req.body.default_player_version || 'v1',
+      req.body.default_show_intro !== false
     ])
     // Сохраняем теги
     const tagIds = Array.isArray(req.body.tag_ids) ? req.body.tag_ids : []
@@ -517,6 +528,9 @@ router.put('/templates/:id', [
         demo_quest_id         = $18,
         quick_view_description= $19,
         status                = $20,
+        default_theme         = $23,
+        default_player_version= $24,
+        default_show_intro    = $25,
         published_at          = CASE WHEN $21 THEN NOW() ELSE published_at END,
         updated_at            = NOW()
       WHERE id = $22
@@ -543,7 +557,10 @@ router.put('/templates/:id', [
       quick_view_description || null,
       status || 'draft',
       becomesPublished,
-      req.params.id
+      req.params.id,
+      req.body.default_theme || 'detective',
+      req.body.default_player_version || 'v1',
+      req.body.default_show_intro !== false
     ])
 
     // Сохраняем теги
@@ -634,6 +651,23 @@ router.patch('/orders/:id/status', [
     if (!result.rows.length) return res.status(404).json({ success: false, message: 'Заказ не найден' })
 
     res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── DELETE /api/admin/orders/:id (удалить отменённый заказ) ────────────────
+router.delete('/orders/:id', async (req, res, next) => {
+  try {
+    const check = await pool.query('SELECT id, status FROM orders WHERE id = $1', [req.params.id])
+    if (!check.rows.length) {
+      return res.status(404).json({ success: false, message: 'Заказ не найден' })
+    }
+    if (check.rows[0].status !== 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Удалить можно только отменённые заказы' })
+    }
+    await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id])
+    res.json({ success: true, message: 'Заказ удалён' })
   } catch (error) {
     next(error)
   }
