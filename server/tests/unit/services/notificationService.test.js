@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { logger } from '@src/utils/logger.js'
 
 // vi.stubGlobal до импорта модуля — иначе fetch уже захвачен
 const mockFetch = vi.fn()
@@ -121,6 +122,54 @@ describe('notificationService', () => {
       const body = JSON.parse(mockFetch.mock.calls[0][1].body)
       expect(body.text).toContain('5')
       expect(body.text).toContain('Иван')
+    })
+  })
+
+  describe('sendEmail — защита NOTIFY_EMAIL', () => {
+    const testOrder = {
+      id: 99,
+      client_name: 'Тест',
+      client_email: 'test@example.com',
+      client_phone: null,
+      event_date: null,
+      event_city: null,
+      total_price: 100000,
+      selected_features: [],
+      description: null,
+    }
+
+    beforeEach(() => {
+      process.env.RESEND_API_KEY = 'test-resend-key'
+    })
+
+    afterEach(() => {
+      delete process.env.RESEND_API_KEY
+      delete process.env.NOTIFY_EMAIL
+    })
+
+    it('отправляет email на NOTIFY_EMAIL если переменная задана', async () => {
+      process.env.NOTIFY_EMAIL = 'admin@questdating.ru'
+      mockFetch
+        .mockResolvedValueOnce({ ok: true })                                    // Telegram
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'r1' }) }) // Email
+
+      await notifyNewOrder(testOrder, 'Тестовый квест')
+
+      const emailCall = mockFetch.mock.calls.find(([url]) => url.includes('resend.com'))
+      expect(emailCall).toBeDefined()
+      const body = JSON.parse(emailCall[1].body)
+      expect(body.to).toContain('admin@questdating.ru')
+    })
+
+    it('не отправляет email и логирует warning если NOTIFY_EMAIL не задан', async () => {
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
+      mockFetch.mockResolvedValueOnce({ ok: true }) // только Telegram
+
+      await notifyNewOrder(testOrder, 'Тестовый квест')
+
+      expect(mockFetch.mock.calls.some(([url]) => url.includes('resend.com'))).toBe(false)
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('NOTIFY_EMAIL'))
+      warnSpy.mockRestore()
     })
   })
 })
