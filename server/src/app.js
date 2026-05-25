@@ -4,6 +4,7 @@ import helmet from 'helmet'
 import compression from 'compression'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import pool from './config/database.js'
 import apiRoutes from './routes/api.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { sanitizeQuery } from './middleware/validator.js'
@@ -64,8 +65,18 @@ export const createApp = () => {
 
   app.use('/api', apiRoutes)
 
-  app.get('/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString(), uptime: process.uptime() })
+  app.get('/health', async (req, res) => {
+    try {
+      await pool.query('SELECT 1')
+      res.set('Cache-Control', 'no-store')
+        .json({ status: 'OK', db: 'connected',
+                timestamp: new Date().toISOString(), uptime: process.uptime() })
+    } catch (err) {
+      res.set('Cache-Control', 'no-store')
+        .status(503)
+        .json({ status: 'DEGRADED', db: 'disconnected',
+                error: err.message, timestamp: new Date().toISOString() })
+    }
   })
 
   app.get('/', (req, res) => {
