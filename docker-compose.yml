@@ -13,7 +13,11 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-#      - ./database/dump.sql:/docker-entrypoint-initdb.d/init.sql
+      # Применяется только при ПЕРВОМ старте контейнера (когда volume пустой).
+      # На существующей БД этот mount Postgres проигнорирует. :ro защищает
+      # файл от случайной записи изнутри контейнера. См. docs/incidents.md
+      # INC-001 — почему этот файл и режим важны.
+      - ./database/dump.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - quest-network
     healthcheck:
