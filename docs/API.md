@@ -1,6 +1,8 @@
 # API Документация
 
-REST API Quest Dating. Базовый URL: `http://localhost:5000/api` (dev) / `https://questdating.ru/api` (prod)
+REST API Quest Dating. Базовый URL для API: `http://localhost:5000/api` (dev) / `https://questdating.ru/api` (prod).
+
+Health endpoint живёт **на корне сервера**, не под `/api` — `GET /health`. Это сделано чтобы мониторинг ходил напрямую в backend, минуя любые префиксы (см. `monitor.sh`).
 
 ## Формат ответов
 
@@ -14,6 +16,26 @@ REST API Quest Dating. Базовый URL: `http://localhost:5000/api` (dev) / `
 ---
 
 ## Публичные эндпоинты
+
+### Health
+
+```
+GET /health   (на корне сервера, не под /api)
+```
+
+Реально проверяет соединение с БД через `pool.query('SELECT 1')`. Ответ:
+
+```json
+// 200 — всё ок
+{ "status": "OK", "db": "connected", "timestamp": "...", "uptime": 12345 }
+
+// 503 — БД недоступна
+{ "status": "DEGRADED", "db": "disconnected", "error": "...", "timestamp": "..." }
+```
+
+Заголовок ответа: `Cache-Control: no-store`. Дёргается напрямую `127.0.0.1:5001/health`, минуя nginx и кэш — это даёт настоящий сигнал о состоянии системы.
+
+История появления: см. `docs/incidents.md` (INC-001).
 
 ### Статистика
 
@@ -51,6 +73,14 @@ GET /tags
 GET /tags/popular?limit=20
 ```
 
+### Sitemap
+
+```
+GET /sitemap-urls
+```
+
+→ `{ templates: [slug, ...], categories: [slug, ...] }` — все опубликованные шаблоны и все категории. Используется Nitro route `client-nuxt/server/routes/sitemap-urls.get.ts` как источник динамических URL для `@nuxtjs/seo`.
+
 ### Отзывы
 
 ```
@@ -75,7 +105,7 @@ POST /orders
   "event_city": "Москва"
 }
 ```
-Rate limit: 5 заказов/час с одного IP.
+Rate limit: 10 заказов/час с одного IP (было 5 — слишком мало при тихих ошибках валидации, см. комментарий в `rateLimiter.js`).
 
 Ответ включает `view_token` — UUID для публичной страницы отслеживания заказа.
 
@@ -159,7 +189,12 @@ GET  /admin/dashboard          → статистика + recent_orders + recent
 GET  /admin/categories         → для селекта при создании сценария
 POST /admin/upload/image       → multipart/form-data (field: image) → { url }
 POST /admin/upload/images      → multipart/form-data (field: images[]) → [urls]
+POST /admin/upload/media       → multipart/form-data (field: media) → { url, type: 'video'|'audio', originalName, size }
 ```
+
+### Дублирование маршрутов orders
+
+> Часть админских операций над заказами доступна также через `/api/orders/*` с `requireAdmin`-мидлварой (`GET /api/orders`, `GET /api/orders/stats`, `GET /api/orders/:id`, `PATCH /api/orders/:id/status`, `DELETE /api/orders/:id`). Это исторический техдолг — два пути к одному и тому же ресурсу. Фронтенд использует `/admin/orders/*`; альтернативный путь оставлен для обратной совместимости. Унификация — задача для отдельного рефакторинга в будущем.
 
 ---
 
@@ -169,28 +204,56 @@ POST /admin/upload/images      → multipart/form-data (field: images[]) → [ur
 POST /telegram/webhook
 ```
 
-Вебхук Telegram Bot API. Зарегистрирован через `setWebhook` на `https://questdating.ru/api/telegram/webhook`.
+Вебхук Telegram Bot API. Зарегистрирован через `setWebhook` с параметром `secret_token`. Telegram передаёт это значение в каждый запрос в заголовке `X-Telegram-Bot-Api-Secret-Token`.
+
+### Верификация
+
+Каждый запрос проверяется:
+
+- `TELEGRAM_WEBHOOK_SECRET` задан и заголовок не совпадает → `401 Unauthorized`
+- `TELEGRAM_WEBHOOK_SECRET` задан и заголовок совпадает → обработка
+- `TELEGRAM_WEBHOOK_SECRET` не задан → пропуск проверки + warning в логе (backward compatibility, см. PR #6/#7)
+
+### Команды
 
 Обрабатывает входящие сообщения боту `@questdating_bot`:
 
 - `/start` (без токена) — приветственное сообщение
 - `/start <view_token>` — находит заказ по токену, отвечает сводкой: название квеста, статус, дата, город, сумма, ссылка на сайт
 
-Всегда отвечает HTTP 200 немедленно (до обработки), как того требует Telegram.
+### Поведение
+
+- Отвечает HTTP 200 **немедленно** (требование Telegram API), затем обрабатывает асинхронно
+- На системные ошибки (БД недоступна и т.п.) клиенту не отвечает — пишет в логи
+- При несовпадении secret_token — 401, до основной обработки
+
+### Регистрация (один раз после деплоя)
+
+```bash
+curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?\
+url=https://questdating.ru/api/telegram/webhook&\
+secret_token=${TELEGRAM_WEBHOOK_SECRET}&\
+drop_pending_updates=true"
+```
 
 ---
 
 ## Rate Limits
 
-| Endpoint | Лимит | Окно |
-|---------|-------|------|
-| Все `/api/*` | 300 (prod) / 1000 (dev) | 15 мин |
-| `/contact` | 3 | 1 час |
-| `/orders` | 5 | 1 час |
-| `/auth/login` | 5 попыток | 15 мин |
-| `/admin/*` | 2000 (prod) | 15 мин |
+| Endpoint | Лимит (prod) | Лимит (dev) | Окно |
+|---------|--------------|-------------|------|
+| Все `/api/*` | 300 | 1000 | 15 мин |
+| `/quests/*` (прохождение) | 200 | 1000 | 15 мин |
+| `/admin/*` | 2000 | 100 000 | 15 мин |
+| `/orders` (создание) | 10 | 10 | 1 час |
+| `/contact` | 3 | 3 | 1 час |
+| `/auth/login` | 5 попыток (только неудачных) | 5 | 15 мин |
 
-Dev: запросы с localhost не ограничиваются.
+Замечания:
+
+- В **dev** запросы с `127.0.0.1`/`::1` не ограничиваются вообще (нужно для E2E и SSR).
+- `loginLimiter` использует `skipSuccessfulRequests: true` — успешный вход не списывает попытку. То есть лимит работает только против неудачных попыток.
+- `orderLimiter` подняли 5 → 10 в феврале 2026 — при тихих ошибках валидации формы лимит срабатывал слишком быстро.
 
 ---
 
