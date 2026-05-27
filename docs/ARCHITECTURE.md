@@ -282,7 +282,7 @@ router.get('/:id', ...)       // ← потом
 
 `GET /health` — реально проверяет БД через `pool.query('SELECT 1')`:
 - БД отвечает → `200 OK`, тело `{ status: "OK", db: "connected", uptime }`
-- БД не отвечает → `503`, тело `{ status: "ERROR", db: "disconnected", error }`
+- БД не отвечает → `503`, тело `{ status: "DEGRADED", db: "disconnected", error }`
 
 Заголовок `Cache-Control: no-store`. Endpoint вызывается напрямую на backend (`127.0.0.1:5001/health`), минуя nginx, Nuxt-прокси и in-memory кэш в `cache.js` — это даёт настоящий сигнал о состоянии системы.
 
