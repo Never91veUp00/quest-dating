@@ -24,9 +24,9 @@ Quest Dating — сервис персональных романтически�
                 │ HTTPS (443)
                 ▼
 ┌─────────────────────────────────────────┐
-│              Nginx                      │
-│  questdating.ru → Nuxt 4 (port 3000)  │
-│  /uploads      → volume (напрямую)    │
+│         Nginx (host, не Docker)         │
+│  questdating.ru → Nuxt 4 (port 3000)    │
+│  /uploads       → volume (напрямую)     │
 └───────┬─────────────────────────────────┘
         │
         ▼
@@ -44,7 +44,7 @@ Quest Dating — сервис персональных романтически�
 
 ### Инфраструктура
 
-VPS на рег.ру, развёрнуто через Docker Compose (4 контейнера: postgres, server, client, nginx). Telegram-бот: уведомления администратору + вебхук для клиентов (по ссылке из письма). Resend — email клиентам при оформлении заказа.
+VPS на VDSina (vdsina.com), домен `questdating.ru` зарегистрирован на рег.ру и указывает A-записями на IP VPS. Развёрнуто через Docker Compose — **3 контейнера**: `postgres`, `server`, `client`. **Nginx** работает на хосте как обычный systemd-сервис (не в Docker) и проксирует HTTPS-трафик в контейнер `client` на `127.0.0.1:3000`. Telegram-бот: уведомления администратору + вебхук для клиентов (по ссылке из письма). Resend — email клиентам при оформлении заказа.
 
 ---
 
@@ -57,15 +57,15 @@ VPS на рег.ру, развёрнуто через Docker Compose (4 конт
 | Nuxt | 4.3+ | SSR/CSR фреймворк |
 | Vue | 3.5+ | UI Framework |
 | Pinia | 2.x | State Management (auth) |
-| @nuxtjs/seo | latest | sitemap, robots, og-tags |
+| @nuxtjs/seo | 5.x | sitemap, robots, og-tags |
 | Playwright | 1.44+ | E2E тесты |
-| Vitest | 2.x | Unit тесты |
+| Vitest | 4.x | Unit тесты |
 
 ### Backend (server/)
 
 | Технология | Версия | Назначение |
 |-----------|--------|------------|
-| Node.js | 20 LTS | Runtime |
+| Node.js | 22 LTS | Runtime (Docker `node:22-alpine`, хост — nvm 22) |
 | Express | 4.18+ | Web Framework |
 | PostgreSQL | 15 | База данных |
 | pg | 8.11+ | PostgreSQL драйвер |
@@ -110,9 +110,8 @@ quest-dating/
 │   │   └── data/
 │   │       └── blogPosts.js     # Статические статьи блога
 │   ├── server/
-│   │   ├── api/
-│   │   │   └── sitemap-urls.get.ts  # Динамические URL для sitemap
 │   │   └── routes/
+│   │       ├── sitemap-urls.get.ts  # Динамические URL для sitemap (Nitro route /sitemap-urls)
 │   │       └── uploads/[...path].js # Nitro proxy /uploads → Express
 │   └── nuxt.config.ts
 │
@@ -261,7 +260,7 @@ router.get('/:id', ...)       // ← потом
 
 ### Sitemap
 
-Динамический через `@nuxtjs/seo`. Источник динамических URL: `server/api/sitemap-urls.get.ts` — запрашивает Express API и возвращает все `/date/:slug` и `/categories/:slug`.
+Динамический через `@nuxtjs/seo`. Источник динамических URL: `client-nuxt/server/routes/sitemap-urls.get.ts` (Nitro route `/sitemap-urls`) — запрашивает Express API и возвращает все `/date/:slug` и `/categories/:slug`.
 
 ### og:image
 
@@ -277,6 +276,19 @@ router.get('/:id', ...)       // ← потом
 - **Access codes:** только в теле POST, никогда в URL
 - **Rate limiting:** многоуровневый
 - **Uploads:** сохраняются в Docker volume, отдаются через Nginx напрямую
+- **Telegram webhook:** проверка заголовка `X-Telegram-Bot-Api-Secret-Token` против `TELEGRAM_WEBHOOK_SECRET` из env. При несовпадении — 401. Если переменная не задана — пропуск проверки + warning в логе (backward compatibility).
+
+## Health & мониторинг
+
+`GET /health` — реально проверяет БД через `pool.query('SELECT 1')`:
+- БД отвечает → `200 OK`, тело `{ status: "OK", db: "connected", uptime }`
+- БД не отвечает → `503`, тело `{ status: "ERROR", db: "disconnected", error }`
+
+Заголовок `Cache-Control: no-store`. Endpoint вызывается напрямую на backend (`127.0.0.1:5001/health`), минуя nginx, Nuxt-прокси и in-memory кэш в `cache.js` — это даёт настоящий сигнал о состоянии системы.
+
+`monitor.sh` (на хосте, в cron) бьёт `127.0.0.1:5001/health`, парсит JSON, шлёт Telegram-алерт с конкретной причиной (главная упала, health не отвечает, или `db:disconnected`).
+
+История появления этих защит — см. `docs/incidents.md` (INC-001).
 
 ---
 
@@ -288,6 +300,8 @@ router.get('/:id', ...)       // ← потом
 - Telegram-сообщение в чат (`TELEGRAM_CHAT_ID`) с деталями заказа
 - Email на `NOTIFY_EMAIL` через Resend
 
+> `NOTIFY_EMAIL` — **обязательная** переменная. Если не задана, email админу не отправляется (раньше был fallback на личный адрес `vp.vlad00@mail.ru` — убран в рамках Фазы 1).
+
 ### Клиенту
 - Email на `client_email` с деталями, ссылкой `/my-order/<view_token>` и кнопкой Telegram-бота
 - Telegram: клиент переходит по ссылке `t.me/questdating_bot?start=<view_token>` из письма → бот присылает детали заказа в чат
@@ -298,5 +312,6 @@ router.get('/:id', ...)       // ← потом
 Не индексируется (`robots: noindex,nofollow` + исключена из sitemap).
 
 ### Telegram Webhook
-`POST /api/telegram/webhook` — зарегистрирован через `setWebhook`.
-Обрабатывает команду `/start <view_token>`: находит заказ по токену, отправляет сводку в чат клиента.
+`POST /api/telegram/webhook` — зарегистрирован через `setWebhook` с параметром `secret_token`. Каждый запрос проверяется на наличие заголовка `X-Telegram-Bot-Api-Secret-Token` равного `TELEGRAM_WEBHOOK_SECRET`; при несовпадении — `401`.
+
+Обрабатывает команду `/start <view_token>`: находит заказ по токену, отправляет сводку в чат клиента. Всегда отвечает HTTP 200 немедленно (требование Telegram API), обработка идёт асинхронно.
