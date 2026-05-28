@@ -42,7 +42,13 @@ SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
+-- Закомментировано: эта строка от pg_dump обнуляет search_path как мера
+-- безопасности при pg_restore. Но в нашем случае триггерные функции
+-- (например, update_author_stats) обращаются к таблицам по неквалифицированным
+-- именам (UPDATE authors, не UPDATE public.authors) — при пустом search_path
+-- они падают с "relation does not exist" внутри COPY. Оставляем дефолтный
+-- search_path ($user, public) — триггеры работают, как в проде.
+-- SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
@@ -1108,8 +1114,7 @@ ALTER TABLE ONLY public.template_tags
 
 
 --
--- DATA: seed-данные (вставлены вручную, без estrict обёртки —
--- единый estrict блок уже открыт из schema-дампа)
+-- DATA: seed-данные (схема и pg_dump-обёртка уже открыты выше)
 --
 
 --
@@ -1244,4 +1249,3 @@ SELECT pg_catalog.setval('public.tags_id_seq', 23, true);
 --
 
 \unrestrict myLWxN3EBgCJn1DZfwHPjGap6A5wfrPsCTLKH8zuCdhhIglJWW3ANd0bgG4NbDW
-
