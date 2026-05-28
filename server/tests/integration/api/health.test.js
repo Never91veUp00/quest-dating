@@ -1,19 +1,28 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import request from 'supertest'
-import pool from '@src/config/database.js'
-import { createApp } from '@src/app.js'
+import { setupIntegration, teardownIntegration } from '../../helpers/integration-db.js'
 
-let app
+// Integration-тест /health на РЕАЛЬНОЙ PostgreSQL (testcontainers).
+// Проверяет, что endpoint действительно ходит в БД (SELECT 1), а не
+// возвращает захардкоженный ответ. Заодно — что dump.sql применился
+// целиком (схема + сиды), что валидирует весь фундамент integration-тестов.
+//
+// Кейс "503 при недоступной БД" остаётся в unit-тестах с моком — там его
+// и место (поднять реальный контейнер и тут же уронить БД — искусственно).
 
-beforeAll(() => {
-  app = createApp()
+let ctx
+
+beforeAll(async () => {
+  ctx = await setupIntegration()
+}, 120000)
+
+afterAll(async () => {
+  await teardownIntegration(ctx)
 })
 
-describe('GET /health', () => {
-  it('возвращает 200 и db: connected если БД отвечает', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [{ '?column?': 1 }] })
-
-    const res = await request(app).get('/health')
+describe('GET /health (integration, реальная БД)', () => {
+  it('возвращает 200 и db: connected — реальный SELECT в контейнер', async () => {
+    const res = await request(ctx.app).get('/health')
 
     expect(res.status).toBe(200)
     expect(res.body.status).toBe('OK')
@@ -21,16 +30,53 @@ describe('GET /health', () => {
     expect(res.body.timestamp).toBeDefined()
     expect(typeof res.body.uptime).toBe('number')
   })
+})
 
-  it('возвращает 503 и db: disconnected если БД недоступна', async () => {
-    pool.query.mockRejectedValueOnce(new Error('connection refused'))
+describe('dump.sql применился целиком (валидация фундамента)', () => {
+  it('схема: ровно 9 таблиц в public', async () => {
+    const { rows } = await ctx.pool.query(
+      `SELECT count(*)::int AS n FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`
+    )
+    expect(rows[0].n).toBe(9)
+  })
 
-    const res = await request(app).get('/health')
+  it('сиды: 7 категорий', async () => {
+    const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM categories')
+    expect(rows[0].n).toBe(7)
+  })
 
-    expect(res.status).toBe(503)
-    expect(res.body.status).toBe('DEGRADED')
-    expect(res.body.db).toBe('disconnected')
-    expect(res.body.error).toBe('connection refused')
-    expect(res.body.timestamp).toBeDefined()
+  it('сиды: 23 тега', async () => {
+    const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM tags')
+    expect(rows[0].n).toBe(23)
+  })
+
+  it('сиды: 7 шаблонов квестов', async () => {
+    const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM quest_templates')
+    expect(rows[0].n).toBe(7)
+  })
+
+  it('PII клиентов НЕ попали в dump: orders пуст', async () => {
+    const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM orders')
+    expect(rows[0].n).toBe(0)
+  })
+})
+
+describe('reset() возвращает БД к состоянию dump.sql', () => {
+  it('после вставки заказа и reset — orders снова пуст', async () => {
+    await ctx.pool.query(
+      `INSERT INTO orders (template_id, client_name, client_email, status, total_price, description)
+       VALUES (11, 'Тест', 'test@example.com', 'pending', 100000, 'тестовое описание')`
+    )
+    const before = await ctx.pool.query('SELECT count(*)::int AS n FROM orders')
+    expect(before.rows[0].n).toBe(1)
+
+    await ctx.reset()
+
+    const after = await ctx.pool.query('SELECT count(*)::int AS n FROM orders')
+    expect(after.rows[0].n).toBe(0)
+
+    const cats = await ctx.pool.query('SELECT count(*)::int AS n FROM categories')
+    expect(cats.rows[0].n).toBe(7)
   })
 })

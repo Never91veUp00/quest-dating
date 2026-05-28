@@ -12,6 +12,13 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.js'],
+    // Файлы, переведённые на testcontainers (реальная БД), исключаем из
+    // дефолтного (мок-)прогона — у них свой конфиг vitest.integration.config.js.
+    // Список растёт по мере миграции integration-тестов с мока на контейнеры.
+    exclude: [
+      '**/node_modules/**',
+      'tests/integration/api/health.test.js',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
