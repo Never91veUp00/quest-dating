@@ -242,7 +242,7 @@ export const notifyContactMessage = async ({ name, phone, message }) => {
   const tg = [
     `<b>\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435 \u0441 \u0441\u0430\u0439\u0442\u0430</b>`, ``,
     `\u0418\u043c\u044f: <b>${name}</b>`,
-    `\u0422\u0435\u043b: ${maskPhone(phone)}`, ``,
+    `\u0422\u0435\u043b: ${phone}`, ``,
     `<i>${message}</i>`,
   ]
 
