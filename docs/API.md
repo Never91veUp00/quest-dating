@@ -23,15 +23,36 @@ Health endpoint живёт **на корне сервера**, не под `/api
 GET /health   (на корне сервера, не под /api)
 ```
 
-Реально проверяет соединение с БД через `pool.query('SELECT 1')`. Ответ:
+Реально проверяет соединение с БД через `pool.query('SELECT 1')`. Поле
+`services` показывает **настроенность** (наличие env), а не живость внешних
+каналов уведомлений. Ответ:
 
 ```json
-// 200 — всё ок
-{ "status": "OK", "db": "connected", "timestamp": "...", "uptime": 12345 }
+// 200 — БД ок
+{ "status": "OK", "db": "connected",
+  "services": { "telegram": "configured", "resend": "configured", "notifyEmail": "configured" },
+  "timestamp": "...", "uptime": 12345 }
 
-// 503 — БД недоступна
-{ "status": "DEGRADED", "db": "disconnected", "error": "...", "timestamp": "..." }
+// 503 — БД недоступна (services присутствует и здесь)
+{ "status": "DEGRADED", "db": "disconnected",
+  "services": { "telegram": "not_configured", "resend": "not_configured", "notifyEmail": "not_configured" },
+  "error": "...", "timestamp": "..." }
 ```
+
+Значения `services.*`: `configured` / `not_configured`. Условия зеркалят
+реальную логику отправки в `notificationService`:
+- `telegram` — `configured`, только если заданы И `TELEGRAM_BOT_TOKEN`, И `TELEGRAM_CHAT_ID`
+- `resend` — `RESEND_API_KEY`
+- `notifyEmail` — `NOTIFY_EMAIL` (получатель писем)
+
+⚠️ `services` отражает только **наличие переменных**, не живость API. Здесь
+намеренно нет активного пинга Telegram/Resend: `/health` — горячий путь
+мониторинга (monitor.sh + pinger каждые 1-5 мин), пинг замедлял бы его и жёг
+квоты. Проверка живости отправок — отдельный отложенный follow-up (1.4.2b).
+
+**Контракт для мониторинга:** при живой БД код **200** и поле `"db":"connected"`
+неизменны — `monitor.sh` парсит именно их. Поле `services` добавлено рядом и
+обратную совместимость не ломает.
 
 Заголовок ответа: `Cache-Control: no-store`. Дёргается напрямую `127.0.0.1:5001/health`, минуя nginx и кэш — это даёт настоящий сигнал о состоянии системы.
 
