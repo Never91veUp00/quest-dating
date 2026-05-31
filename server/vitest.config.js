@@ -18,6 +18,7 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       'tests/integration/api/health.test.js',
+      'tests/integration/api/orders.test.js',
     ],
     coverage: {
       provider: 'v8',

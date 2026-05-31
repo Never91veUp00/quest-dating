@@ -16,12 +16,18 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // setup.integration.js мокает лимитеры + notificationService (НЕ БД).
+    setupFiles: ['./tests/setup.integration.js'],
     // НЕ подключаем tests/setup.js — он мокает БД.
-    // ФУНДАМЕНТ: пока только health (пробный). Остальные файлы
-    // (orders, auth, contact, quests, telegram) написаны под мок-БД и
-    // будут переписаны на этот же helper отдельными шагами — тогда
-    // include расширится до 'tests/integration/**/*.test.js'.
-    include: ['tests/integration/api/health.test.js'],
+    // ФУНДАМЕНТ + мигрированные на реальную БД файлы. Список растёт по мере
+    // переписывания integration-тестов с мок-БД на этот же helper.
+    // Сделано: health (фундамент), orders.
+    // Осталось: quests, telegram (DB-часть). auth/contact в БД не ходят —
+    // остаются мок-тестами (vitest.config.js), мигрировать нечего.
+    include: [
+      'tests/integration/api/health.test.js',
+      'tests/integration/api/orders.test.js',
+    ],
 
     // Vitest 4: poolOptions удалён, опции стали top-level.
     // maxWorkers: 1 — строго последовательный запуск файлов (каждый
