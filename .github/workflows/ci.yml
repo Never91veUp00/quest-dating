@@ -1,0 +1,66 @@
+name: CI
+
+# Прогон тестов на каждый PR в production и на сам production после мержа.
+# Ловит регрессии до мержа — включая «тихие» красные unit-тесты, которые
+# раньше всплывали только при ручном прогоне.
+on:
+  pull_request:
+    branches: [production]
+  push:
+    branches: [production]
+
+# Отменять устаревшие прогоны при новом пуше в ту же ветку/PR.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit-тесты (мок БД)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  integration:
+    name: Integration-тесты (реальный PostgreSQL, testcontainers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      # testcontainers поднимает postgres:15-alpine сам. Пред-пул даёт
+      # читаемую ошибку при недоступности реестра и стабилизирует тайминг
+      # первого теста (иначе пул образа съедает часть testTimeout).
+      - name: Pre-pull Postgres image
+        run: docker pull postgres:15-alpine
+
+      - name: Run integration tests
+        run: npm run test:integration
