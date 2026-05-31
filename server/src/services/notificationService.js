@@ -55,6 +55,10 @@ const fmtDate  = (d) => d
   ? new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
   : 'не указана'
 const fmtNow   = () => new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })
+// Маскируем телефон для Telegram (чат админа легко скриншотят/форвардят).
+// Показываем только последние 4 цифры. В email номер остаётся полным —
+// это система записи, админу нужно перезвонить клиенту.
+const maskPhone = (p) => p ? '***' + String(p).slice(-4) : p
 
 const FEATURE_LABELS = {
   background_music:  'Музыка',
@@ -162,7 +166,7 @@ export const notifyNewOrder = async (order, templateTitle) => {
     `<b>\u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u043a\u0430\u0437 #${order.id}</b>`, ``,
     `\u041a\u043b\u0438\u0435\u043d\u0442: <b>${order.client_name}</b>`,
     `Email: ${order.client_email}`,
-    order.client_phone ? `\u0422\u0435\u043b: ${order.client_phone}` : null, ``,
+    order.client_phone ? `\u0422\u0435\u043b: ${maskPhone(order.client_phone)}` : null, ``,
     `\u041a\u0432\u0435\u0441\u0442: ${templateTitle}`,
     `\u0414\u0430\u0442\u0430: ${date}`,
     order.event_city ? `\u0413\u043e\u0440\u043e\u0434: ${order.event_city}` : null,
@@ -238,7 +242,7 @@ export const notifyContactMessage = async ({ name, phone, message }) => {
   const tg = [
     `<b>\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435 \u0441 \u0441\u0430\u0439\u0442\u0430</b>`, ``,
     `\u0418\u043c\u044f: <b>${name}</b>`,
-    `\u0422\u0435\u043b: ${phone}`, ``,
+    `\u0422\u0435\u043b: ${maskPhone(phone)}`, ``,
     `<i>${message}</i>`,
   ]
 
