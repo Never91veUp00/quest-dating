@@ -19,6 +19,7 @@ export default defineConfig({
       '**/node_modules/**',
       'tests/integration/api/health.test.js',
       'tests/integration/api/orders.test.js',
+      'tests/integration/api/quests.test.js',
     ],
     coverage: {
       provider: 'v8',
