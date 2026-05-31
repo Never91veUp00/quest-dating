@@ -1,20 +1,31 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import request from 'supertest'
 import jwt from 'jsonwebtoken'
-import pool from '@src/config/database.js'
-import { createApp } from '@src/app.js'
-import * as notificationService from '@src/services/notificationService.js'
+import { setupIntegration, teardownIntegration } from '../../helpers/integration-db.js'
+// notificationService замокан в tests/setup.integration.js — импортируем
+// мок-функцию, чтобы проверить, что заказ её действительно дёргает.
+import { notifyNewOrder } from '@src/services/notificationService.js'
 
-let app
-let adminToken
+// Integration-тест /orders на РЕАЛЬНОЙ PostgreSQL (testcontainers).
+//
+// Заменяет прежний мок-вариант, который:
+//   - бил по template_id: 1 — в dump.sql такого нет (шаблоны 11–17),
+//     на реальной БД это был бы 404;
+//   - проверял выдуманную base_price 300000 (реальная — 49900 копеек);
+//   - не проверял ни сам INSERT, ни инкремент orders_count в транзакции,
+//     ни генерацию view_token.
+//
+// Теперь всё это — против живой БД. Лимитеры и notificationService мокаются
+// в tests/setup.integration.js (НЕ БД).
 
-beforeAll(() => {
-  app = createApp()
-  adminToken = jwt.sign({ username: 'admin', role: 'admin' }, process.env.JWT_SECRET)
-})
+const TEMPLATE_ID    = 11                          // 'Детективное расследование' (см. dump.sql)
+const TEMPLATE_TITLE = 'Детективное расследование'
+const BASE_PRICE     = 49900                       // копейки
+const MUSIC_KOPECKS  = 50000                       // background_music: 500 руб × 100
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const validOrderData = {
-  template_id: 1,
+  template_id: TEMPLATE_ID,
   client_name: 'Александр Иванов',
   client_email: 'alex@example.com',
   client_phone: '+79161234567',
@@ -22,139 +33,169 @@ const validOrderData = {
   event_city: 'Москва',
   selected_features: ['background_music'],
   description: 'Романтический вечер для двоих',
-  newsletter: false
+  newsletter: false,
 }
 
-describe('POST /api/orders — создание заказа', () => {
-  describe('валидация', () => {
-    it('возвращает 400 если template_id отсутствует', async () => {
-      const res = await request(app)
-        .post('/api/orders')
-        .send({ ...validOrderData, template_id: undefined })
+let ctx
+let adminToken
 
-      expect(res.status).toBe(400)
-    })
+beforeAll(async () => {
+  ctx = await setupIntegration()
+  // JWT_SECRET выставляется внутри setupIntegration — подписываем после него.
+  adminToken = jwt.sign({ username: 'admin', role: 'admin' }, process.env.JWT_SECRET)
+}, 120000)
 
-    it('возвращает 400 если client_name пустой', async () => {
-      const res = await request(app)
-        .post('/api/orders')
-        .send({ ...validOrderData, client_name: '' })
+afterAll(async () => {
+  await teardownIntegration(ctx)
+})
 
-      expect(res.status).toBe(400)
-    })
-
-    it('возвращает 400 если email некорректный', async () => {
-      const res = await request(app)
-        .post('/api/orders')
-        .send({ ...validOrderData, client_email: 'not-an-email' })
-
-      expect(res.status).toBe(400)
-    })
+describe('POST /api/orders — валидация (БД не трогается)', () => {
+  it('400 если template_id отсутствует', async () => {
+    const res = await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, template_id: undefined })
+    expect(res.status).toBe(400)
   })
 
-  describe('успешное создание', () => {
-    it('создаёт заказ и возвращает данные с ценой', async () => {
-      const mockTemplate = { base_price: 300000, title: 'Детективный квест' }
-      const mockOrder = {
-        id: 1,
-        ...validOrderData,
-        base_price: 300000,
-        additional_costs: 50000, // background_music = 500 руб = 50000 копеек
-        total_price: 350000,
-        status: 'pending'
-      }
+  it('400 если client_name пустой', async () => {
+    const res = await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, client_name: '' })
+    expect(res.status).toBe(400)
+  })
 
-      const mockClient = {
-        query: vi.fn()
-          .mockResolvedValueOnce({})                 // BEGIN
-          .mockResolvedValueOnce({ rows: [mockOrder] }) // INSERT
-          .mockResolvedValueOnce({})                 // UPDATE orders_count
-          .mockResolvedValueOnce({}),                // COMMIT
-        release: vi.fn()
-      }
-      pool.query.mockResolvedValueOnce({ rows: [mockTemplate] })
-      pool.connect.mockResolvedValueOnce(mockClient)
-      vi.spyOn(notificationService, 'notifyNewOrder').mockResolvedValueOnce(undefined)
+  it('400 если email некорректный', async () => {
+    const res = await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, client_email: 'not-an-email' })
+    expect(res.status).toBe(400)
+  })
 
-      const res = await request(app)
-        .post('/api/orders')
-        .send(validOrderData)
+  it('400 если description пустой', async () => {
+    const res = await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, description: '' })
+    expect(res.status).toBe(400)
+  })
 
-      expect(res.status).toBe(201)
-      expect(res.body.success).toBe(true)
-      // Контроллер возвращает parseFloat(order.total_price) — число как есть из БД.
-      // Значение хранится в копейках (350000), конвертация в рубли — на фронтенде.
-      expect(res.body.data.total_price).toBe(350000)
-    })
-
-    it('возвращает 404 если шаблон не существует', async () => {
-      pool.query.mockResolvedValueOnce({ rows: [] }) // шаблон не найден
-
-      const res = await request(app)
-        .post('/api/orders')
-        .send(validOrderData)
-
-      expect(res.status).toBe(404)
-      expect(res.body.message).toContain('Шаблон не найден')
-    })
-
-    it('отправляет уведомление в Telegram после создания', async () => {
-      const mockTemplate = { base_price: 300000, title: 'Квест' }
-      const mockOrder = { id: 2, ...validOrderData, base_price: 300000, additional_costs: 0, total_price: 300000, status: 'pending' }
-      const mockClient = {
-        query: vi.fn()
-          .mockResolvedValueOnce({})
-          .mockResolvedValueOnce({ rows: [mockOrder] })
-          .mockResolvedValueOnce({})
-          .mockResolvedValueOnce({}),
-        release: vi.fn()
-      }
-      pool.query.mockResolvedValueOnce({ rows: [mockTemplate] })
-      pool.connect.mockResolvedValueOnce(mockClient)
-
-      const spy = vi.spyOn(notificationService, 'notifyNewOrder').mockResolvedValueOnce(undefined)
-
-      await request(app).post('/api/orders').send({ ...validOrderData, selected_features: [] })
-
-      // notifyNewOrder вызывается через .catch() после ответа клиенту (fire-and-forget).
-      // Ждём один тик event loop чтобы промис успел запуститься.
-      await new Promise(resolve => setImmediate(resolve))
-
-      expect(spy).toHaveBeenCalledOnce()
-      expect(spy).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 2 }),
-        'Квест'
-      )
-    })
+  it('404 если шаблон не существует (реальный SELECT в quest_templates)', async () => {
+    const res = await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, template_id: 99999 })
+    expect(res.status).toBe(404)
+    expect(res.body.message).toContain('Шаблон не найден')
   })
 })
 
-describe('PATCH /api/admin/orders/:id/status — обновление статуса (только admin)', () => {
-  it('возвращает 401 без токена', async () => {
-    const res = await request(app).patch('/api/admin/orders/1/status').send({ status: 'confirmed' })
+describe('POST /api/orders — успешное создание (реальная БД)', () => {
+  afterEach(async () => { await ctx.reset() })
+
+  it('создаёт заказ: цена считается из реальной base_price + фичи, view_token = UUID', async () => {
+    const res = await request(ctx.app).post('/api/orders').send(validOrderData)
+
+    expect(res.status).toBe(201)
+    expect(res.body.success).toBe(true)
+    expect(res.body.data.base_price).toBe(BASE_PRICE)
+    expect(res.body.data.additional_costs).toBe(MUSIC_KOPECKS)
+    expect(res.body.data.total_price).toBe(BASE_PRICE + MUSIC_KOPECKS)   // 99900
+    expect(res.body.data.status).toBe('pending')
+    expect(res.body.data.view_token).toMatch(UUID_RE)
+    expect(typeof res.body.data.id).toBe('number')
+
+    // Заказ реально лёг в таблицу orders.
+    const { rows } = await ctx.pool.query(
+      'SELECT client_email, total_price, status FROM orders WHERE id = $1',
+      [res.body.data.id]
+    )
+    expect(rows).toHaveLength(1)
+    expect(rows[0].client_email).toBe('alex@example.com')
+    expect(rows[0].total_price).toBe(BASE_PRICE + MUSIC_KOPECKS)
+    expect(rows[0].status).toBe('pending')
+  })
+
+  it('additional_costs = 0 без выбранных фич', async () => {
+    const res = await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, selected_features: [] })
+    expect(res.status).toBe(201)
+    expect(res.body.data.additional_costs).toBe(0)
+    expect(res.body.data.total_price).toBe(BASE_PRICE)
+  })
+
+  it('инкрементит quest_templates.orders_count в той же транзакции', async () => {
+    const before = await ctx.pool.query(
+      'SELECT orders_count FROM quest_templates WHERE id = $1', [TEMPLATE_ID]
+    )
+    await request(ctx.app).post('/api/orders').send(validOrderData).expect(201)
+    const after = await ctx.pool.query(
+      'SELECT orders_count FROM quest_templates WHERE id = $1', [TEMPLATE_ID]
+    )
+    expect(after.rows[0].orders_count).toBe(before.rows[0].orders_count + 1)
+  })
+
+  it('дёргает notifyNewOrder после создания (fire-and-forget)', async () => {
+    await request(ctx.app).post('/api/orders')
+      .send({ ...validOrderData, selected_features: [] })
+      .expect(201)
+
+    // notifyNewOrder вызывается через .catch() ПОСЛЕ ответа — ждём тик.
+    await new Promise(resolve => setImmediate(resolve))
+
+    expect(notifyNewOrder).toHaveBeenCalledOnce()
+    expect(notifyNewOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ template_id: TEMPLATE_ID, client_name: validOrderData.client_name }),
+      TEMPLATE_TITLE
+    )
+  })
+})
+
+describe('GET /api/orders/by-token/:token — публичный просмотр (реальный JOIN)', () => {
+  afterEach(async () => { await ctx.reset() })
+
+  it('возвращает заказ по view_token с данными шаблона', async () => {
+    const created = await request(ctx.app).post('/api/orders').send(validOrderData)
+    const token = created.body.data.view_token
+
+    const res = await request(ctx.app).get(`/api/orders/by-token/${token}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+    expect(res.body.data.client_name).toBe(validOrderData.client_name)
+    expect(res.body.data.template_title).toBe(TEMPLATE_TITLE)
+    expect(res.body.data.total_price).toBe(BASE_PRICE + MUSIC_KOPECKS)
+  })
+
+  it('404 для несуществующего токена', async () => {
+    const res = await request(ctx.app)
+      .get('/api/orders/by-token/00000000-0000-0000-0000-000000000000')
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('PATCH /api/admin/orders/:id/status — смена статуса (admin)', () => {
+  afterEach(async () => { await ctx.reset() })
+
+  it('401 без токена', async () => {
+    const res = await request(ctx.app)
+      .patch('/api/admin/orders/1/status').send({ status: 'confirmed' })
     expect(res.status).toBe(401)
   })
 
-  it('обновляет статус с валидным токеном', async () => {
-    const updatedOrder = { id: 1, status: 'confirmed', client_name: 'Иван' }
-    pool.query.mockResolvedValueOnce({ rows: [updatedOrder] })
-    vi.spyOn(notificationService, 'notifyOrderStatusChange').mockResolvedValueOnce(undefined)
-
-    const res = await request(app)
+  it('400 для невалидного статуса (с токеном)', async () => {
+    const res = await request(ctx.app)
       .patch('/api/admin/orders/1/status')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ status: 'неверный-статус' })
+    expect(res.status).toBe(400)
+  })
+
+  it('обновляет статус реального заказа в БД', async () => {
+    const created = await request(ctx.app).post('/api/orders').send(validOrderData)
+    const id = created.body.data.id
+
+    const res = await request(ctx.app)
+      .patch(`/api/admin/orders/${id}/status`)
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ status: 'confirmed' })
 
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
-  })
 
-  it('возвращает 400 для невалидного статуса', async () => {
-    const res = await request(app)
-      .patch('/api/admin/orders/1/status')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({ status: 'неверный-статус' })
-
-    expect(res.status).toBe(400)
+    const { rows } = await ctx.pool.query('SELECT status FROM orders WHERE id = $1', [id])
+    expect(rows[0].status).toBe('confirmed')
   })
 })
