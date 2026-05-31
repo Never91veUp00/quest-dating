@@ -20,6 +20,7 @@ export default defineConfig({
       'tests/integration/api/health.test.js',
       'tests/integration/api/orders.test.js',
       'tests/integration/api/quests.test.js',
+      'tests/integration/api/telegram.test.js',
     ],
     coverage: {
       provider: 'v8',

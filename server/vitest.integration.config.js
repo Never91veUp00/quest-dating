@@ -21,13 +21,14 @@ export default defineConfig({
     // НЕ подключаем tests/setup.js — он мокает БД.
     // ФУНДАМЕНТ + мигрированные на реальную БД файлы. Список растёт по мере
     // переписывания integration-тестов с мок-БД на этот же helper.
-    // Сделано: health (фундамент), orders, quests.
-    // Осталось: telegram (DB-часть). auth/contact в БД не ходят —
-    // остаются мок-тестами (vitest.config.js), мигрировать нечего.
+    // Мигрировано на реальную БД: health (фундамент), orders, quests, telegram.
+    // auth/contact в БД не ходят — остаются мок-тестами (vitest.config.js).
+    // Миграция integration-тестов (задача 1.2.3) завершена.
     include: [
       'tests/integration/api/health.test.js',
       'tests/integration/api/orders.test.js',
       'tests/integration/api/quests.test.js',
+      'tests/integration/api/telegram.test.js',
     ],
 
     // Vitest 4: poolOptions удалён, опции стали top-level.
