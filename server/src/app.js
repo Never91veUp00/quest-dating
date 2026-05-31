@@ -66,15 +66,32 @@ export const createApp = () => {
   app.use('/api', apiRoutes)
 
   app.get('/health', async (req, res) => {
+    // services отражает НАСТРОЕННОСТЬ внешних каналов (наличие env), НЕ живость.
+    // Условия зеркалят реальную логику отправки в notificationService:
+    //   Telegram настроен ⇔ TELEGRAM_BOT_TOKEN И TELEGRAM_CHAT_ID
+    //   Resend настроен    ⇔ RESEND_API_KEY (получатель — NOTIFY_EMAIL)
+    // Ловит частый класс деплой-ошибок (забыли/опечатали переменную, ср. INC).
+    // Живость («ключ есть, но сервис лёг») здесь НЕ проверяется намеренно —
+    // это горячий путь мониторинга (monitor.sh + pinger каждые 1-5 мин),
+    // активный пинг внешних API замедлял бы health и жёг квоты.
+    const services = {
+      telegram: (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID)
+        ? 'configured' : 'not_configured',
+      resend: process.env.RESEND_API_KEY ? 'configured' : 'not_configured',
+      notifyEmail: process.env.NOTIFY_EMAIL ? 'configured' : 'not_configured',
+    }
+
     try {
       await pool.query('SELECT 1')
+      // КОНТРАКТ: при живой БД — код 200 и db:connected НЕИЗМЕННЫ
+      // (monitor.sh парсит именно их). services добавлено рядом, не трогая их.
       res.set('Cache-Control', 'no-store')
-        .json({ status: 'OK', db: 'connected',
+        .json({ status: 'OK', db: 'connected', services,
                 timestamp: new Date().toISOString(), uptime: process.uptime() })
     } catch (err) {
       res.set('Cache-Control', 'no-store')
         .status(503)
-        .json({ status: 'DEGRADED', db: 'disconnected',
+        .json({ status: 'DEGRADED', db: 'disconnected', services,
                 error: err.message, timestamp: new Date().toISOString() })
     }
   })
