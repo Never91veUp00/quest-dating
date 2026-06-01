@@ -235,6 +235,65 @@ router.delete('/quests/:id', async (req, res, next) => {
   }
 })
 
+// ─── PATCH /api/admin/quests/:id/publish ──────────────────────
+// Замок полуавтомата (2.4.6): админ ревьюит draft (GET /quests/:id) и
+// публикует одним вызовом. Меняет ТОЛЬКО is_public/published_at — blocks и
+// прочее не трогает (в отличие от PUT, который требует полный объект).
+// Не публикует квест без блоков (пустой квест для клиента — бессмысленен).
+router.patch('/quests/:id/publish', async (req, res, next) => {
+  try {
+    // Проверяем, что у квеста есть блоки, ДО публикации
+    const check = await pool.query(
+      'SELECT id, blocks, is_public FROM created_quests WHERE id = $1',
+      [req.params.id]
+    )
+    if (!check.rows.length) {
+      return res.status(404).json({ success: false, message: 'Квест не найден' })
+    }
+    const blocks = check.rows[0].blocks
+    if (!Array.isArray(blocks) || blocks.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Нельзя опубликовать квест без блоков',
+      })
+    }
+
+    const result = await pool.query(`
+      UPDATE created_quests SET
+        is_public    = true,
+        published_at = CASE WHEN published_at IS NULL THEN NOW() ELSE published_at END,
+        updated_at   = NOW()
+      WHERE id = $1
+      RETURNING id, slug, title, is_public, published_at
+    `, [req.params.id])
+
+    res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ─── PATCH /api/admin/quests/:id/unpublish ────────────────────
+// Снять с публикации обратно в draft (симметрично publish; published_at
+// сохраняем — это исторический факт «когда впервые опубликован»).
+router.patch('/quests/:id/unpublish', async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      UPDATE created_quests SET
+        is_public  = false,
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, slug, title, is_public, published_at
+    `, [req.params.id])
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: 'Квест не найден' })
+    }
+    res.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    next(error)
+  }
+})
+
 // ─── GET /api/admin/orders ────────────────────────────────────
 router.get('/orders', async (req, res, next) => {
   try {

@@ -707,7 +707,21 @@ database/migrations/add_wizard_sessions.sql            ← сохранение 
 - **2.4.4.** Frontend — пошаговый опросник на `/order/[templateSlug]/wizard`,
   прогресс, возврат/правка ответов, сохранение при потере соединения.
 - **2.4.5.** Сохранение сессий опросника (восстановление прогресса).
-- **2.4.6.** Админка — превью собранного draft, правка, кнопка публикации.
+- **2.4.6.** 🟡 **Backend готов (1 июня).** Замок полуавтомата — узкие
+  admin-роуты (под `requireAdmin`, `server/src/routes/admin.js`):
+  - `PATCH /api/admin/quests/:id/publish` → `is_public=true` + `published_at`
+    (не перетирает при повторе); отказ 400 если `blocks` пуст (нельзя
+    публиковать пустой квест); 404 если квеста нет;
+  - `PATCH /api/admin/quests/:id/unpublish` → обратно в draft (`published_at`
+    сохраняется как исторический факт).
+  Узкие PATCH (по образцу `PATCH /templates/:id/status`), НЕ через PUT —
+  меняют только статус, blocks не трогают. Превью draft использует
+  существующий `GET /api/admin/quests/:id`.
+  Integration-тест на реальной PG (`tests/integration/api/adminQuestPublish.test.js`,
+  7 кейсов: цепочка wizard submit→publish, 401 без токена, 404, отказ на
+  пустых blocks, идемпотентность published_at, unpublish). Прогон — на CI/Docker.
+  **Осталось:** UI в админке (кнопки превью/публикации) — фронт-часть, вместе
+  с 2.4.4 (client-зона, проверка ручная — см. примечание про client-тесты).
 - **2.4.7.** (опц.) Флаг `auto_publish` для перехода в полное авто.
 
 ### Критерии готовности Фазы 2
