@@ -30,6 +30,7 @@ export default defineConfig({
       'tests/integration/api/quests.test.js',
       'tests/integration/api/telegram.test.js',
       'tests/integration/api/wizard.test.js',
+      'tests/integration/api/adminQuestPublish.test.js',
     ],
 
     // Vitest 4: poolOptions удалён, опции стали top-level.

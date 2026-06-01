@@ -22,6 +22,7 @@ export default defineConfig({
       'tests/integration/api/quests.test.js',
       'tests/integration/api/telegram.test.js',
       'tests/integration/api/wizard.test.js',
+      'tests/integration/api/adminQuestPublish.test.js',
     ],
     coverage: {
       provider: 'v8',
