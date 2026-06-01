@@ -25,8 +25,8 @@ afterAll(async () => {
 async function createDraft(answers = { 'task-dom-2-1': { answer: 'парк Горького' } }) {
   const res = await request(ctx.app)
     .post(`/api/wizard/${INDOOR_SLUG}/submit`)
-    .send({ client_name: 'Игорь', meta: { partner_name: 'Аня' }, answers })
-  return res.body.data.id
+    .send({ client_name: 'Игорь', client_email: 'igor@example.com', meta: { partner_name: 'Аня' }, answers })
+  return res.body.data.quest.id
 }
 
 describe('PATCH /api/admin/quests/:id/publish', () => {
