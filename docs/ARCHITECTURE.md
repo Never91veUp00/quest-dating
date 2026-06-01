@@ -139,7 +139,7 @@ quest-dating/
 │           └── database.js      # pg pool
 │
 ├── database/                    # SQL миграции и схема
-├── nginx/                       # nginx.conf + ssl/
+├── nginx/                       # nginx.conf (серты — Let's Encrypt в /etc/letsencrypt/)
 ├── docs/                        # Документация
 └── docker-compose.yml
 ```
