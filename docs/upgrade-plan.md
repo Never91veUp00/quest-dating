@@ -691,8 +691,19 @@ database/migrations/add_wizard_sessions.sql            ← сохранение 
   meta) → blocks` — чистая детерминированная функция, 16 unit-тестов (все
   5 типов + edge-cases), прогон на proposal-home. Файл:
   `server/src/services/questAssembler.js`. Остаётся подключить в backend (2.4.3).
-- **2.4.3.** Backend `/api/wizard/submit` — принять ответы, собрать draft
-  blocks через questAssembler, создать `created_quests` draft (is_public=false).
+- **2.4.3.** ✅ **Код готов (1 июня).** Backend-обёртка над двумя чистыми
+  функциями (`server/src/controllers/wizardController.js`, роут
+  `server/src/routes/wizard.js`, смонтирован в `api.js`):
+  - `GET /api/wizard/:templateSlug/schema` → `buildWizardSchema` → вопросы фронту;
+  - `POST /api/wizard/:templateSlug/submit` → `questAssembler` → создаёт
+    `created_quests` в DRAFT (`is_public=false`, `published_at=NULL`).
+    Публикует админ (полуавтомат). slug через `makeUniqueSlug`.
+  Integration-тест на реальной PostgreSQL написан
+  (`tests/integration/api/wizard.test.js`, 9 кейсов: 404/валидация/draft/
+  blocks-в-БД/уникальный slug). ⚠️ Прогон требует Docker (testcontainers) —
+  отработает на GitHub CI. Без Docker проверено: app поднимается, роут
+  смонтирован (валидаторы → 400), submit на реальном шаблоне даёт валидный
+  blocks без болванок, unit-набор 94/94.
 - **2.4.4.** Frontend — пошаговый опросник на `/order/[templateSlug]/wizard`,
   прогресс, возврат/правка ответов, сохранение при потере соединения.
 - **2.4.5.** Сохранение сессий опросника (восстановление прогресса).
