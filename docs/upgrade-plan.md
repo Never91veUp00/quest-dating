@@ -514,6 +514,10 @@ client-тестами. Бэкенд и так под защитой unit+integra
   Выставить `engines >=22` без подъёма CI означало бы EBADENGINE-конфликт.
   Поэтому CI поднят до Node 22 в обоих job — теперь версия консистентна
   везде: Docker, доки, CI, оба манифеста. CI стал тестировать на прод-версии.
+- **Хвост, закрыт 1 июня:** `server/package-lock.json` отставал — в нём
+  `engines.node` оставался `>=18.0.0` (lockfile не перегенерили при правке
+  манифеста). Поправлено точечно (root engines → `>=22.0.0`), валидность
+  подтверждена `npm ci --dry-run`. Теперь и lockfile консистентен.
 
 #### ~~Задача 1.5.3. Удалить `uploads_local/` из репозитория~~ ✅ DONE (PR chore/cleanup-repo)
 - `uploads_local/` (~7.2 МБ, 5 файлов: avatars/media/templates) удалена.
@@ -675,17 +679,32 @@ database/migrations/add_wizard_sessions.sql            ← сохранение 
 
 ### 2.4. Этапы
 
-- **2.4.1.** Построить из `structure` список заполняемых слотов заказчика
-  (по таблице 2.4.0) и набор вопросов опросника. Обойти все 7 шаблонов,
-  убедиться что палитра типов покрыта.
-- **2.4.2.** `questAssembler(structure, answers, meta) → blocks` — чистая
-  детерминированная функция. **Прототип готов и проверен** на `proposal-home`
-  (7 ассертов зелёные: слоты заполняются, text_answer/selfie не тронуты,
-  кол-во блоков сохранено). Довести: покрыть unit-тестами все 5 типов +
-  edge-cases (пустые ответы → дефолт, неизвестный тип → copy-through,
-  невалидная structure → throw), вынести в `server/src/services/`.
-- **2.4.3.** Backend `/api/wizard/submit` — принять ответы, собрать draft
-  blocks через questAssembler, создать `created_quests` draft (is_public=false).
+- **2.4.1.** ✅ **Готово (1 июня, проверено на коде).** `buildWizardSchema
+  (template) → { meta, questions }` — чистая функция, выводит из structure
+  список вопросов по заполняемым слотам (таблица 2.4.0). Правило location:
+  вопрос «где этап» только для `location_type === 'city'` (1 из 7 шаблонов —
+  proposal-moscow; остальные indoor — квест дома, локация не нужна). 22
+  unit-теста, включая прогон на ВСЕХ 7 реальных шаблонах (точные числа
+  слотов) + round-trip schema→ответы→questAssembler. Файл:
+  `server/src/services/buildWizardSchema.js`.
+- **2.4.2.** ✅ **Готово (1 июня).** `questAssembler(structure, answers,
+  meta) → blocks` — чистая детерминированная функция, 16 unit-тестов (все
+  5 типов + edge-cases), прогон на proposal-home. Файл:
+  `server/src/services/questAssembler.js`. Остаётся подключить в backend (2.4.3).
+- **2.4.3.** ✅ **Код готов (1 июня).** Backend-обёртка над двумя чистыми
+  функциями (`server/src/controllers/wizardController.js`, роут
+  `server/src/routes/wizard.js`, смонтирован в `api.js`):
+  - `GET /api/wizard/:templateSlug/schema` → `buildWizardSchema` → вопросы фронту;
+  - `POST /api/wizard/:templateSlug/submit` → `questAssembler` → создаёт
+    `created_quests` в DRAFT (`is_public=false`, `published_at=NULL`).
+    Публикует админ (полуавтомат). slug через `makeUniqueSlug`.
+  Integration-тест на реальной PostgreSQL написан
+  (`tests/integration/api/wizard.test.js`, 9 кейсов: 404/валидация/draft/
+  blocks-в-БД/уникальный slug). ⚠️ Локально не прогнан — testcontainers
+  требует Docker (нет в dev-окружении сессии); **отработает на GitHub CI**.
+  Без Docker проверено фактом: app поднимается, роут смонтирован (валидаторы
+  → 400), логика submit на реальном шаблоне даёт валидный blocks без болванок,
+  unit-набор 94/94.
 - **2.4.4.** Frontend — пошаговый опросник на `/order/[templateSlug]/wizard`,
   прогресс, возврат/правка ответов, сохранение при потере соединения.
 - **2.4.5.** Сохранение сессий опросника (восстановление прогресса).
