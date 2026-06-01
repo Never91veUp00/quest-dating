@@ -4,15 +4,19 @@
 
 Клиент выбирает сценарий, рассказывает о своей паре — Лиза создаёт персональный квест за 24 часа. Партнёр проходит его прямо в браузере: задания, подсказки, локации.
 
+> **Основная ветка — `production`.** Вся разработка идёт через PR в неё;
+> прямой push закрыт branch protection (требуются зелёные CI-проверки
+> unit + integration). Прод деплоится с `production`.
+
 ---
 
 ## Стек
 
 | Слой | Технологии |
 |---|---|
-| Frontend | Nuxt 4, Vue 3, `@nuxtjs/seo`, Playwright |
-| Backend | Node.js, Express, PostgreSQL, JWT |
-| Инфраструктура | Docker Compose, Nginx, Orange Pi 5 Pro |
+| Frontend | Nuxt 4.x, Vue 3, `@nuxtjs/seo` 5.x, Vitest 4.x, Playwright |
+| Backend | Node.js 22 LTS, Express, PostgreSQL 15, JWT |
+| Инфраструктура | Docker Compose, Nginx, VPS на VDSina (vdsina.com) |
 | Интеграции | Telegram Bot (уведомления + вебхук), Resend (email), DOMPurify (XSS) |
 
 ---
@@ -39,8 +43,8 @@ quest-dating/
 
 ### Требования
 
-- Node.js 20 LTS
-- PostgreSQL 14+
+- Node.js 22 LTS
+- PostgreSQL 15
 - Docker + Docker Compose (для контейнерного запуска)
 
 ### Локальная разработка
@@ -166,8 +170,10 @@ certbot certonly --standalone -d questdating.ru -d www.questdating.ru
 
 - [Установка и запуск](docs/SETUP.md)
 - [Руководство разработчика](docs/DEVELOPMENT.md)
+- [Архитектура](docs/ARCHITECTURE.md)
 - [Тестирование](docs/TESTING.md)
 - [API](docs/API.md)
+- [Деплой на VPS](docs/DEPLOY.md)
 
 ---
 

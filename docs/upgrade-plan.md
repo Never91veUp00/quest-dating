@@ -458,19 +458,14 @@ client-тестами. Бэкенд и так под защитой unit+integra
   `/api/orders/*` (с requireAdmin) и `/api/admin/orders/*` (routes/admin.js).
 - **Ветка:** `refactor/unify-orders-routes` (когда дойдём, в Фазе 2)
 
-#### Задача 1.5.2. Привести в порядок `engines` в package.json
-- **Контекст:** `server/package.json` декларирует
-  `engines: { "node": ">=18.0.0" }` — отстаёт от реальной минимальной
-  версии (22). `client-nuxt/package.json` поле `engines` вообще не
-  имеет, хотя Nuxt 4.x требует Node 22+.
-- **Что:**
-  1. В `server/package.json`: `engines.node` → `>=22.0.0`
-  2. В `client-nuxt/package.json`: добавить
-     `"engines": { "node": ">=22.0.0", "npm": ">=9.0.0" }`
-- **Тест:** `npm install` в обоих директориях должен проходить без
-  EBADENGINE warning.
-- **Ветка:** `chore/sync-engines`
-- **Объединить с 1.5.5** (обе мелкие, обе про package.json/README).
+#### ~~Задача 1.5.2. Привести в порядок `engines` в package.json~~ ✅ DONE (PR chore/sync-engines-readme)
+- `server/package.json`: `engines.node` `>=18.0.0` → `>=22.0.0`.
+- `client-nuxt/package.json`: добавлено `engines: { node >=22.0.0, npm >=9.0.0 }`.
+- **⚠️ Вскрытое расхождение, исправлено тем же PR:** CI (`ci.yml`) гонял
+  тесты на `node-version: '20'`, тогда как прод (Dockerfile, доки) — Node 22.
+  Выставить `engines >=22` без подъёма CI означало бы EBADENGINE-конфликт.
+  Поэтому CI поднят до Node 22 в обоих job — теперь версия консистентна
+  везде: Docker, доки, CI, оба манифеста. CI стал тестировать на прод-версии.
 
 #### ~~Задача 1.5.3. Удалить `uploads_local/` из репозитория~~ ✅ DONE (PR chore/cleanup-repo)
 - `uploads_local/` (~7.2 МБ, 5 файлов: avatars/media/templates) удалена.
@@ -486,8 +481,13 @@ client-тестами. Бэкенд и так под защитой unit+integra
   мусорный дамп не закоммитили снова. В репо остались только корректные SQL:
   `database/dump.sql` + 6 миграций.
 
-#### Задача 1.5.5. Привести в порядок README.md
-- **Контекст:** README расходится с реальностью в нескольких местах:
+#### ~~Задача 1.5.5. Привести в порядок README.md~~ ✅ DONE (PR chore/sync-engines-readme)
+- Стек-таблица: версии актуализированы (Nuxt 4.x, @nuxtjs/seo 5.x, Vitest 4.x,
+  Node 22 LTS, PostgreSQL 15), `Orange Pi 5 Pro` → `VPS на VDSina (vdsina.com)`.
+- Требования: Node 20 → 22, PostgreSQL 14+ → 15.
+- Добавлен блок про основную ветку `production` (PR + branch protection).
+- Ссылки на доки проверены (4 живые), добавлены ARCHITECTURE.md и DEPLOY.md.
+- **Контекст (было):** README расходился с реальностью —
   - Инфраструктура: `Orange Pi 5 Pro` → нужно `VPS на VDSina`
   - Стек таблица: не указаны актуальные версии (Node 22, Vitest 4.x,
     @nuxtjs/seo 5.x)
