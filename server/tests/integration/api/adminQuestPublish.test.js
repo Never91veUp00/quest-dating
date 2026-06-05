@@ -3,11 +3,9 @@ import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import { setupIntegration, teardownIntegration } from '../../helpers/integration-db.js'
 
-// Integration-тест публикации квеста админом (2.4.6 — замок полуавтомата).
-// Цепочка: wizard submit → draft → admin publish → is_public=true.
+// Integration-тест публикации квеста админом (2.4.6).
+// Поток: админ создаёт draft-квест → admin publish → is_public=true.
 // Роуты под requireAdmin → нужен admin-JWT.
-
-const INDOOR_SLUG = 'proposal-home'
 
 let ctx
 let adminToken
@@ -21,12 +19,18 @@ afterAll(async () => {
   await teardownIntegration(ctx)
 })
 
-// Хелпер: создать draft через наш же wizard-endpoint, вернуть его id
-async function createDraft(answers = { 'task-dom-2-1': { answer: 'парк Горького' } }) {
-  const res = await request(ctx.app)
-    .post(`/api/wizard/${INDOOR_SLUG}/submit`)
-    .send({ client_name: 'Игорь', client_email: 'igor@example.com', meta: { partner_name: 'Аня' }, answers })
-  return res.body.data.quest.id
+// Хелпер: создать draft-квест напрямую в БД (как делает админ через админку),
+// вернуть его id. Минимальные непустые blocks, is_public=false.
+let draftSeq = 0
+async function createDraft(blocks = [{ id: 'b1', title: 'Этап', tasks: [] }]) {
+  draftSeq += 1
+  const res = await ctx.pool.query(
+    `INSERT INTO created_quests (title, client_name, slug, theme, blocks, is_public)
+     VALUES ($1,$2,$3,'detective',$4::jsonb,false)
+     RETURNING id`,
+    ['Тестовый квест', 'Игорь', `draft-quest-${draftSeq}`, JSON.stringify(blocks)]
+  )
+  return res.rows[0].id
 }
 
 describe('PATCH /api/admin/quests/:id/publish', () => {
