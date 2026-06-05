@@ -5,7 +5,6 @@ import tagsRoutes from './tags.js'
 import reviewsRoutes from './reviews.js'
 import ordersRoutes from './orders.js'
 import questsRoutes from './quests.js'
-import wizardRoutes from './wizard.js'
 import authRoutes from './auth.js'
 import adminRoutes from './admin.js'
 import contactRoutes from './contact.js'
@@ -53,7 +52,6 @@ router.use('/tags', tagsRoutes)
 router.use('/reviews', reviewsRoutes)
 router.use('/orders', ordersRoutes)
 router.use('/quests', questsRoutes)
-router.use('/wizard', wizardRoutes)
 router.use('/auth', authRoutes)
 router.use('/admin', adminRoutes)
 router.use('/contact', contactRoutes)
