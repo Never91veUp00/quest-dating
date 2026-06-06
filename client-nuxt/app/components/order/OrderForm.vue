@@ -2,23 +2,28 @@
   <div class="of">
 
     <!-- Прогресс -->
+    <p class="of__progress-counter">Шаг {{ currentStep }} из {{ STEPS.length }} · {{ STEPS[currentStep - 1] }}</p>
     <div class="of__progress">
-      <div
-        v-for="(step, i) in STEPS"
-        :key="i"
-        class="of__step"
-        :class="{
-          'of__step--active': currentStep === i + 1,
-          'of__step--done': currentStep > i + 1
-        }"
-      >
-        <div class="of__step-dot">
-          <span v-if="currentStep > i + 1">✓</span>
-          <span v-else>{{ i + 1 }}</span>
+      <template v-for="(step, i) in STEPS" :key="i">
+        <div
+          class="of__step"
+          :class="{
+            'of__step--active': currentStep === i + 1,
+            'of__step--done': currentStep > i + 1
+          }"
+        >
+          <div class="of__step-dot">
+            <span v-if="currentStep > i + 1">✓</span>
+            <span v-else>{{ i + 1 }}</span>
+          </div>
+          <span class="of__step-label">{{ step }}</span>
         </div>
-        <span class="of__step-label">{{ step }}</span>
-      </div>
-      <div class="of__progress-line" :style="{ width: progressWidth }"></div>
+        <div
+          v-if="i < STEPS.length - 1"
+          class="of__connector"
+          :class="{ 'of__connector--done': currentStep > i + 1 }"
+        ></div>
+      </template>
     </div>
 
     <form class="of__form">
@@ -330,8 +335,6 @@ const categoryQuestions = computed(() => {
   }
 })
 
-const progressWidth = computed(() => `${((currentStep.value - 1) / (STEPS.length - 1)) * 100}%`)
-
 const minDate = computed(() => {
   const d = new Date()
   d.setDate(d.getDate() + 1)
@@ -458,35 +461,41 @@ const handleSubmit = async () => {
 .of { color: #f0ede8; }
 
 /* Прогресс */
-.of__progress {
-  display: flex; align-items: center; justify-content: space-between;
-  position: relative; margin-bottom: 28px; padding: 0 8px;
+.of__progress-counter {
+  font-size: 0.8rem; color: rgba(240,237,232,0.5);
+  margin: 0 0 14px; font-weight: 600;
 }
-.of__progress-line {
-  position: absolute; top: 14px; left: 8px;
-  height: 2px; background: #d4af37;
-  transition: width 0.4s ease; z-index: 0;
+.of__progress {
+  display: flex; align-items: flex-start;
+  margin-bottom: 28px;
 }
 .of__step {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  flex: 0 0 auto;
 }
+.of__connector {
+  flex: 1 1 auto; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  margin: 17px 6px 0;
+  transition: background 0.4s ease;
+}
+.of__connector--done { background: #d4af37; }
 .of__step-dot {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.14);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 700; color: rgba(240,237,232,0.4);
+  font-size: 0.95rem; font-weight: 700; color: rgba(240,237,232,0.4);
   transition: all 0.3s;
 }
 .of__step--active .of__step-dot {
-  background: #d4af37; border-color: #d4af37; color: #0a0a0f;
-  transform: scale(1.1);
+  background: #d4af37; border-color: #d4af37; color: #0a0a0f; font-weight: 800;
 }
 .of__step--done .of__step-dot {
-  background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.5); color: #4ade80;
+  background: rgba(212,175,55,0.15); border-color: #d4af37; color: #d4af37;
 }
-.of__step-label { font-size: 0.7rem; color: rgba(240,237,232,0.35); font-weight: 600; }
-.of__step--active .of__step-label { color: #d4af37; }
+.of__step-label { font-size: 0.72rem; color: rgba(240,237,232,0.4); font-weight: 600; white-space: nowrap; }
+.of__step--active .of__step-label { color: #f0ede8; font-weight: 700; }
+.of__step--done .of__step-label { color: rgba(212,175,55,0.7); }
 
 /* Form */
 .of__form {
