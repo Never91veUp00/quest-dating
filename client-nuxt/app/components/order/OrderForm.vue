@@ -82,32 +82,6 @@
             @input="clearErr('partner_name')" />
         </div>
         <div class="of__field">
-          <label class="of__label">Как долго вы вместе?</label>
-          <div class="of__pills">
-            <button
-              v-for="opt in TOGETHER_OPTIONS"
-              :key="opt"
-              type="button"
-              class="of__pill"
-              :class="{ 'of__pill--active': form.together === opt }"
-              @click="form.together = opt"
-            >{{ opt }}</button>
-          </div>
-        </div>
-        <div class="of__field">
-          <label class="of__label">Повод для квеста *</label>
-          <div class="of__pills" :class="{ 'of__pills--error': err.occasion }">
-            <button
-              v-for="opt in OCCASION_OPTIONS"
-              :key="opt"
-              type="button"
-              class="of__pill"
-              :class="{ 'of__pill--active': form.occasion === opt }"
-              @click="form.occasion = opt; clearErr('occasion')"
-            >{{ opt }}</button>
-          </div>
-        </div>
-        <div class="of__field">
           <label class="of__label">Чем увлекается партнёр?</label>
           <div class="of__pills of__pills--wrap">
             <button
@@ -118,19 +92,6 @@
               :class="{ 'of__pill--active': form.hobbies.includes(opt) }"
               @click="toggleHobby(opt)"
             >{{ opt }}</button>
-          </div>
-        </div>
-        <div class="of__field">
-          <label class="of__label">Настроение квеста</label>
-          <div class="of__pills">
-            <button
-              v-for="opt in MOOD_OPTIONS"
-              :key="opt.value"
-              type="button"
-              class="of__pill"
-              :class="{ 'of__pill--active': form.mood === opt.value }"
-              @click="form.mood = opt.value"
-            >{{ opt.label }}</button>
           </div>
         </div>
       </div>
@@ -290,24 +251,13 @@ const form = reactive({
   event_date:   '',
   event_city:   '',
   partner_name: '',
-  together:     '',
-  occasion:     '',
   hobbies:      [],
-  mood:         '',
   details:      {},
   extra:        '',
   agree:        false,
 })
 
-const TOGETHER_OPTIONS = ['Меньше года', '1–2 года', '2–5 лет', 'Больше 5 лет']
-const OCCASION_OPTIONS = ['День рождения', 'Годовщина', 'Просто так', 'Предложение', '14 февраля', '8 марта']
 const HOBBY_OPTIONS    = ['Кино', 'Музыка', 'Спорт', 'Путешествия', 'Еда', 'Игры', 'Книги', 'Природа', 'Искусство', 'Технологии']
-const MOOD_OPTIONS     = [
-  { value: 'romantic', label: '🌹 Романтично' },
-  { value: 'fun',      label: '😄 Весело' },
-  { value: 'mystery',  label: '🔮 Загадочно' },
-  { value: 'touching', label: '💌 Трогательно' },
-]
 
 // Вопросы зависят от типа квеста
 const categoryQuestions = computed(() => {
@@ -334,8 +284,6 @@ const categoryQuestions = computed(() => {
       subtitle: 'Маршрут будет построен специально для вас',
       questions: [
         { field: 'city_area', type: 'textarea', label: 'Любимые места в городе *', placeholder: 'Парки, кафе, улицы, районы — где вы бывали или хотите побывать вместе' },
-        { field: 'transport', type: 'pills', label: 'Как будете передвигаться?', options: ['Пешком', 'На авто', 'Метро/транспорт', 'Всё вместе'] },
-        { field: 'duration_pref', type: 'pills', label: 'Желаемая длительность прогулки', options: ['1–2 часа', '2–3 часа', '3–4 часа', 'Полдня'] },
         { field: 'story', type: 'textarea', label: 'Значимые места для вашей пары', placeholder: 'Место первого свидания, любимое кафе, памятное место — включим в маршрут' },
         { field: 'final_spot', type: 'textarea', label: 'Где хотите завершить квест?', placeholder: 'Ресторан, смотровая, дома — финальная точка маршрута' },
       ]
@@ -356,7 +304,7 @@ const categoryQuestions = computed(() => {
     }
   }
 
-  if (cat?.includes('anniversary') || form.occasion === 'Годовщина') {
+  if (cat?.includes('anniversary')) {
     return {
       title: 'Детали квеста на годовщину',
       subtitle: 'Путешествие по вашей общей истории',
@@ -408,7 +356,6 @@ const showValidationError = () => {
     client_email: 'Введите корректный email',
     event_city:   'Укажите город',
     partner_name: 'Введите имя партнёра',
-    occasion:     'Выберите повод для квеста',
     agree:        'Необходимо согласие с условиями',
   }
   const firstKey = Object.keys(err)[0]
@@ -436,7 +383,6 @@ const validate = () => {
 
   if (currentStep.value === 2) {
     if (!form.partner_name.trim())  { setErr('partner_name'); valid = false }
-    if (!form.occasion)             { setErr('occasion'); valid = false }
   }
 
   if (currentStep.value === 3) {
@@ -469,10 +415,7 @@ const prevStep = () => {
 const buildDescription = () => {
   const parts = []
   if (form.partner_name)  parts.push(`Партнёр: ${form.partner_name}`)
-  if (form.together)      parts.push(`Вместе: ${form.together}`)
-  if (form.occasion)      parts.push(`Повод: ${form.occasion}`)
   if (form.hobbies.length) parts.push(`Увлечения: ${form.hobbies.join(', ')}`)
-  if (form.mood)          parts.push(`Настроение: ${form.mood}`)
 
   const cq = categoryQuestions.value
   cq.questions.forEach(q => {
