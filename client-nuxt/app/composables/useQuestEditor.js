@@ -129,8 +129,7 @@ export function useQuestEditor() {
     form.value.template_id = tpl.id
     // Применяем дизайн и параметры шаблона
     if (tpl.default_theme)          form.value.theme          = tpl.default_theme
-    if (tpl.default_player_version) form.value.player_version = tpl.default_player_version
-    if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
+if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
       form.value.show_intro = tpl.default_show_intro
     openBlocks.value = [blocks[0].id]
   }

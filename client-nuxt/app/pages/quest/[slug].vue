@@ -48,7 +48,7 @@
 
       <!-- ── ПЛЕЕР V1 ── -->
       <transition name="player-in">
-        <div v-if="started && currentBlock && !isComplete && playerVersion === 'v1'" class="qp-player">
+        <div v-if="started && currentBlock && !isComplete" class="qp-player">
 
           <!-- HUD -->
           <header class="qp-hud">
@@ -111,29 +111,7 @@
         </div>
       </transition>
 
-      <!-- ── ПЛЕЕР V2 ── -->
-      <QuestPlayerV2
-        v-if="started && currentBlock && !isComplete && playerVersion === 'v2'"
-        :key="'v2-' + blockIdx"
-        :block="currentBlock"
-        :theme="themeObj"
-        :index="blockIdx"
-        :total="totalBlocks"
-        :allBlocks="blocks"
-        :completedIds="completedIds"
-        :isLast="isLast"
-        :points="points"
-        :elapsedStr="elapsedStr"
-        @complete-task="onTaskComplete"
-        @use-hint="onHint"
-        @prev="prev"
-        @next="next"
-        @finish="finish"
-        @skip-task="onSkipTask"
-        @menu="showMenu = !showMenu"
-      />
-
-      <!-- ── ОБЩЕЕ МЕНЮ (V1 + V2) ── -->
+      <!-- ── МЕНЮ ── -->
       <teleport to="body">
         <transition name="sheet">
           <div v-if="showMenu" class="qp-menu-sheet" @click.self="showMenu = false">
@@ -198,7 +176,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
-import QuestPlayerV2 from '~/components/quest/QuestPlayerV2.vue'
 
 
 const route = useRoute()
@@ -262,7 +239,6 @@ const fatalError   = ref(null)
 const requiresCode = ref(false)
 const codeError    = ref('')
 
-const playerVersion = computed(() => questData.value?.player_version || 'v1')
 
 const started             = ref(false)
 const showIntro           = ref(false)
