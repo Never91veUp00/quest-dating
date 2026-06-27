@@ -154,13 +154,7 @@
               </select>
               <div class="adm-tform__hint">Применяется автоматически в редакторе при выборе шаблона</div>
             </div>
-            <div class="adm-tform__field">
-              <label>Версия плеера по умолчанию</label>
-              <select v-model="form.default_player_version" class="adm-tform__select">
-                <option value="v1">🎮 Стандартный</option>
-                <option value="v2">✨ Иммерсивный</option>
-              </select>
-            </div>
+
             <div class="adm-tform__field adm-tform__field--checkbox" style="padding-top:24px;">
               <label class="adm-tform__check-label">
                 <input type="checkbox" v-model="form.default_show_intro" />
