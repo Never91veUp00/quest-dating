@@ -17,6 +17,9 @@
     </div>
 
     <div class="task__body">
+      <div class="task__type-label">
+        <span>{{ typeIcon }}</span> {{ typeLabel }}
+      </div>
       <div class="task__title">{{ task.title }}</div>
       <p v-if="task.description" class="task__desc">{{ task.description }}</p>
 
@@ -93,6 +96,19 @@ const typeIcon = computed(() => ({
   qr:            '◻️',
   mini_game:     '🎮',
 }[props.task.type] || props.index + 1))
+
+const typeLabel = computed(() => ({
+  simple:        'Задание',
+  riddle:        'Загадка',
+  code_physical: 'Код',
+  location:      'Локация',
+  selfie:        'Селфи',
+  photo:         'Фото',
+  text_answer:   'Ответ',
+  media:         'Медиа',
+  qr:            'QR-код',
+  mini_game:     'Мини-игра',
+}[props.task.type] || 'Задание'))
 </script>
 
 <style scoped>
@@ -126,6 +142,17 @@ const typeIcon = computed(() => ({
 
 /* ── Body ─────────────────────────────────────────────────────── */
 .task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.task__type-label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: .75;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
 .task__desc { font-size: .88rem; color: var(--dim); line-height: 1.6; margin: 0; }
 .task__instruction { font-size: .85rem; color: var(--text); font-style: italic; margin: 0; }
@@ -145,23 +172,44 @@ const typeIcon = computed(() => ({
   padding: 9px 13px; border-radius: 0 8px 8px 0; line-height: 1.5;
 }
 :deep(.task__input) {
-  flex: 1; background: var(--bg2); border: 1px solid var(--bord);
-  border-radius: 8px; padding: 10px 13px; color: #fff;
-  font-family: var(--font-b); font-size: .9rem; outline: none; transition: border-color .2s;
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--bord);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-height: 48px;
+  color: #fff;
+  font-family: var(--font-b);
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
 }
-:deep(.task__input:focus) { border-color: var(--accent); }
-:deep(.task__input--code) { font-family: var(--font-d); letter-spacing: .2em; text-align: center; font-size: 1rem; }
+:deep(.task__input:focus) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+:deep(.task__input--code) { font-family: var(--font-d); letter-spacing: .25em; text-align: center; font-size: 1rem; }
 :deep(.task__input.shake) { animation: shake .4s ease; border-color: #f87171; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
 
 :deep(.task__ok) {
-  background: var(--accent); border: none; border-radius: 8px;
-  color: #000; font-weight: 700; font-family: var(--font-d); font-size: .8rem;
-  padding: 0 14px; cursor: pointer;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-weight: 700;
+  font-family: var(--font-d);
+  font-size: .85rem;
+  padding: 0 18px;
+  min-height: 48px;
+  cursor: pointer;
   box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent);
-  transition: all .2s; white-space: nowrap;
+  transition: all .18s ease;
+  white-space: nowrap;
 }
-:deep(.task__ok:disabled) { opacity: .4; cursor: default; }
+:deep(.task__ok:hover:not(:disabled)) { box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 50%, transparent); transform: translateY(-1px); }
+:deep(.task__ok:disabled) { opacity: .35; cursor: default; }
 :deep(.task__wrong) { font-size: .78rem; color: #f87171; }
 
 /* ── Hint ─────────────────────────────────────────────────────── */
@@ -177,15 +225,32 @@ const typeIcon = computed(() => ({
   color: rgba(255,200,0,.9); line-height: 1.5;
 }
 
-/* ── Action button ────────────────────────────────────────────── */
+/* ── Action button ──────────────────────────────────────────────── */
 :deep(.task__action) {
-  background: transparent; border: 1px solid var(--accent); border-radius: 9px;
-  padding: 11px; color: var(--accent); font-family: var(--font-b);
-  font-size: .9rem; font-weight: 600; cursor: pointer;
-  text-shadow: 0 0 6px var(--accent); transition: all .25s; width: 100%;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  padding: 0;
+  min-height: 52px;
+  color: var(--accent);
+  font-family: var(--font-b);
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
+  transition: all .2s ease;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
-:deep(.task__action:hover:not(:disabled)) { background: var(--accent); color: #000; text-shadow: none; }
-:deep(.task__action:disabled) { opacity: .4; cursor: default; }
+:deep(.task__action:hover:not(:disabled)) {
+  background: var(--accent);
+  color: #000;
+  text-shadow: none;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  transform: translateY(-1px);
+}
+:deep(.task__action:active:not(:disabled)) { transform: translateY(0); }
+:deep(.task__action:disabled) { opacity: .35; cursor: default; }
 :deep(.task__action--location) { border-style: dashed; }
 
 /* ── Mobile ───────────────────────────────────────────────────── */

@@ -2,18 +2,18 @@
   <div class="block">
     <!-- Шапка блока -->
     <div class="block__head">
-      <div v-if="block.location" class="block__location">
+      <div v-if="block.location" class="block__location block__anim block__anim--1">
         <span>📍</span> {{ block.location }}
       </div>
-      <div class="block__counter">
+      <div class="block__counter block__anim block__anim--2">
         {{ theme.copy.blockPrefix }} {{ index + 1 }} / {{ total }}
       </div>
-      <h2 class="block__title">{{ block.title }}</h2>
-      <p v-if="block.description" class="block__desc">{{ block.description }}</p>
+      <h2 class="block__title block__anim block__anim--3">{{ block.title }}</h2>
+      <p v-if="block.description" class="block__desc block__anim block__anim--4">{{ block.description }}</p>
     </div>
 
     <!-- Задания -->
-    <div class="block__tasks">
+    <div class="block__tasks block__anim block__anim--5">
       <QuestTask
         v-for="(task, ti) in block.tasks"
         :key="task.id"
@@ -87,35 +87,65 @@ const finishLabel = computed(() => ({
 </script>
 
 <style scoped>
-.block { display: flex; flex-direction: column; gap: 20px; }
+.block {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
 /* ── Head ─────────────────────────────────────────────────────── */
-.block__head { display: flex; flex-direction: column; gap: 8px; }
+.block__head { display: flex; flex-direction: column; gap: 10px; }
 
 .block__location {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-  border-radius: 20px; padding: 4px 12px; width: fit-content;
+  display: flex; align-items: center; gap: 6px;
+  font-size: .78rem; color: var(--accent); font-weight: 600;
+  letter-spacing: .04em;
 }
 
 .block__counter {
-  font-family: var(--font-d); font-size: .58rem; letter-spacing: .2em;
-  color: var(--dim); text-transform: uppercase;
+  font-size: .68rem; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--dim); font-weight: 600;
 }
 
 .block__title {
+  font-size: clamp(1.25rem, 4.5vw, 1.55rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
+  margin: 0;
   font-family: var(--font-d);
-  font-size: clamp(1.2rem, 5vw, 1.7rem);
-  font-weight: 900; color: #fff; margin: 0; line-height: 1.2;
-  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-.block__desc { font-size: .9rem; color: var(--dim); line-height: 1.6; margin: 0; }
+.block__desc {
+  font-size: .95rem;
+  line-height: 1.75;
+  color: var(--dim);
+  margin: 0;
+}
 
 /* ── Tasks ────────────────────────────────────────────────────── */
-.block__tasks { display: flex; flex-direction: column; gap: 12px; }
+.block__tasks { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── Stagger animations ───────────────────────────────────────── */
+.block__anim {
+  animation: block-fade-up 0.3s ease both;
+}
+.block__anim--1 { animation-delay: 0.00s; }
+.block__anim--2 { animation-delay: 0.05s; }
+.block__anim--3 { animation-delay: 0.10s; }
+.block__anim--4 { animation-delay: 0.16s; }
+.block__anim--5 { animation-delay: 0.22s; }
+
+@keyframes block-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ── Nav ──────────────────────────────────────────────────────── */
 .block__nav {
@@ -145,7 +175,8 @@ const finishLabel = computed(() => ({
 
 /* ── Mobile ───────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .block__title { font-size: clamp(1.1rem, 5vw, 1.5rem); }
+  .block { padding: 16px; border-radius: 16px; }
+  .block__title { font-size: clamp(1.1rem, 4vw, 1.35rem); }
   .block__desc { font-size: .85rem; }
   .block__nav { flex-wrap: wrap; }
   .block__nav-back { padding: 12px 16px; min-height: 48px; }

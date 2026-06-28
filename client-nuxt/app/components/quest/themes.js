@@ -22,6 +22,10 @@ export const THEMES = {
     text:       '#c8b89a',
     dim:        '#5a4e3a',
 
+    baseBg:     '#0a0a0a',
+    baseTone:   'dark',
+    showTimer:  false,
+
     // Шрифты
     fonts: {
       display: "'Courier Prime', 'Courier New', monospace",
@@ -69,6 +73,10 @@ export const THEMES = {
     text:       '#f9d0e0',
     dim:        '#6b3050',
 
+    baseBg:     '#0f0608',
+    baseTone:   'dark',
+    showTimer:  false,
+
     fonts: {
       display: "'Dancing Script', cursive",
       body:    "'Lato', sans-serif",
@@ -111,6 +119,10 @@ export const THEMES = {
     text:       '#d4c8f0',
     dim:        '#4c3d7a',
 
+    baseBg:     '#060412',
+    baseTone:   'dark',
+    showTimer:  false,
+
     fonts: {
       display: "'Cinzel', serif",
       body:    "'Cinzel', serif",
@@ -152,6 +164,10 @@ export const THEMES = {
     border:     'rgba(245,166,35,0.15)',
     text:       '#e8d5a3',
     dim:        '#5c3d0a',
+
+    baseBg:     '#0d0a05',
+    baseTone:   'dark',
+    showTimer:  false,
 
     fonts: {
       display: "'Pirata One', cursive",
@@ -197,6 +213,10 @@ export const THEMES = {
     text:       '#f0e6d3',
     dim:        '#5a4020',
 
+    baseBg:     '#080508',
+    baseTone:   'dark',
+    showTimer:  false,
+
     fonts: {
       display: "'Cormorant Garamond', serif",
       body:    "'Lato', sans-serif",
@@ -234,6 +254,10 @@ export const THEMES = {
     border:     'rgba(0,245,196,0.12)',
     text:       '#c8d6ef',
     dim:        '#2a4a42',
+
+    baseBg:     '#060810',
+    baseTone:   'dark',
+    showTimer:  false,
 
     fonts: {
       display: "'Orbitron', monospace",
@@ -275,4 +299,6 @@ export const themeToCssVars = (theme) => ({
   '--dim':         theme.dim,
   '--font-d':      theme.fonts.display,
   '--font-b':      theme.fonts.body,
+  '--base-bg':     theme.baseBg    ?? theme.bg,
+  '--base-tone':   theme.baseTone  ?? 'dark',
 })

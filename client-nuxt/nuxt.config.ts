@@ -36,6 +36,7 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxtjs/seo',
+    '@vueuse/motion/nuxt',
   ],
 
   components: {
