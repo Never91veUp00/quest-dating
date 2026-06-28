@@ -554,7 +554,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.qp { min-height: 100dvh; background: var(--base-bg); background: var(--bg); color: var(--text); font-family: var(--font-b); position: relative; overflow-x: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+.qp { min-height: 100dvh; background: var(--base-bg); color: var(--text); font-family: var(--font-b); position: relative; overflow-x: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
 .qp-overlay { pointer-events: none; position: fixed; inset: 0; z-index: 9999; }
 .qp-overlay--scanlines { background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px); }
 .qp-overlay--grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 200px 200px; opacity: 0.5; }
