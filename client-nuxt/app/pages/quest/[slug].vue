@@ -96,10 +96,6 @@
 
           <!-- Footer -->
           <footer class="qp-foot">
-            <div class="qp-foot__pts">
-              <span class="qp-foot__pts-n">{{ points }}</span>
-              <span class="qp-foot__pts-l">{{ themeObj.copy.pointsLabel }}</span>
-            </div>
             <div class="qp-foot__dots">
               <span
                 v-for="(_, i) in blocks"
@@ -584,14 +580,11 @@ onUnmounted(() => {
 .qp-hud__dropdown-item { width: 100%; background: none; border: none; color: var(--text); font-size: .85rem; padding: 10px 14px; cursor: pointer; border-radius: 6px; text-align: left; transition: background .15s; }
 .qp-hud__dropdown-item:hover { background: rgba(255,255,255,.06); }
 .qp-main { flex: 1; padding: 20px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; }
-.qp-foot { position: fixed; bottom: 0; left: 0; right: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--bord); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-.qp-foot__pts { display: flex; align-items: baseline; gap: 5px; }
-.qp-foot__pts-n { font-family: var(--font-d); font-size: 1.3rem; font-weight: 700; color: var(--accent); text-shadow: 0 0 8px var(--accent); }
-.qp-foot__pts-l { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); }
-.qp-foot__dots { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
-.qp-foot__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--surf); border: 1px solid var(--bord); transition: all .3s; }
-.qp-foot__dot.done { background: #3cffb4; border-color: #3cffb4; box-shadow: 0 0 5px #3cffb4; }
-.qp-foot__dot.cur { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 7px var(--accent); width: 14px; border-radius: 3px; }
+.qp-foot { position: fixed; bottom: 0; left: 0; right: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--bord); padding: 12px 16px; display: flex; align-items: center; justify-content: center; z-index: 100; }
+.qp-foot__dots { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
+.qp-foot__dot.done { background: rgba(255,255,255,.45); }
+.qp-foot__dot.cur { width: 24px; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
 .qp-badge { position: fixed; top: 76px; right: 16px; z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 16px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
 .qp-badge__ico { font-size: 1.5rem; flex-shrink: 0; }
 .qp-badge__title { font-family: var(--font-d); font-size: .7rem; font-weight: 700; color: var(--accent); }
@@ -609,9 +602,9 @@ onUnmounted(() => {
 .splash-out-leave-to { opacity: 0; transform: scale(1.04); }
 .player-in-enter-active { transition: opacity .5s .1s ease; }
 .player-in-enter-from { opacity: 0; }
-.slide-enter-active, .slide-leave-active { transition: opacity .22s ease, transform .22s ease; }
-.slide-enter-from { opacity: 0; transform: translateX(18px); }
-.slide-leave-to { opacity: 0; transform: translateX(-18px); }
+.slide-enter-active, .slide-leave-active { transition: opacity .32s cubic-bezier(.4,0,.2,1), transform .32s cubic-bezier(.4,0,.2,1); }
+.slide-enter-from { opacity: 0; transform: translateX(32px); }
+.slide-leave-to   { opacity: 0; transform: translateX(-32px); }
 .fade-enter-active { transition: opacity .3s ease; }
 .fade-enter-from { opacity: 0; }
 .fade-leave-active { transition: opacity .2s ease; }
@@ -634,8 +627,7 @@ onUnmounted(() => {
   .qp-main { padding: 16px 12px 0; }
   .qp-hud__row { padding: 8px 12px; gap: 6px; }
   .qp-hud__name { font-size: .72rem; }
-  .qp-foot { padding: 8px 12px; }
-  .qp-foot__pts-n { font-size: 1.1rem; }
+  .qp-foot { padding: 10px 12px; }
   .qp-badge { right: 12px; min-width: 170px; padding: 10px 12px; }
   .qp-badge__ico { font-size: 1.2rem; }
   .qp-badge__title { font-size: .65rem; }
