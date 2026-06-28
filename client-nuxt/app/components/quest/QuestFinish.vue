@@ -22,15 +22,30 @@
       <!-- Статы -->
       <div class="finish__grid">
         <div class="finish__cell">
-          <div class="finish__n">{{ points }}</div>
+          <div
+            v-motion
+            :initial="{ scale: 0.4, opacity: 0 }"
+            :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 300 } }"
+            class="finish__n"
+          >{{ points }}</div>
           <div class="finish__l">{{ theme.copy.pointsLabel }}</div>
         </div>
         <div class="finish__cell">
-          <div class="finish__n">{{ completedCount }}</div>
+          <div
+            v-motion
+            :initial="{ scale: 0.4, opacity: 0 }"
+            :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 450 } }"
+            class="finish__n"
+          >{{ completedCount }}</div>
           <div class="finish__l">заданий</div>
         </div>
         <div class="finish__cell">
-          <div class="finish__n">{{ elapsed }}</div>
+          <div
+            v-motion
+            :initial="{ scale: 0.4, opacity: 0 }"
+            :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 600 } }"
+            class="finish__n"
+          >{{ elapsed }}</div>
           <div class="finish__l">времени</div>
         </div>
       </div>
@@ -42,7 +57,7 @@
       </div>
 
       <!-- Кнопка поделиться -->
-      <button class="finish__share" @click="$emit('share')">
+      <button class="finish__share finish__share--primary" @click="$emit('share')">
         {{ theme.copy.shareBtn }}
       </button>
 
@@ -104,14 +119,15 @@ const particle = (n) => ({
 .finish__particles { position: absolute; inset: 0; pointer-events: none; }
 .finish__particle {
   position: absolute; left: var(--x); top: var(--y);
-  width: var(--s); height: var(--s); border-radius: 50%;
+  width: var(--s); height: var(--s); border-radius: 2px;
   opacity: 0;
-  animation: pfloat var(--t) var(--d) ease-in-out infinite;
+  animation: confetti-fall var(--t) var(--d) ease-in both;
 }
-@keyframes pfloat {
-  0%   { opacity: 0; transform: translateY(0) scale(0); }
-  20%  { opacity: .8; transform: translateY(-15px) scale(1); }
-  100% { opacity: 0; transform: translateY(-80px) scale(.4); }
+@keyframes confetti-fall {
+  0%   { opacity: 0; transform: translateY(-30px) rotate(0deg); }
+  15%  { opacity: 1; }
+  85%  { opacity: .6; }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
 }
 
 /* ── Body ─────────────────────────────────────────────────────── */
@@ -175,19 +191,38 @@ const particle = (n) => ({
 }
 
 /* ── Share ────────────────────────────────────────────────────── */
-.finish__share {
-  background: transparent; border: 1px solid var(--bord);
-  border-radius: 9px; padding: 12px 24px;
-  color: var(--dim); font-family: var(--font-b); font-size: .88rem;
-  font-weight: 600; cursor: pointer; transition: all .25s; letter-spacing: .03em;
+.finish__share--primary {
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  padding: 0 28px;
+  min-height: 52px;
+  color: #000;
+  font-family: var(--font-b);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: all .2s ease;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
 }
-.finish__share:hover { border-color: var(--text); color: var(--text); }
+.finish__share--primary:hover {
+  box-shadow: 0 0 36px color-mix(in srgb, var(--accent) 60%, transparent);
+  transform: translateY(-2px);
+}
 
 .finish__restart {
-  background: transparent; border: 1px dashed var(--bord);
-  border-radius: 9px; padding: 10px 20px;
-  color: var(--dim); font-family: var(--font-b); font-size: .8rem;
-  cursor: pointer; transition: all .25s; opacity: .6;
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,.2);
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: var(--dim);
+  font-family: var(--font-b);
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .25s;
+  opacity: .7;
+  width: 100%;
 }
 .finish__restart:hover { opacity: 1; border-color: var(--dim); color: var(--text); }
 
@@ -200,6 +235,6 @@ const particle = (n) => ({
   .finish__n { font-size: 1.2rem; }
   .finish__message { padding: 14px 16px; }
   .finish__message-text { font-size: .88rem; }
-  .finish__share { padding: 14px 20px; min-height: 48px; }
+  .finish__share--primary { min-height: 56px; font-size: .95rem; }
 }
 </style>
