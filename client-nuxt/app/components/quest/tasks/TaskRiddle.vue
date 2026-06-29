@@ -43,10 +43,11 @@ const submit = () => {
 
 <style scoped>
 .task__riddle {
-  font-size: 1.05rem; font-style: italic; line-height: 1.6;
-  color: var(--text); padding: 14px 16px;
-  background: color-mix(in srgb, var(--accent) 5%, transparent);
-  border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+  font-size: 1rem; font-style: italic; line-height: 1.7;
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  opacity: .9;
 }
 .task__error { color: #e05c5c; font-size: .82rem; margin: 4px 0 0; }
 </style>
