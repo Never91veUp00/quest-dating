@@ -13,8 +13,10 @@ const pool = new Pool({
   user: process.env.DB_USER || 'quest_user',
   password: process.env.DB_PASSWORD,
   max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  min: 2,
+  idleTimeoutMillis: 600_000,
+  connectionTimeoutMillis: 5000,
+  keepAlive: true,
 })
 
 // Only log unexpected errors, NOT every pool connection (that's just spam)
