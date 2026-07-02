@@ -7,16 +7,23 @@
       style="display:none"
       @change="onFileChange"
     />
-    <div v-if="!photoPreview" class="task__photo-zone" @click="fileInputRef?.click()">
-      <div style="font-size:1.6rem">📷</div>
-      <div>{{ theme.copy.photoZone }}</div>
+    <div v-if="photoError" class="task__photo-error">
+      <span>😔</span>
+      <span>Не удалось загрузить фото. Попробуй ещё раз.</span>
+      <button class="task__photo-retry" @click="retry">Попробовать снова</button>
+    </div>
+    <div v-else-if="!photoPreview" class="task__photo-zone" @click="fileInputRef?.click()">
+      <div class="task__photo-zone__icon">📷</div>
+      <div class="task__photo-zone__label">{{ theme.copy?.photoZone || 'Сделать фото' }}</div>
+      <div class="task__photo-zone__hint">Запечатлей этот момент</div>
     </div>
     <div v-else class="task__photo-preview">
-      <img :src="photoPreview" alt="" />
-      <button class="task__photo-rm" @click="photoPreview = null">✕</button>
+      <img :src="photoPreview" alt="Ваше фото" />
+      <button class="task__photo-rm" @click="photoPreview = null" aria-label="Удалить фото">✕</button>
+      <div class="task__photo-preview__glow"></div>
     </div>
-    <button v-if="photoPreview" class="task__action" @click="$emit('complete', task)">
-      Отправить →
+    <button v-if="photoPreview" class="task__action task__action--photo" @click="$emit('complete', task)">
+      {{ theme.copy?.taskDone || 'Отправить' }} →
     </button>
   </div>
 </template>
@@ -32,31 +39,87 @@ defineEmits(['complete'])
 
 const fileInputRef = ref(null)
 const photoPreview = ref(null)
+const photoError   = ref(false)
 
 const onFileChange = (e) => {
   const file = e.target.files[0]
   if (!file) return
+  photoError.value = false
   const reader = new FileReader()
-  reader.onload = (ev) => { photoPreview.value = ev.target.result }
+  reader.onload  = (ev) => { photoPreview.value = ev.target.result }
+  reader.onerror = ()   => { photoError.value = true }
   reader.readAsDataURL(file)
+}
+
+const retry = () => {
+  photoError.value = false
+  fileInputRef.value?.click()
 }
 </script>
 
 <style scoped>
+.task__instruction {
+  font-size: .9rem; color: var(--dim); line-height: 1.5;
+  margin-bottom: 12px; padding: 0 2px;
+}
+
 .task__photo-zone {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: var(--bg2); border: 2px dashed var(--bord); border-radius: 10px;
-  padding: 24px; cursor: pointer; transition: border-color .2s; text-align: center;
-  font-size: .85rem; color: var(--dim);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--bg2));
+  border: 2px dashed color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 16px; padding: 36px 24px;
+  cursor: pointer; transition: border-color .25s, background .25s;
+  text-align: center;
 }
-.task__photo-zone:hover { border-color: var(--accent); }
-.task__photo-preview { position: relative; border-radius: 10px; overflow: hidden; }
-.task__photo-preview img { width: 100%; display: block; max-height: 260px; object-fit: cover; }
+.task__photo-zone:hover, .task__photo-zone:active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg2));
+}
+.task__photo-zone__icon { font-size: 2.8rem; line-height: 1; margin-bottom: 4px; }
+.task__photo-zone__label { font-size: .95rem; font-weight: 600; color: var(--text); }
+.task__photo-zone__hint { font-size: .78rem; color: var(--dim); margin-top: 2px; font-style: italic; }
+
+.task__photo-preview {
+  position: relative; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.task__photo-preview img {
+  width: 100%; display: block;
+  aspect-ratio: 4/3; object-fit: cover;
+  border-radius: 16px;
+}
+.task__photo-preview__glow {
+  position: absolute; inset: 0; border-radius: 16px; pointer-events: none;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
 .task__photo-rm {
-  position: absolute; top: 8px; right: 8px;
-  background: rgba(0,0,0,.7); border: none; border-radius: 50%;
-  width: 26px; height: 26px; color: #fff; font-size: .7rem; cursor: pointer;
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,.65); border: none; border-radius: 50%;
+  width: 30px; height: 30px; color: #fff; font-size: .75rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
 }
-@media (max-width: 480px) { .task__photo-zone { padding: 20px 16px; } }
+
+.task__action--photo {
+  width: 100%; margin-top: 14px;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #fff));
+  color: #000; font-weight: 700; font-size: 1rem;
+  border: none; border-radius: 14px; padding: 16px;
+  cursor: pointer; box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: transform .15s, box-shadow .15s;
+}
+.task__action--photo:active { transform: scale(.97); }
+
+.task__photo-error {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 24px; background: rgba(248,113,113,.08);
+  border: 1px solid rgba(248,113,113,.2); border-radius: 12px;
+  text-align: center; font-size: .88rem; color: var(--dim);
+}
+.task__photo-error span:first-child { font-size: 2rem; }
+.task__photo-retry {
+  margin-top: 4px; background: none;
+  border: 1px solid rgba(248,113,113,.4); border-radius: 8px;
+  color: #f87171; padding: 6px 16px; cursor: pointer; font-size: .82rem;
+}
 </style>
