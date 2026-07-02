@@ -7,7 +7,9 @@
           controls playsinline
           class="task__media__video"
           preload="metadata"
+          @error="mediaError = true"
         ></video>
+        <div v-if="mediaError" class="task__media__error">😔 Видео недоступно</div>
       </template>
       <template v-else-if="resolvedType === 'audio'">
         <div class="task__media__audio-wrap">
@@ -17,7 +19,9 @@
             controls
             class="task__media__audio"
             preload="metadata"
+            @error="mediaError = true"
           ></audio>
+          <div v-if="mediaError" class="task__media__error">😔 Аудио недоступно</div>
         </div>
       </template>
       <template v-else-if="task.media_url">
@@ -39,7 +43,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -47,7 +51,8 @@ const props = defineProps({
 })
 defineEmits(['complete'])
 
-const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
+const API_BASE   = useRuntimeConfig().public.apiBase.replace('/api', '')
+const mediaError = ref(false)
 
 const fullUrl = (url) => url?.startsWith('http') ? url : API_BASE + url
 
@@ -67,7 +72,8 @@ const resolvedType = computed(() => {
 
 <style scoped>
 .task__media { display: flex; flex-direction: column; gap: 10px; }
-.task__media__video { width: 100%; border-radius: 10px; max-height: 280px; }
+.task__media__video { width: 100%; border-radius: 10px; aspect-ratio: 16/9; max-height: 50vh; object-fit: contain; background: #000; }
+.task__media__error { text-align: center; font-size: .85rem; color: var(--dim); padding: 8px; }
 .task__media__audio-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 20px; background: var(--bg2); border-radius: 10px;

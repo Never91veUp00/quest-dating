@@ -131,7 +131,7 @@ const onTap = (slotIdx) => {
 .task__puzzle { display: flex; flex-direction: column; gap: 12px; }
 .task__puzzle__intro { display: flex; flex-direction: column; gap: 10px; }
 .task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
-.task__puzzle__intro-img { width: 100%; display: block; max-height: 220px; object-fit: cover; }
+.task__puzzle__intro-img { width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover; }
 .task__puzzle__intro-overlay {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,.35); color: #fff; font-size: .9rem; font-weight: 700;
@@ -150,6 +150,7 @@ const onTap = (slotIdx) => {
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px; overflow: hidden;
   border: 1px solid var(--bord); background: var(--bg2); touch-action: manipulation;
+  max-width: min(100%, 420px); margin: 0 auto;
 }
 .task__puzzle__slot {
   aspect-ratio: 1; cursor: pointer; border-radius: 2px;

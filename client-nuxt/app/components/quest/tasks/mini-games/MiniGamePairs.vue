@@ -48,7 +48,8 @@
           <div class="task__pairs__card__inner">
             <div class="task__pairs__card__back">?</div>
             <div class="task__pairs__card__front">
-              <img v-if="isImage(card.value)" :src="card.value" class="task__pairs__card__img" />
+              <img v-if="isImage(card.value)" :src="card.value" class="task__pairs__card__img"
+                   @error="e => e.target.style.opacity = '0.25'" />
               <span v-else>{{ card.value }}</span>
             </div>
           </div>
@@ -203,4 +204,5 @@ const flipCard = (ci) => {
 .task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
 .task__quiz-result--wrong { color: #f87171; background: rgba(248,113,113,.08); }
 @media (max-width: 480px) { .task__pairs { grid-template-columns: repeat(3, 1fr); gap: 6px; } }
+@media (max-width: 360px) { .task__pairs { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
 </style>
