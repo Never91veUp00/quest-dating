@@ -141,7 +141,7 @@ const typeLabel = computed(() => ({
 }
 
 /* ── Body ─────────────────────────────────────────────────────── */
-.task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .task__type-label {
   font-size: .65rem;
   font-weight: 700;
