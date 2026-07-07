@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="task__code-wrap">
     <div class="task__code-hint">
       <span class="task__code-hint__icon">🔐</span>
       <span>{{ task.code_hint || 'Найди код и введи его ниже' }}</span>
@@ -47,6 +47,7 @@ const submit = () => {
 </script>
 
 <style scoped>
+.task__code-wrap { display: flex; flex-direction: column; gap: 12px; }
 .task__code-hint {
   display: flex; align-items: center; gap: 10px;
   background: color-mix(in srgb, var(--accent) 6%, transparent);
