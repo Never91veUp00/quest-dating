@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="task__answer-wrap">
     <TaskHint :hint="task.hint" :theme="theme" @hint="$emit('hint', task)" />
     <input
       v-model="answer"
@@ -41,5 +41,6 @@ const submit = () => {
 </script>
 
 <style scoped>
+.task__answer-wrap { display: flex; flex-direction: column; gap: 12px; }
 .task__error { color: #e05c5c; font-size: .82rem; margin: 4px 0 0; }
 </style>

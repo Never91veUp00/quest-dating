@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="task__riddle-wrap">
     <div class="task__riddle">{{ task.riddle_text }}</div>
     <TaskHint :hint="task.hint" :theme="theme" @hint="$emit('hint', task)" />
     <input
@@ -15,6 +15,7 @@
     </button>
   </div>
 </template>
+
 
 <script setup>
 import { ref } from 'vue'
@@ -42,6 +43,7 @@ const submit = () => {
 </script>
 
 <style scoped>
+.task__riddle-wrap { display: flex; flex-direction: column; gap: 12px; }
 .task__riddle {
   font-size: 1rem; font-style: italic; line-height: 1.7;
   color: var(--text);
