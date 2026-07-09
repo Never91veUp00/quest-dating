@@ -64,13 +64,13 @@ export const THEMES = {
     label: 'Романтик',
     icon: '❤️',
 
-    accent:     '#f472b6',
-    accentDim:  '#9d174d',
-    bg:         '#0f0608',
-    bg2:        '#160b10',
-    surface:    '#1e0f16',
-    border:     'rgba(244,114,182,0.15)',
-    text:       '#f9d0e0',
+    accent:     '#e8839a',   // тёплый розово-золотой
+    accentDim:  '#8b3a52',
+    bg:         '#0e0407',   // очень глубокий бордо
+    bg2:        '#160a0e',
+    surface:    '#1f0f17',
+    border:     'rgba(232,131,154,0.18)',
+    text:       '#f5ccd8',
     dim:        '#6b3050',
 
     baseBg:     '#0f0608',
