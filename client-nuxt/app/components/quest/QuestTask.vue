@@ -114,15 +114,22 @@ const typeLabel = computed(() => ({
 <style scoped>
 /* ── Task ─────────────────────────────────────────────────────── */
 .task {
-  background: var(--surf);
+  background: color-mix(in srgb, var(--surf) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--bord);
   border-left: 3px solid var(--bord);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
   display: flex; gap: 14px;
   animation: task-in .25s ease both;
   animation-delay: calc(var(--i, 0) * 0.06s);
-  transition: opacity .2s, border-color .2s;
+  transition: opacity .2s, border-color .2s, box-shadow .2s;
+  position: relative;
+  z-index: 1;
+}
+.task--active {
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 8%, transparent);
 }
 @keyframes task-in { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
 

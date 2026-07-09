@@ -74,9 +74,18 @@
           </header>
 
           <!-- Блок -->
-          <main class="qp-main">
+          <main class="qp-main" :class="{ 'qp-main--glow': started }">
             <transition name="slide" mode="out-in">
+              <QuestBlockBridge
+                v-if="showBridge && blocks[blockIdx + 1]"
+                :key="'bridge-' + blockIdx"
+                :theme="themeObj"
+                :nextBlock="blocks[blockIdx + 1]"
+                :nextIndex="blockIdx + 1"
+                @advance="doNext"
+              />
               <QuestBlock
+                v-else
                 :key="blockIdx"
                 :block="currentBlock"
                 :theme="themeObj"
@@ -174,6 +183,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
+import QuestBlockBridge from '~/components/quest/QuestBlockBridge.vue'
 
 
 const route = useRoute()
@@ -248,6 +258,7 @@ const hintsUsed           = ref(0)
 const badge               = ref(null)
 const showMenu            = ref(false)
 const showRestartConfirm  = ref(false)
+const showBridge          = ref(false)
 
 // ─── Timer ────────────────────────────────────────────────────
 const startTs = ref(0)
@@ -446,6 +457,14 @@ const onSkipTask = (task) => {
 
 // ─── Navigation ───────────────────────────────────────────────
 const next = () => {
+  if (blockIdx.value < totalBlocks.value - 1) {
+    showBridge.value = true
+  } else {
+    doNext()
+  }
+}
+const doNext = () => {
+  showBridge.value = false
   blockIdx.value++
   window.scrollTo({ top: 0, behavior: 'smooth' })
   saveProgress()
@@ -579,7 +598,18 @@ onUnmounted(() => {
 .qp-hud__dropdown { position: absolute; top: 100%; right: 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: 8px; padding: 4px; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .qp-hud__dropdown-item { width: 100%; background: none; border: none; color: var(--text); font-size: .85rem; padding: 10px 14px; cursor: pointer; border-radius: 6px; text-align: left; transition: background .15s; }
 .qp-hud__dropdown-item:hover { background: rgba(255,255,255,.06); }
-.qp-main { flex: 1; padding: 20px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; }
+.qp-main { flex: 1; padding: 20px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+.qp-main--glow::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: min(100vw, 600px); height: 300px;
+  background: radial-gradient(ellipse 80% 100% at 50% 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 0%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
 .qp-foot { position: fixed; bottom: 0; left: 0; right: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--bord); padding: 12px 16px; display: flex; align-items: center; justify-content: center; z-index: 100; }
 .qp-foot__dots { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
 .qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
