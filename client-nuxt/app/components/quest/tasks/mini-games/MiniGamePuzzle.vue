@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -59,9 +59,18 @@ const props = defineProps({
 })
 defineEmits(['complete', 'skip-task'])
 
-const started      = ref(false)
-const slots        = ref([])
-const selectedSlot = ref(null)
+const started         = ref(false)
+const slots           = ref([])
+const selectedSlot    = ref(null)
+const imgNaturalRatio = ref(null)
+
+onMounted(() => {
+  if (props.task.puzzle_image) {
+    const img = new Image()
+    img.onload = () => { imgNaturalRatio.value = img.naturalWidth / img.naturalHeight }
+    img.src = props.task.puzzle_image
+  }
+})
 
 const cols = computed(() => {
   const p = props.task.puzzle_pieces || 30
@@ -84,13 +93,21 @@ const complete = computed(() =>
   totalPieces.value > 0 && placed.value === totalPieces.value
 )
 
+// aspect ratio каждого слота = (imageW/cols) / (imageH/rows) = imgRatio * rows/cols
+const slotAspect = computed(() => {
+  if (!imgNaturalRatio.value) return 1
+  return imgNaturalRatio.value * rows.value / cols.value
+})
+
 const slotStyle = (slot) => {
-  if (slot.pieceIdx === null || !props.task.puzzle_image) return {}
+  const base = { aspectRatio: slotAspect.value }
+  if (slot.pieceIdx === null || !props.task.puzzle_image) return base
   const c    = slot.pieceIdx % cols.value
   const r    = Math.floor(slot.pieceIdx / cols.value)
   const posX = cols.value > 1 ? (c / (cols.value - 1)) * 100 : 0
   const posY = rows.value > 1 ? (r / (rows.value - 1)) * 100 : 0
   return {
+    ...base,
     backgroundImage:    `url(${props.task.puzzle_image})`,
     backgroundSize:     `${cols.value * 100}% ${rows.value * 100}%`,
     backgroundPosition: `${posX}% ${posY}%`,
@@ -111,6 +128,11 @@ const init = () => {
 
 const onTap = (slotIdx) => {
   if (complete.value) return
+  const slot = slots.value[slotIdx]
+
+  // правильно стоящий кусок — нельзя трогать
+  if (slot.pieceIdx === slotIdx) return
+
   if (selectedSlot.value === null) { selectedSlot.value = slotIdx; return }
   if (selectedSlot.value === slotIdx) { selectedSlot.value = null; return }
 
@@ -154,7 +176,7 @@ const onTap = (slotIdx) => {
   max-width: min(100%, 420px); margin: 0 auto;
 }
 .task__puzzle__slot {
-  aspect-ratio: 1; cursor: pointer; border-radius: 2px;
+  cursor: pointer; border-radius: 2px;
   transition: transform .12s, box-shadow .12s, outline .12s;
   background-color: color-mix(in srgb, var(--bg2) 60%, transparent);
   background-repeat: no-repeat; outline: 2px solid transparent;
@@ -169,7 +191,7 @@ const onTap = (slotIdx) => {
   box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent);
   transform: scale(1.06); z-index: 2;
 }
-.task__puzzle__slot.correct { outline: 2px solid #3cffb4; cursor: default; }
+.task__puzzle__slot.correct { outline: 2px solid #3cffb4; cursor: default; pointer-events: none; }
 .task__puzzle__tip { text-align: center; font-size: .78rem; color: var(--dim); padding: 4px; min-height: 1.4em; }
 .task__puzzle__skip {
   display: block; margin: 8px auto 0; background: none; border: none;
