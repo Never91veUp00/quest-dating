@@ -170,7 +170,7 @@ if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
     qr:            { points: 35,  answer: '', qr_instruction: '', qr_preview: null },
     mini_game:     { points: 40,  game_type: 'quiz', game_question: '',
                      game_options: ['','','',''], game_correct: 0,
-                     pairs_mode: 'photos', game_images: [], pairs: [],
+                     pairs_mode: 'photos', pairs_grid_size: 4, game_images: [], pairs: [],
                      puzzle_image: null, puzzle_pieces: 30 },
   }
 

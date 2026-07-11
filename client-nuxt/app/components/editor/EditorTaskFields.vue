@@ -207,6 +207,22 @@
 
       <!-- Фото-режим -->
       <template v-if="!task.pairs_mode || task.pairs_mode === 'photos'">
+        <!-- Выбор размера матрицы -->
+        <div class="qe-field">
+          <label>Размер матрицы</label>
+          <div class="qe-pairs-mode">
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: !task.pairs_grid_size || task.pairs_grid_size === 2 }"
+              @click="task.pairs_grid_size = 2; task.game_images = (task.game_images || []).slice(0, 2)"
+            >2×2 <span style="opacity:.5;font-size:.75em">(2 фото)</span></button>
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: task.pairs_grid_size === 4 }"
+              @click="task.pairs_grid_size = 4"
+            >4×4 <span style="opacity:.5;font-size:.75em">(8 фото)</span></button>
+          </div>
+        </div>
         <div class="qe-pairs-grid">
           <div
             v-for="(img, i) in (task.game_images || [])"
@@ -219,7 +235,7 @@
             <div class="qe-pair-photo__num">{{ i + 1 }}</div>
           </div>
           <div
-            v-if="(task.game_images || []).length < 8"
+            v-if="(task.game_images || []).length < (task.pairs_grid_size === 4 ? 8 : 2)"
             class="qe-pair-photo qe-pair-photo--add"
             @click="$emit('pair-image-upload', task, null)"
           >
@@ -227,11 +243,12 @@
             <div class="qe-pair-photo__add-hint">Фото</div>
           </div>
         </div>
-        <div v-if="(task.game_images || []).length < 2" class="qe-hint qe-hint--warn">
-          Добавь минимум 2 фото — каждое станет парой карточек
+        <div v-if="(task.game_images || []).length < (task.pairs_grid_size === 4 ? 8 : 2)" class="qe-hint qe-hint--warn">
+          Нужно {{ task.pairs_grid_size === 4 ? 8 : 2 }} фото для матрицы {{ task.pairs_grid_size === 4 ? '4×4' : '2×2' }}
+          (загружено {{ (task.game_images || []).length }})
         </div>
         <div v-else class="qe-hint qe-hint--ok">
-          {{ (task.game_images || []).length }} фото → {{ (task.game_images || []).length * 2 }} карточек (матрица 4×{{ (task.game_images || []).length * 2 / 4 }}), алгоритм перемешает
+          Матрица {{ task.pairs_grid_size === 4 ? '4×4' : '2×2' }} — {{ (task.game_images || []).length * 2 }} карточек, алгоритм перемешает
         </div>
       </template>
 
