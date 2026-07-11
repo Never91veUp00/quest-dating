@@ -176,7 +176,7 @@ const flipCard = (ci) => {
 .task__text-pairs__item.matched { border-color: #48bb78; background: rgba(72,187,120,.15); opacity: .7; cursor: default; }
 .task__text-pairs__item--right { text-align: center; }
 
-.task__pairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.task__pairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
 .task__pairs__card {
   aspect-ratio: 3/4; background: var(--bg2); border: 1px solid var(--bord);
   border-radius: 8px; cursor: pointer; perspective: 600px;
