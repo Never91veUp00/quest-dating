@@ -219,7 +219,7 @@
             <div class="qe-pair-photo__num">{{ i + 1 }}</div>
           </div>
           <div
-            v-if="(task.game_images || []).length < 12"
+            v-if="(task.game_images || []).length < 8"
             class="qe-pair-photo qe-pair-photo--add"
             @click="$emit('pair-image-upload', task, null)"
           >
@@ -231,7 +231,7 @@
           Добавь минимум 2 фото — каждое станет парой карточек
         </div>
         <div v-else class="qe-hint qe-hint--ok">
-          {{ (task.game_images || []).length }} фото → {{ (task.game_images || []).length * 2 }} карточек, алгоритм перемешает
+          {{ (task.game_images || []).length }} фото → {{ (task.game_images || []).length * 2 }} карточек (матрица 4×{{ (task.game_images || []).length * 2 / 4 }}), алгоритм перемешает
         </div>
       </template>
 
