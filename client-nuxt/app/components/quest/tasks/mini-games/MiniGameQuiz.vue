@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="quiz-wrap">
     <div class="task__quiz-question">{{ task.game_question }}</div>
     <div class="task__quiz-options">
       <button
@@ -51,6 +51,7 @@ const pick = (idx) => {
 </script>
 
 <style scoped>
+.quiz-wrap { display: flex; flex-direction: column; gap: 12px; }
 .task__quiz-question {
   font-size: .95rem; font-weight: 600; color: var(--text); line-height: 1.5;
   border-left: 2px solid var(--accent); padding-left: 12px;

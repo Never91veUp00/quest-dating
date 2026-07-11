@@ -131,11 +131,12 @@ const onTap = (slotIdx) => {
 .task__puzzle { display: flex; flex-direction: column; gap: 12px; }
 .task__puzzle__intro { display: flex; flex-direction: column; gap: 10px; }
 .task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
-.task__puzzle__intro-img { width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover; }
+.task__puzzle__intro-img { width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover; filter: blur(6px) brightness(0.7); transform: scale(1.04); }
 .task__puzzle__intro-overlay {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.35); color: #fff; font-size: .9rem; font-weight: 700;
+  color: #fff; font-size: .95rem; font-weight: 700;
   letter-spacing: .05em; pointer-events: none;
+  text-shadow: 0 2px 8px rgba(0,0,0,.8);
 }
 .task__puzzle__intro-meta { font-size: .8rem; color: var(--dim); text-align: center; }
 .task__puzzle__progress { display: flex; align-items: center; gap: 10px; }

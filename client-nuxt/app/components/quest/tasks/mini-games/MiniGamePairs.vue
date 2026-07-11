@@ -27,6 +27,9 @@
       <div v-if="wrongText" class="task__quiz-result task__quiz-result--wrong">
         Не совпадает, попробуй ещё раз
       </div>
+      <button v-if="!textComplete" class="task__pairs__skip" @click="$emit('skip-task', task)">
+        Не получается? Пропустить
+      </button>
       <div v-if="textComplete" class="task__quiz-result task__quiz-result--right">
         Все пары найдены! 🎉
       </div>
@@ -55,6 +58,9 @@
           </div>
         </button>
       </div>
+      <button v-if="!photoComplete" class="task__pairs__skip" @click="$emit('skip-task', task)">
+        Не получается? Пропустить
+      </button>
       <div v-if="photoComplete" class="task__quiz-result task__quiz-result--right">
         Все пары найдены! 🎉
       </div>
@@ -72,7 +78,7 @@ const props = defineProps({
   task:  { type: Object, required: true },
   theme: { type: Object, required: true },
 })
-defineEmits(['complete'])
+defineEmits(['complete', 'skip-task'])
 
 // ── Текстовые пары ───────────────────────────────────────────────
 const leftSelected  = ref(null)
@@ -170,7 +176,7 @@ const flipCard = (ci) => {
 .task__text-pairs__item.matched { border-color: #48bb78; background: rgba(72,187,120,.15); opacity: .7; cursor: default; }
 .task__text-pairs__item--right { text-align: center; }
 
-.task__pairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.task__pairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
 .task__pairs__card {
   aspect-ratio: 3/4; background: var(--bg2); border: 1px solid var(--bord);
   border-radius: 8px; cursor: pointer; perspective: 600px;
@@ -203,6 +209,13 @@ const flipCard = (ci) => {
 }
 .task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
 .task__quiz-result--wrong { color: #f87171; background: rgba(248,113,113,.08); }
-@media (max-width: 480px) { .task__pairs { grid-template-columns: repeat(3, 1fr); gap: 6px; } }
-@media (max-width: 360px) { .task__pairs { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
+@media (max-width: 360px) { .task__pairs { grid-template-columns: repeat(3, 1fr); gap: 5px; } }
+
+.task__pairs__skip {
+  display: block; margin: 8px auto 0; background: none; border: none;
+  color: var(--dim); font-size: .68rem; cursor: pointer;
+  opacity: .4; transition: opacity .3s; padding: 6px 12px;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.task__pairs__skip:hover { opacity: .7; }
 </style>
