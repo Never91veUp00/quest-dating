@@ -1,7 +1,7 @@
 <template>
   <div>
-    <!-- Текстовые пары (только если нет фото) -->
-    <template v-if="(!task.game_images || !task.game_images.length) && task.pairs && task.pairs.length">
+    <!-- Текстовые пары -->
+    <template v-if="task.pairs_mode === 'text' || (!task.pairs_mode && task.pairs && task.pairs.length && (!task.game_images || !task.game_images.length))">
       <div class="task__text-pairs">
         <div class="task__text-pairs__cols">
           <div class="task__text-pairs__col">

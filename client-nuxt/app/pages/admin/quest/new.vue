@@ -48,6 +48,8 @@
             @generate-qr="generateQR"
             @add-pair-image="addPairImage"
             @remove-pair-image="removePairImage"
+            @add-text-pair="addTextPair"
+            @remove-text-pair="removeTextPair"
           />
         </div>
         <button class="qe-add-block" @click="addBlock">+ Добавить блок</button>
@@ -72,7 +74,7 @@ const {
   form, saving, errors, openBlocks, templates, selectedTemplate, toast, origin,
   addBlock, removeBlock, moveBlock, toggleBlock,
   addTask, removeTask, moveTask,
-  generateQR, addPairImage, removePairImage,
+  generateQR, addPairImage, removePairImage, addTextPair, removeTextPair,
   loadTemplate, autoSlug, save, previewQuest,
 } = useQuestEditor()
 
