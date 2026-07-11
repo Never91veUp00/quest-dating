@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Текстовые пары -->
-    <template v-if="task.pairs && task.pairs.length">
+    <template v-if="task.pairs_mode === 'text' || (!task.pairs_mode && task.pairs && task.pairs.length && (!task.game_images || !task.game_images.length))">
       <div class="task__text-pairs">
         <div class="task__text-pairs__cols">
           <div class="task__text-pairs__col">
@@ -139,7 +139,7 @@ onMounted(() => {
 
 onUnmounted(() => { if (flipTimer) clearTimeout(flipTimer) })
 
-const isImage = (v) => v && (v.startsWith('data:image') || v.startsWith('http'))
+const isImage = (v) => v && (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/'))
 
 const flipCard = (ci) => {
   if (photoFlipped.value.includes(ci) || photoFlipped.value.length === 2) return
