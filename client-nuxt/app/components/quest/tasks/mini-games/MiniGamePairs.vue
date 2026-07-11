@@ -40,7 +40,7 @@
 
     <!-- Фото-пары -->
     <template v-else>
-      <div class="task__pairs">
+      <div class="task__pairs" :style="{ '--pairs-cols': task.pairs_grid_size || 4 }">
         <button
           v-for="(card, ci) in photoCards" :key="ci"
           class="task__pairs__card"
@@ -176,7 +176,7 @@ const flipCard = (ci) => {
 .task__text-pairs__item.matched { border-color: #48bb78; background: rgba(72,187,120,.15); opacity: .7; cursor: default; }
 .task__text-pairs__item--right { text-align: center; }
 
-.task__pairs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.task__pairs { display: grid; grid-template-columns: repeat(var(--pairs-cols, 4), 1fr); gap: 6px; margin-bottom: 12px; }
 .task__pairs__card {
   aspect-ratio: 3/4; background: var(--bg2); border: 1px solid var(--bord);
   border-radius: 8px; cursor: pointer; perspective: 600px;
@@ -209,7 +209,6 @@ const flipCard = (ci) => {
 }
 .task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
 .task__quiz-result--wrong { color: #f87171; background: rgba(248,113,113,.08); }
-@media (max-width: 360px) { .task__pairs { grid-template-columns: repeat(3, 1fr); gap: 5px; } }
 
 .task__pairs__skip {
   display: block; margin: 8px auto 0; background: none; border: none;

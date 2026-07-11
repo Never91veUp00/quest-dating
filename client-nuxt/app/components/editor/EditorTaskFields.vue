@@ -207,6 +207,27 @@
 
       <!-- Фото-режим -->
       <template v-if="!task.pairs_mode || task.pairs_mode === 'photos'">
+        <!-- Выбор размера матрицы -->
+        <div class="qe-field">
+          <label>Размер матрицы</label>
+          <div class="qe-pairs-mode">
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: !task.pairs_grid_size || task.pairs_grid_size === 2 }"
+              @click="task.pairs_grid_size = 2; task.game_images = (task.game_images || []).slice(0, 2)"
+            >2×2 <span style="opacity:.5;font-size:.75em">(2 фото)</span></button>
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: task.pairs_grid_size === 3 }"
+              @click="task.pairs_grid_size = 3; task.game_images = (task.game_images || []).slice(0, 6)"
+            >3×4 <span style="opacity:.5;font-size:.75em">(6 фото)</span></button>
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: task.pairs_grid_size === 4 }"
+              @click="task.pairs_grid_size = 4"
+            >4×4 <span style="opacity:.5;font-size:.75em">(8 фото)</span></button>
+          </div>
+        </div>
         <div class="qe-pairs-grid">
           <div
             v-for="(img, i) in (task.game_images || [])"
@@ -219,7 +240,7 @@
             <div class="qe-pair-photo__num">{{ i + 1 }}</div>
           </div>
           <div
-            v-if="(task.game_images || []).length < 8"
+            v-if="(task.game_images || []).length < pairsPhotoLimit(task)"
             class="qe-pair-photo qe-pair-photo--add"
             @click="$emit('pair-image-upload', task, null)"
           >
@@ -227,11 +248,12 @@
             <div class="qe-pair-photo__add-hint">Фото</div>
           </div>
         </div>
-        <div v-if="(task.game_images || []).length < 2" class="qe-hint qe-hint--warn">
-          Добавь минимум 2 фото — каждое станет парой карточек
+        <div v-if="(task.game_images || []).length < pairsPhotoLimit(task)" class="qe-hint qe-hint--warn">
+          Нужно {{ pairsPhotoLimit(task) }} фото для матрицы {{ pairsGridLabel(task) }}
+          (загружено {{ (task.game_images || []).length }})
         </div>
         <div v-else class="qe-hint qe-hint--ok">
-          {{ (task.game_images || []).length }} фото → {{ (task.game_images || []).length * 2 }} карточек (матрица 4×{{ (task.game_images || []).length * 2 / 4 }}), алгоритм перемешает
+          Матрица {{ pairsGridLabel(task) }} — {{ (task.game_images || []).length * 2 }} карточек, алгоритм перемешает
         </div>
       </template>
 
@@ -293,9 +315,12 @@
 import { ref } from 'vue'
 
 defineProps({ task: { type: Object, required: true } })
-defineEmits(['generate-qr', 'add-pair-image', 'remove-pair-image', 'puzzle-upload', 'pair-image-upload', 'media-upload', 'media-clear'])
+defineEmits(['generate-qr', 'add-pair-image', 'remove-pair-image', 'add-text-pair', 'remove-text-pair', 'puzzle-upload', 'pair-image-upload', 'media-upload', 'media-clear'])
 
 const previewMedia = ref(false)
+
+const pairsPhotoLimit = (task) => ({ 2: 2, 3: 6, 4: 8 }[task.pairs_grid_size] ?? 8)
+const pairsGridLabel  = (task) => ({ 2: '2×2', 3: '3×4', 4: '4×4' }[task.pairs_grid_size] ?? '4×4')
 
 const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
 const mediaFullUrl = (url) => url?.startsWith('http') ? url : API_BASE + url
