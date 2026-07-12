@@ -22,7 +22,7 @@
         <span>{{ typeIcon }}</span> {{ typeLabel }}
       </div>
       <div class="task__title">{{ task.title }}</div>
-      <p v-if="task.description" class="task__desc">{{ task.description }}</p>
+      <p v-if="task.description && !isDone" class="task__desc">{{ task.description }}</p>
 
       <!-- Выполнено -->
       <div v-if="isDone" class="task__done">

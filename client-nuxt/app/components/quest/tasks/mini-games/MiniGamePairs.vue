@@ -194,9 +194,14 @@ const flipCard = (ci) => {
   aspect-ratio: 3/4; background: transparent; border: 1px solid var(--bord);
   border-radius: 8px; cursor: pointer;
   transition: border-color .2s; padding: 0;
-  /* overflow:hidden НЕ используем — ломает preserve-3d в Safari/Chrome Mobile */
+  outline: none; /* убираем браузерный focus-outline */
+  -webkit-tap-highlight-color: transparent; /* убираем подсветку тапа на iOS */
 }
-.task__pairs__card:hover:not(:disabled):not(.selected) { border-color: var(--accent); }
+/* hover только на устройствах с мышью — на мобиле hover "прилипает" после тапа */
+@media (hover: hover) {
+  .task__pairs__card:hover:not(:disabled):not(.selected) { border-color: var(--accent); }
+}
+.task__pairs__card:focus-visible:not(.selected) { border-color: var(--accent); }
 .task__pairs__card:disabled:not(.matched) { opacity: 1; }
 .task__pairs__card.selected { border-color: var(--accent); }
 .task__pairs__card.matched  { border-color: #3cffb4; opacity: .6; cursor: default; }
