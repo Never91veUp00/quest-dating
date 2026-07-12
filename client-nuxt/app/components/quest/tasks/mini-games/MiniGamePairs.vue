@@ -182,36 +182,38 @@ const flipCard = (ci) => {
   transform: translateZ(0); /* форсируем отдельный GPU-слой для всего грида */
 }
 .task__pairs__card {
-  aspect-ratio: 3/4; background: var(--bg2); border: 1px solid var(--bord);
+  aspect-ratio: 3/4; background: transparent; border: 1px solid var(--bord);
   border-radius: 8px; cursor: pointer;
   transition: border-color .2s; padding: 0;
-  /* НЕТ overflow:hidden — вызывает full repaint при 3D-трансформации дочерних элементов */
+  /* overflow:hidden НЕ используем — ломает preserve-3d в Safari/Chrome Mobile */
 }
 .task__pairs__card:hover:not(:disabled) { border-color: var(--accent); }
+.task__pairs__card:disabled:not(.matched) { opacity: 1; } /* не затемнять при временной блокировке */
 .task__pairs__card.matched { border-color: #3cffb4; opacity: .6; cursor: default; }
 .task__pairs__card__inner {
   width: 100%; height: 100%; position: relative;
   transform-style: preserve-3d; transition: transform .35s;
-  display: flex; align-items: center; justify-content: center;
   will-change: transform;
-  border-radius: 8px; overflow: hidden; /* клипинг теперь здесь, вне 3D-контекста */
+  /* НЕТ overflow:hidden — убивает preserve-3d */
 }
 .task__pairs__card.flipped .task__pairs__card__inner,
 .task__pairs__card.matched .task__pairs__card__inner { transform: rotateY(180deg); }
 .task__pairs__card__back,
 .task__pairs__card__front {
-  position: absolute; width: 100%; height: 100%;
+  position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   font-size: .85rem; padding: 4px; text-align: center; line-height: 1.3;
-  border-radius: 8px;
+  border-radius: 7px;
+  /* clip-path вместо overflow:hidden — не ломает 3D */
+  clip-path: inset(0 round 7px);
 }
 .task__pairs__card__back { color: var(--accent); font-size: 1.2rem; background: var(--bg2); }
 .task__pairs__card__front {
   transform: rotateY(180deg); color: var(--text);
   background: color-mix(in srgb, var(--accent) 8%, var(--bg2));
 }
-.task__pairs__card__img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.task__pairs__card__img { width: 100%; height: 100%; object-fit: cover; }
 .task__quiz-result {
   text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
   margin-bottom: 12px;
