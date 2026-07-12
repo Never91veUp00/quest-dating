@@ -26,7 +26,7 @@
 
       <!-- Выполнено -->
       <div v-if="isDone" class="task__done">
-        <span>{{ theme.copy.taskDone }}</span>
+        <span>{{ earnedEntry?.wrong ? 'Не выполнено' : theme.copy.taskDone }}</span>
         <span v-if="task.points" class="task__pts">
           +{{ earnedEntry?.points ?? task.points }} {{ theme.copy.pointsLabel }}
         </span>
@@ -139,9 +139,14 @@ const typeLabel = computed(() => ({
 .task--active .task__dot { border-color: var(--accent); color: var(--accent); }
 .task--done    { opacity: .55; border-left-color: #3cffb4; }
 .task--done .task__dot { border-color: #3cffb4; color: #3cffb4; background: rgba(60,255,180,.06); }
-.task--wrong   { border-left-color: #f87171; }
-.task--wrong .task__dot { border-color: #f87171; color: #f87171; background: rgba(248,113,113,.06); }
-.task--wrong .task__pts { color: #f87171; }
+.task--wrong   {
+  border-color: rgba(248,113,113,.35);
+  border-left-color: #f87171;
+  background: color-mix(in srgb, rgba(248,113,113,.06) 100%, var(--surf));
+}
+.task--wrong .task__dot   { border-color: #f87171; color: #f87171; background: rgba(248,113,113,.12); }
+.task--wrong .task__pts   { color: #f87171; }
+.task--wrong .task__done  { color: #f87171; }
 .task--locked  { opacity: .3; pointer-events: none; }
 
 /* ── Dot ──────────────────────────────────────────────────────── */
