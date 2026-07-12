@@ -299,8 +299,8 @@
       <div class="qe-field">
         <label>Количество частей</label>
         <select v-model.number="task.puzzle_pieces" class="qe-select qe-select--sm">
-          <option :value="12">12 частей (3×4) — лёгкий</option>
-          <option :value="20">20 частей (4×5) — средний</option>
+          <option :value="12">12 частей (4×3) — лёгкий</option>
+          <option :value="20">20 частей (5×4) — средний</option>
           <option :value="30">30 частей (6×5) — сложный</option>
           <option :value="35">35 частей (7×5)</option>
           <option :value="42">42 части (6×7)</option>

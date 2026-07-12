@@ -73,8 +73,8 @@ onMounted(() => {
 })
 
 const PUZZLE_GRID = {
-  12: { cols: 3, rows: 4 },
-  20: { cols: 4, rows: 5 },
+  12: { cols: 4, rows: 3 },
+  20: { cols: 5, rows: 4 },
   30: { cols: 6, rows: 5 },
   35: { cols: 7, rows: 5 },
   42: { cols: 6, rows: 7 },
