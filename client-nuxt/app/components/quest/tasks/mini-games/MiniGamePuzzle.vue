@@ -205,4 +205,21 @@ const onTap = (slotIdx) => {
 }
 .task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
 @media (max-width: 480px) { .task__puzzle__board { gap: 1px; } }
+
+.task__action {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 52px;
+  background: transparent;
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+  color: var(--accent);
+  font-size: .95rem; font-weight: 700;
+  cursor: pointer;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
+  transition: all .2s ease;
+}
+.task__action:hover {
+  background: var(--accent); color: #000; text-shadow: none;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
+}
 </style>
