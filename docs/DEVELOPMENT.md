@@ -2,6 +2,8 @@
 
 ## Рабочий процесс
 
+Требования: Node 22 LTS (используем nvm, не apt), PostgreSQL 15 (или Docker), npm 9+.
+
 ```bash
 cd server && npm run dev          # Express :5000
 cd client-nuxt && npm run dev     # Nuxt :3000
@@ -9,7 +11,7 @@ cd client-nuxt && npm run dev     # Nuxt :3000
 
 Nuxt devProxy проксирует `/api/*` → `localhost:5000/api`.
 
-Основная ветка: `feature/nuxt3-migration`.
+Основная ветка: `production`. Это и default branch на GitHub, и та ветка, что развёрнута на проде. Любая работа идёт от неё через feature-ветки (см. раздел «Git» ниже).
 
 ---
 
@@ -107,7 +109,9 @@ sendClientOrderEmail(order, tplTitle).catch(...)   // client: Email (Resend)
 - `sendClientOrderEmail(order, templateTitle)` — красивое письмо клиенту с view_token ссылкой
 - `notifyNewOrder` / `notifyOrderStatusChange` / `notifyContactMessage` — для администратора
 
-Telegram-вебхук (`routes/telegram.js`) обрабатывает `/start <token>` — клиент переходит по ссылке из письма, бот отвечает деталями заказа.
+> `NOTIFY_EMAIL` — **обязательная** переменная окружения. Раньше был fallback на личный email — убран в PR #1. Если переменная не задана, email админу не отправляется (warn в логе).
+
+Telegram-вебхук (`routes/telegram.js`) обрабатывает `/start <token>` — клиент переходит по ссылке из письма, бот отвечает деталями заказа. Webhook проверяет заголовок `X-Telegram-Bot-Api-Secret-Token` против `TELEGRAM_WEBHOOK_SECRET` — при несовпадении 401 (PR #6/#7).
 
 ---
 
@@ -123,7 +127,7 @@ Telegram-вебхук (`routes/telegram.js`) обрабатывает `/start <t
 | `/categories/:slug` | `BreadcrumbList` |
 | `/about` | `Person` |
 
-Sitemap: динамический через `server/api/sitemap-urls.get.ts`.
+Sitemap: динамический через `client-nuxt/server/routes/sitemap-urls.get.ts` (Nitro route `/sitemap-urls` → дёргает Express `GET /api/sitemap-urls`).
 
 ---
 
@@ -151,12 +155,43 @@ WHERE status NOT IN ('cancelled','completed') ORDER BY created_at DESC;
 
 ## Git
 
-```
-feature/nuxt3-migration  ← основная рабочая ветка
-main                     ← production
+### Ветки
+
+- `production` — единственная долгоживущая. Default на GitHub, развёрнута на проде. Прямые коммиты запрещены.
+- `upgrade/<short-name>` — для технических задач из `docs/upgrade-plan.md` (рефакторинги, апгрейды зависимостей)
+- `docs/<short-name>` — для правок документации
+- `fix/<short-name>` / `feat/<short-name>` — для багфиксов и фич
+
+### Workflow
+
+```bash
+git checkout production
+git pull origin production
+git branch --show-current        # убедиться, что на production
+git checkout -b upgrade/cache-metrics
+git branch --show-current        # убедиться, что переключились
+# ... работа, коммиты ...
+git push origin upgrade/cache-metrics
+# → открыть PR на GitHub, base production
+# → merge после ревью
+# → на проде: git pull origin production + при необходимости docker compose build
 ```
 
-Формат коммитов: `feat(catalog): описание`, `fix(date-slug): описание`, `seo(about): описание`
+Подробнее про варианты деплоя после мерджа — `docs/DEPLOY.md` (раздел «Регулярное обновление»).
+
+### Коммиты — Conventional Commits
+
+Формат: `тип(scope): краткое описание`
+
+Типы: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`, `style`, `perf`.
+
+Scope опционален: `chore(deps): bump vitest 3 → 4`, `fix(security): убрать hardcoded email`, `feat(health): /health проверяет БД`.
+
+Один логический шаг — один коммит. Если задача большая, разбивать на несколько коммитов внутри одной feature-ветки.
+
+### lock-файлы
+
+`package-lock.json` (server, client-nuxt) — **трекаются в git** (с PR #13). Раньше были в `.gitignore` — это была фундаментальная ошибка для воспроизводимости билдов. Теперь `npm ci` работает воспроизводимо и в Docker, и локально.
 
 ---
 

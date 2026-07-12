@@ -48,7 +48,7 @@
 
       <!-- ── ПЛЕЕР V1 ── -->
       <transition name="player-in">
-        <div v-if="started && currentBlock && !isComplete && playerVersion === 'v1'" class="qp-player">
+        <div v-if="started && currentBlock && !isComplete" class="qp-player">
 
           <!-- HUD -->
           <header class="qp-hud">
@@ -56,9 +56,11 @@
               <div class="qp-hud__fill" :style="{ width: progressPct + '%' }"></div>
             </div>
             <div class="qp-hud__row">
-              <span class="qp-hud__step">{{ blockIdx + 1 }}<span class="qp-hud__step-of">/{{ totalBlocks }}</span></span>
+              <span class="qp-hud__pts">
+                {{ points }}<span class="qp-hud__pts-l"> {{ themeObj.copy.pointsLabel }}</span>
+              </span>
               <span class="qp-hud__name">{{ questData.title }}</span>
-              <span class="qp-hud__time">{{ elapsedStr }}</span>
+              <span v-if="themeObj.showTimer" class="qp-hud__time">{{ elapsedStr }}</span>
               <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню">⋮</button>
             </div>
             <!-- Desktop dropdown -->
@@ -72,9 +74,18 @@
           </header>
 
           <!-- Блок -->
-          <main class="qp-main">
+          <main class="qp-main" :class="{ 'qp-main--glow': started }">
             <transition name="slide" mode="out-in">
+              <QuestBlockBridge
+                v-if="showBridge && blocks[blockIdx + 1]"
+                :key="'bridge-' + blockIdx"
+                :theme="themeObj"
+                :nextBlock="blocks[blockIdx + 1]"
+                :nextIndex="blockIdx + 1"
+                @advance="doNext"
+              />
               <QuestBlock
+                v-else
                 :key="blockIdx"
                 :block="currentBlock"
                 :theme="themeObj"
@@ -94,10 +105,6 @@
 
           <!-- Footer -->
           <footer class="qp-foot">
-            <div class="qp-foot__pts">
-              <span class="qp-foot__pts-n">{{ points }}</span>
-              <span class="qp-foot__pts-l">{{ themeObj.copy.pointsLabel }}</span>
-            </div>
             <div class="qp-foot__dots">
               <span
                 v-for="(_, i) in blocks"
@@ -111,29 +118,7 @@
         </div>
       </transition>
 
-      <!-- ── ПЛЕЕР V2 ── -->
-      <QuestPlayerV2
-        v-if="started && currentBlock && !isComplete && playerVersion === 'v2'"
-        :key="'v2-' + blockIdx"
-        :block="currentBlock"
-        :theme="themeObj"
-        :index="blockIdx"
-        :total="totalBlocks"
-        :allBlocks="blocks"
-        :completedIds="completedIds"
-        :isLast="isLast"
-        :points="points"
-        :elapsedStr="elapsedStr"
-        @complete-task="onTaskComplete"
-        @use-hint="onHint"
-        @prev="prev"
-        @next="next"
-        @finish="finish"
-        @skip-task="onSkipTask"
-        @menu="showMenu = !showMenu"
-      />
-
-      <!-- ── ОБЩЕЕ МЕНЮ (V1 + V2) ── -->
+      <!-- ── МЕНЮ ── -->
       <teleport to="body">
         <transition name="sheet">
           <div v-if="showMenu" class="qp-menu-sheet" @click.self="showMenu = false">
@@ -198,7 +183,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
-import QuestPlayerV2 from '~/components/quest/QuestPlayerV2.vue'
+import QuestBlockBridge from '~/components/quest/QuestBlockBridge.vue'
 
 
 const route = useRoute()
@@ -262,7 +247,6 @@ const fatalError   = ref(null)
 const requiresCode = ref(false)
 const codeError    = ref('')
 
-const playerVersion = computed(() => questData.value?.player_version || 'v1')
 
 const started             = ref(false)
 const showIntro           = ref(false)
@@ -274,6 +258,7 @@ const hintsUsed           = ref(0)
 const badge               = ref(null)
 const showMenu            = ref(false)
 const showRestartConfirm  = ref(false)
+const showBridge          = ref(false)
 
 // ─── Timer ────────────────────────────────────────────────────
 const startTs = ref(0)
@@ -472,6 +457,14 @@ const onSkipTask = (task) => {
 
 // ─── Navigation ───────────────────────────────────────────────
 const next = () => {
+  if (blockIdx.value < totalBlocks.value - 1) {
+    showBridge.value = true
+  } else {
+    doNext()
+  }
+}
+const doNext = () => {
+  showBridge.value = false
   blockIdx.value++
   window.scrollTo({ top: 0, behavior: 'smooth' })
   saveProgress()
@@ -576,7 +569,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.qp { min-height: 100dvh; background: var(--bg); color: var(--text); font-family: var(--font-b); position: relative; overflow-x: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+.qp { min-height: 100dvh; background: var(--base-bg); color: var(--text); font-family: var(--font-b); position: relative; overflow-x: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
 .qp-overlay { pointer-events: none; position: fixed; inset: 0; z-index: 9999; }
 .qp-overlay--scanlines { background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px); }
 .qp-overlay--grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 200px 200px; opacity: 0.5; }
@@ -591,31 +584,37 @@ onUnmounted(() => {
 .qp-error__title { font-family: var(--font-d); font-size: 1.2rem; color: #fff; }
 .qp-error__sub { color: var(--dim); font-size: .9rem; }
 .qp-error__link { color: var(--accent); font-size: .9rem; text-decoration: none; margin-top: 8px; }
-.qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 68px 0 72px; }
+.qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 60px 0 60px; }
 .qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--bord); }
-.qp-hud__bar { height: 3px; background: var(--surf); }
-.qp-hud__fill { height: 100%; background: var(--accent); box-shadow: 0 0 8px var(--accent); transition: width .4s ease; }
+.qp-hud__bar { height: 10px; background: rgba(255,255,255,.06); overflow: visible; }
+.qp-hud__fill { height: 100%; background: var(--accent); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent); transition: width .45s cubic-bezier(.4,0,.2,1); }
 .qp-hud__row { display: flex; align-items: center; padding: 10px 16px; gap: 8px; }
-.qp-hud__step { font-family: var(--font-d); font-size: .75rem; color: var(--accent); white-space: nowrap; }
-.qp-hud__step-of { color: var(--dim); }
+.qp-hud__pts { font-family: var(--font-d); font-size: .85rem; font-weight: 700; color: var(--accent); white-space: nowrap; text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
+.qp-hud__pts-l { font-size: .62rem; font-weight: 400; opacity: .7; }
 .qp-hud__name { flex: 1; font-size: .8rem; color: var(--dim); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-hud__time { font-family: var(--font-d); font-size: .7rem; color: var(--dim); white-space: nowrap; }
-.qp-hud__ver-btn { background: none; border: none; color: var(--accent); font-size: 1rem; cursor: pointer; padding: 4px 6px; line-height: 1; border-radius: 4px; transition: transform .2s, opacity .2s; opacity: .7; }
-.qp-hud__ver-btn:hover { opacity: 1; transform: scale(1.15); }
 .qp-hud__menu-btn { background: none; border: none; color: var(--dim); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1; border-radius: 4px; transition: color .2s; }
 .qp-hud__menu-btn:hover { color: var(--text); }
 .qp-hud__dropdown { position: absolute; top: 100%; right: 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: 8px; padding: 4px; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .qp-hud__dropdown-item { width: 100%; background: none; border: none; color: var(--text); font-size: .85rem; padding: 10px 14px; cursor: pointer; border-radius: 6px; text-align: left; transition: background .15s; }
 .qp-hud__dropdown-item:hover { background: rgba(255,255,255,.06); }
-.qp-main { flex: 1; padding: 20px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; }
-.qp-foot { position: fixed; bottom: 0; left: 0; right: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--bord); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-.qp-foot__pts { display: flex; align-items: baseline; gap: 5px; }
-.qp-foot__pts-n { font-family: var(--font-d); font-size: 1.3rem; font-weight: 700; color: var(--accent); text-shadow: 0 0 8px var(--accent); }
-.qp-foot__pts-l { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); }
-.qp-foot__dots { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
-.qp-foot__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--surf); border: 1px solid var(--bord); transition: all .3s; }
-.qp-foot__dot.done { background: #3cffb4; border-color: #3cffb4; box-shadow: 0 0 5px #3cffb4; }
-.qp-foot__dot.cur { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 7px var(--accent); width: 14px; border-radius: 3px; }
+.qp-main { flex: 1; padding: 20px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+.qp-main--glow::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: min(100vw, 600px); height: 300px;
+  background: radial-gradient(ellipse 80% 100% at 50% 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 0%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.qp-foot { position: fixed; bottom: 0; left: 0; right: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--bord); padding: 12px 16px; display: flex; align-items: center; justify-content: center; z-index: 100; }
+.qp-foot__dots { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
+.qp-foot__dot.done { background: rgba(255,255,255,.45); }
+.qp-foot__dot.cur { width: 24px; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
 .qp-badge { position: fixed; top: 76px; right: 16px; z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 16px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
 .qp-badge__ico { font-size: 1.5rem; flex-shrink: 0; }
 .qp-badge__title { font-family: var(--font-d); font-size: .7rem; font-weight: 700; color: var(--accent); }
@@ -633,9 +632,9 @@ onUnmounted(() => {
 .splash-out-leave-to { opacity: 0; transform: scale(1.04); }
 .player-in-enter-active { transition: opacity .5s .1s ease; }
 .player-in-enter-from { opacity: 0; }
-.slide-enter-active, .slide-leave-active { transition: opacity .22s ease, transform .22s ease; }
-.slide-enter-from { opacity: 0; transform: translateX(18px); }
-.slide-leave-to { opacity: 0; transform: translateX(-18px); }
+.slide-enter-active, .slide-leave-active { transition: opacity .32s cubic-bezier(.4,0,.2,1), transform .32s cubic-bezier(.4,0,.2,1); }
+.slide-enter-from { opacity: 0; transform: translateX(32px); }
+.slide-leave-to   { opacity: 0; transform: translateX(-32px); }
 .fade-enter-active { transition: opacity .3s ease; }
 .fade-enter-from { opacity: 0; }
 .fade-leave-active { transition: opacity .2s ease; }
@@ -658,8 +657,7 @@ onUnmounted(() => {
   .qp-main { padding: 16px 12px 0; }
   .qp-hud__row { padding: 8px 12px; gap: 6px; }
   .qp-hud__name { font-size: .72rem; }
-  .qp-foot { padding: 8px 12px; }
-  .qp-foot__pts-n { font-size: 1.1rem; }
+  .qp-foot { padding: 10px 12px; }
   .qp-badge { right: 12px; min-width: 170px; padding: 10px 12px; }
   .qp-badge__ico { font-size: 1.2rem; }
   .qp-badge__title { font-size: .65rem; }

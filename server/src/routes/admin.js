@@ -187,7 +187,7 @@ router.put('/quests/:id', [
 
   try {
     const {
-      title, client_name, theme, final_message,
+      title, client_name, slug, theme, final_message,
       blocks, access_code, is_public, expires_at, show_intro, player_version
     } = req.body
 
@@ -195,20 +195,22 @@ router.put('/quests/:id', [
       UPDATE created_quests SET
         title         = $1,
         client_name   = $2,
-        theme         = $3,
-        final_message = $4,
-        blocks        = $5,
-        access_code   = $6,
-        is_public     = $7,
-        expires_at    = $8,
-        show_intro    = $9,
-        player_version = $10,
-        published_at  = CASE WHEN $7 AND published_at IS NULL THEN NOW() ELSE published_at END,
+        slug          = $3,
+        theme         = $4,
+        final_message = $5,
+        blocks        = $6,
+        access_code   = $7,
+        is_public     = $8,
+        expires_at    = $9,
+        show_intro    = $10,
+        player_version = $11,
+        published_at  = CASE WHEN $8 AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at    = NOW()
-      WHERE id = $11
+      WHERE id = $12
       RETURNING *
     `, [
-      title, client_name, theme || 'detective', final_message || null,
+      title, client_name, slug,
+      theme || 'detective', final_message || null,
       JSON.stringify(blocks), access_code || null,
       is_public, expires_at || null,
       show_intro !== false,

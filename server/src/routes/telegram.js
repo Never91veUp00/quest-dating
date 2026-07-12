@@ -36,6 +36,15 @@ const STATUS_LABELS = {
 
 // POST /api/telegram/webhook — вебхук от Telegram
 router.post('/webhook', async (req, res) => {
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET
+  if (secret) {
+    if (req.headers['x-telegram-bot-api-secret-token'] !== secret) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+  } else {
+    logger.warn('TELEGRAM_WEBHOOK_SECRET не задан — вебхук без верификации')
+  }
+
   res.sendStatus(200) // всегда 200 первым — Telegram ждёт быстрого ответа
 
   try {

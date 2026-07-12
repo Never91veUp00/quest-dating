@@ -13,7 +13,11 @@ services:
       - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/dump.sql:/docker-entrypoint-initdb.d/init.sql
+      # Применяется только при ПЕРВОМ старте контейнера (когда volume пустой).
+      # На существующей БД этот mount Postgres проигнорирует. :ro защищает
+      # файл от случайной записи изнутри контейнера. См. docs/incidents.md
+      # INC-001 — почему этот файл и режим важны.
+      - ./database/dump.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - quest-network
     healthcheck:
@@ -41,6 +45,7 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       NOTIFY_EMAIL: ${NOTIFY_EMAIL:-}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}

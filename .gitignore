@@ -1,9 +1,6 @@
 # Dependencies
 node_modules/
 */node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Logs
 logs/
@@ -92,3 +89,7 @@ temp/
 .tern-port
 .vscode-test
 backups/
+
+# Локальные загрузки и случайные дампы (чистка 1.5.3/1.5.4)
+uploads_local/
+/dump.sql

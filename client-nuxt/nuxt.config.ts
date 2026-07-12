@@ -36,6 +36,7 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxtjs/seo',
+    '@vueuse/motion/nuxt',
   ],
 
   components: {
@@ -58,9 +59,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiBaseInternal: process.env.NUXT_API_BASE_INTERNAL || 'http://server:5000/api',
     public: {
-      // В dev: относительный /api — запросы идут через Nuxt devProxy -> localhost:5000
-      // Playwright перехватывает localhost:3000/api/... через page.route('**/api/**')
-      // В prod: задаётся через NUXT_PUBLIC_API_BASE
+      // В dev (вне Docker): задать NUXT_API_PROXY_TARGET и NUXT_API_BASE_INTERNAL
+      //   на host-порт бэкенда (docker пробрасывает server:5000 → localhost:5001).
+      //   Пример: NUXT_API_PROXY_TARGET=http://localhost:5001 \
+      //           NUXT_API_BASE_INTERNAL=http://localhost:5001/api npm run dev
+      // В prod: фронт в compose-сети, дефолт http://server:5000 работает как есть.
       apiBase:  process.env.NUXT_PUBLIC_API_BASE || '/api',
       appName:  'Quest Dating',
     }
@@ -70,7 +73,7 @@ export default defineNuxtConfig({
     // Production proxy: Nuxt проксирует /api/** на Express
     // /uploads/** обрабатывается через server/routes/uploads/[...path].js
     '/sitemap-urls': { ssr: true },
-    '/api/**':    { proxy: { to: 'http://server:5000/api/**' } },
+    '/api/**':    { proxy: { to: `${process.env.NUXT_API_PROXY_TARGET || 'http://server:5000'}/api/**` } },
     '/':              { ssr: true, swr: 300   },
     '/catalog':       { ssr: true, swr: 300   },
     '/date/**':       { ssr: true, swr: 600   },

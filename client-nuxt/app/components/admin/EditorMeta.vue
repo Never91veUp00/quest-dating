@@ -65,25 +65,6 @@
         </div>
       </div>
 
-      <!-- Версия плеера -->
-      <div class="qe-field">
-        <label>Версия плеера</label>
-        <div class="qe-intro-options">
-          <button class="qe-intro-opt" :class="{ active: form.player_version !== 'v2' }"
-            @click="form.player_version = 'v1'">
-            <span class="qe-intro-opt__icon">🎮</span>
-            <span class="qe-intro-opt__label">Стандартный</span>
-            <span class="qe-intro-opt__sub">Классический интерфейс</span>
-          </button>
-          <button class="qe-intro-opt" :class="{ active: form.player_version === 'v2' }"
-            @click="form.player_version = 'v2'">
-            <span class="qe-intro-opt__icon">✨</span>
-            <span class="qe-intro-opt__label">Иммерсивный</span>
-            <span class="qe-intro-opt__sub">Анимированный фон, полный экран</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Код доступа -->
       <div class="qe-field">
         <label>Код доступа</label>

@@ -1,8 +1,14 @@
 # Аудит проекта Quest Dating — май 2026
 
 > **Цель:** читаемый отчёт перед апгрейдом. Код не менялся.  
-> **Дата:** 2026-05-24  
-> **Ветка:** `upgrade/audit`
+> **Дата создания:** 2026-05-24  
+> **Последнее обновление:** 2026-05-26 (отметка пройденных пунктов после двух суток интенсива)  
+> **Ветка:** `upgrade/audit` (исходный аудит); прогресс — `docs/upgrade-audit`
+
+> **Статус документа:** снимок состояния на 24 мая. Пройденные пункты
+> помечены `✅ DONE (PR #N)`. Для актуальной картины работ — см.
+> `docs/upgrade-plan.md` и `docs/incidents.md` (постмортем INC-001 с
+> разделом «Долгосрочный follow-up»).
 
 ---
 
@@ -10,13 +16,13 @@
 
 Документация в целом хорошая — 6 файлов, ~1 100 строк. Но накопились расхождения:
 
-| Документ | Что написано | Что на самом деле |
-|---|---|---|
-| `ARCHITECTURE.md:164` | `/quest/**` → CSR (quest player) | `nuxt.config.ts:86` — `{ ssr: true }` (SSR) |
-| `ARCHITECTURE.md` | Nginx — 4-й Docker-контейнер | В `docker-compose.yml` только 3 сервиса (postgres, server, client); nginx запускается отдельно на VPS |
-| `API.md` | `orders` rate limit — 5/час | `rateLimiter.js:41` — 10/час, комментарий «было 5 — слишком мало при тихих ошибках» |
-| `server/.env.example` | Не документирует `RESEND_API_KEY`, `NOTIFY_EMAIL`, `SMTP_*` | `docker-compose.yml` передаёт все эти переменные в контейнер |
-| `server/.env.example` | Документирует `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS` | `rateLimiter.js` не читает эти переменные — значения захардкожены |
+| Документ | Что написано | Что на самом деле | Статус |
+|---|---|---|---|
+| `ARCHITECTURE.md:164` | `/quest/**` → CSR (quest player) | `nuxt.config.ts:86` — `{ ssr: true }` (SSR) | ✅ PR #20 (доку оставили SSR) |
+| `ARCHITECTURE.md` | Nginx — 4-й Docker-контейнер | В `docker-compose.yml` только 3 сервиса (postgres, server, client); nginx запускается отдельно на VPS | ✅ PR #20 |
+| `API.md` | `orders` rate limit — 5/час | `rateLimiter.js:41` — 10/час, комментарий «было 5 — слишком мало при тихих ошибках» | ✅ PR #22 |
+| `server/.env.example` | Не документирует `RESEND_API_KEY`, `NOTIFY_EMAIL`, `SMTP_*` | `docker-compose.yml` передаёт все эти переменные в контейнер | ✅ PR #10 |
+| `server/.env.example` | Документирует `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS` | `rateLimiter.js` не читает эти переменные — значения захардкожены | ✅ PR #10 (удалены) |
 
 ---
 
@@ -31,10 +37,10 @@
 ├── docs/            Документация (6 файлов)
 ├── scripts/         backup-db.sh, generate-sitemap.js
 ├── docker-compose.yml   3 сервиса: postgres, server, client
-└── client-legacy/   Старый Vue 2/3 SPA-клиент (архив)
+└── client-legacy/   ~~Старый Vue 2/3 SPA-клиент (архив)~~ ✅ удалён в PR #11
 ```
 
-**client-legacy/** — это предыдущая версия фронтенда на Vue (без SSR). Содержит `src/`, `public/`, `tests/`, `playwright.config.js`. Не используется в production; docker-compose его не собирает; в деплое не упоминается. Можно рассматривать как архив для референса.
+**client-legacy/** — это предыдущая версия фронтенда на Vue (без SSR). Содержала `src/`, `public/`, `tests/`, `playwright.config.js`. Не использовалась в production; docker-compose её не собирал. **✅ Полностью удалена в PR #11** (135 файлов / 4.9 МБ); создан git tag `pre-cleanup-legacy` для возможного отката.
 
 **database/** содержит `schema_v2.sql`, `schema_v2_utf8.sql`, `schema_clean.sql`, `full_dump.sql` — источник истины для свежей установки не очевиден (см. раздел 8).
 
@@ -48,14 +54,14 @@
 - `nuxt` 4.3.1 — актуален
 - `vue` 3.5.29 — актуален
 - `@pinia/nuxt` 0.11.3 — актуален
-- `@nuxtjs/seo` 3.4.0 — актуален
+- ~~`@nuxtjs/seo` 3.4.0~~ → **5.1.3** ✅ PR #16
 - `vue-router` 4.6.4 — актуален
 - `dompurify` 3.3.2 — актуален
 
 **Dev (5 пакетов):**
-- `vitest` 2.0.0 — **устаревший** (текущий — 3.x)
-- `@playwright/test` 1.44.0 — **устаревший** (текущий — 1.50+)
-- `@vitest/coverage-v8` 2.0.0 — устаревший
+- ~~`vitest` 2.0.0 — устаревший~~ → **4.1.7** ✅ PR #12 → #15
+- `@playwright/test` 1.44.0 — устаревший (актуальный 1.50+) — **TODO** (не в Фазе 1)
+- ~~`@vitest/coverage-v8` 2.0.0~~ → **4.1.7** ✅ PR #15
 - `@vue/test-utils` 2.4.0 — актуален
 - `jsdom` 24.0.0 — актуален
 
@@ -65,21 +71,31 @@
 ### server/package.json
 
 **Продакшн (13 пакетов):**
-- `express` 4.18.2 — **устаревший**, вышел Express 5 (Breaking changes: async error handling)
+- `express` 4.18.2 — устаревший, вышел Express 5 (Breaking changes: async error handling) — **TODO**, явно отложено в `upgrade-plan.md` («Что НЕ делаем сейчас»)
 - `pg` 8.11.3 — актуален
 - `jsonwebtoken` 9.0.3, `bcryptjs` 2.4.3 — актуальны
 - `express-rate-limit` 8.2.1 — актуален
 - `express-validator` 7.0.1 — актуален
-- `helmet` 7.1.0 — **устаревший** (текущий — 8.x)
+- `helmet` 7.1.0 — устаревший (актуальный — 8.x) — **TODO** (не в Фазе 1)
 - `multer` 1.4.5-lts.1 — актуален
-- `sharp` 0.33.0 — **устаревший** (текущий — 0.34+)
+- `sharp` 0.33.0 — устаревший (актуальный — 0.34+) — **TODO** (не в Фазе 1)
 - `nanoid` 5.0.5 — актуален
-- `resend` — **отсутствует в package.json**, хотя `notificationService.js` вызывает Resend API через `fetch` напрямую. Риска нет, но нет явной зависимости.
+- `resend` — **отсутствует в package.json**, хотя `notificationService.js` вызывает Resend API через `fetch` напрямую. Риска нет, но нет явной зависимости. **TODO** — добавить как dep либо явно зафиксировать архитектурное решение «fetch напрямую».
 
 **Dev:**
 - `vitest` **4.0.18** — подозрительно. Последняя стабильная версия — 3.x. Возможно опечатка или ошибка; требует проверки `npm ls vitest` в server/.
 
 **Дублей и неиспользуемых пакетов** не обнаружено.
+
+> **✅ Окружение Node (обновлено 26 мая):** хост, Docker base image и
+> nvm-копия — все на **Node 22 LTS** (PR #17 + системная чистка).
+> Дублирующая apt-копия Node 20 удалена. PM2 полностью удалён как
+> рудимент pre-Docker-эпохи.
+
+> **⚠️ Известный мелкий рассинхрон (см. план 1.5):** `server/package.json`
+> декларирует `engines: { "node": ">=18.0.0" }` — отстаёт от реальной
+> минимальной версии (22). У `client-nuxt/package.json` поле `engines`
+> вообще отсутствует.
 
 ---
 
@@ -206,16 +222,16 @@ helmet → compression → cors → json parser → urlencoded parser
 - `notifyNewOrder` / `notifyOrderStatusChange` / `notifyContactMessage`
 - HTML-шаблоны email встроены в код (нет внешних шаблонных файлов)
 
-**Критическое место (`notificationService.js:30`):**
-```js
-const recipient = to || process.env.NOTIFY_EMAIL || 'vp.vlad00@mail.ru'
-```
-Если `NOTIFY_EMAIL` не задан в окружении, уведомления уходят на личный email. При этом `NOTIFY_EMAIL` отсутствует в `server/.env.example`.
+**~~Критическое место (`notificationService.js:30`)~~ — ✅ закрыто в PR #1:**
+
+~~`const recipient = to || process.env.NOTIFY_EMAIL || 'vp.vlad00@mail.ru'`~~
+
+Fallback на личный email удалён. Сейчас: если `NOTIFY_EMAIL` не задан — email не отправляется (warn в логе). `NOTIFY_EMAIL` добавлен в `server/.env.example` как обязательная переменная (PR #10).
 
 **`routes/telegram.js`** — webhook-обработчик:
 - Отвечает `200` немедленно (требование Telegram API) ✓
 - `/start <token>` → достаёт заказ из БД → отправляет детали пользователю
-- **Отсутствует** верификация подписи (`X-Telegram-Bot-Api-Secret-Token`) — любой может отправить POST-запрос на `/api/telegram/webhook` с произвольными данными.
+- ~~**Отсутствует** верификация подписи~~ → **✅ Добавлена в PR #6/#7.** Проверяется заголовок `X-Telegram-Bot-Api-Secret-Token` против `TELEGRAM_WEBHOOK_SECRET`; при несовпадении — 401.
 
 ---
 
@@ -223,12 +239,12 @@ const recipient = to || process.env.NOTIFY_EMAIL || 'vp.vlad00@mail.ru'
 
 ### Что реально написано
 
-**Frontend unit-тесты** (`tests/unit/`, Vitest + jsdom):
+**Frontend unit-тесты** (`tests/unit/`, Vitest 4.1.7 + jsdom):
 - `validators.test.ts` — `isValidEmail`, `isValidPhone`, `validateOrderForm`
 - `formatters.test.ts` — `formatPrice`, `formatDuration`, `pluralize`, `formatDate`
 - `helpers.test.ts` — `slugify`, `truncateText`, `debounce`, `groupBy`
-- `components/SearchBar.test.ts` — компонент
-- Итого: 182 прошедших теста. Покрывают утилиты, но **нет тестов** для composables (`useApi`, `useFilters`, `useQuestEditor`) и страниц.
+- ~~`components/SearchBar.test.ts`~~ — удалён в PR #14 (orphan-тест, компонент уже не существовал)
+- Итого: ~~182~~ **166 прошедших тестов** (после PR #14). Покрывают утилиты, но **нет тестов** для composables (`useApi`, `useFilters`, `useQuestEditor`) и страниц.
 
 **Frontend E2E** (Playwright, 2 проекта: chromium + mobile):
 - `homepage.spec.ts`, `about.spec.ts`, `catalog.spec.ts`, `date-slug.spec.ts`, `header.spec.ts`, `order.spec.ts`, `contact.spec.ts` — основные пути
@@ -244,9 +260,10 @@ const recipient = to || process.env.NOTIFY_EMAIL || 'vp.vlad00@mail.ru'
 
 **Backend integration-тесты** (`server/tests/integration/`):
 - `auth.test.js`, `orders.test.js`, `contact.test.js`, `quests.test.js`
-- **Проблема:** `tests/setup.js` делает `vi.mock('@src/config/database.js', ...)` — pool заменён мок-объектом
+- **Проблема (TODO):** `tests/setup.js` делает `vi.mock('@src/config/database.js', ...)` — pool заменён мок-объектом
 - Значит «integration» тесты тестируют только Express middleware и валидацию, **не трогая реальные SQL-запросы**
 - `vitest.config.js` задаёт coverage thresholds: lines 70%, functions 70%, branches 60% — но из-за мока БД реальное покрытие бизнес-логики ниже
+- **План закрытия:** задача 1.2.3 в `upgrade-plan.md` — testcontainers + реальный PostgreSQL в transaction-rollback
 
 ### Конфигурация тестов
 
@@ -254,7 +271,7 @@ Frontend `vitest.config.ts`: env jsdom, globals, coverage через v8.
 Backend `vitest.config.js`: env node, @src alias, coverage thresholds.  
 Оба запускаются через `npm test` без лишних зависимостей — конфиги корректны.
 
-**Версия vitest в server/package.json: `4.0.18`** — подозрительно высокая (стабильный релиз на 2026-05 — 3.x). Требует проверки `npm ls vitest` в server/.
+~~**Версия vitest в server/package.json: `4.0.18`** — подозрительно высокая~~ → проверено: **vitest 4.x действительно стабилен** (последний релиз — 4.1.7). Корневая проблема была в другом — в `server/` никогда не запускался `npm install` локально (нет `node_modules` на dev-машине). Тесты прогоняются через Docker. ✅ В рамках 1.2.2 client-nuxt тоже выровнен до 4.x.
 
 ---
 
@@ -287,11 +304,14 @@ Backend `vitest.config.js`: env node, @src alias, coverage thresholds.
 **Директория `.github/workflows/` — пустая.** Нет ни одного workflow.  
 Деплой производится вручную через `docker compose build && docker compose up -d` на VPS.
 
+**Статус:** не закрыто. План — задача 1.3.1 в `upgrade-plan.md` (зависит от 1.2.3 — реальные integration-тесты с testcontainers).
+
 ### .env и секреты
 
 - `.gitignore` правильно игнорирует `.env`, `node_modules`, `dist`, `uploads`, `backups`
-- `server/.env.example` — 49 строк, покрывает основные переменные
-- **Не документированы в .env.example:** `RESEND_API_KEY`, `NOTIFY_EMAIL`, `SMTP_*`, `SMTP_TO`, `SMTP_PASS` — все присутствуют в `docker-compose.yml`
+- ~~`package-lock.json` был в `.gitignore`~~ → ✅ PR #13 убрал из ignore, теперь трекается
+- `server/.env.example` — обновлён в PR #10: добавлены `RESEND_API_KEY`, `NOTIFY_EMAIL`, `TELEGRAM_WEBHOOK_SECRET`, `SMTP_*`; удалены мёртвые `RATE_LIMIT_*`; исправлено `UPLOAD_DIR` → `UPLOADS_DIR`
+- ~~Не документированы в `.env.example`: `RESEND_API_KEY`, `NOTIFY_EMAIL`, `SMTP_*`~~ → ✅ PR #10
 - Корневой `.env.example` (11 строк) — минимальный, только DB + JWT
 
 ---
@@ -300,13 +320,13 @@ Backend `vitest.config.js`: env node, @src alias, coverage thresholds.
 
 ### Дублирование логики
 
-1. **Два файла sitemap-urls:**
-   - `client-nuxt/server/api/sitemap-urls.get.ts` — только шаблоны + категории
-   - `client-nuxt/server/routes/sitemap-urls.get.ts` — блог + шаблоны + категории (полный)
-   
-   В Nuxt `server/api/` создаёт маршруты `/api/*`, `server/routes/` — корневые `/*`. Активный — `server/routes/`. Файл `server/api/sitemap-urls.get.ts` — **мёртвый код с неполным списком URL** (без блога). При обращении к `/api/sitemap-urls` вернёт некорректные данные.
+1. ~~**Два файла sitemap-urls**~~ — ✅ закрыто в PR #8/#9:
+   - ~~`client-nuxt/server/api/sitemap-urls.get.ts`~~ — удалён
+   - `client-nuxt/server/routes/sitemap-urls.get.ts` — остался активным
 
-2. **Модели и контроллеры:** `src/models/Order.js` и `src/controllers/orderController.js` — частичное дублирование SQL-запросов. Нет чёткой границы.
+2. **Модели и контроллеры:** `src/models/Order.js` и `src/controllers/orderController.js` — частичное дублирование SQL-запросов. Нет чёткой границы. **TODO** — не в плане Фазы 1.
+
+3. **Дублирование маршрутов orders в API** — *новая находка (26 мая, при работе над 1.2.4d):* у админских операций над заказами два пути — через `/api/orders/*` с `requireAdmin`-мидлварой (`GET /api/orders`, `GET /api/orders/stats`, `GET /api/orders/:id`, `PATCH /api/orders/:id/status`, `DELETE /api/orders/:id`) и через `/api/admin/orders/*`. Фронтенд использует второй, первый оставлен для обратной совместимости. **TODO** — план 1.5 (унификация).
 
 ### Устаревшие паттерны
 
@@ -325,10 +345,12 @@ client-nuxt/app/components/quest/QuestMap.vue:112
 
 ### Подозрительные места
 
-- `rateLimiter.js:41` — комментарий «было 5 — слишком мало при тихих ошибках»: orderLimiter повышен с 5 до 10/час. «Тихие ошибки» при создании заказа — симптом, а не причина. Корневая проблема не зафиксирована.
-- `database/` — 4 файла схемы (`schema_v2.sql`, `schema_v2_utf8.sql`, `schema_clean.sql`, `full_dump.sql`). Непонятно, какой актуален для свежей установки. `docker-compose.yml` монтирует `./database/dump.sql` как init — этого файла нет в репо (должен генерироваться через `backup-db.sh`).
-- `NODE_OPTIONS=--max-old-space-size=512` в docker-compose — 512 МБ для Nuxt SSR может быть мало при высоком трафике.
-- `blog/[slug].vue:37` — `v-html="post.content"` без DOMPurify. Контент статичный (из `blogPosts.js`) — сейчас безопасно. Если когда-либо перейдут на CMS/БД — станет XSS-уязвимостью.
+- ~~`rateLimiter.js:41` — orderLimiter повышен с 5 до 10/час. «Тихие ошибки» — симптом, не причина.~~ Документация (API.md) синхронизирована с фактическим значением 10/час в рамках PR #22. Корневая проблема (как именно «тихие ошибки валидации» приводили к срабатыванию лимита) до сих пор не зафиксирована — **TODO**, мелкий пункт для расследования.
+- `database/` — 4 файла схемы (`schema_v2.sql`, `schema_v2_utf8.sql`, `schema_clean.sql`, `full_dump.sql`). **Это причина инцидента INC-001** — `docker-compose.yml` монтировал `./database/dump.sql` при первом старте, файла не было → Docker создал директорию → exit 127. Сейчас bind-mount закомментирован (PR #4). Полное решение — задача **1.2.6** в `upgrade-plan.md` (выбрать каноничную схему, сгенерировать `dump.sql` для свежей установки, раскомментировать монтирование).
+- **Новая находка (26 мая):** в корне репозитория лежит `dump.sql` (1257 строк, только схема, 0 INSERT) — мусор из коммита 15 марта 2026. Не связан с `database/dump.sql`. **TODO** — план 1.5 (удалить).
+- **Новая находка (26 мая):** `uploads_local/` в корне (~7.2 МБ статики: avatars/, media/, templates/). Нигде в коде не используется. Кандидат на удаление как `client-legacy/`. **TODO** — план 1.5.
+- `NODE_OPTIONS=--max-old-space-size=512` в docker-compose — 512 МБ для Nuxt SSR может быть мало при высоком трафике. **TODO** (мониторить).
+- `blog/[slug].vue:37` — `v-html="post.content"` без DOMPurify. Контент статичный (из `blogPosts.js`) — сейчас безопасно. Если когда-либо перейдут на CMS/БД — станет XSS-уязвимостью. **TODO** (профилактика).
 
 ---
 
@@ -342,8 +364,8 @@ client-nuxt/app/components/quest/QuestMap.vue:112
 | CORS | ✅ | Whitelist через `ALLOWED_ORIGINS`, fallback на localhost |
 | Rate limiting | ✅ | 6 лимитеров на разные эндпойнты |
 | Secrets в репо | ✅ | `.gitignore` корректный; `.env` не коммитится |
-| Telegram webhook | ❌ Уязвимость | Нет верификации `X-Telegram-Bot-Api-Secret-Token` — любой может подделать запрос |
-| Hardcoded email | ❌ Уязвимость | `notificationService.js:30` — fallback на личный email |
+| Telegram webhook | ✅ Закрыто | ~~Нет верификации~~ → PR #6/#7: проверка `X-Telegram-Bot-Api-Secret-Token`, 401 при несовпадении |
+| Hardcoded email | ✅ Закрыто | ~~`notificationService.js:30` — fallback на личный email~~ → PR #1: fallback удалён, `NOTIFY_EMAIL` обязательна |
 | Yandex Metrika ID | ⚠️ Минор | ID `108293057` захардкожен в `app.vue:23`, не env-переменная |
 | Access codes | ✅ | Только в POST body, не в query string |
 | File uploads | ✅ | Multer + Sharp, лимит 5 МБ, тип проверяется |
@@ -393,46 +415,44 @@ DOMPurify загружается динамически (`import('dompurify')`).
 
 ## Топ-10 находок по приоритету
 
+> **Сводка по прогрессу (на 26 мая):** из 10 пунктов закрыто 6 (#1, #2, #3, #5, #6, #7, #8 — то есть 7 если считать #8 как закрытое расследование), осталось 4 в TODO (#4, #9, #10 и доделка #5 по остальным docs).
+
 ### P0 — Критично, исправить до деплоя
 
-**1. Hardcoded email в notificationService.js:30**  
-`'vp.vlad00@mail.ru'` — fallback при отсутствии `NOTIFY_EMAIL`. При этом переменная не документирована в `server/.env.example`. В production при первом деплое все admin-уведомления (новые заказы, изменения статусов) уйдут на личный адрес.  
-**Исправление:** убрать fallback-строку; добавить `NOTIFY_EMAIL` в .env.example как обязательную.
+**1. ~~Hardcoded email в notificationService.js:30~~ — ✅ DONE (PR #1)**  
+Fallback `'vp.vlad00@mail.ru'` удалён. `NOTIFY_EMAIL` добавлен в `.env.example` как обязательная переменная (PR #10). Если не задана — email админу не отправляется (warn в логе).
 
-**2. Telegram webhook без верификации подписи (`routes/telegram.js`)**  
-Нет проверки `X-Telegram-Bot-Api-Secret-Token`. Любой знающий URL может отправить поддельный `/start <token>` и получить данные заказа из БД.  
-**Исправление:** добавить `secret_token` при регистрации webhook и проверять заголовок в middleware.
+**2. ~~Telegram webhook без верификации подписи~~ — ✅ DONE (PR #6/#7)**  
+Webhook проверяет `X-Telegram-Bot-Api-Secret-Token` против `TELEGRAM_WEBHOOK_SECRET`. При несовпадении — 401. Backward-compat: если переменная не задана, проверка пропускается с warning. Передача переменной в Docker-контейнер исправлена в PR #7.
 
 ---
 
 ### P1 — Важно, устранить в рамках апгрейда
 
-**3. server/.env.example пропускает критичные переменные**  
-`RESEND_API_KEY`, `NOTIFY_EMAIL`, `SMTP_*`, `SMTP_TO` — все используются в `docker-compose.yml` и `notificationService.js`, но отсутствуют в `.env.example`. Свежая установка не получит email-уведомлений без явной подсказки.
+**3. ~~server/.env.example пропускает критичные переменные~~ — ✅ DONE (PR #10)**  
+Добавлены `RESEND_API_KEY`, `NOTIFY_EMAIL`, `TELEGRAM_WEBHOOK_SECRET`. Удалены мёртвые `RATE_LIMIT_*`. Исправлен `UPLOAD_DIR` → `UPLOADS_DIR` (опечатка приводила к тому, что переменная не читалась). Закомментированы опциональные `SMTP_*`, `FRONTEND_URL`.
 
-**4. Integration-тесты мокируют БД (server/tests/setup.js)**  
-`vi.mock('@src/config/database.js')` — pool заменён заглушкой. SQL-запросы в контроллерах не тестируются. Переименование колонки или изменение схемы не поймается CI. Coverage thresholds 70% создают ложное ощущение безопасности.
+**4. Integration-тесты мокируют БД (server/tests/setup.js)** — **TODO**, план 1.2.3  
+`vi.mock('@src/config/database.js')` — pool заменён заглушкой. SQL-запросы в контроллерах не тестируются. Решение — testcontainers + транзакции с rollback. Самая длинная задача в Фазе 1.
 
-**5. ARCHITECTURE.md расходится с кодом в двух местах**  
-- `/quest/**` документирован как CSR, в коде — SSR
-- Nginx описан как Docker-сервис, в действительности — внешний процесс на VPS  
-Риск: при онбординге разработчик будет работать по устаревшей документации.
+**5. ARCHITECTURE.md расходится с кодом** — ✅ DONE (PR #20, follow-up в PR #22)  
+Поправлены оба пункта: `/quest/**` в доке теперь SSR (соответствует коду), nginx описан как внешний systemd-сервис. Заодно обновлены: версии стека (Node 22, Vitest 4.x, @nuxtjs/seo 5.x), структура проекта (удалён dead-link на sitemap-urls в api/), безопасность (добавлен пункт про secret_token), новый раздел Health & мониторинг. *Остальные файлы документации синхронизируются под-задачами 1.2.4 (план): DEPLOY ✅ PR #21, API ✅ PR #22, audit (этот PR), DEVELOPMENT+TESTING — TODO.*
 
-**6. `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX_REQUESTS` в .env.example — мёртвые переменные**  
-`rateLimiter.js` не читает их. Операторы думают, что управляют лимитами через env, но ничего не происходит.
+**6. ~~`RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX_REQUESTS` в .env.example — мёртвые~~ — ✅ DONE (PR #10)**  
+Удалены из `.env.example`. `rateLimiter.js` явно помечен комментарием, что значения hardcoded — операторы больше не введены в заблуждение.
 
-**7. Дубль `server/api/sitemap-urls.get.ts` — мёртвый код с неполными данными**  
-Активный endpoint — `server/routes/sitemap-urls.get.ts`. Файл в `server/api/` регистрируется под `/api/sitemap-urls` и возвращает список без блог-статей. Если что-то случайно обратится к `/api/sitemap-urls` — получит неполный sitemap.
+**7. ~~Дубль `server/api/sitemap-urls.get.ts`~~ — ✅ DONE (PR #8/#9)**  
+Файл удалён. Активный остался один — `client-nuxt/server/routes/sitemap-urls.get.ts`.
 
 ---
 
 ### P2 — Долг, стоит запланировать
 
-**8. ~~vitest 4.0.18 — подозрительная версия~~ → закрыто**  
-vitest 4.x реален (последний релиз — 4.1.7). Проблема была в том, что в `server/` никогда не запускался `npm install` — `node_modules` отсутствует полностью. Добавить в `docs/SETUP.md` шаг `cd server && npm install`.
+**8. ~~vitest 4.0.18 — подозрительная версия~~ → расследование закрыто, версия валидна**  
+vitest 4.x реален (последний релиз — 4.1.7). Проблема была в другом — в `server/` никогда не запускался `npm install` локально (`node_modules` отсутствовал; тесты прогоняются через Docker). ✅ Client-nuxt в рамках 1.2.2 тоже выровнен до 4.x (PR #15). Плюс попутно — `npm audit fix` свёл уязвимости client-nuxt к нулю (PR #16). В `docs/SETUP.md` (1.2.4b) добавить шаг `cd server && npm install` для локальной разработки.
 
-**9. DOMPurify race condition в date/[slug].vue:448-450**  
-Если computed `formattedDescription` отрабатывает до загрузки DOMPurify, `v-html` получает несанированный HTML. Риск ограничен (описания пишут только admins), но паттерн хрупкий и нарушает принцип «secure by default». Решение: Nuxt plugin для eager-загрузки DOMPurify или синхронный импорт.
+**9. DOMPurify race condition в date/[slug].vue:448-450** — **TODO**, не в плане Фазы 1  
+Если computed `formattedDescription` отрабатывает до загрузки DOMPurify, `v-html` получает несанированный HTML. Риск ограничен (описания пишут только admins), но паттерн хрупкий. Решение: Nuxt plugin для eager-загрузки DOMPurify или синхронный импорт.
 
-**10. Нет CI/CD pipeline**  
-`.github/workflows/` пустая. Деплой ручной. Нет автоматического запуска тестов при push/PR, нет lint-check, нет build-verification. При апгрейде зависимостей ошибки можно обнаружить только вручную на VPS.
+**10. Нет CI/CD pipeline** — **TODO**, план 1.3.1  
+`.github/workflows/` пустая. Зависит от 1.2.3 (для job `test-server` с реальной БД).

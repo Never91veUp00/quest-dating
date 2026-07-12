@@ -129,8 +129,7 @@ export function useQuestEditor() {
     form.value.template_id = tpl.id
     // Применяем дизайн и параметры шаблона
     if (tpl.default_theme)          form.value.theme          = tpl.default_theme
-    if (tpl.default_player_version) form.value.player_version = tpl.default_player_version
-    if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
+if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
       form.value.show_intro = tpl.default_show_intro
     openBlocks.value = [blocks[0].id]
   }
@@ -171,7 +170,8 @@ export function useQuestEditor() {
     qr:            { points: 35,  answer: '', qr_instruction: '', qr_preview: null },
     mini_game:     { points: 40,  game_type: 'quiz', game_question: '',
                      game_options: ['','','',''], game_correct: 0,
-                     game_images: [], puzzle_image: null, puzzle_pieces: 30 },
+                     pairs_mode: 'photos', pairs_grid_size: 4, game_images: [], pairs: [],
+                     puzzle_image: null, puzzle_pieces: 30 },
   }
 
   const addTask    = (block, type) => block.tasks.push({
@@ -193,6 +193,8 @@ export function useQuestEditor() {
   // ─── Pairs ────────────────────────────────────────────────────
   const addPairImage    = (task, imageUrl) => { task.game_images = [...(task.game_images || []), imageUrl] }
   const removePairImage = (task, idx)      => task.game_images.splice(idx, 1)
+  const addTextPair     = (task)           => { task.pairs = [...(task.pairs || []), { left: '', right: '' }] }
+  const removeTextPair  = (task, idx)      => task.pairs.splice(idx, 1)
 
   // ─── Validation ───────────────────────────────────────────────
   const validate = () => {
@@ -283,7 +285,7 @@ export function useQuestEditor() {
     form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,
     addBlock, removeBlock, moveBlock, toggleBlock,
     addTask, removeTask, moveTask,
-    generateQR, addPairImage, removePairImage,
+    generateQR, addPairImage, removePairImage, addTextPair, removeTextPair,
     loadTemplate, autoSlug,
     save, previewQuest, showToast,
   }

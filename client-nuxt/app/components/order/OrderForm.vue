@@ -2,23 +2,28 @@
   <div class="of">
 
     <!-- Прогресс -->
+    <p class="of__progress-counter">Шаг {{ currentStep }} из {{ STEPS.length }} · {{ STEPS[currentStep - 1] }}</p>
     <div class="of__progress">
-      <div
-        v-for="(step, i) in STEPS"
-        :key="i"
-        class="of__step"
-        :class="{
-          'of__step--active': currentStep === i + 1,
-          'of__step--done': currentStep > i + 1
-        }"
-      >
-        <div class="of__step-dot">
-          <span v-if="currentStep > i + 1">✓</span>
-          <span v-else>{{ i + 1 }}</span>
+      <template v-for="(step, i) in STEPS" :key="i">
+        <div
+          class="of__step"
+          :class="{
+            'of__step--active': currentStep === i + 1,
+            'of__step--done': currentStep > i + 1
+          }"
+        >
+          <div class="of__step-dot">
+            <span v-if="currentStep > i + 1">✓</span>
+            <span v-else>{{ i + 1 }}</span>
+          </div>
+          <span class="of__step-label">{{ step }}</span>
         </div>
-        <span class="of__step-label">{{ step }}</span>
-      </div>
-      <div class="of__progress-line" :style="{ width: progressWidth }"></div>
+        <div
+          v-if="i < STEPS.length - 1"
+          class="of__connector"
+          :class="{ 'of__connector--done': currentStep > i + 1 }"
+        ></div>
+      </template>
     </div>
 
     <form class="of__form">
@@ -82,32 +87,6 @@
             @input="clearErr('partner_name')" />
         </div>
         <div class="of__field">
-          <label class="of__label">Как долго вы вместе?</label>
-          <div class="of__pills">
-            <button
-              v-for="opt in TOGETHER_OPTIONS"
-              :key="opt"
-              type="button"
-              class="of__pill"
-              :class="{ 'of__pill--active': form.together === opt }"
-              @click="form.together = opt"
-            >{{ opt }}</button>
-          </div>
-        </div>
-        <div class="of__field">
-          <label class="of__label">Повод для квеста *</label>
-          <div class="of__pills" :class="{ 'of__pills--error': err.occasion }">
-            <button
-              v-for="opt in OCCASION_OPTIONS"
-              :key="opt"
-              type="button"
-              class="of__pill"
-              :class="{ 'of__pill--active': form.occasion === opt }"
-              @click="form.occasion = opt; clearErr('occasion')"
-            >{{ opt }}</button>
-          </div>
-        </div>
-        <div class="of__field">
           <label class="of__label">Чем увлекается партнёр?</label>
           <div class="of__pills of__pills--wrap">
             <button
@@ -118,19 +97,6 @@
               :class="{ 'of__pill--active': form.hobbies.includes(opt) }"
               @click="toggleHobby(opt)"
             >{{ opt }}</button>
-          </div>
-        </div>
-        <div class="of__field">
-          <label class="of__label">Настроение квеста</label>
-          <div class="of__pills">
-            <button
-              v-for="opt in MOOD_OPTIONS"
-              :key="opt.value"
-              type="button"
-              class="of__pill"
-              :class="{ 'of__pill--active': form.mood === opt.value }"
-              @click="form.mood = opt.value"
-            >{{ opt.label }}</button>
           </div>
         </div>
       </div>
@@ -290,24 +256,13 @@ const form = reactive({
   event_date:   '',
   event_city:   '',
   partner_name: '',
-  together:     '',
-  occasion:     '',
   hobbies:      [],
-  mood:         '',
   details:      {},
   extra:        '',
   agree:        false,
 })
 
-const TOGETHER_OPTIONS = ['Меньше года', '1–2 года', '2–5 лет', 'Больше 5 лет']
-const OCCASION_OPTIONS = ['День рождения', 'Годовщина', 'Просто так', 'Предложение', '14 февраля', '8 марта']
 const HOBBY_OPTIONS    = ['Кино', 'Музыка', 'Спорт', 'Путешествия', 'Еда', 'Игры', 'Книги', 'Природа', 'Искусство', 'Технологии']
-const MOOD_OPTIONS     = [
-  { value: 'romantic', label: '🌹 Романтично' },
-  { value: 'fun',      label: '😄 Весело' },
-  { value: 'mystery',  label: '🔮 Загадочно' },
-  { value: 'touching', label: '💌 Трогательно' },
-]
 
 // Вопросы зависят от типа квеста
 const categoryQuestions = computed(() => {
@@ -334,8 +289,6 @@ const categoryQuestions = computed(() => {
       subtitle: 'Маршрут будет построен специально для вас',
       questions: [
         { field: 'city_area', type: 'textarea', label: 'Любимые места в городе *', placeholder: 'Парки, кафе, улицы, районы — где вы бывали или хотите побывать вместе' },
-        { field: 'transport', type: 'pills', label: 'Как будете передвигаться?', options: ['Пешком', 'На авто', 'Метро/транспорт', 'Всё вместе'] },
-        { field: 'duration_pref', type: 'pills', label: 'Желаемая длительность прогулки', options: ['1–2 часа', '2–3 часа', '3–4 часа', 'Полдня'] },
         { field: 'story', type: 'textarea', label: 'Значимые места для вашей пары', placeholder: 'Место первого свидания, любимое кафе, памятное место — включим в маршрут' },
         { field: 'final_spot', type: 'textarea', label: 'Где хотите завершить квест?', placeholder: 'Ресторан, смотровая, дома — финальная точка маршрута' },
       ]
@@ -356,7 +309,7 @@ const categoryQuestions = computed(() => {
     }
   }
 
-  if (cat?.includes('anniversary') || form.occasion === 'Годовщина') {
+  if (cat?.includes('anniversary')) {
     return {
       title: 'Детали квеста на годовщину',
       subtitle: 'Путешествие по вашей общей истории',
@@ -382,8 +335,6 @@ const categoryQuestions = computed(() => {
   }
 })
 
-const progressWidth = computed(() => `${((currentStep.value - 1) / (STEPS.length - 1)) * 100}%`)
-
 const minDate = computed(() => {
   const d = new Date()
   d.setDate(d.getDate() + 1)
@@ -408,7 +359,6 @@ const showValidationError = () => {
     client_email: 'Введите корректный email',
     event_city:   'Укажите город',
     partner_name: 'Введите имя партнёра',
-    occasion:     'Выберите повод для квеста',
     agree:        'Необходимо согласие с условиями',
   }
   const firstKey = Object.keys(err)[0]
@@ -436,7 +386,6 @@ const validate = () => {
 
   if (currentStep.value === 2) {
     if (!form.partner_name.trim())  { setErr('partner_name'); valid = false }
-    if (!form.occasion)             { setErr('occasion'); valid = false }
   }
 
   if (currentStep.value === 3) {
@@ -469,10 +418,7 @@ const prevStep = () => {
 const buildDescription = () => {
   const parts = []
   if (form.partner_name)  parts.push(`Партнёр: ${form.partner_name}`)
-  if (form.together)      parts.push(`Вместе: ${form.together}`)
-  if (form.occasion)      parts.push(`Повод: ${form.occasion}`)
   if (form.hobbies.length) parts.push(`Увлечения: ${form.hobbies.join(', ')}`)
-  if (form.mood)          parts.push(`Настроение: ${form.mood}`)
 
   const cq = categoryQuestions.value
   cq.questions.forEach(q => {
@@ -515,35 +461,41 @@ const handleSubmit = async () => {
 .of { color: #f0ede8; }
 
 /* Прогресс */
-.of__progress {
-  display: flex; align-items: center; justify-content: space-between;
-  position: relative; margin-bottom: 28px; padding: 0 8px;
+.of__progress-counter {
+  font-size: 0.8rem; color: rgba(240,237,232,0.5);
+  margin: 0 0 14px; font-weight: 600;
 }
-.of__progress-line {
-  position: absolute; top: 14px; left: 8px;
-  height: 2px; background: #d4af37;
-  transition: width 0.4s ease; z-index: 0;
+.of__progress {
+  display: flex; align-items: flex-start;
+  margin-bottom: 28px;
 }
 .of__step {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  flex: 0 0 auto;
 }
+.of__connector {
+  flex: 1 1 auto; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  margin: 17px 6px 0;
+  transition: background 0.4s ease;
+}
+.of__connector--done { background: #d4af37; }
 .of__step-dot {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.14);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 700; color: rgba(240,237,232,0.4);
+  font-size: 0.95rem; font-weight: 700; color: rgba(240,237,232,0.4);
   transition: all 0.3s;
 }
 .of__step--active .of__step-dot {
-  background: #d4af37; border-color: #d4af37; color: #0a0a0f;
-  transform: scale(1.1);
+  background: #d4af37; border-color: #d4af37; color: #0a0a0f; font-weight: 800;
 }
 .of__step--done .of__step-dot {
-  background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.5); color: #4ade80;
+  background: rgba(212,175,55,0.15); border-color: #d4af37; color: #d4af37;
 }
-.of__step-label { font-size: 0.7rem; color: rgba(240,237,232,0.35); font-weight: 600; }
-.of__step--active .of__step-label { color: #d4af37; }
+.of__step-label { font-size: 0.72rem; color: rgba(240,237,232,0.4); font-weight: 600; white-space: nowrap; }
+.of__step--active .of__step-label { color: #f0ede8; font-weight: 700; }
+.of__step--done .of__step-label { color: rgba(212,175,55,0.7); }
 
 /* Form */
 .of__form {
