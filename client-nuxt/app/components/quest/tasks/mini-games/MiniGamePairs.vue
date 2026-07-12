@@ -163,7 +163,7 @@ const flipCard = (ci) => {
 </script>
 
 <style scoped>
-.task__text-pairs { margin: 16px 0; }
+.task__text-pairs { margin: 16px 0 12px; display: flex; flex-direction: column; gap: 12px; }
 .task__text-pairs__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .task__text-pairs__col { display: flex; flex-direction: column; gap: 8px; }
 .task__text-pairs__item {
