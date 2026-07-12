@@ -25,7 +25,7 @@
       class="task__quiz-result task__quiz-result--wrong">
       Не угадал(а), правильно: {{ task.game_options[task.game_correct] }}
     </div>
-    <button v-if="answered" class="task__action" @click="$emit('complete', { ...task, _quizCorrect: picked === task.game_correct })">
+    <button v-if="answered" class="task__action" @click="$emit('complete', { ...task, points: picked === task.game_correct ? (task.points ?? 10) : 0 })">
       Продолжаем →
     </button>
   </div>

@@ -178,12 +178,14 @@ const flipCard = (ci) => {
 
 .task__pairs {
   display: grid; grid-template-columns: repeat(var(--pairs-cols, 4), 1fr); gap: 6px; margin-bottom: 12px;
-  isolation: isolate; /* предотвращает перерисовку backdrop-filter родителя при 3D-флипе */
+  isolation: isolate;
+  transform: translateZ(0); /* форсируем отдельный GPU-слой для всего грида */
 }
 .task__pairs__card {
   aspect-ratio: 3/4; background: var(--bg2); border: 1px solid var(--bord);
-  border-radius: 8px; cursor: pointer; perspective: 600px;
-  transition: border-color .2s; overflow: hidden; padding: 0;
+  border-radius: 8px; cursor: pointer;
+  transition: border-color .2s; padding: 0;
+  /* НЕТ overflow:hidden — вызывает full repaint при 3D-трансформации дочерних элементов */
 }
 .task__pairs__card:hover:not(:disabled) { border-color: var(--accent); }
 .task__pairs__card.matched { border-color: #3cffb4; opacity: .6; cursor: default; }
@@ -192,6 +194,7 @@ const flipCard = (ci) => {
   transform-style: preserve-3d; transition: transform .35s;
   display: flex; align-items: center; justify-content: center;
   will-change: transform;
+  border-radius: 8px; overflow: hidden; /* клипинг теперь здесь, вне 3D-контекста */
 }
 .task__pairs__card.flipped .task__pairs__card__inner,
 .task__pairs__card.matched .task__pairs__card__inner { transform: rotateY(180deg); }
@@ -199,10 +202,11 @@ const flipCard = (ci) => {
 .task__pairs__card__front {
   position: absolute; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  backface-visibility: hidden; font-size: .85rem;
-  padding: 4px; text-align: center; line-height: 1.3;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  font-size: .85rem; padding: 4px; text-align: center; line-height: 1.3;
+  border-radius: 8px;
 }
-.task__pairs__card__back { color: var(--accent); font-size: 1.2rem; }
+.task__pairs__card__back { color: var(--accent); font-size: 1.2rem; background: var(--bg2); }
 .task__pairs__card__front {
   transform: rotateY(180deg); color: var(--text);
   background: color-mix(in srgb, var(--accent) 8%, var(--bg2));
