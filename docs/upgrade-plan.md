@@ -2,7 +2,7 @@
 
 > **Контекст:** план составлен после технического аудита (см. `docs/audit.md`).
 > **Дата создания:** 2026-05-24
-> **Последнее обновление:** 2026-07-04 (3.2: эмоциональный редизайн фото-задач и мини-игр задеплоен; 3.3: сценарий Мытищи написан, тестовый квест в проде проверен end-to-end)
+> **Последнее обновление:** 2026-07-12 (3.2: второй раунд мини-игр — оверлей, pairs_mode/grid_size, пазл без растяжения, мост между блоками, гласморфизм, ambient glow)
 > **Правило:** строгий порядок Фаза 1 → 2 → 3. Параллельной работы нет.
 
 ---
@@ -836,15 +836,66 @@ database/migrations/add_wizard_sessions.sql            ← сохранение 
 - [ ] **Реализовать** `QuestMap.vue` — карта прохождения квеста
 - [ ] **Требует** дизайн-исследование рынка / референсов (Playwright MCP для визуальной обратной связи)
 
-### 3.2. Аудит мини-игр и фото-задач ✅ DONE (PR #71, задеплоен 28 июня)
+### 3.2. Аудит мини-игр и фото-задач ✅ DONE (PR #71 + доработки июль 2026)
 
-> Ветка `feat/minigames-photo-polish`, коммит `6beecf2`, слит напрямую в production.
+> Ветка `feat/minigames-photo-polish`. Первый деплой PR #71 (28 июня), расширен в июле.
 
+#### Первый раунд (PR #71, 28 июня)
 - ✅ `TaskSelfie.vue` / `TaskPhoto.vue` — эмоциональный редизайн: aspect-ratio вместо hardcoded px, "Сохранить этот момент ✨", обработка ошибок камеры
 - ✅ `MiniGamePairs.vue` — @error на img, адаптив 3→2 col на < 360px
 - ✅ `MiniGamePuzzle.vue` — aspect-ratio 16/9, max-height 40vh, @error на puzzle_image
 - ✅ `TaskMedia.vue` — aspect-ratio 16/9, @error на video/audio
 - ✅ Все типы задач проверены через Playwright (375×812px, мобильный viewport)
+
+#### Второй раунд (июль 2026, ветка `feat/minigames-photo-polish`)
+
+**Архитектура мини-игр:**
+- ✅ `MiniGameOverlay.vue` (NEW) — `<teleport to="body">` полноэкранный оверлей со slide-up анимацией и кнопкой ✕; принимает `cssVars` для передачи темы внутрь teleport
+- ✅ `TaskMiniGame.vue` переписан: Quiz рендерится инлайн без оверлея; Pairs и Puzzle открываются через кнопку-запускатор + `MiniGameOverlay`
+- ✅ Глобальный `.task__action` добавлен в `main.css` — решает проблему со стилями внутри `<teleport>`, где `:deep()` не работает
+
+**Мини-игра «Найди пары» (MiniGamePairs.vue):**
+- ✅ Поле `pairs_mode: 'photos' | 'text'` — явный переключатель режима (заменяет content-sniffing эвристику); фолбэк для легаси-задач без этого поля
+- ✅ Поле `pairs_grid_size: 2 | 3 | 4` — размер сетки (2×2 / 3×4 / 4×4); CSS `--pairs-cols` переменная
+- ✅ Сетка: 4 колонки на всех устройствах — убраны все мобильные брейкпоинты (Realme GT3 = 360px логических = 1080px / DPR 3, старый брейкпоинт `@media (max-width: 360px)` давал 3 колонки)
+- ✅ `isolation: isolate` на `.task__pairs` — устраняет перерисовку `backdrop-filter` родителя при 3D-флипе карточек
+- ✅ `will-change: transform` на `.task__pairs__card__inner`
+- ✅ Кнопка «Продолжаем →» — явная `task__action`-кнопка вместо текстового состояния
+- ✅ Кнопка пропуска («Не получается? Пропустить») в обоих режимах (фото и текст)
+- ✅ `margin-bottom: 12px` на `.task__quiz-result` — отступ перед кнопкой «Продолжаем»
+- ✅ `isImage()` поддерживает `/`-пути для относительных URL загрузок
+
+**Мини-игра «Пазл» (MiniGamePuzzle.vue):**
+- ✅ `PUZZLE_GRID` map: `{ 12: {cols:4,rows:3}, 20: {cols:5,rows:4}, 30: {cols:6,rows:5}, 35: {cols:7,rows:5}, 42: {cols:6,rows:7} }` — cols > rows, карточки выше чем шире
+- ✅ Новые размеры 12 (4×3) и 20 (5×4) кусков
+- ✅ Preload изображения через `new Image()` в `onMounted` — `imgNaturalRatio` для правильного `aspectRatio` слотов (без растяжения)
+- ✅ Правильно стоящие кусочки заблокированы: CSS `pointer-events: none` + JS guard `if (slot.pieceIdx === slotIdx) return`
+- ✅ Превью картинки заблюрено: `filter: blur(6px) brightness(0.7); transform: scale(1.04)` — не видно что соберётся
+- ✅ Локальный `.task__action` scoped-стиль (нужен для overlay-контекста, где глобальный CSS может не применяться)
+
+**Блок и навигация (QuestBlock.vue):**
+- ✅ Финиш-кнопка на той же строке что «Назад»: `.block__nav { flex-wrap: nowrap }`, финиш получает `flex: 1`
+- ✅ Тематические лейблы финиша: `detective: 'Закрыть дело →'`, `romantic: 'Завершить ❤️'`, `mystery: 'Финал →'`, `city: 'Финиш →'`, `treasure: 'Клад найден →'`, `proposal: 'Завершить ✨'`
+
+**Экран-мост между блоками (QuestBlockBridge.vue, NEW):**
+- ✅ Атмосферный переходный экран: ✓-чекмарк, название следующего блока, локация, прогресс-бар отсчёта
+- ✅ Авто-переход через 3 сек (requestAnimationFrame), тап для мгновенного перехода
+- ✅ Подключён в `[slug].vue`: `next()` показывает bridge, `doNext()` реально двигает `blockIdx`
+
+**Визуальные улучшения плеера:**
+- ✅ Гласморфизм: `QuestTask.vue` — `backdrop-filter: blur(12px)`, `background: color-mix(in srgb, var(--surf) 80%, transparent)`
+- ✅ Ambient glow в `[slug].vue`: `.qp-main--glow::before` — `radial-gradient` с `--accent` цветом темы
+- ✅ Романтическая тема в `themes.js`: accent `#e8839a`, bg `#0e0407`
+
+**Редактор (EditorTaskFields.vue + useQuestEditor.js):**
+- ✅ Переключатель режима пар (🖼️ Фото / 📝 Текст) — поле `pairs_mode`
+- ✅ Выбор матрицы (2×2 / 3×4 / 4×4) — поле `pairs_grid_size`
+- ✅ Редактор текстовых пар: колонки левое/правое, добавление/удаление пар
+- ✅ Выбор размера пазла: 12 / 20 / 30 / 35 / 42 кусков
+- ✅ Дефолты для новых задач: `pairs_mode: 'photos', pairs_grid_size: 4`
+- ✅ `addTextPair` / `removeTextPair` в composable, событийная обвязка в admin-страницах
+
+**Деплой:** `cd /home/questdating && git pull && docker compose build client && docker compose up -d client`
 
 ### 3.3. Первый реальный сценарий 🟡 В РАБОТЕ (04 июля)
 
