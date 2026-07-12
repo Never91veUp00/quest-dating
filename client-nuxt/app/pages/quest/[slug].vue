@@ -457,6 +457,7 @@ const onHint = () => {
 const onSkipTask = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
+  earnedMap.value[task.id] = { points: 0, wrong: true }
   flash('⏭️', 'Пропущено', 'Можно вернуться позже')
   saveProgress()
 }
