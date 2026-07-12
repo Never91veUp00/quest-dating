@@ -1,24 +1,35 @@
 <template>
-  <!-- Кнопка запуска -->
-  <div class="mg-launch">
-    <button class="mg-launch__btn" @click="open = true">
-      <span class="mg-launch__ico">{{ gameIcon }}</span>
-      <span class="mg-launch__txt">{{ gameLabel }}</span>
-      <span class="mg-launch__arrow">▶</span>
-    </button>
-  </div>
+  <!-- Quiz рендерится инлайн без оверлея -->
+  <component
+    v-if="task.game_type === 'quiz'"
+    :is="MiniGameQuiz"
+    :task="task"
+    :theme="theme"
+    @complete="$emit('complete', $event)"
+    @skip-task="$emit('skip-task', $event)"
+  />
 
-  <!-- Полноэкранный оверлей с игрой -->
-  <MiniGameOverlay v-model="open" :task="task" :cssVars="cssVars">
-    <component
-      v-if="gameComponent"
-      :is="gameComponent"
-      :task="task"
-      :theme="theme"
-      @complete="onComplete"
-      @skip-task="onSkip"
-    />
-  </MiniGameOverlay>
+  <!-- Pairs и Puzzle — кнопка запуска + полноэкранный оверлей -->
+  <template v-else>
+    <div class="mg-launch">
+      <button class="mg-launch__btn" @click="open = true">
+        <span class="mg-launch__ico">{{ gameIcon }}</span>
+        <span class="mg-launch__txt">{{ gameLabel }}</span>
+        <span class="mg-launch__arrow">▶</span>
+      </button>
+    </div>
+
+    <MiniGameOverlay v-model="open" :task="task" :cssVars="cssVars">
+      <component
+        v-if="gameComponent"
+        :is="gameComponent"
+        :task="task"
+        :theme="theme"
+        @complete="onComplete"
+        @skip-task="onSkip"
+      />
+    </MiniGameOverlay>
+  </template>
 </template>
 
 <script setup>

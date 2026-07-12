@@ -178,9 +178,9 @@ const finishLabel = computed(() => ({
   .block { padding: 16px; border-radius: 16px; }
   .block__title { font-size: clamp(1.1rem, 4vw, 1.35rem); }
   .block__desc { font-size: .85rem; }
-  .block__nav { flex-wrap: wrap; }
-  .block__nav-back { padding: 12px 16px; min-height: 48px; }
-  .block__nav-next, .block__nav-finish { padding: 12px 20px; min-height: 48px; }
-  .block__nav-hint { font-size: .72rem; text-align: center; width: 100%; }
+  .block__nav { flex-wrap: nowrap; }
+  .block__nav-back { padding: 12px 16px; min-height: 48px; flex-shrink: 0; }
+  .block__nav-next, .block__nav-finish { padding: 12px 16px; min-height: 48px; flex: 1; }
+  .block__nav-hint { font-size: .72rem; text-align: center; }
 }
 </style>

@@ -217,4 +217,5 @@ const flipCard = (ci) => {
   text-decoration: underline; text-underline-offset: 3px;
 }
 .task__pairs__skip:hover { opacity: .7; }
+
 </style>
