@@ -44,7 +44,11 @@
         <button
           v-for="(card, ci) in photoCards" :key="ci"
           class="task__pairs__card"
-          :class="{ flipped: photoFlipped.includes(ci), matched: photoMatched.includes(ci) }"
+          :class="{
+            flipped:  photoFlipped.includes(ci) || photoMatched.includes(ci),
+            matched:  photoMatched.includes(ci),
+            selected: photoFlipped.includes(ci) && !photoMatched.includes(ci),
+          }"
           :disabled="photoMatched.includes(ci) || photoFlipped.length === 2"
           @click="flipCard(ci)"
         >
@@ -187,8 +191,10 @@ const flipCard = (ci) => {
   transition: border-color .2s; padding: 0;
   /* overflow:hidden НЕ используем — ломает preserve-3d в Safari/Chrome Mobile */
 }
-.task__pairs__card:hover:not(:disabled) { border-color: var(--accent); }
-.task__pairs__card:disabled:not(.matched) { opacity: 1; } /* не затемнять при временной блокировке */
+.task__pairs__card:hover:not(:disabled):not(.selected) { border-color: var(--accent); }
+.task__pairs__card:disabled:not(.matched) { opacity: 1; }
+.task__pairs__card.selected { border-color: var(--accent); }
+.task__pairs__card.matched  { border-color: #3cffb4; opacity: .6; cursor: default; }
 .task__pairs__card.matched { border-color: #3cffb4; opacity: .6; cursor: default; }
 .task__pairs__card__inner {
   width: 100%; height: 100%; position: relative;

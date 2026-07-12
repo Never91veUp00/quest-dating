@@ -3,6 +3,7 @@
     class="task"
     :class="{
       'task--done':   isDone,
+      'task--wrong':  isDone && earnedEntry?.wrong,
       'task--active': isActive,
       'task--locked': isLocked,
       [`task--${task.type}`]: true
@@ -27,7 +28,7 @@
       <div v-if="isDone" class="task__done">
         <span>{{ theme.copy.taskDone }}</span>
         <span v-if="task.points" class="task__pts">
-          +{{ earnedPoints ?? task.points }} {{ theme.copy.pointsLabel }}
+          +{{ earnedEntry?.points ?? task.points }} {{ theme.copy.pointsLabel }}
         </span>
       </div>
 
@@ -66,7 +67,7 @@ const props = defineProps({
   isDone:       { type: Boolean, default: false },
   isActive:     { type: Boolean, default: false },
   isLocked:     { type: Boolean, default: false },
-  earnedPoints: { type: Number,  default: null },
+  earnedEntry:  { type: Object,  default: null },
 })
 defineEmits(['complete', 'hint', 'answer-change', 'skip-task'])
 
@@ -138,6 +139,9 @@ const typeLabel = computed(() => ({
 .task--active .task__dot { border-color: var(--accent); color: var(--accent); }
 .task--done    { opacity: .55; border-left-color: #3cffb4; }
 .task--done .task__dot { border-color: #3cffb4; color: #3cffb4; background: rgba(60,255,180,.06); }
+.task--wrong   { border-left-color: #f87171; }
+.task--wrong .task__dot { border-color: #f87171; color: #f87171; background: rgba(248,113,113,.06); }
+.task--wrong .task__pts { color: #f87171; }
 .task--locked  { opacity: .3; pointer-events: none; }
 
 /* ── Dot ──────────────────────────────────────────────────────── */

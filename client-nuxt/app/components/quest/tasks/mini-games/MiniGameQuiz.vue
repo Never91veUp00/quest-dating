@@ -23,9 +23,13 @@
     </div>
     <div v-if="answered && picked !== task.game_correct"
       class="task__quiz-result task__quiz-result--wrong">
-      Не угадал(а), правильно: {{ task.game_options[task.game_correct] }}
+      Не угадал(а) 😔
     </div>
-    <button v-if="answered" class="task__action" @click="$emit('complete', { ...task, points: picked === task.game_correct ? (task.points ?? 10) : 0 })">
+    <button v-if="answered" class="task__action" @click="$emit('complete', {
+      ...task,
+      points: picked === task.game_correct ? (task.points ?? 10) : 0,
+      _quizWrong: picked !== task.game_correct,
+    })">
       Продолжаем →
     </button>
   </div>
