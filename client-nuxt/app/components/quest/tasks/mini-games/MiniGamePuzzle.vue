@@ -72,18 +72,15 @@ onMounted(() => {
   }
 })
 
-const cols = computed(() => {
-  const p = props.task.puzzle_pieces || 30
-  if (p === 42) return 6
-  if (p === 35) return 7
-  return 6
-})
-const rows = computed(() => {
-  const p = props.task.puzzle_pieces || 30
-  if (p === 42) return 7
-  if (p === 35) return 5
-  return 5
-})
+const PUZZLE_GRID = {
+  12: { cols: 4, rows: 3 },
+  20: { cols: 5, rows: 4 },
+  30: { cols: 6, rows: 5 },
+  35: { cols: 7, rows: 5 },
+  42: { cols: 6, rows: 7 },
+}
+const cols = computed(() => PUZZLE_GRID[props.task.puzzle_pieces]?.cols ?? 6)
+const rows = computed(() => PUZZLE_GRID[props.task.puzzle_pieces]?.rows ?? 5)
 const totalPieces = computed(() => cols.value * rows.value)
 const placed      = computed(() => slots.value.filter(s => s.pieceIdx === s.i).length)
 const progress    = computed(() =>

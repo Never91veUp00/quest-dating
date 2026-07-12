@@ -47,7 +47,7 @@
         class="block__nav-finish"
         @click="$emit('finish')"
       >
-        🎯 {{ finishLabel }}
+        {{ finishLabel }}
       </button>
       <div v-if="!blockDone" class="block__nav-hint">
         Выполни все задания чтобы продолжить
@@ -79,11 +79,13 @@ const blockDone = computed(() =>
 )
 
 const finishLabel = computed(() => ({
-  detective: 'Закрыть дело',
+  detective: 'Закрыть дело →',
   romantic:  'Завершить ❤️',
-  mystery:   'Исполнить пророчество',
-  city:      'Выполнить миссию',
-}[props.theme.id] || 'Завершить'))
+  mystery:   'Финал →',
+  city:      'Финиш →',
+  treasure:  'Клад найден →',
+  proposal:  'Завершить ✨',
+}[props.theme.id] || 'Завершить →'))
 </script>
 
 <style scoped>
