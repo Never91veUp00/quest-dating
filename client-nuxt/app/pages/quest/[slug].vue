@@ -92,6 +92,7 @@
                 :index="blockIdx"
                 :total="totalBlocks"
                 :completedIds="completedIds"
+                :earnedMap="earnedMap"
                 :isLast="isLast"
                 @complete-task="onTaskComplete"
                 @use-hint="onHint"
@@ -253,6 +254,7 @@ const showIntro           = ref(false)
 const isComplete          = ref(false)
 const blockIdx            = ref(0)
 const completedIds        = ref([])
+const earnedMap           = ref({})
 const points              = ref(0)
 const hintsUsed           = ref(0)
 const badge               = ref(null)
@@ -432,7 +434,8 @@ const handleStart = async () => {
 const onTaskComplete = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
-  const earned = task._quizCorrect === false ? 0 : (task.points || 10)
+  const earned = task.points ?? 10
+  earnedMap.value[task.id] = earned
   points.value += earned
 
   if (completedIds.value.length === 1)

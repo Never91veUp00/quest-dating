@@ -23,6 +23,7 @@
         :isDone="completedIds.includes(task.id)"
         :isActive="!completedIds.includes(task.id) && isUnlocked(ti)"
         :isLocked="!isUnlocked(ti)"
+        :earnedPoints="earnedMap?.[task.id]"
         @complete="$emit('complete-task', $event)"
         @hint="$emit('use-hint', $event)"
         @skip-task="$emit('skip-task', $event)"
@@ -65,7 +66,8 @@ const props = defineProps({
   theme:        { type: Object, required: true },
   index:        { type: Number, default: 0 },
   total:        { type: Number, default: 1 },
-  completedIds: { type: Array, default: () => [] },
+  completedIds: { type: Array,  default: () => [] },
+  earnedMap:    { type: Object, default: () => ({}) },
   isLast:       { type: Boolean, default: false },
 })
 

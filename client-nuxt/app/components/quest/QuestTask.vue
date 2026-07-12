@@ -27,7 +27,7 @@
       <div v-if="isDone" class="task__done">
         <span>{{ theme.copy.taskDone }}</span>
         <span v-if="task.points" class="task__pts">
-          +{{ task.points }} {{ theme.copy.pointsLabel }}
+          +{{ earnedPoints ?? task.points }} {{ theme.copy.pointsLabel }}
         </span>
       </div>
 
@@ -63,9 +63,10 @@ const props = defineProps({
   task:     { type: Object,  required: true },
   theme:    { type: Object,  required: true },
   index:    { type: Number,  default: 0 },
-  isDone:   { type: Boolean, default: false },
-  isActive: { type: Boolean, default: false },
-  isLocked: { type: Boolean, default: false },
+  isDone:       { type: Boolean, default: false },
+  isActive:     { type: Boolean, default: false },
+  isLocked:     { type: Boolean, default: false },
+  earnedPoints: { type: Number,  default: null },
 })
 defineEmits(['complete', 'hint', 'answer-change', 'skip-task'])
 
