@@ -312,6 +312,7 @@ const persistState = () => {
     localStorage.setItem(STORAGE_KEY.value, JSON.stringify({
       blockIdx:     blockIdx.value,
       completedIds: completedIds.value,
+      earnedMap:    earnedMap.value,
       points:       points.value,
       hintsUsed:    hintsUsed.value,
       startTs:      startTs.value,
@@ -387,6 +388,7 @@ const loadQuest = async () => {
     if (saved && saved.started) {
       blockIdx.value     = saved.blockIdx     ?? 0
       completedIds.value = saved.completedIds ?? []
+      earnedMap.value    = saved.earnedMap    ?? {}
       points.value       = saved.points       ?? 0
       hintsUsed.value    = saved.hintsUsed    ?? 0
       startTs.value      = saved.startTs      ?? Date.now()
@@ -435,7 +437,7 @@ const onTaskComplete = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
   const earned = task.points ?? 10
-  earnedMap.value[task.id] = earned
+  earnedMap.value[task.id] = { points: earned, wrong: task._quizWrong === true }
   points.value += earned
 
   if (completedIds.value.length === 1)

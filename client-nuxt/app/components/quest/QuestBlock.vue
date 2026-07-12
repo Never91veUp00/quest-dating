@@ -23,7 +23,7 @@
         :isDone="completedIds.includes(task.id)"
         :isActive="!completedIds.includes(task.id) && isUnlocked(ti)"
         :isLocked="!isUnlocked(ti)"
-        :earnedPoints="earnedMap?.[task.id]"
+        :earnedEntry="earnedMap?.[task.id]"
         @complete="$emit('complete-task', $event)"
         @hint="$emit('use-hint', $event)"
         @skip-task="$emit('skip-task', $event)"
