@@ -79,8 +79,14 @@ const PUZZLE_GRID = {
   35: { cols: 7, rows: 5 },
   42: { cols: 6, rows: 7 },
 }
-const cols = computed(() => PUZZLE_GRID[props.task.puzzle_pieces]?.cols ?? 6)
-const rows = computed(() => PUZZLE_GRID[props.task.puzzle_pieces]?.rows ?? 5)
+const cols = computed(() => {
+  const g = PUZZLE_GRID[props.task.puzzle_pieces] ?? { cols: 6, rows: 5 }
+  return props.task.puzzle_landscape ? g.rows : g.cols
+})
+const rows = computed(() => {
+  const g = PUZZLE_GRID[props.task.puzzle_pieces] ?? { cols: 6, rows: 5 }
+  return props.task.puzzle_landscape ? g.cols : g.rows
+})
 const totalPieces = computed(() => cols.value * rows.value)
 const placed      = computed(() => slots.value.filter(s => s.pieceIdx === s.i).length)
 const progress    = computed(() =>

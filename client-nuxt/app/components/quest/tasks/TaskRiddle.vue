@@ -32,7 +32,7 @@ const error  = ref('')
 
 const submit = () => {
   if (!answer.value.trim()) return
-  const correct = (props.task.correct_answer || '').trim().toLowerCase()
+  const correct = (props.task.answer || props.task.correct_answer || '').trim().toLowerCase()
   if (correct && answer.value.trim().toLowerCase() !== correct) {
     error.value = props.theme.copy?.wrongAnswer || 'Неверно, попробуй ещё раз'
     return

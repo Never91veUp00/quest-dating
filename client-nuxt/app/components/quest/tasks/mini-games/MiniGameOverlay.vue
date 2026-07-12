@@ -40,6 +40,8 @@ defineEmits(['update:modelValue'])
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 /* ── Header ── */
