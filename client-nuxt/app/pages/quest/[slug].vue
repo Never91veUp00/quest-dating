@@ -432,7 +432,8 @@ const handleStart = async () => {
 const onTaskComplete = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
-  points.value += task.points || 10
+  const earned = task._quizCorrect === false ? 0 : (task.points || 10)
+  points.value += earned
 
   if (completedIds.value.length === 1)
     flash('🎯', 'Первый шаг!', 'Продолжай в том же духе')

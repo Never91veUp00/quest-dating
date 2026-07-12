@@ -297,13 +297,28 @@
         </div>
       </div>
       <div class="qe-field">
+        <label>Ориентация фото</label>
+        <div class="qe-pairs-mode">
+          <button
+            class="qe-pairs-mode__btn"
+            :class="{ active: !task.puzzle_landscape }"
+            @click="task.puzzle_landscape = false"
+          >📱 Вертикальное</button>
+          <button
+            class="qe-pairs-mode__btn"
+            :class="{ active: task.puzzle_landscape }"
+            @click="task.puzzle_landscape = true"
+          >🖼️ Горизонтальное</button>
+        </div>
+      </div>
+      <div class="qe-field">
         <label>Количество частей</label>
         <select v-model.number="task.puzzle_pieces" class="qe-select qe-select--sm">
-          <option :value="12">12 частей (4×3) — лёгкий</option>
-          <option :value="20">20 частей (5×4) — средний</option>
-          <option :value="30">30 частей (6×5) — сложный</option>
-          <option :value="35">35 частей (7×5)</option>
-          <option :value="42">42 части (6×7)</option>
+          <option :value="12">12 частей{{ task.puzzle_landscape ? ' (3×4)' : ' (4×3)' }} — лёгкий</option>
+          <option :value="20">20 частей{{ task.puzzle_landscape ? ' (4×5)' : ' (5×4)' }} — средний</option>
+          <option :value="30">30 частей{{ task.puzzle_landscape ? ' (5×6)' : ' (6×5)' }} — сложный</option>
+          <option :value="35">35 частей{{ task.puzzle_landscape ? ' (5×7)' : ' (7×5)' }}</option>
+          <option :value="42">42 части{{ task.puzzle_landscape ? ' (7×6)' : ' (6×7)' }}</option>
         </select>
       </div>
       <div v-if="task.puzzle_image" class="qe-hint qe-hint--ok">
