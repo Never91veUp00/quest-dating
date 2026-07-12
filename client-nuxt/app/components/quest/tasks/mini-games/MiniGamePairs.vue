@@ -47,9 +47,9 @@
           :class="{
             flipped:  photoFlipped.includes(ci) || photoMatched.includes(ci),
             matched:  photoMatched.includes(ci),
-            selected: photoFlipped.includes(ci) && !checking,
+            selected: photoSelected.includes(ci),
           }"
-          :disabled="photoMatched.includes(ci) || checking"
+          :disabled="photoMatched.includes(ci) || photoFlipped.length === 2"
           @click="flipCard(ci)"
         >
           <div class="task__pairs__card__inner">
@@ -127,10 +127,10 @@ const checkPair = () => {
 }
 
 // ── Фото-пары ────────────────────────────────────────────────────
-const photoCards   = ref([])
-const photoFlipped = ref([])
-const photoMatched = ref([])
-const checking     = ref(false) // true пока идёт 900мс таймер после несовпадения
+const photoCards    = ref([])
+const photoFlipped  = ref([])
+const photoMatched  = ref([])
+const photoSelected = ref([]) // карточки с акцентной рамкой (явный контроль)
 let flipTimer = null
 
 const photoComplete = computed(() =>
@@ -153,18 +153,18 @@ onUnmounted(() => { if (flipTimer) clearTimeout(flipTimer) })
 const isImage = (v) => v && (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/'))
 
 const flipCard = (ci) => {
-  if (photoFlipped.value.includes(ci) || checking.value) return
-  photoFlipped.value.push(ci)
+  if (photoFlipped.value.includes(ci) || photoFlipped.value.length === 2) return
+  photoFlipped.value = [...photoFlipped.value, ci]
+  photoSelected.value = [...photoSelected.value, ci]
   if (photoFlipped.value.length === 2) {
     const [a, b] = photoFlipped.value
+    photoSelected.value = [] // убираем рамки немедленно при проверке
     if (photoCards.value[a].pairId === photoCards.value[b].pairId) {
-      photoMatched.value.push(a, b)
+      photoMatched.value = [...photoMatched.value, a, b]
       photoFlipped.value = []
     } else {
-      checking.value = true
       flipTimer = setTimeout(() => {
         photoFlipped.value = []
-        checking.value = false
       }, 900)
     }
   }

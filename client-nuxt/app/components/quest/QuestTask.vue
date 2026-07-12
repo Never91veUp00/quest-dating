@@ -146,7 +146,9 @@ const typeLabel = computed(() => ({
 }
 .task--wrong .task__dot   { border-color: #f87171; color: #f87171; background: rgba(248,113,113,.12); }
 .task--wrong .task__pts   { color: #f87171; }
-.task--wrong .task__done  { color: #f87171; }
+.task--wrong .task__done       { color: #f87171; }
+.task--wrong .task__type-label { color: #f87171; }
+.task--wrong .task__title      { color: #f87171; }
 .task--locked  { opacity: .3; pointer-events: none; }
 
 /* ── Dot ──────────────────────────────────────────────────────── */
