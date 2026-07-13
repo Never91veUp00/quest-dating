@@ -19,11 +19,11 @@
     </div>
     <div v-if="answered && picked === task.game_correct"
       class="task__quiz-result task__quiz-result--right">
-      Правильно! 🎉
+      {{ theme.gender === 'm' ? 'Угадал! 🎉' : 'Угадала! 🎉' }}
     </div>
     <div v-if="answered && picked !== task.game_correct"
       class="task__quiz-result task__quiz-result--wrong">
-      Не угадал(а) 😔
+      {{ theme.gender === 'm' ? 'Не угадал 😔' : 'Не угадала 😔' }}
     </div>
     <button v-if="answered" class="task__action" @click="$emit('complete', {
       ...task,

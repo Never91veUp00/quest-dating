@@ -1,5 +1,5 @@
 <template>
-  <div class="bridge" @click="advance">
+  <div class="bridge" :class="{ 'bridge--leaving': leaving }" @click="advance">
     <div class="bridge__glow" aria-hidden="true"></div>
 
     <div class="bridge__done">
@@ -27,10 +27,16 @@
     </button>
 
     <div class="bridge__tap-hint">Нажми, чтобы продолжить</div>
+
+    <div class="bridge__progress">
+      <div class="bridge__progress-bar"></div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+
 defineProps({
   theme:      { type: Object, required: true },
   nextBlock:  { type: Object, required: true },
@@ -38,7 +44,19 @@ defineProps({
 })
 const emit = defineEmits(['advance'])
 
-const advance = () => emit('advance')
+const DELAY   = 5000
+const FADE_MS = 500
+const leaving  = ref(false)
+let timer = null
+
+const advance = () => {
+  if (leaving.value) return
+  leaving.value = true
+  setTimeout(() => emit('advance'), FADE_MS)
+}
+
+onMounted(() => { timer = setTimeout(advance, DELAY) })
+onUnmounted(() => clearTimeout(timer))
 </script>
 
 <style scoped>
@@ -163,6 +181,30 @@ const advance = () => emit('advance')
 @keyframes pulse-hint {
   0%, 100% { opacity: .4; }
   50% { opacity: .7; }
+}
+
+/* ── Fade-out при переходе ── */
+.bridge--leaving {
+  animation: bridge-leave 0.5s ease forwards;
+  pointer-events: none;
+}
+@keyframes bridge-leave {
+  to { opacity: 0; transform: translateY(-12px); }
+}
+
+/* ── Прогресс-бар (анимация вместо JS) ── */
+.bridge__progress {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.bridge__progress-bar {
+  height: 100%; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: bridge-progress 5s linear forwards;
+}
+@keyframes bridge-progress {
+  from { width: 100%; }
+  to   { width: 0%; }
 }
 
 </style>
