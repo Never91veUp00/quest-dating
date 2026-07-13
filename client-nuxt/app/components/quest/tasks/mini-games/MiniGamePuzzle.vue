@@ -234,7 +234,7 @@ const onTap = (slotIdx) => {
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
   /* отрицательный inset даёт 3px снаружи — outline крайних слотов не обрезается */
-  clip-path: inset(-3px round 10px);
+  clip-path: inset(-6px round 10px);
   border: 1px solid var(--bord); background: var(--bg2); touch-action: manipulation;
   max-width: min(100%, 420px); margin: 0 auto;
 }
