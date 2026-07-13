@@ -1,17 +1,30 @@
 <template>
   <div class="task__puzzle">
-    <div v-if="!started" class="task__puzzle__intro">
+
+    <!-- Фаза 1: чёткая картинка 4 секунды -->
+    <div v-if="phase === 'preview'" class="task__puzzle__intro">
       <div class="task__puzzle__intro-img-wrap">
         <img :src="task.puzzle_image" class="task__puzzle__intro-img" alt="Пазл" />
-        <div class="task__puzzle__intro-overlay">Запомни картинку</div>
+        <div class="task__puzzle__intro-overlay">
+          <span class="task__puzzle__preview-label">Запомни картинку</span>
+          <span class="task__puzzle__preview-timer">{{ previewCountdown }}</span>
+        </div>
       </div>
-      <div class="task__puzzle__intro-meta">
-        {{ totalPieces }} частей · тапни чтобы выбрать кусок и поставить на место
-      </div>
-      <button class="task__action" @click="init">🧩 Начать пазл!</button>
     </div>
 
-    <template v-else>
+    <!-- Фаза 2: анимация перемешивания -->
+    <div v-else-if="phase === 'shuffling'"
+      class="task__puzzle__board task__puzzle__board--shuffling"
+      :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }">
+      <div
+        v-for="slot in slots" :key="'s'+slot.i"
+        class="task__puzzle__slot"
+        :style="{ ...slotStyle(slot), '--slot-i': slot.i }"
+      ></div>
+    </div>
+
+    <!-- Фаза 3: игра -->
+    <template v-else-if="phase === 'playing'">
       <div class="task__puzzle__progress">
         <div class="task__puzzle__progress-bar">
           <div class="task__puzzle__progress-fill" :style="{ width: progress + '%' }"></div>
@@ -47,11 +60,12 @@
         Продолжаем →
       </button>
     </template>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -59,10 +73,14 @@ const props = defineProps({
 })
 defineEmits(['complete', 'skip-task'])
 
-const started         = ref(false)
+const phase           = ref('preview')
+const previewCountdown = ref(4)
 const slots           = ref([])
 const selectedSlot    = ref(null)
 const imgNaturalRatio = ref(null)
+
+let previewTimer = null
+let shuffleTimer = null
 
 onMounted(() => {
   if (props.task.puzzle_image) {
@@ -70,7 +88,43 @@ onMounted(() => {
     img.onload = () => { imgNaturalRatio.value = img.naturalWidth / img.naturalHeight }
     img.src = props.task.puzzle_image
   }
+  startPreview()
 })
+
+onUnmounted(() => {
+  clearInterval(previewTimer)
+  clearTimeout(shuffleTimer)
+})
+
+const startPreview = () => {
+  previewCountdown.value = 4
+  previewTimer = setInterval(() => {
+    previewCountdown.value--
+    if (previewCountdown.value <= 0) {
+      clearInterval(previewTimer)
+      startShuffling()
+    }
+  }, 1000)
+}
+
+const startShuffling = () => {
+  initSlots()
+  phase.value = 'shuffling'
+  shuffleTimer = setTimeout(() => {
+    phase.value = 'playing'
+  }, 900)
+}
+
+const initSlots = () => {
+  const total    = totalPieces.value
+  const shuffled = Array.from({ length: total }, (_, i) => i)
+  for (let i = total - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  slots.value        = shuffled.map((pieceIdx, i) => ({ i, pieceIdx }))
+  selectedSlot.value = null
+}
 
 const PUZZLE_GRID = {
   12: { cols: 4, rows: 3 },
@@ -96,7 +150,6 @@ const complete = computed(() =>
   totalPieces.value > 0 && placed.value === totalPieces.value
 )
 
-// aspect ratio каждого слота = (imageW/cols) / (imageH/rows) = imgRatio * rows/cols
 const slotAspect = computed(() => {
   if (!imgNaturalRatio.value) return 1
   return imgNaturalRatio.value * rows.value / cols.value
@@ -117,23 +170,10 @@ const slotStyle = (slot) => {
   }
 }
 
-const init = () => {
-  const total    = totalPieces.value
-  const shuffled = Array.from({ length: total }, (_, i) => i)
-  for (let i = total - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  slots.value        = shuffled.map((pieceIdx, i) => ({ i, pieceIdx }))
-  selectedSlot.value = null
-  started.value      = true
-}
-
 const onTap = (slotIdx) => {
   if (complete.value) return
   const slot = slots.value[slotIdx]
 
-  // правильно стоящий кусок — нельзя трогать
   if (slot.pieceIdx === slotIdx) return
 
   if (selectedSlot.value === null) { selectedSlot.value = slotIdx; return }
@@ -154,16 +194,32 @@ const onTap = (slotIdx) => {
 
 <style scoped>
 .task__puzzle { display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Preview ── */
 .task__puzzle__intro { display: flex; flex-direction: column; gap: 10px; }
 .task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
-.task__puzzle__intro-img { width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover; filter: blur(6px) brightness(0.7); transform: scale(1.04); }
-.task__puzzle__intro-overlay {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: .95rem; font-weight: 700;
-  letter-spacing: .05em; pointer-events: none;
-  text-shadow: 0 2px 8px rgba(0,0,0,.8);
+.task__puzzle__intro-img {
+  width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover;
 }
-.task__puzzle__intro-meta { font-size: .8rem; color: var(--dim); text-align: center; }
+.task__puzzle__intro-overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  background: rgba(0,0,0,.25);
+  pointer-events: none;
+}
+.task__puzzle__preview-label {
+  color: #fff; font-size: .95rem; font-weight: 700;
+  letter-spacing: .05em; text-shadow: 0 2px 8px rgba(0,0,0,.8);
+}
+.task__puzzle__preview-timer {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1rem; font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+}
+
+/* ── Progress ── */
 .task__puzzle__progress { display: flex; align-items: center; gap: 10px; }
 .task__puzzle__progress-bar {
   flex: 1; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
@@ -173,11 +229,26 @@ const onTap = (slotIdx) => {
   transition: width .3s ease; box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 .task__puzzle__progress-txt { font-size: .72rem; color: var(--dim); white-space: nowrap; }
+
+/* ── Board ── */
 .task__puzzle__board {
-  display: grid; gap: 2px; width: 100%; border-radius: 8px; overflow: hidden;
+  display: grid; gap: 2px; width: 100%; border-radius: 8px;
+  /* clip-path вместо overflow:hidden — не обрезает outline у крайних слотов */
+  clip-path: inset(0 round 8px);
   border: 1px solid var(--bord); background: var(--bg2); touch-action: manipulation;
   max-width: min(100%, 420px); margin: 0 auto;
 }
+
+/* Анимация перемешивания: кусочки "влетают" со случайным смещением */
+.task__puzzle__board--shuffling .task__puzzle__slot {
+  animation: piece-shuffle 0.55s cubic-bezier(.34,1.56,.64,1) both;
+  animation-delay: calc(var(--slot-i, 0) * 18ms);
+}
+@keyframes piece-shuffle {
+  from { opacity: 0; transform: scale(.6) rotate(var(--r, 8deg)); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
 .task__puzzle__slot {
   cursor: pointer; border-radius: 2px;
   transition: transform .12s, box-shadow .12s, outline .12s;
@@ -195,6 +266,8 @@ const onTap = (slotIdx) => {
   transform: scale(1.06); z-index: 2;
 }
 .task__puzzle__slot.correct { outline: 2px solid #3cffb4; cursor: default; pointer-events: none; }
+
+/* ── Tip / skip / result ── */
 .task__puzzle__tip { text-align: center; font-size: .78rem; color: var(--dim); padding: 4px; min-height: 1.4em; }
 .task__puzzle__skip {
   display: block; margin: 8px auto 0; background: none; border: none;
@@ -207,17 +280,13 @@ const onTap = (slotIdx) => {
   text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
 }
 .task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
-@media (max-width: 480px) { .task__puzzle__board { gap: 1px; } }
 
 .task__action {
   display: flex; align-items: center; justify-content: center;
   width: 100%; min-height: 52px;
-  background: transparent;
-  border: 1.5px solid var(--accent);
-  border-radius: 14px;
-  color: var(--accent);
-  font-size: .95rem; font-weight: 700;
-  cursor: pointer;
+  background: transparent; border: 1.5px solid var(--accent);
+  border-radius: 14px; color: var(--accent);
+  font-size: .95rem; font-weight: 700; cursor: pointer;
   text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
   transition: all .2s ease;
 }
@@ -225,4 +294,5 @@ const onTap = (slotIdx) => {
   background: var(--accent); color: #000; text-shadow: none;
   box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
 }
+@media (max-width: 480px) { .task__puzzle__board { gap: 1px; } }
 </style>
