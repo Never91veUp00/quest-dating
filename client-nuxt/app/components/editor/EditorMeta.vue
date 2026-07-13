@@ -65,6 +65,18 @@
         </div>
       </div>
 
+      <!-- Пол получателя -->
+      <div class="qe-field">
+        <label>Пол получателя</label>
+        <div class="qe-gender">
+          <button class="qe-gender-btn" :class="{ active: form.recipient_gender === 'f' }"
+            @click="form.recipient_gender = 'f'">👩 Девушка</button>
+          <button class="qe-gender-btn" :class="{ active: form.recipient_gender === 'm' }"
+            @click="form.recipient_gender = 'm'">👨 Парень</button>
+        </div>
+        <div class="qe-hint">Влияет на формулировки: «угадала» / «угадал»</div>
+      </div>
+
       <!-- Код доступа -->
       <div class="qe-field">
         <label>Код доступа</label>
@@ -135,3 +147,15 @@ const INTRO_META = {
 }
 const introMeta = computed(() => INTRO_META[props.form.theme] || { icon: '✨', desc: 'Анимированная заставка' })
 </script>
+
+<style scoped>
+.qe-gender { display: flex; gap: 8px; }
+.qe-gender-btn {
+  flex: 1; padding: 10px; border-radius: 8px; font-size: .88rem; cursor: pointer;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  color: inherit; transition: all .2s;
+}
+.qe-gender-btn.active {
+  border-color: var(--accent, #667eea); background: rgba(102,126,234,.15); color: #fff;
+}
+</style>

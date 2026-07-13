@@ -268,7 +268,10 @@ const nowTs   = ref(Date.now())
 let ticker = null
 
 // ─── Theme ────────────────────────────────────────────────────
-const themeObj = computed(() => getTheme(questData.value?.theme || 'city'))
+const themeObj = computed(() => ({
+  ...getTheme(questData.value?.theme || 'city'),
+  gender: questData.value?.recipient_gender || 'f',
+}))
 const cssVars  = computed(() => themeToCssVars(themeObj.value))
 
 watchEffect(() => {
