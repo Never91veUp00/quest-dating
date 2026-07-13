@@ -128,7 +128,8 @@ router.post('/quests', [
       title, client_name, slug, theme = 'detective',
       final_message, blocks, access_code,
       order_id, template_id, is_public = false,
-      expires_at, show_intro = true, player_version = 'v1'
+      expires_at, show_intro = true, player_version = 'v1',
+      recipient_gender = 'f'
     } = req.body
 
     // Проверка уникальности slug
@@ -146,8 +147,8 @@ router.post('/quests', [
     const result = await pool.query(`
       INSERT INTO created_quests
         (title, client_name, slug, theme, final_message, blocks,
-         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13)
+         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version, recipient_gender)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13, $14)
       RETURNING *
     `, [
       title, client_name, slug, theme, final_message || null,
@@ -155,7 +156,8 @@ router.post('/quests', [
       order_id || null, template_id || null, is_public,
       show_intro !== false,
       expires_at || null,
-      player_version || 'v1'
+      player_version || 'v1',
+      recipient_gender || 'f'
     ])
 
     const quest = result.rows[0]
@@ -188,25 +190,27 @@ router.put('/quests/:id', [
   try {
     const {
       title, client_name, slug, theme, final_message,
-      blocks, access_code, is_public, expires_at, show_intro, player_version
+      blocks, access_code, is_public, expires_at, show_intro, player_version,
+      recipient_gender = 'f'
     } = req.body
 
     const result = await pool.query(`
       UPDATE created_quests SET
-        title         = $1,
-        client_name   = $2,
-        slug          = $3,
-        theme         = $4,
-        final_message = $5,
-        blocks        = $6,
-        access_code   = $7,
-        is_public     = $8,
-        expires_at    = $9,
-        show_intro    = $10,
-        player_version = $11,
-        published_at  = CASE WHEN $8 AND published_at IS NULL THEN NOW() ELSE published_at END,
-        updated_at    = NOW()
-      WHERE id = $12
+        title            = $1,
+        client_name      = $2,
+        slug             = $3,
+        theme            = $4,
+        final_message    = $5,
+        blocks           = $6,
+        access_code      = $7,
+        is_public        = $8,
+        expires_at       = $9,
+        show_intro       = $10,
+        player_version   = $11,
+        recipient_gender = $12,
+        published_at     = CASE WHEN $8 AND published_at IS NULL THEN NOW() ELSE published_at END,
+        updated_at       = NOW()
+      WHERE id = $13
       RETURNING *
     `, [
       title, client_name, slug,
@@ -215,6 +219,7 @@ router.put('/quests/:id', [
       is_public, expires_at || null,
       show_intro !== false,
       player_version || 'v1',
+      recipient_gender || 'f',
       req.params.id
     ])
 
