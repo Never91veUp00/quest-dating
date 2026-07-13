@@ -13,6 +13,7 @@ export function useQuestEditor() {
   const form = ref({
     title: '', client_name: '', slug: '', theme: 'detective',
     show_intro: true, access_code: '', final_message: '',
+    recipient_gender: 'f',
     is_public: false, order_id: null, template_id: null, blocks: [], player_version: 'v1'
   })
 
@@ -39,6 +40,7 @@ export function useQuestEditor() {
           title: q.title, client_name: q.client_name, slug: q.slug,
           theme: q.theme || 'detective', show_intro: q.show_intro !== false,
           access_code: q.access_code || '', final_message: q.final_message || '',
+          recipient_gender: q.recipient_gender || 'f',
           is_public: q.is_public, order_id: q.order_id,
           template_id: q.template_id, blocks: q.blocks || []
         }
