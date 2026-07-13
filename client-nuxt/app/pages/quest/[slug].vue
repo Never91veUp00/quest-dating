@@ -467,11 +467,7 @@ const onSkipTask = (task) => {
 
 // ─── Navigation ───────────────────────────────────────────────
 const next = () => {
-  if (blockIdx.value < totalBlocks.value - 1) {
-    showBridge.value = true
-  } else {
-    doNext()
-  }
+  doNext()
 }
 const doNext = () => {
   showBridge.value = false
@@ -642,9 +638,9 @@ onUnmounted(() => {
 .splash-out-leave-to { opacity: 0; transform: scale(1.04); }
 .player-in-enter-active { transition: opacity .5s .1s ease; }
 .player-in-enter-from { opacity: 0; }
-.slide-enter-active, .slide-leave-active { transition: opacity .32s cubic-bezier(.4,0,.2,1), transform .32s cubic-bezier(.4,0,.2,1); }
-.slide-enter-from { opacity: 0; transform: translateX(32px); }
-.slide-leave-to   { opacity: 0; transform: translateX(-32px); }
+.slide-enter-active, .slide-leave-active { transition: opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1); }
+.slide-enter-from { opacity: 0; transform: translateX(48px); }
+.slide-leave-to   { opacity: 0; transform: translateX(-48px); }
 .fade-enter-active { transition: opacity .3s ease; }
 .fade-enter-from { opacity: 0; }
 .fade-leave-active { transition: opacity .2s ease; }
