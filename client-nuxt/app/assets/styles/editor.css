@@ -485,3 +485,12 @@
 .qe-toast-slide-leave-active { transition: all .25s ease; }
 .qe-toast-slide-enter-from   { opacity: 0; transform: translateX(-50%) translateY(12px); }
 .qe-toast-slide-leave-to     { opacity: 0; transform: translateX(-50%) translateY(8px); }
+
+/* ── Gender selector ── */
+.qe-gender { display: flex; gap: 8px; }
+.qe-gender-btn {
+  flex: 1; padding: 10px; border-radius: 8px; font-size: .88rem; cursor: pointer;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  color: inherit; transition: all .2s;
+}
+.qe-gender-btn.active { border-color: #667eea; background: rgba(102,126,234,.15); color: #fff; }
