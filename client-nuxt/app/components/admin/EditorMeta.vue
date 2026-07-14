@@ -65,6 +65,18 @@
         </div>
       </div>
 
+      <!-- Пол получателя -->
+      <div class="qe-field">
+        <label>Пол получателя</label>
+        <div class="qe-gender">
+          <button class="qe-gender-btn" :class="{ active: form.recipient_gender === 'f' }"
+            @click="form.recipient_gender = 'f'">👩 Девушка</button>
+          <button class="qe-gender-btn" :class="{ active: form.recipient_gender === 'm' }"
+            @click="form.recipient_gender = 'm'">👨 Парень</button>
+        </div>
+        <div class="qe-hint">Влияет на формулировки: «угадала» / «угадал»</div>
+      </div>
+
       <!-- Код доступа -->
       <div class="qe-field">
         <label>Код доступа</label>
