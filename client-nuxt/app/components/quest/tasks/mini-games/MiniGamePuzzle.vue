@@ -233,8 +233,7 @@ const onTap = (slotIdx) => {
 /* ── Board ── */
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
-  /* отрицательный inset даёт 3px снаружи — outline крайних слотов не обрезается */
-  clip-path: inset(-6px round 10px);
+  overflow: hidden;
   border: 1px solid var(--bord); background: var(--bg2); touch-action: manipulation;
   max-width: min(100%, 420px); margin: 0 auto;
 }
@@ -251,9 +250,9 @@ const onTap = (slotIdx) => {
 
 .task__puzzle__slot {
   cursor: pointer; border-radius: 2px;
-  transition: transform .12s, box-shadow .12s, outline .12s;
+  transition: transform .12s, box-shadow .12s;
   background-color: color-mix(in srgb, var(--bg2) 60%, transparent);
-  background-repeat: no-repeat; outline: 2px solid transparent;
+  background-repeat: no-repeat;
   user-select: none; -webkit-user-select: none;
 }
 .task__puzzle__slot:active { transform: scale(.94); }
@@ -261,11 +260,14 @@ const onTap = (slotIdx) => {
   background-color: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.08);
 }
 .task__puzzle__slot.selected {
-  outline: 3px solid var(--accent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent);
+  /* inset — рисуется внутри, не обрезается overflow:hidden */
+  box-shadow: inset 0 0 0 3px var(--accent), inset 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent);
   transform: scale(1.06); z-index: 2;
 }
-.task__puzzle__slot.correct { outline: 2px solid #3cffb4; cursor: default; pointer-events: none; }
+.task__puzzle__slot.correct {
+  box-shadow: inset 0 0 0 2px #3cffb4;
+  cursor: default; pointer-events: none;
+}
 
 /* ── Tip / skip / result ── */
 .task__puzzle__tip { text-align: center; font-size: .78rem; color: var(--dim); padding: 4px; min-height: 1.4em; }
