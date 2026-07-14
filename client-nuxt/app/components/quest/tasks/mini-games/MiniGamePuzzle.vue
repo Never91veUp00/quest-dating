@@ -5,12 +5,9 @@
     <div v-if="phase === 'preview'" class="task__puzzle__intro">
       <div class="task__puzzle__intro-img-wrap">
         <img :src="task.puzzle_image" class="task__puzzle__intro-img" alt="Пазл" />
-        <div class="task__puzzle__intro-overlay">
-          <span class="task__puzzle__preview-label">Запомни картинку</span>
-        </div>
-        <!-- Таймер в углу, не перекрывает центр -->
         <span class="task__puzzle__preview-timer">{{ previewCountdown }}</span>
       </div>
+      <div class="task__puzzle__preview-caption">Запомни картинку</div>
     </div>
 
     <!-- Фаза 2: анимация перемешивания -->
@@ -33,21 +30,24 @@
         <span class="task__puzzle__progress-txt">{{ placed }}/{{ totalPieces }} собрано</span>
       </div>
 
-      <div
-        class="task__puzzle__board"
-        :class="{ 'task__puzzle__board--complete': complete }"
-        :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
-      >
+      <div class="task__puzzle__board-wrap">
         <div
-          v-for="slot in slots" :key="'s'+slot.i"
-          class="task__puzzle__slot"
-          :class="{
-            correct:  slot.pieceIdx === slot.i,
-            selected: selectedSlot === slot.i,
-          }"
-          :style="slotStyle(slot)"
-          @click="onTap(slot.i)"
-        ></div>
+          class="task__puzzle__board"
+          :class="{ 'task__puzzle__board--complete': complete }"
+          :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
+        >
+          <div
+            v-for="slot in slots" :key="'s'+slot.i"
+            class="task__puzzle__slot"
+            :class="{
+              correct:  slot.pieceIdx === slot.i,
+              selected: selectedSlot === slot.i,
+            }"
+            :style="slotStyle(slot)"
+            @click="onTap(slot.i)"
+          ></div>
+        </div>
+        <canvas v-if="celebrating" ref="confettiCanvas" class="task__puzzle__confetti" />
       </div>
 
       <div v-if="!complete" class="task__puzzle__tip">
@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -82,9 +82,11 @@ const previewCountdown = ref(4)
 const slots            = ref([])
 const selectedSlot     = ref(null)
 const imgNaturalRatio  = ref(null)
-
-let previewTimer = null
-let shuffleTimer = null
+const celebrating      = ref(false)
+const confettiCanvas   = ref(null)
+let previewTimer  = null
+let shuffleTimer  = null
+let confettiFrame = null
 
 onMounted(() => {
   if (props.task.puzzle_image) {
@@ -98,6 +100,7 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(previewTimer)
   clearTimeout(shuffleTimer)
+  if (confettiFrame) cancelAnimationFrame(confettiFrame)
 })
 
 const startPreview = () => {
@@ -120,12 +123,10 @@ const startShuffling = () => {
 const initSlots = () => {
   const total    = totalPieces.value
   const shuffled = Array.from({ length: total }, (_, i) => i)
-  // Fisher-Yates shuffle
   for (let i = total - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
-  // Гарантируем что ни один кусок не стоит на своём месте сразу
   for (let i = 0; i < total; i++) {
     if (shuffled[i] === i) {
       const j = (i + 1) % total;
@@ -134,6 +135,55 @@ const initSlots = () => {
   }
   slots.value        = shuffled.map((pieceIdx, i) => ({ i, pieceIdx }))
   selectedSlot.value = null
+}
+
+watch(complete, (val) => {
+  if (!val) return
+  celebrating.value = true
+  nextTick(() => launchConfetti())
+  setTimeout(() => { celebrating.value = false }, 3200)
+})
+
+const launchConfetti = () => {
+  const canvas = confettiCanvas.value
+  if (!canvas) return
+  const W = canvas.offsetWidth || 300
+  const H = canvas.offsetHeight || 200
+  canvas.width  = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+  const colors = ['#3cffb4', '#667eea', '#f6c90e', '#f87171', '#fff', '#a78bfa']
+  const particles = Array.from({ length: 70 }, () => ({
+    x:     Math.random() * W,
+    y:     Math.random() * H * 0.3 - H * 0.3,
+    vx:    (Math.random() - 0.5) * 5,
+    vy:    Math.random() * 4 + 1.5,
+    r:     Math.random() * 5 + 2,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    spin:  (Math.random() - 0.5) * 0.3,
+    angle: Math.random() * Math.PI * 2,
+  }))
+  let frame = 0
+  const tick = () => {
+    ctx.clearRect(0, 0, W, H)
+    const alpha = Math.max(0, 1 - frame / 110)
+    particles.forEach(p => {
+      p.x     += p.vx
+      p.y     += p.vy
+      p.vy    += 0.1
+      p.angle += p.spin
+      ctx.save()
+      ctx.translate(p.x, p.y)
+      ctx.rotate(p.angle)
+      ctx.fillStyle   = p.color
+      ctx.globalAlpha = alpha
+      ctx.fillRect(-p.r, -p.r * 0.4, p.r * 2, p.r * 0.8)
+      ctx.restore()
+    })
+    frame++
+    if (frame < 140) confettiFrame = requestAnimationFrame(tick)
+  }
+  confettiFrame = requestAnimationFrame(tick)
 }
 
 const PUZZLE_GRID = {
@@ -204,28 +254,23 @@ const onTap = (slotIdx) => {
 .task__puzzle { display: flex; flex-direction: column; gap: 12px; }
 
 /* ── Preview ── */
-.task__puzzle__intro { display: flex; flex-direction: column; gap: 10px; }
+.task__puzzle__intro { display: flex; flex-direction: column; gap: 8px; }
 .task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
 .task__puzzle__intro-img {
   width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover;
 }
-.task__puzzle__intro-overlay {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  background: rgba(0,0,0,.2); pointer-events: none;
-}
-.task__puzzle__preview-label {
-  color: #fff; font-size: .95rem; font-weight: 700;
-  letter-spacing: .05em; text-shadow: 0 2px 8px rgba(0,0,0,.9);
-}
-/* Таймер в правом верхнем углу */
+/* Таймер в правом верхнем углу — не закрывает картинку */
 .task__puzzle__preview-timer {
   position: absolute; top: 10px; right: 12px;
   width: 28px; height: 28px; border-radius: 50%;
-  background: rgba(0,0,0,.55); border: 1.5px solid rgba(255,255,255,.5);
+  background: rgba(0,0,0,.6); border: 1.5px solid rgba(255,255,255,.5);
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: .85rem; font-weight: 700;
-  text-shadow: 0 1px 4px rgba(0,0,0,.8);
+}
+/* Подпись под картинкой */
+.task__puzzle__preview-caption {
+  text-align: center; font-size: .82rem; font-weight: 600;
+  color: rgba(255,255,255,.65); letter-spacing: .05em;
 }
 
 /* ── Progress ── */
@@ -239,15 +284,17 @@ const onTap = (slotIdx) => {
 }
 .task__puzzle__progress-txt { font-size: .72rem; color: rgba(255,255,255,.5); white-space: nowrap; }
 
+/* ── Board wrapper (для позиционирования confetti) ── */
+.task__puzzle__board-wrap {
+  position: relative; max-width: min(100%, 420px); margin: 0 auto; width: 100%;
+}
+
 /* ── Board ── */
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
-  overflow: hidden;
-  background: var(--bg2); touch-action: manipulation;
-  max-width: min(100%, 420px); margin: 0 auto;
+  overflow: hidden; background: var(--bg2); touch-action: manipulation;
   transition: gap .4s ease, box-shadow .4s ease;
 }
-/* При завершении — убираем зазоры, добавляем свечение */
 .task__puzzle__board--complete {
   gap: 0;
   box-shadow: 0 0 0 2px var(--accent), 0 0 32px color-mix(in srgb, var(--accent) 40%, transparent);
@@ -281,28 +328,29 @@ const onTap = (slotIdx) => {
 .task__puzzle__slot:not([style*="url"]) {
   border: 1px dashed rgba(255,255,255,.08);
 }
-/* Выбранный — белая рамка */
 .task__puzzle__slot.selected {
   box-shadow: inset 0 0 0 3px #fff, inset 0 0 10px rgba(255,255,255,.2);
   transform: scale(1.06); z-index: 2;
 }
-/* Правильно стоящий — зелёная рамка; скрывается когда доска complete */
 .task__puzzle__slot.correct {
   box-shadow: inset 0 0 0 2px #3cffb4;
   cursor: default; pointer-events: none;
 }
 .task__puzzle__board--complete .task__puzzle__slot {
-  box-shadow: none;
-  cursor: default; pointer-events: none;
+  box-shadow: none; cursor: default; pointer-events: none;
 }
 
-/* ── Tip ── */
+/* ── Confetti canvas ── */
+.task__puzzle__confetti {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 10;
+}
+
+/* ── Tip / skip / result ── */
 .task__puzzle__tip {
   text-align: center; font-size: .78rem;
   color: rgba(255,255,255,.55); padding: 4px; min-height: 1.4em;
 }
-
-/* ── Skip ── */
 .task__puzzle__skip {
   display: block; margin: 4px auto 0; background: none; border: none;
   color: rgba(255,255,255,.45); font-size: .72rem; cursor: pointer;
@@ -310,8 +358,6 @@ const onTap = (slotIdx) => {
   text-decoration: underline; text-underline-offset: 3px;
 }
 .task__puzzle__skip:hover { color: rgba(255,255,255,.75); }
-
-/* ── Result ── */
 .task__quiz-result {
   text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
 }

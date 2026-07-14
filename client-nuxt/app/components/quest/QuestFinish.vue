@@ -213,18 +213,17 @@ const particle = (n) => ({
 
 .finish__restart {
   background: transparent;
-  border: 1px dashed rgba(255,255,255,.2);
+  border: 1px dashed rgba(255,255,255,.3);
   border-radius: 12px;
   padding: 12px 20px;
-  color: var(--dim);
+  color: rgba(255,255,255,.55);
   font-family: var(--font-b);
   font-size: .85rem;
   cursor: pointer;
   transition: all .25s;
-  opacity: .7;
   width: 100%;
 }
-.finish__restart:hover { opacity: 1; border-color: var(--dim); color: var(--text); }
+.finish__restart:hover { border-color: rgba(255,255,255,.6); color: rgba(255,255,255,.9); }
 
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 480px) {
