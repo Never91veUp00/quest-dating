@@ -597,10 +597,10 @@ onUnmounted(() => {
 .qp-hud__row { display: flex; align-items: center; padding: 10px 16px; gap: 8px; }
 .qp-hud__pts { font-family: var(--font-d); font-size: .85rem; font-weight: 700; color: var(--accent); white-space: nowrap; text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
 .qp-hud__pts-l { font-size: .62rem; font-weight: 400; opacity: .7; }
-.qp-hud__name { flex: 1; font-size: .8rem; color: var(--dim); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.qp-hud__time { font-family: var(--font-d); font-size: .7rem; color: var(--dim); white-space: nowrap; }
-.qp-hud__menu-btn { background: none; border: none; color: var(--dim); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1; border-radius: 4px; transition: color .2s; }
-.qp-hud__menu-btn:hover { color: var(--text); }
+.qp-hud__name { flex: 1; font-size: .8rem; color: rgba(255,255,255,.55); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-hud__time { font-family: var(--font-d); font-size: .7rem; color: rgba(255,255,255,.5); white-space: nowrap; }
+.qp-hud__menu-btn { background: none; border: none; color: rgba(255,255,255,.6); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1; border-radius: 4px; transition: color .2s; }
+.qp-hud__menu-btn:hover { color: #fff; }
 .qp-hud__dropdown { position: absolute; top: 100%; right: 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: 8px; padding: 4px; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .qp-hud__dropdown-item { width: 100%; background: none; border: none; color: var(--text); font-size: .85rem; padding: 10px 14px; cursor: pointer; border-radius: 6px; text-align: left; transition: background .15s; }
 .qp-hud__dropdown-item:hover { background: rgba(255,255,255,.06); }
@@ -621,10 +621,10 @@ onUnmounted(() => {
 .qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
 .qp-foot__dot.done { background: rgba(255,255,255,.45); }
 .qp-foot__dot.cur { width: 24px; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
-.qp-badge { position: fixed; top: 76px; right: 16px; z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 16px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
+.qp-badge { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 20px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
 .qp-badge__ico { font-size: 1.5rem; flex-shrink: 0; }
 .qp-badge__title { font-family: var(--font-d); font-size: .7rem; font-weight: 700; color: var(--accent); }
-.qp-badge__sub { font-size: .72rem; color: var(--dim); margin-top: 2px; }
+.qp-badge__sub { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 2px; }
 .qp-confirm-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .qp-confirm { background: var(--surf); border: 1px solid var(--bord); border-radius: 16px; padding: 28px 24px; text-align: center; max-width: 320px; width: 100%; }
 .qp-confirm__icon { font-size: 2.5rem; margin-bottom: 12px; }
@@ -664,7 +664,7 @@ onUnmounted(() => {
   .qp-hud__row { padding: 8px 12px; gap: 6px; }
   .qp-hud__name { font-size: .72rem; }
   .qp-foot { padding: 10px 12px; }
-  .qp-badge { right: 12px; min-width: 170px; padding: 10px 12px; }
+  .qp-badge { min-width: 170px; padding: 10px 14px; }
   .qp-badge__ico { font-size: 1.2rem; }
   .qp-badge__title { font-size: .65rem; }
   .qp-badge__sub { font-size: .65rem; }

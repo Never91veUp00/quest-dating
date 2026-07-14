@@ -239,10 +239,10 @@ const flipCard = (ci) => {
 
 .task__pairs__skip {
   display: block; margin: 8px auto 0; background: none; border: none;
-  color: var(--dim); font-size: .68rem; cursor: pointer;
-  opacity: .4; transition: opacity .3s; padding: 6px 12px;
+  color: rgba(255,255,255,.45); font-size: .72rem; cursor: pointer;
+  transition: color .2s; padding: 6px 12px;
   text-decoration: underline; text-underline-offset: 3px;
 }
-.task__pairs__skip:hover { opacity: .7; }
+.task__pairs__skip:hover { color: rgba(255,255,255,.75); }
 
 </style>
