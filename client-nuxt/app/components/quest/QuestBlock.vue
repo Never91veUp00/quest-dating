@@ -114,7 +114,7 @@ const finishLabel = computed(() => ({
 
 .block__counter {
   font-size: .68rem; text-transform: uppercase;
-  letter-spacing: .1em; color: var(--dim); font-weight: 600;
+  letter-spacing: .1em; color: rgba(255,255,255,.5); font-weight: 600;
 }
 
 .block__title {
@@ -129,7 +129,7 @@ const finishLabel = computed(() => ({
 .block__desc {
   font-size: .95rem;
   line-height: 1.75;
-  color: var(--dim);
+  color: rgba(255,255,255,.6);
   margin: 0;
 }
 
@@ -156,7 +156,7 @@ const finishLabel = computed(() => ({
   display: flex; align-items: center; gap: 10px; padding: 4px 0;
 }
 .block__nav-space { flex: 1; }
-.block__nav-hint { font-size: .78rem; color: var(--dim); font-style: italic; }
+.block__nav-hint { font-size: .78rem; color: rgba(255,255,255,.45); font-style: italic; }
 
 .block__nav-back {
   background: var(--surf); border: 1px solid var(--bord); border-radius: 9px;

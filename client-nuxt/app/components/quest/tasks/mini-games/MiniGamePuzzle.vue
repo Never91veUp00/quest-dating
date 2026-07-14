@@ -1,14 +1,15 @@
 <template>
   <div class="task__puzzle">
 
-    <!-- Фаза 1: чёткая картинка 4 секунды -->
+    <!-- Фаза 1: чёткая картинка -->
     <div v-if="phase === 'preview'" class="task__puzzle__intro">
       <div class="task__puzzle__intro-img-wrap">
         <img :src="task.puzzle_image" class="task__puzzle__intro-img" alt="Пазл" />
         <div class="task__puzzle__intro-overlay">
           <span class="task__puzzle__preview-label">Запомни картинку</span>
-          <span class="task__puzzle__preview-timer">{{ previewCountdown }}</span>
         </div>
+        <!-- Таймер в углу, не перекрывает центр -->
+        <span class="task__puzzle__preview-timer">{{ previewCountdown }}</span>
       </div>
     </div>
 
@@ -32,12 +33,15 @@
         <span class="task__puzzle__progress-txt">{{ placed }}/{{ totalPieces }} собрано</span>
       </div>
 
-      <div class="task__puzzle__board" :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }">
+      <div
+        class="task__puzzle__board"
+        :class="{ 'task__puzzle__board--complete': complete }"
+        :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
+      >
         <div
           v-for="slot in slots" :key="'s'+slot.i"
           class="task__puzzle__slot"
           :class="{
-            filled:   slot.pieceIdx !== null,
             correct:  slot.pieceIdx === slot.i,
             selected: selectedSlot === slot.i,
           }"
@@ -46,9 +50,9 @@
         ></div>
       </div>
 
-      <div class="task__puzzle__tip">
-        <template v-if="selectedSlot === null">👆 Тапни на кусок чтобы выбрать</template>
-        <template v-else>👇 Тапни куда поставить выбранный кусок</template>
+      <div v-if="!complete" class="task__puzzle__tip">
+        <template v-if="selectedSlot === null">Тапни на кусок чтобы выбрать</template>
+        <template v-else>Тапни куда поставить</template>
       </div>
 
       <button v-if="!complete" class="task__puzzle__skip" @click="$emit('skip-task', task)">
@@ -73,11 +77,11 @@ const props = defineProps({
 })
 defineEmits(['complete', 'skip-task'])
 
-const phase           = ref('preview')
+const phase            = ref('preview')
 const previewCountdown = ref(4)
-const slots           = ref([])
-const selectedSlot    = ref(null)
-const imgNaturalRatio = ref(null)
+const slots            = ref([])
+const selectedSlot     = ref(null)
+const imgNaturalRatio  = ref(null)
 
 let previewTimer = null
 let shuffleTimer = null
@@ -110,17 +114,23 @@ const startPreview = () => {
 const startShuffling = () => {
   initSlots()
   phase.value = 'shuffling'
-  shuffleTimer = setTimeout(() => {
-    phase.value = 'playing'
-  }, 900)
+  shuffleTimer = setTimeout(() => { phase.value = 'playing' }, 900)
 }
 
 const initSlots = () => {
   const total    = totalPieces.value
   const shuffled = Array.from({ length: total }, (_, i) => i)
+  // Fisher-Yates shuffle
   for (let i = total - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  // Гарантируем что ни один кусок не стоит на своём месте сразу
+  for (let i = 0; i < total; i++) {
+    if (shuffled[i] === i) {
+      const j = (i + 1) % total;
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
   }
   slots.value        = shuffled.map((pieceIdx, i) => ({ i, pieceIdx }))
   selectedSlot.value = null
@@ -173,9 +183,7 @@ const slotStyle = (slot) => {
 const onTap = (slotIdx) => {
   if (complete.value) return
   const slot = slots.value[slotIdx]
-
   if (slot.pieceIdx === slotIdx) return
-
   if (selectedSlot.value === null) { selectedSlot.value = slotIdx; return }
   if (selectedSlot.value === slotIdx) { selectedSlot.value = null; return }
 
@@ -203,81 +211,107 @@ const onTap = (slotIdx) => {
 }
 .task__puzzle__intro-overlay {
   position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 8px;
-  background: rgba(0,0,0,.25);
-  pointer-events: none;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,.2); pointer-events: none;
 }
 .task__puzzle__preview-label {
   color: #fff; font-size: .95rem; font-weight: 700;
-  letter-spacing: .05em; text-shadow: 0 2px 8px rgba(0,0,0,.8);
+  letter-spacing: .05em; text-shadow: 0 2px 8px rgba(0,0,0,.9);
 }
+/* Таймер в правом верхнем углу */
 .task__puzzle__preview-timer {
-  width: 36px; height: 36px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.6);
+  position: absolute; top: 10px; right: 12px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(0,0,0,.55); border: 1.5px solid rgba(255,255,255,.5);
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 1rem; font-weight: 700;
+  color: #fff; font-size: .85rem; font-weight: 700;
   text-shadow: 0 1px 4px rgba(0,0,0,.8);
 }
 
 /* ── Progress ── */
 .task__puzzle__progress { display: flex; align-items: center; gap: 10px; }
 .task__puzzle__progress-bar {
-  flex: 1; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
+  flex: 1; height: 4px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
 }
 .task__puzzle__progress-fill {
   height: 100%; background: var(--accent); border-radius: 3px;
   transition: width .3s ease; box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
 }
-.task__puzzle__progress-txt { font-size: .72rem; color: var(--dim); white-space: nowrap; }
+.task__puzzle__progress-txt { font-size: .72rem; color: rgba(255,255,255,.5); white-space: nowrap; }
 
 /* ── Board ── */
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--bord); background: var(--bg2); touch-action: manipulation;
+  background: var(--bg2); touch-action: manipulation;
   max-width: min(100%, 420px); margin: 0 auto;
+  transition: gap .4s ease, box-shadow .4s ease;
+}
+/* При завершении — убираем зазоры, добавляем свечение */
+.task__puzzle__board--complete {
+  gap: 0;
+  box-shadow: 0 0 0 2px var(--accent), 0 0 32px color-mix(in srgb, var(--accent) 40%, transparent);
+  animation: board-celebrate .6s ease;
+}
+@keyframes board-celebrate {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.025); }
+  70%  { transform: scale(.99); }
+  100% { transform: scale(1); }
 }
 
-/* Анимация перемешивания: кусочки "влетают" со случайным смещением */
+/* Анимация перемешивания */
 .task__puzzle__board--shuffling .task__puzzle__slot {
   animation: piece-shuffle 0.55s cubic-bezier(.34,1.56,.64,1) both;
   animation-delay: calc(var(--slot-i, 0) * 18ms);
 }
 @keyframes piece-shuffle {
-  from { opacity: 0; transform: scale(.6) rotate(var(--r, 8deg)); }
-  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+  from { opacity: 0; transform: scale(.6); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .task__puzzle__slot {
-  cursor: pointer; border-radius: 2px;
+  cursor: pointer; border-radius: 1px;
   transition: transform .12s, box-shadow .12s;
-  background-color: color-mix(in srgb, var(--bg2) 60%, transparent);
+  background-color: rgba(255,255,255,.04);
   background-repeat: no-repeat;
   user-select: none; -webkit-user-select: none;
 }
 .task__puzzle__slot:active { transform: scale(.94); }
 .task__puzzle__slot:not([style*="url"]) {
-  background-color: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.08);
+  border: 1px dashed rgba(255,255,255,.08);
 }
+/* Выбранный — белая рамка */
 .task__puzzle__slot.selected {
-  /* inset — рисуется внутри, не обрезается overflow:hidden */
-  box-shadow: inset 0 0 0 3px var(--accent), inset 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 10px rgba(255,255,255,.2);
   transform: scale(1.06); z-index: 2;
 }
+/* Правильно стоящий — зелёная рамка; скрывается когда доска complete */
 .task__puzzle__slot.correct {
   box-shadow: inset 0 0 0 2px #3cffb4;
   cursor: default; pointer-events: none;
 }
+.task__puzzle__board--complete .task__puzzle__slot {
+  box-shadow: none;
+  cursor: default; pointer-events: none;
+}
 
-/* ── Tip / skip / result ── */
-.task__puzzle__tip { text-align: center; font-size: .78rem; color: var(--dim); padding: 4px; min-height: 1.4em; }
+/* ── Tip ── */
+.task__puzzle__tip {
+  text-align: center; font-size: .78rem;
+  color: rgba(255,255,255,.55); padding: 4px; min-height: 1.4em;
+}
+
+/* ── Skip ── */
 .task__puzzle__skip {
-  display: block; margin: 8px auto 0; background: none; border: none;
-  color: var(--dim); font-size: .68rem; cursor: pointer;
-  opacity: .4; transition: opacity .3s; padding: 6px 12px;
+  display: block; margin: 4px auto 0; background: none; border: none;
+  color: rgba(255,255,255,.45); font-size: .72rem; cursor: pointer;
+  transition: color .2s; padding: 6px 12px;
   text-decoration: underline; text-underline-offset: 3px;
 }
-.task__puzzle__skip:hover { opacity: .7; }
+.task__puzzle__skip:hover { color: rgba(255,255,255,.75); }
+
+/* ── Result ── */
 .task__quiz-result {
   text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
 }
