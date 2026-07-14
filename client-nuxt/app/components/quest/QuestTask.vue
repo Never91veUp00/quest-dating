@@ -172,7 +172,7 @@ const typeLabel = computed(() => ({
   gap: 4px;
 }
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
-.task__desc { font-size: .88rem; color: var(--text); line-height: 1.6; margin: 0; opacity: .85; }
+.task__desc { font-size: .88rem; color: var(--text); line-height: 1.7; margin: 0; opacity: .9; white-space: pre-line; }
 .task__instruction { font-size: .85rem; color: var(--text); font-style: italic; margin: 0; }
 
 .task__done {
