@@ -57,10 +57,10 @@
       <!-- Кнопки -->
       <button v-if="selfieUrl" class="finish__share finish__share--primary"
         :disabled="saving" @click="saveCard">
-        {{ saving ? 'Создаём карточку…' : '📸 Сохранить карточку' }}
+        {{ saving ? 'Создаём карточку…' : '📸 Получить фото в Telegram' }}
       </button>
       <button v-else class="finish__share finish__share--primary" @click="$emit('share')">
-        {{ theme.copy.shareBtn }}
+        Поделиться результатом
       </button>
 
       <button class="finish__restart" @click="$emit('restart')">
@@ -206,23 +206,31 @@ const saveCard = async () => {
     ctx.fillStyle = '#ffffff30'
     ctx.fillText('Quest Dating', W / 2, H - 36)
 
-    // Share or download
+    // Upload to server → open Telegram bot
     canvas.toBlob(async (blob) => {
-      const file = new File([blob], 'quest-result.png', { type: 'image/png' })
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: props.questData.title })
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url; a.download = 'quest-result.png'; a.click()
-        setTimeout(() => URL.revokeObjectURL(url), 2000)
+      try {
+        const res = await fetch('/api/telegram/card', {
+          method:  'POST',
+          headers: { 'Content-Type': 'image/png' },
+          body:    blob,
+        })
+        if (!res.ok) throw new Error('upload failed')
+        const { token } = await res.json()
+        window.open(`https://t.me/QUESTDATING_BOT?start=card_${token}`, '_blank')
+      } catch {
+        // Фоллбэк — скачиваем PNG локально (не открываем Share API)
+        try {
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url; a.download = 'quest-result.png'; a.click()
+          setTimeout(() => URL.revokeObjectURL(url), 2000)
+        } catch { /* игнорируем */ }
+      } finally {
+        saving.value = false
       }
     }, 'image/png', 0.92)
 
   } catch {
-    const text = `Я прошла квест «${props.questData.title}» и набрала ${props.points} ${props.theme.copy.pointsLabel}! 🎯`
-    if (navigator.share) navigator.share({ text, url: location.href })
-  } finally {
     saving.value = false
   }
 }
@@ -354,12 +362,13 @@ const saveCard = async () => {
 .finish__share--primary:disabled { opacity: .6; cursor: default; }
 
 .finish__restart {
-  background: transparent; border: 1px dashed rgba(255,255,255,.3);
+  background: transparent; border: 1.5px solid rgba(255,255,255,.28);
   border-radius: 12px; padding: 12px 20px;
-  color: rgba(255,255,255,.55); font-family: var(--font-b);
+  color: rgba(255,255,255,.5); font-family: var(--font-b);
   font-size: .85rem; cursor: pointer; transition: all .25s; width: 100%;
+  box-sizing: border-box;
 }
-.finish__restart:hover { border-color: rgba(255,255,255,.6); color: rgba(255,255,255,.9); }
+.finish__restart:hover { border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.9); }
 
 /* ── Mobile ────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
