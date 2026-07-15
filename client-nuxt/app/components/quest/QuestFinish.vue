@@ -57,7 +57,7 @@
       <!-- Кнопки -->
       <button v-if="selfieUrl" class="finish__share finish__share--primary"
         :disabled="saving" @click="saveCard">
-        {{ saving ? 'Создаём карточку…' : '📸 Сохранить карточку' }}
+        {{ saving ? 'Создаём карточку…' : '📸 Получить фото в Telegram' }}
       </button>
       <button v-else class="finish__share finish__share--primary" @click="$emit('share')">
         {{ theme.copy.shareBtn }}
@@ -206,23 +206,29 @@ const saveCard = async () => {
     ctx.fillStyle = '#ffffff30'
     ctx.fillText('Quest Dating', W / 2, H - 36)
 
-    // Share or download
+    // Upload to server → open Telegram bot
     canvas.toBlob(async (blob) => {
-      const file = new File([blob], 'quest-result.png', { type: 'image/png' })
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: props.questData.title })
-      } else {
+      try {
+        const res = await fetch('/api/telegram/card', {
+          method:  'POST',
+          headers: { 'Content-Type': 'image/png' },
+          body:    blob,
+        })
+        if (!res.ok) throw new Error('upload failed')
+        const { token } = await res.json()
+        window.open(`https://t.me/QUESTDATING_BOT?start=card_${token}`, '_blank')
+      } catch {
+        // Фоллбэк — скачиваем локально
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url; a.download = 'quest-result.png'; a.click()
         setTimeout(() => URL.revokeObjectURL(url), 2000)
+      } finally {
+        saving.value = false
       }
     }, 'image/png', 0.92)
 
   } catch {
-    const text = `Я прошла квест «${props.questData.title}» и набрала ${props.points} ${props.theme.copy.pointsLabel}! 🎯`
-    if (navigator.share) navigator.share({ text, url: location.href })
-  } finally {
     saving.value = false
   }
 }
