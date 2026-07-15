@@ -97,14 +97,14 @@ const finishLabel = computed(() => ({
   border-radius: 20px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* ── Head ─────────────────────────────────────────────────────── */
-.block__head { display: flex; flex-direction: column; gap: 10px; }
+.block__head { display: flex; flex-direction: column; gap: 6px; }
 
 .block__location {
   display: flex; align-items: center; gap: 6px;
@@ -118,23 +118,23 @@ const finishLabel = computed(() => ({
 }
 
 .block__title {
-  font-size: clamp(1.25rem, 4.5vw, 1.55rem);
+  font-size: clamp(1.1rem, 4vw, 1.4rem);
   font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.2;
   color: #fff;
   margin: 0;
   font-family: var(--font-d);
 }
 
 .block__desc {
-  font-size: .95rem;
-  line-height: 1.75;
+  font-size: .88rem;
+  line-height: 1.55;
   color: rgba(255,255,255,.6);
   margin: 0;
 }
 
 /* ── Tasks ────────────────────────────────────────────────────── */
-.block__tasks { display: flex; flex-direction: column; gap: 10px; }
+.block__tasks { display: flex; flex-direction: column; gap: 8px; }
 
 /* ── Stagger animations ───────────────────────────────────────── */
 .block__anim {
@@ -179,9 +179,9 @@ const finishLabel = computed(() => ({
 
 /* ── Mobile ───────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .block { padding: 16px; border-radius: 16px; }
-  .block__title { font-size: clamp(1.1rem, 4vw, 1.35rem); }
-  .block__desc { font-size: .85rem; }
+  .block { padding: 12px; border-radius: 16px; gap: 10px; }
+  .block__title { font-size: clamp(1rem, 4vw, 1.25rem); }
+  .block__desc { font-size: .82rem; }
   .block__nav { flex-wrap: nowrap; }
   .block__nav-back { padding: 12px 16px; min-height: 48px; flex-shrink: 0; }
   .block__nav-next, .block__nav-finish { padding: 12px 16px; min-height: 48px; flex: 1; }

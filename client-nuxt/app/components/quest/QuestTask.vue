@@ -121,9 +121,9 @@ const typeLabel = computed(() => ({
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--bord);
   border-left: 3px solid var(--bord);
-  border-radius: 14px;
-  padding: 16px;
-  display: flex; gap: 14px;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex; gap: 10px;
   animation: task-in .25s ease both;
   animation-delay: calc(var(--i, 0) * 0.06s);
   transition: opacity .2s, border-color .2s, box-shadow .2s;
@@ -159,7 +159,7 @@ const typeLabel = computed(() => ({
 }
 
 /* ── Body ─────────────────────────────────────────────────────── */
-.task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .task__type-label {
   font-size: .65rem;
   font-weight: 700;
@@ -172,7 +172,7 @@ const typeLabel = computed(() => ({
   gap: 4px;
 }
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
-.task__desc { font-size: .88rem; color: var(--text); line-height: 1.7; margin: 0; opacity: .9; white-space: pre-line; }
+.task__desc { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; }
 .task__instruction { font-size: .85rem; color: var(--text); font-style: italic; margin: 0; }
 
 .task__done {
