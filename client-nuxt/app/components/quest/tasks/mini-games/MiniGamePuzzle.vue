@@ -30,24 +30,26 @@
         <span class="task__puzzle__progress-txt">{{ placed }}/{{ totalPieces }} собрано</span>
       </div>
 
-      <div class="task__puzzle__board-wrap">
+      <div
+        class="task__puzzle__board"
+        :class="{ 'task__puzzle__board--complete': complete }"
+        :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
+      >
         <div
-          class="task__puzzle__board"
-          :class="{ 'task__puzzle__board--complete': complete }"
-          :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
-        >
-          <div
-            v-for="slot in slots" :key="'s'+slot.i"
-            class="task__puzzle__slot"
-            :class="{
-              correct:  slot.pieceIdx === slot.i,
-              selected: selectedSlot === slot.i,
-            }"
-            :style="slotStyle(slot)"
-            @click="onTap(slot.i)"
-          ></div>
-        </div>
-        <canvas v-if="celebrating" ref="confettiCanvas" class="task__puzzle__confetti" />
+          v-for="slot in slots" :key="'s'+slot.i"
+          class="task__puzzle__slot"
+          :class="{
+            correct:  slot.pieceIdx === slot.i,
+            selected: selectedSlot === slot.i,
+          }"
+          :style="slotStyle(slot)"
+          @click="onTap(slot.i)"
+        ></div>
+      </div>
+
+      <!-- CSS-конфетти при завершении -->
+      <div v-if="complete" class="task__puzzle__confetti" aria-hidden="true">
+        <span v-for="i in 16" :key="i" class="task__puzzle__confetti__p" :style="`--i:${i}`"></span>
       </div>
 
       <div v-if="!complete" class="task__puzzle__tip">
@@ -69,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -82,11 +84,9 @@ const previewCountdown = ref(4)
 const slots            = ref([])
 const selectedSlot     = ref(null)
 const imgNaturalRatio  = ref(null)
-const celebrating      = ref(false)
-const confettiCanvas   = ref(null)
-let previewTimer  = null
-let shuffleTimer  = null
-let confettiFrame = null
+
+let previewTimer = null
+let shuffleTimer = null
 
 onMounted(() => {
   if (props.task.puzzle_image) {
@@ -100,7 +100,6 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(previewTimer)
   clearTimeout(shuffleTimer)
-  if (confettiFrame) cancelAnimationFrame(confettiFrame)
 })
 
 const startPreview = () => {
@@ -127,6 +126,7 @@ const initSlots = () => {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
+  // Убеждаемся что ни один кусок не стоит правильно сразу
   for (let i = 0; i < total; i++) {
     if (shuffled[i] === i) {
       const j = (i + 1) % total;
@@ -135,55 +135,6 @@ const initSlots = () => {
   }
   slots.value        = shuffled.map((pieceIdx, i) => ({ i, pieceIdx }))
   selectedSlot.value = null
-}
-
-watch(complete, (val) => {
-  if (!val) return
-  celebrating.value = true
-  nextTick(() => launchConfetti())
-  setTimeout(() => { celebrating.value = false }, 3200)
-})
-
-const launchConfetti = () => {
-  const canvas = confettiCanvas.value
-  if (!canvas) return
-  const W = canvas.offsetWidth || 300
-  const H = canvas.offsetHeight || 200
-  canvas.width  = W
-  canvas.height = H
-  const ctx = canvas.getContext('2d')
-  const colors = ['#3cffb4', '#667eea', '#f6c90e', '#f87171', '#fff', '#a78bfa']
-  const particles = Array.from({ length: 70 }, () => ({
-    x:     Math.random() * W,
-    y:     Math.random() * H * 0.3 - H * 0.3,
-    vx:    (Math.random() - 0.5) * 5,
-    vy:    Math.random() * 4 + 1.5,
-    r:     Math.random() * 5 + 2,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    spin:  (Math.random() - 0.5) * 0.3,
-    angle: Math.random() * Math.PI * 2,
-  }))
-  let frame = 0
-  const tick = () => {
-    ctx.clearRect(0, 0, W, H)
-    const alpha = Math.max(0, 1 - frame / 110)
-    particles.forEach(p => {
-      p.x     += p.vx
-      p.y     += p.vy
-      p.vy    += 0.1
-      p.angle += p.spin
-      ctx.save()
-      ctx.translate(p.x, p.y)
-      ctx.rotate(p.angle)
-      ctx.fillStyle   = p.color
-      ctx.globalAlpha = alpha
-      ctx.fillRect(-p.r, -p.r * 0.4, p.r * 2, p.r * 0.8)
-      ctx.restore()
-    })
-    frame++
-    if (frame < 140) confettiFrame = requestAnimationFrame(tick)
-  }
-  confettiFrame = requestAnimationFrame(tick)
 }
 
 const PUZZLE_GRID = {
@@ -251,63 +202,56 @@ const onTap = (slotIdx) => {
 </script>
 
 <style scoped>
-.task__puzzle { display: flex; flex-direction: column; gap: 12px; }
+.task__puzzle { display: flex; flex-direction: column; gap: 8px; }
 
 /* ── Preview ── */
-.task__puzzle__intro { display: flex; flex-direction: column; gap: 8px; }
+.task__puzzle__intro { display: flex; flex-direction: column; gap: 6px; }
 .task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
 .task__puzzle__intro-img {
-  width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover;
+  width: 100%; display: block; aspect-ratio: 16/9; max-height: 35vh; object-fit: cover;
 }
-/* Таймер в правом верхнем углу — не закрывает картинку */
 .task__puzzle__preview-timer {
-  position: absolute; top: 10px; right: 12px;
-  width: 28px; height: 28px; border-radius: 50%;
+  position: absolute; top: 8px; right: 10px;
+  width: 26px; height: 26px; border-radius: 50%;
   background: rgba(0,0,0,.6); border: 1.5px solid rgba(255,255,255,.5);
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: .85rem; font-weight: 700;
+  color: #fff; font-size: .8rem; font-weight: 700;
 }
-/* Подпись под картинкой */
 .task__puzzle__preview-caption {
-  text-align: center; font-size: .82rem; font-weight: 600;
-  color: rgba(255,255,255,.65); letter-spacing: .05em;
+  text-align: center; font-size: .78rem; font-weight: 600;
+  color: rgba(255,255,255,.6); letter-spacing: .04em;
 }
 
 /* ── Progress ── */
-.task__puzzle__progress { display: flex; align-items: center; gap: 10px; }
+.task__puzzle__progress { display: flex; align-items: center; gap: 8px; }
 .task__puzzle__progress-bar {
-  flex: 1; height: 4px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
+  flex: 1; height: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
 }
 .task__puzzle__progress-fill {
   height: 100%; background: var(--accent); border-radius: 3px;
-  transition: width .3s ease; box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
+  transition: width .3s ease;
 }
-.task__puzzle__progress-txt { font-size: .72rem; color: rgba(255,255,255,.5); white-space: nowrap; }
-
-/* ── Board wrapper (для позиционирования confetti) ── */
-.task__puzzle__board-wrap {
-  position: relative; max-width: min(100%, 420px); margin: 0 auto; width: 100%;
-}
+.task__puzzle__progress-txt { font-size: .68rem; color: rgba(255,255,255,.5); white-space: nowrap; }
 
 /* ── Board ── */
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
   overflow: hidden; background: var(--bg2); touch-action: manipulation;
+  max-width: min(100%, 420px); margin: 0 auto;
   transition: gap .4s ease, box-shadow .4s ease;
 }
 .task__puzzle__board--complete {
   gap: 0;
-  box-shadow: 0 0 0 2px var(--accent), 0 0 32px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 28px color-mix(in srgb, var(--accent) 40%, transparent);
   animation: board-celebrate .6s ease;
 }
 @keyframes board-celebrate {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.025); }
+  40%  { transform: scale(1.03); }
   70%  { transform: scale(.99); }
   100% { transform: scale(1); }
 }
 
-/* Анимация перемешивания */
 .task__puzzle__board--shuffling .task__puzzle__slot {
   animation: piece-shuffle 0.55s cubic-bezier(.34,1.56,.64,1) both;
   animation-delay: calc(var(--slot-i, 0) * 18ms);
@@ -329,7 +273,7 @@ const onTap = (slotIdx) => {
   border: 1px dashed rgba(255,255,255,.08);
 }
 .task__puzzle__slot.selected {
-  box-shadow: inset 0 0 0 3px #fff, inset 0 0 10px rgba(255,255,255,.2);
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 10px rgba(255,255,255,.15);
   transform: scale(1.06); z-index: 2;
 }
 .task__puzzle__slot.correct {
@@ -340,41 +284,52 @@ const onTap = (slotIdx) => {
   box-shadow: none; cursor: default; pointer-events: none;
 }
 
-/* ── Confetti canvas ── */
+/* ── CSS Confetti ── */
 .task__puzzle__confetti {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  pointer-events: none; z-index: 10;
+  position: relative; height: 40px; overflow: hidden; pointer-events: none;
+}
+.task__puzzle__confetti__p {
+  position: absolute;
+  left: calc(var(--i) * 6.25%);
+  top: 0;
+  width: 7px; height: 10px;
+  border-radius: 2px;
+  background: hsl(calc(var(--i) * 22deg), 80%, 65%);
+  animation: confetti-fall .9s calc(var(--i) * 55ms) ease-in both;
+}
+@keyframes confetti-fall {
+  from { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(50px) rotate(540deg); opacity: 0; }
 }
 
 /* ── Tip / skip / result ── */
 .task__puzzle__tip {
-  text-align: center; font-size: .78rem;
-  color: rgba(255,255,255,.55); padding: 4px; min-height: 1.4em;
+  text-align: center; font-size: .75rem;
+  color: rgba(255,255,255,.5); padding: 2px; min-height: 1.3em;
 }
 .task__puzzle__skip {
-  display: block; margin: 4px auto 0; background: none; border: none;
-  color: rgba(255,255,255,.45); font-size: .72rem; cursor: pointer;
-  transition: color .2s; padding: 6px 12px;
+  display: block; margin: 2px auto 0; background: none; border: none;
+  color: rgba(255,255,255,.45); font-size: .7rem; cursor: pointer;
+  transition: color .2s; padding: 4px 12px;
   text-decoration: underline; text-underline-offset: 3px;
 }
 .task__puzzle__skip:hover { color: rgba(255,255,255,.75); }
 .task__quiz-result {
-  text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
+  text-align: center; font-size: .88rem; padding: 6px; border-radius: 8px; font-weight: 600;
 }
 .task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
 
 .task__action {
   display: flex; align-items: center; justify-content: center;
-  width: 100%; min-height: 52px;
+  width: 100%; min-height: 48px;
   background: transparent; border: 1.5px solid var(--accent);
   border-radius: 14px; color: var(--accent);
-  font-size: .95rem; font-weight: 700; cursor: pointer;
+  font-size: .92rem; font-weight: 700; cursor: pointer;
   text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
   transition: all .2s ease;
 }
 .task__action:hover {
   background: var(--accent); color: #000; text-shadow: none;
-  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 @media (max-width: 480px) { .task__puzzle__board { gap: 1px; } }
 </style>
