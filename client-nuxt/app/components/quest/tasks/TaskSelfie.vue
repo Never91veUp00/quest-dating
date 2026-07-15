@@ -26,7 +26,8 @@
       <button class="task__photo-rm" @click="photoPreview = null" aria-label="Удалить фото">✕</button>
       <div class="task__photo-preview__glow"></div>
     </div>
-    <button v-if="photoPreview" class="task__action task__action--photo" @click="$emit('complete', task)">
+    <button v-if="photoPreview" class="task__action task__action--photo"
+      @click="$emit('complete', { ...task, _selfieUrl: photoPreview })">
       Сохранить этот момент ✨
     </button>
   </div>

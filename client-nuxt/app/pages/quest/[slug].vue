@@ -143,6 +143,8 @@
           :questData="questData"
           :theme="themeObj"
           :points="points"
+          :maxPoints="maxPoints"
+          :selfieUrl="selfiePhoto"
           :completedCount="completedIds.length"
           :elapsed="elapsedStr"
           @share="share"
@@ -261,6 +263,7 @@ const badge               = ref(null)
 const showMenu            = ref(false)
 const showRestartConfirm  = ref(false)
 const showBridge          = ref(false)
+const selfiePhoto         = ref(null)
 
 // ─── Timer ────────────────────────────────────────────────────
 const startTs = ref(0)
@@ -288,6 +291,7 @@ watchEffect(() => {
 const blocks       = computed(() => questData.value?.blocks || [])
 const totalBlocks  = computed(() => blocks.value.length)
 const totalTasks   = computed(() => blocks.value.reduce((s, b) => s + (b.tasks?.length || 0), 0))
+const maxPoints    = computed(() => blocks.value.flatMap(b => b.tasks || []).reduce((s, t) => s + (t.points || 0), 0) || 100)
 const currentBlock = computed(() => blocks.value[blockIdx.value] || null)
 const isLast       = computed(() => blockIdx.value === totalBlocks.value - 1)
 
@@ -439,6 +443,7 @@ const handleStart = async () => {
 const onTaskComplete = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
+  if (task._selfieUrl) selfiePhoto.value = task._selfieUrl
   const earned = task.points ?? 10
   earnedMap.value[task.id] = { points: earned, wrong: task._quizWrong === true }
   points.value += earned

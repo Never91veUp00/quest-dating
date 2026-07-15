@@ -3,17 +3,12 @@
 
     <!-- Частицы -->
     <div class="finish__particles" aria-hidden="true">
-      <span
-        v-for="n in 20"
-        :key="n"
-        class="finish__particle"
-        :style="particle(n)"
-      ></span>
+      <span v-for="n in 20" :key="n" class="finish__particle" :style="particle(n)"></span>
     </div>
 
     <div class="finish__body">
 
-      <!-- Иконка успеха (зависит от темы) -->
+      <!-- Иконка успеха -->
       <div class="finish__trophy">{{ trophyIcon }}</div>
 
       <div class="finish__eyebrow">{{ theme.copy.finishEyebrow }}</div>
@@ -22,31 +17,34 @@
       <!-- Статы -->
       <div class="finish__grid">
         <div class="finish__cell">
-          <div
-            v-motion
-            :initial="{ scale: 0.4, opacity: 0 }"
+          <div v-motion :initial="{ scale: 0.4, opacity: 0 }"
             :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 300 } }"
-            class="finish__n"
-          >{{ points }}</div>
+            class="finish__n">{{ points }}</div>
           <div class="finish__l">{{ theme.copy.pointsLabel }}</div>
         </div>
         <div class="finish__cell">
-          <div
-            v-motion
-            :initial="{ scale: 0.4, opacity: 0 }"
+          <div v-motion :initial="{ scale: 0.4, opacity: 0 }"
             :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 450 } }"
-            class="finish__n"
-          >{{ completedCount }}</div>
+            class="finish__n">{{ completedCount }}</div>
           <div class="finish__l">заданий</div>
         </div>
         <div class="finish__cell">
-          <div
-            v-motion
-            :initial="{ scale: 0.4, opacity: 0 }"
+          <div v-motion :initial="{ scale: 0.4, opacity: 0 }"
             :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 600 } }"
-            class="finish__n"
-          >{{ elapsed }}</div>
+            class="finish__n">{{ elapsed }}</div>
           <div class="finish__l">времени</div>
+        </div>
+      </div>
+
+      <!-- Карточка с селфи -->
+      <div v-if="selfieUrl" class="finish__card" :class="`finish__card--${frameLevel}`">
+        <div class="finish__card__frame">
+          <img :src="selfieUrl" alt="Твоё фото" class="finish__card__photo" />
+          <div class="finish__card__frame-inner"></div>
+        </div>
+        <div class="finish__card__badge">
+          <span class="finish__card__badge-icon">{{ frameBadge }}</span>
+          <span class="finish__card__badge-label">{{ frameLabel }}</span>
         </div>
       </div>
 
@@ -56,45 +54,64 @@
         <p class="finish__message-text">{{ questData.final_message }}</p>
       </div>
 
-      <!-- Кнопка поделиться -->
-      <button class="finish__share finish__share--primary" @click="$emit('share')">
+      <!-- Кнопки -->
+      <button v-if="selfieUrl" class="finish__share finish__share--primary"
+        :disabled="saving" @click="saveCard">
+        {{ saving ? 'Создаём карточку…' : '📸 Сохранить карточку' }}
+      </button>
+      <button v-else class="finish__share finish__share--primary" @click="$emit('share')">
         {{ theme.copy.shareBtn }}
       </button>
 
-      <!-- Кнопка начать сначала -->
       <button class="finish__restart" @click="$emit('restart')">
         🔄 Пройти ещё раз
       </button>
     </div>
+
+    <!-- Скрытый canvas для генерации карточки -->
+    <canvas ref="cardCanvas" style="display:none"></canvas>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   questData:      { type: Object, required: true },
   theme:          { type: Object, required: true },
   points:         { type: Number, default: 0 },
+  maxPoints:      { type: Number, default: 100 },
+  selfieUrl:      { type: String, default: null },
   completedCount: { type: Number, default: 0 },
   elapsed:        { type: String, default: '0:00' },
 })
 
 defineEmits(['share', 'restart'])
 
+const cardCanvas = ref(null)
+const saving     = ref(false)
+
 const trophyIcon = computed(() => ({
-  detective: '🗂️',
-  romantic:  '💝',
-  mystery:   '🔮',
-  city:      '🏆',
+  detective: '🗂️', romantic: '💝', mystery: '🔮', city: '🏆',
 }[props.theme.id] || '🏆'))
 
 const messageLabel = computed(() => ({
-  detective: 'Личное послание',
-  romantic:  'Слова для тебя',
-  mystery:   'Последнее пророчество',
-  city:      'Личное сообщение',
+  detective: 'Личное послание', romantic: 'Слова для тебя',
+  mystery: 'Последнее пророчество', city: 'Личное сообщение',
 }[props.theme.id] || 'Послание'))
+
+const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
+const frameLevel = computed(() => {
+  if (ratio.value >= 0.8) return 'gold'
+  if (ratio.value >= 0.4) return 'silver'
+  return 'bronze'
+})
+const frameBadge = computed(() => ({ gold: '⭐', silver: '🥈', bronze: '🥉' }[frameLevel.value]))
+const frameLabel = computed(() => ({
+  gold:   'Звёздный результат!',
+  silver: 'Отличный результат!',
+  bronze: 'Первое прохождение!',
+}[frameLevel.value]))
 
 const particle = (n) => ({
   '--x':  (n * 5.1) % 100 + '%',
@@ -104,6 +121,111 @@ const particle = (n) => ({
   '--t':  (2 + n % 3) + 's',
   background: props.theme.accent,
 })
+
+// ── Canvas card generation ────────────────────────────────────────
+const FRAME_COLORS = { gold: '#FFD700', silver: '#A8C4D4', bronze: '#C8A26E' }
+
+const saveCard = async () => {
+  if (saving.value) return
+  saving.value = true
+  try {
+    const W = 800, H = 1060
+    const canvas = cardCanvas.value
+    canvas.width  = W
+    canvas.height = H
+    const ctx = canvas.getContext('2d')
+
+    // Background
+    ctx.fillStyle = '#0d0d14'
+    ctx.fillRect(0, 0, W, H)
+
+    // Accent gradient
+    const grad = ctx.createLinearGradient(0, 0, W, H * 0.55)
+    grad.addColorStop(0, props.theme.accent + '30')
+    grad.addColorStop(1, 'transparent')
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, W, H)
+
+    const frameColor = FRAME_COLORS[frameLevel.value]
+    const photoR = 220
+    const photoX = W / 2
+    const photoY = 350
+
+    // Selfie in circle
+    const img = new Image()
+    img.src = props.selfieUrl
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej })
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(photoX, photoY, photoR, 0, Math.PI * 2)
+    ctx.clip()
+    const scale = Math.max((photoR * 2) / img.naturalWidth, (photoR * 2) / img.naturalHeight)
+    const dw = img.naturalWidth * scale
+    const dh = img.naturalHeight * scale
+    ctx.drawImage(img, photoX - dw / 2, photoY - dh / 2, dw, dh)
+    ctx.restore()
+
+    // Gold outer glow ring
+    if (frameLevel.value === 'gold') {
+      ctx.beginPath()
+      ctx.arc(photoX, photoY, photoR + 12, 0, Math.PI * 2)
+      ctx.strokeStyle = '#FFD70050'
+      ctx.lineWidth = 10
+      ctx.stroke()
+    }
+    // Main frame ring
+    ctx.beginPath()
+    ctx.arc(photoX, photoY, photoR + 4, 0, Math.PI * 2)
+    ctx.strokeStyle = frameColor
+    ctx.lineWidth = 7
+    ctx.stroke()
+
+    // Quest title
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 38px system-ui, sans-serif'
+    ctx.fillText(props.questData.title, W / 2, photoY + photoR + 66)
+
+    // Points value
+    ctx.font = 'bold 80px system-ui, sans-serif'
+    ctx.fillStyle = props.theme.accent
+    ctx.fillText(String(props.points), W / 2, photoY + photoR + 156)
+
+    ctx.font = '28px system-ui, sans-serif'
+    ctx.fillStyle = props.theme.accent + 'bb'
+    ctx.fillText(props.theme.copy.pointsLabel, W / 2, photoY + photoR + 196)
+
+    // Frame badge
+    ctx.font = '30px system-ui, sans-serif'
+    ctx.fillStyle = frameColor
+    ctx.fillText(frameBadge.value + ' ' + frameLabel.value, W / 2, photoY + photoR + 260)
+
+    // Watermark
+    ctx.font = '22px system-ui, sans-serif'
+    ctx.fillStyle = '#ffffff30'
+    ctx.fillText('Quest Dating', W / 2, H - 36)
+
+    // Share or download
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], 'quest-result.png', { type: 'image/png' })
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: props.questData.title })
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = 'quest-result.png'; a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 2000)
+      }
+    }, 'image/png', 0.92)
+
+  } catch {
+    const text = `Я прошла квест «${props.questData.title}» и набрала ${props.points} ${props.theme.copy.pointsLabel}! 🎯`
+    if (navigator.share) navigator.share({ text, url: location.href })
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -115,12 +237,11 @@ const particle = (n) => ({
   font-family: var(--font-b);
 }
 
-/* ── Particles ────────────────────────────────────────────────── */
+/* ── Particles ─────────────────────────────────────────────────── */
 .finish__particles { position: absolute; inset: 0; pointer-events: none; }
 .finish__particle {
   position: absolute; left: var(--x); top: var(--y);
-  width: var(--s); height: var(--s); border-radius: 2px;
-  opacity: 0;
+  width: var(--s); height: var(--s); border-radius: 2px; opacity: 0;
   animation: confetti-fall var(--t) var(--d) ease-in both;
 }
 @keyframes confetti-fall {
@@ -130,16 +251,17 @@ const particle = (n) => ({
   100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
 }
 
-/* ── Body ─────────────────────────────────────────────────────── */
+/* ── Body ──────────────────────────────────────────────────────── */
 .finish__body {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center;
-  text-align: center; gap: 20px; max-width: 420px; width: 100%;
+  text-align: center; gap: 16px; max-width: 420px; width: 100%;
+  max-height: 100dvh; overflow-y: auto; padding-bottom: 12px;
 }
 
-/* ── Trophy ───────────────────────────────────────────────────── */
+/* ── Trophy ────────────────────────────────────────────────────── */
 .finish__trophy {
-  font-size: 5rem;
+  font-size: 4.5rem;
   animation: trophy-in .6s cubic-bezier(.34,1.56,.64,1) both;
   filter: drop-shadow(0 0 20px var(--accent));
 }
@@ -148,92 +270,107 @@ const particle = (n) => ({
 .finish__eyebrow {
   font-family: var(--font-d); font-size: .55rem;
   letter-spacing: .38em; color: var(--accent);
-  text-shadow: 0 0 10px var(--accent);
-  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--accent); text-transform: uppercase;
 }
-
 .finish__title {
-  font-family: var(--font-d);
-  font-size: clamp(1.2rem, 5.5vw, 1.8rem);
+  font-family: var(--font-d); font-size: clamp(1.1rem, 5vw, 1.6rem);
   font-weight: 900; color: #fff; margin: 0; line-height: 1.2;
 }
-
-/* Романтик: курсив */
 .finish--romantic .finish__title { font-weight: 700; }
 
-/* ── Stats grid ───────────────────────────────────────────────── */
+/* ── Stats ─────────────────────────────────────────────────────── */
 .finish__grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 2px; background: var(--bord);
   border: 1px solid var(--bord); border-radius: 12px;
   overflow: hidden; width: 100%;
 }
-.finish__cell { background: var(--surf); padding: 14px 8px; text-align: center; }
-.finish__n { font-family: var(--font-d); font-size: 1.5rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-.finish__l { font-size: .62rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; margin-top: 3px; }
+.finish__cell { background: var(--surf); padding: 12px 8px; text-align: center; }
+.finish__n { font-family: var(--font-d); font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+.finish__l { font-size: .6rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; margin-top: 3px; }
 
-/* ── Message ──────────────────────────────────────────────────── */
+/* ── Selfie card ───────────────────────────────────────────────── */
+.finish__card {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.finish__card__frame {
+  position: relative; border-radius: 50%; overflow: hidden;
+  width: 160px; height: 160px; flex-shrink: 0;
+}
+.finish__card__photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.finish__card__frame-inner {
+  position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+}
+
+.finish__card--bronze .finish__card__frame-inner {
+  box-shadow: inset 0 0 0 4px #C8A26E, 0 0 16px #C8A26E44;
+}
+.finish__card--silver .finish__card__frame-inner {
+  box-shadow: inset 0 0 0 4px #A8C4D4, 0 0 20px #A8C4D466;
+}
+.finish__card--gold .finish__card__frame-inner {
+  box-shadow: inset 0 0 0 5px #FFD700, 0 0 28px #FFD70066, 0 0 56px #FFD70033;
+  animation: gold-pulse 2s ease-in-out infinite;
+}
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 5px #FFD700, 0 0 28px #FFD70066, 0 0 56px #FFD70033; }
+  50%       { box-shadow: inset 0 0 0 5px #FFD700, 0 0 44px #FFD700aa, 0 0 80px #FFD70055; }
+}
+
+.finish__card__badge {
+  display: flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600;
+}
+.finish__card--bronze .finish__card__badge { color: #C8A26E; }
+.finish__card--silver .finish__card__badge { color: #A8C4D4; }
+.finish__card--gold   .finish__card__badge { color: #FFD700; }
+.finish__card__badge-icon { font-size: 1.1rem; }
+
+/* ── Message ───────────────────────────────────────────────────── */
 .finish__message {
   background: var(--surf); border: 1px solid var(--bord);
   border-left: 3px solid var(--accent); border-radius: 10px;
-  padding: 18px 20px; width: 100%; text-align: left;
+  padding: 14px 16px; width: 100%; text-align: left;
 }
-.finish__message-label { font-size: .6rem; text-transform: uppercase; letter-spacing: .2em; color: var(--accent); margin-bottom: 8px; }
-.finish__message-text { font-size: .95rem; line-height: 1.65; color: var(--text); margin: 0; font-style: italic; }
-
-/* Романтик: особый стиль послания */
+.finish__message-label { font-size: .6rem; text-transform: uppercase; letter-spacing: .2em; color: var(--accent); margin-bottom: 6px; }
+.finish__message-text { font-size: .9rem; line-height: 1.6; color: var(--text); margin: 0; font-style: italic; }
 .finish--romantic .finish__message {
   background: linear-gradient(135deg, rgba(244,114,182,.06), rgba(0,0,0,0));
-  border-left-color: var(--accent);
 }
-.finish--romantic .finish__message-text {
-  font-family: var(--font-d); font-size: 1.1rem; line-height: 1.7;
-}
+.finish--romantic .finish__message-text { font-family: var(--font-d); font-size: 1rem; line-height: 1.65; }
 
-/* ── Share ────────────────────────────────────────────────────── */
+/* ── Buttons ───────────────────────────────────────────────────── */
 .finish__share--primary {
-  background: var(--accent);
-  border: none;
-  border-radius: 14px;
-  padding: 0 28px;
-  min-height: 52px;
-  color: #000;
-  font-family: var(--font-b);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-  transition: all .2s ease;
+  background: var(--accent); border: none; border-radius: 14px;
+  padding: 0 28px; min-height: 52px; color: #000;
+  font-family: var(--font-b); font-size: 1rem; font-weight: 700;
+  cursor: pointer; width: 100%;
   box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: all .2s ease;
 }
-.finish__share--primary:hover {
+.finish__share--primary:hover:not(:disabled) {
   box-shadow: 0 0 36px color-mix(in srgb, var(--accent) 60%, transparent);
   transform: translateY(-2px);
 }
+.finish__share--primary:disabled { opacity: .6; cursor: default; }
 
 .finish__restart {
-  background: transparent;
-  border: 1px dashed rgba(255,255,255,.3);
-  border-radius: 12px;
-  padding: 12px 20px;
-  color: rgba(255,255,255,.55);
-  font-family: var(--font-b);
-  font-size: .85rem;
-  cursor: pointer;
-  transition: all .25s;
-  width: 100%;
+  background: transparent; border: 1px dashed rgba(255,255,255,.3);
+  border-radius: 12px; padding: 12px 20px;
+  color: rgba(255,255,255,.55); font-family: var(--font-b);
+  font-size: .85rem; cursor: pointer; transition: all .25s; width: 100%;
 }
 .finish__restart:hover { border-color: rgba(255,255,255,.6); color: rgba(255,255,255,.9); }
 
-/* ── Mobile ──────────────────────────────────────────────────── */
+/* ── Mobile ────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .finish { padding: 24px 16px; }
-  .finish__trophy { font-size: 4rem; }
-  .finish__title { font-size: clamp(1rem, 5vw, 1.5rem); }
-  .finish__grid { grid-template-columns: repeat(3, 1fr); }
+  .finish { padding: 20px 16px; align-items: flex-start; }
+  .finish__body { gap: 12px; }
+  .finish__trophy { font-size: 3.5rem; }
+  .finish__title { font-size: clamp(1rem, 5vw, 1.4rem); }
   .finish__n { font-size: 1.2rem; }
-  .finish__message { padding: 14px 16px; }
-  .finish__message-text { font-size: .88rem; }
-  .finish__share--primary { min-height: 56px; font-size: .95rem; }
+  .finish__card__frame { width: 140px; height: 140px; }
+  .finish__message { padding: 12px 14px; }
+  .finish__message-text { font-size: .85rem; }
+  .finish__share--primary { min-height: 50px; font-size: .95rem; }
 }
 </style>
