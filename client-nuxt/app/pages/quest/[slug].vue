@@ -143,6 +143,8 @@
           :questData="questData"
           :theme="themeObj"
           :points="points"
+          :maxPoints="maxPoints"
+          :selfieUrl="selfiePhoto"
           :completedCount="completedIds.length"
           :elapsed="elapsedStr"
           @share="share"
@@ -261,6 +263,7 @@ const badge               = ref(null)
 const showMenu            = ref(false)
 const showRestartConfirm  = ref(false)
 const showBridge          = ref(false)
+const selfiePhoto         = ref(null)
 
 // ─── Timer ────────────────────────────────────────────────────
 const startTs = ref(0)
@@ -288,6 +291,7 @@ watchEffect(() => {
 const blocks       = computed(() => questData.value?.blocks || [])
 const totalBlocks  = computed(() => blocks.value.length)
 const totalTasks   = computed(() => blocks.value.reduce((s, b) => s + (b.tasks?.length || 0), 0))
+const maxPoints    = computed(() => blocks.value.flatMap(b => b.tasks || []).reduce((s, t) => s + (t.points || 0), 0) || 100)
 const currentBlock = computed(() => blocks.value[blockIdx.value] || null)
 const isLast       = computed(() => blockIdx.value === totalBlocks.value - 1)
 
@@ -439,6 +443,7 @@ const handleStart = async () => {
 const onTaskComplete = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
+  if (task._selfieUrl) selfiePhoto.value = task._selfieUrl
   const earned = task.points ?? 10
   earnedMap.value[task.id] = { points: earned, wrong: task._quizWrong === true }
   points.value += earned
@@ -621,7 +626,7 @@ onUnmounted(() => {
 .qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
 .qp-foot__dot.done { background: rgba(255,255,255,.45); }
 .qp-foot__dot.cur { width: 24px; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
-.qp-badge { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 20px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
+.qp-badge { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 20px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
 .qp-badge__ico { font-size: 1.5rem; flex-shrink: 0; }
 .qp-badge__title { font-family: var(--font-d); font-size: .7rem; font-weight: 700; color: var(--accent); }
 .qp-badge__sub { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 2px; }

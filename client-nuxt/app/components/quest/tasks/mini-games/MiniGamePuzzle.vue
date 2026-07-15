@@ -238,6 +238,7 @@ const onTap = (slotIdx) => {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
   overflow: hidden; background: var(--bg2); touch-action: manipulation;
   max-width: min(100%, 420px); margin: 0 auto;
+  padding: 2px;
   transition: gap .4s ease, box-shadow .4s ease;
 }
 .task__puzzle__board--complete {
@@ -273,8 +274,8 @@ const onTap = (slotIdx) => {
   border: 1px dashed rgba(255,255,255,.08);
 }
 .task__puzzle__slot.selected {
-  box-shadow: inset 0 0 0 3px #fff, inset 0 0 10px rgba(255,255,255,.15);
-  transform: scale(1.06); z-index: 2;
+  box-shadow: inset 0 0 0 3px #fff, inset 0 0 12px rgba(255,255,255,.2);
+  z-index: 2;
 }
 .task__puzzle__slot.correct {
   box-shadow: inset 0 0 0 2px #3cffb4;
