@@ -182,8 +182,8 @@ const typeLabel = computed(() => ({
   padding: 2px 7px;
 }
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
-.task__desc { display: flex; flex-direction: column; gap: 4px; }
-.task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; }
+.task__desc { display: flex; flex-direction: column; gap: 6px; }
+.task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; text-indent: 1.2em; }
 .task__instruction { font-size: .85rem; color: var(--text); font-style: italic; margin: 0; }
 
 .task__done {
