@@ -30,6 +30,9 @@
       <button v-if="!textComplete" class="task__pairs__skip" @click="$emit('skip-task', task)">
         Не получается? Пропустить
       </button>
+      <div v-if="textComplete" class="task__pairs-confetti" aria-hidden="true">
+        <span v-for="i in 16" :key="i" class="task__pairs-confetti__p" :style="`--i:${i}`"></span>
+      </div>
       <div v-if="textComplete" class="task__quiz-result task__quiz-result--right">
         Все пары найдены! 🎉
       </div>
@@ -65,6 +68,9 @@
       <button v-if="!photoComplete" class="task__pairs__skip" @click="$emit('skip-task', task)">
         Не получается? Пропустить
       </button>
+      <div v-if="photoComplete" class="task__pairs-confetti" aria-hidden="true">
+        <span v-for="i in 16" :key="i" class="task__pairs-confetti__p" :style="`--i:${i}`"></span>
+      </div>
       <div v-if="photoComplete" class="task__quiz-result task__quiz-result--right">
         Все пары найдены! 🎉
       </div>
@@ -244,5 +250,20 @@ const flipCard = (ci) => {
   text-decoration: underline; text-underline-offset: 3px;
 }
 .task__pairs__skip:hover { color: rgba(255,255,255,.75); }
+
+.task__pairs-confetti {
+  position: relative; height: 36px; overflow: hidden; pointer-events: none; margin-top: 4px;
+}
+.task__pairs-confetti__p {
+  position: absolute;
+  left: calc(var(--i) * 6.25%);
+  top: 0; width: 7px; height: 10px; border-radius: 2px;
+  background: hsl(calc(var(--i) * 22deg), 80%, 65%);
+  animation: pairs-confetti-fall .9s calc(var(--i) * 55ms) ease-in both;
+}
+@keyframes pairs-confetti-fall {
+  from { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(50px) rotate(540deg); opacity: 0; }
+}
 
 </style>

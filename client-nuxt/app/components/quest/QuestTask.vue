@@ -22,7 +22,9 @@
         <span>{{ typeIcon }}</span> {{ typeLabel }}
       </div>
       <div class="task__title">{{ task.title }}</div>
-      <p v-if="task.description && !isDone" class="task__desc">{{ task.description }}</p>
+      <div v-if="task.description && !isDone" class="task__desc">
+        <p v-for="(para, pi) in descParagraphs" :key="pi">{{ para }}</p>
+      </div>
 
       <!-- Выполнено -->
       <div v-if="isDone" class="task__done">
@@ -86,6 +88,10 @@ const TYPE_MAP = {
 
 const taskComponent = computed(() => TYPE_MAP[props.task.type] || null)
 
+const descParagraphs = computed(() =>
+  props.task.description?.split(/\n{2,}/).map(p => p.trim()).filter(Boolean) || []
+)
+
 const typeIcon = computed(() => ({
   simple:        '✓',
   riddle:        '?',
@@ -131,7 +137,8 @@ const typeLabel = computed(() => ({
   z-index: 1;
 }
 .task--active {
-  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 12%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, transparent), color-mix(in srgb, var(--surf) 80%, transparent) 70%);
 }
 @keyframes task-in { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
 
@@ -161,18 +168,22 @@ const typeLabel = computed(() => ({
 /* ── Body ─────────────────────────────────────────────────────── */
 .task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .task__type-label {
-  font-size: .65rem;
+  font-size: .62rem;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--accent);
-  opacity: .75;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  align-self: flex-start;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 4px;
+  padding: 2px 7px;
 }
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
-.task__desc { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; }
+.task__desc { display: flex; flex-direction: column; gap: 4px; }
+.task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; }
 .task__instruction { font-size: .85rem; color: var(--text); font-style: italic; margin: 0; }
 
 .task__done {

@@ -621,7 +621,7 @@ onUnmounted(() => {
 .qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
 .qp-foot__dot.done { background: rgba(255,255,255,.45); }
 .qp-foot__dot.cur { width: 24px; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
-.qp-badge { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 20px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
+.qp-badge { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 20px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
 .qp-badge__ico { font-size: 1.5rem; flex-shrink: 0; }
 .qp-badge__title { font-family: var(--font-d); font-size: .7rem; font-weight: 700; color: var(--accent); }
 .qp-badge__sub { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 2px; }
