@@ -79,6 +79,11 @@
 
 .qe-input--sm { width: 80px; }
 .qe-select--sm { width: auto; }
+.qe-textarea--mono { font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.5; }
+
+.qe-field__label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.qe-field__label-row label { margin-bottom: 0; }
+.qe-pairs-mode--sm .qe-pairs-mode__btn { padding: 2px 9px; font-size: 0.72rem; }
 
 .qe-hint { font-size: 0.72rem; color: #4a5568; line-height: 1.4; }
 

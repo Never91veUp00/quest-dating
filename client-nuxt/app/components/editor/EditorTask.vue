@@ -49,9 +49,33 @@
         <input v-model="task.title" placeholder="Найти записку у зеркала" />
       </div>
       <div class="qe-field">
-        <label>Описание / текст задания</label>
-        <textarea v-model="task.description" rows="2"
-          placeholder="Что должен сделать клиент..."></textarea>
+        <div class="qe-field__label-row">
+          <label>Описание / текст задания</label>
+          <div class="qe-pairs-mode qe-pairs-mode--sm">
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: !task.description_type || task.description_type === 'text' }"
+              type="button"
+              @click="task.description_type = 'text'"
+            >Текст</button>
+            <button
+              class="qe-pairs-mode__btn"
+              :class="{ active: task.description_type === 'html' }"
+              type="button"
+              @click="task.description_type = 'html'"
+            >HTML</button>
+          </div>
+        </div>
+        <textarea v-model="task.description"
+          :rows="task.description_type === 'html' ? 5 : 2"
+          :placeholder="task.description_type === 'html'
+            ? '<p>Текст задания</p>\n<ul>\n  <li>Пункт 1</li>\n</ul>'
+            : 'Что должен сделать клиент...'"
+          :class="{ 'qe-textarea--mono': task.description_type === 'html' }"
+        ></textarea>
+        <div v-if="task.description_type === 'html'" class="qe-hint">
+          Поддерживаются теги: &lt;p&gt; &lt;b&gt; &lt;i&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;br&gt;
+        </div>
       </div>
 
       <!-- Специфичные поля по типу -->
