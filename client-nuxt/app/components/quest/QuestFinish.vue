@@ -59,7 +59,8 @@
         :disabled="saving" @click="saveCard">
         {{ saving ? 'Создаём карточку…' : '📸 Получить фото в Telegram' }}
       </button>
-      <button v-else class="finish__share finish__share--primary" @click="$emit('share')">
+      <div v-if="cardError" class="finish__card-error">{{ cardError }}</div>
+      <button class="finish__share" @click="$emit('share')">
         Поделиться результатом
       </button>
 
@@ -90,6 +91,7 @@ defineEmits(['share', 'restart'])
 
 const cardCanvas = ref(null)
 const saving     = ref(false)
+const cardError  = ref('')
 
 const trophyIcon = computed(() => ({
   detective: '🗂️', romantic: '💝', mystery: '🔮', city: '🏆',
@@ -208,23 +210,18 @@ const saveCard = async () => {
 
     // Upload to server → open Telegram bot
     canvas.toBlob(async (blob) => {
+      cardError.value = ''
       try {
         const res = await fetch('/api/telegram/card', {
           method:  'POST',
           headers: { 'Content-Type': 'image/png' },
           body:    blob,
         })
-        if (!res.ok) throw new Error('upload failed')
+        if (!res.ok) throw new Error(`${res.status}`)
         const { token } = await res.json()
         window.open(`https://t.me/QUESTDATING_BOT?start=card_${token}`, '_blank')
-      } catch {
-        // Фоллбэк — скачиваем PNG локально (не открываем Share API)
-        try {
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url; a.download = 'quest-result.png'; a.click()
-          setTimeout(() => URL.revokeObjectURL(url), 2000)
-        } catch { /* игнорируем */ }
+      } catch (e) {
+        cardError.value = 'Не удалось загрузить карточку — попробуй ещё раз'
       } finally {
         saving.value = false
       }
@@ -347,6 +344,14 @@ const saveCard = async () => {
 .finish--romantic .finish__message-text { font-family: var(--font-d); font-size: 1rem; line-height: 1.65; }
 
 /* ── Buttons ───────────────────────────────────────────────────── */
+.finish__share {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
+  border-radius: 14px; padding: 0 28px; min-height: 48px; color: rgba(255,255,255,.8);
+  font-family: var(--font-b); font-size: .9rem; font-weight: 600;
+  cursor: pointer; width: 100%; transition: all .2s ease;
+}
+.finish__share:hover { border-color: rgba(255,255,255,.3); color: #fff; }
+
 .finish__share--primary {
   background: var(--accent); border: none; border-radius: 14px;
   padding: 0 28px; min-height: 52px; color: #000;
@@ -360,6 +365,10 @@ const saveCard = async () => {
   transform: translateY(-2px);
 }
 .finish__share--primary:disabled { opacity: .6; cursor: default; }
+
+.finish__card-error {
+  font-size: .8rem; color: #fc8181; text-align: center; padding: 4px 0;
+}
 
 .finish__restart {
   background: transparent; border: 1.5px solid rgba(255,255,255,.28);
