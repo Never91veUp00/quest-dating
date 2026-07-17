@@ -23,7 +23,10 @@
       </div>
       <div class="task__title">{{ task.title }}</div>
       <div v-if="task.description && !isDone" class="task__desc">
-        <p v-for="(para, pi) in descParagraphs" :key="pi">{{ para }}</p>
+        <div v-if="task.description_type === 'html'" class="task__desc--html" v-html="task.description"></div>
+        <template v-else>
+          <p v-for="(para, pi) in descParagraphs" :key="pi">{{ para }}</p>
+        </template>
       </div>
 
       <!-- Выполнено -->
@@ -184,6 +187,12 @@ const typeLabel = computed(() => ({
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
 .task__desc { display: flex; flex-direction: column; gap: 6px; }
 .task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; text-indent: 1.2em; }
+.task__desc--html { font-size: .85rem; color: var(--text); line-height: 1.55; opacity: .9; }
+.task__desc--html p { margin: 0 0 .5em; }
+.task__desc--html ul, .task__desc--html ol { padding-left: 1.4em; margin: .3em 0; }
+.task__desc--html li { margin-bottom: .2em; }
+.task__desc--html b, .task__desc--html strong { font-weight: 700; color: #fff; }
+.task__desc--html i, .task__desc--html em { font-style: italic; }
 .task__instruction { font-size: .85rem; color: var(--text); font-style: italic; margin: 0; }
 
 .task__done {
