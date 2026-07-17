@@ -657,14 +657,14 @@ onUnmounted(() => {
 .qp-menu-sheet { display: none; }
 @media (max-width: 480px) {
   .qp-hud__dropdown { display: none !important; }
-  .qp-menu-sheet { display: flex; position: fixed; inset: 0; z-index: 400; align-items: flex-end; background: rgba(0,0,0,.55); backdrop-filter: blur(4px); }
-  .qp-menu-sheet__panel { width: 100%; background: var(--surf); border-top: 1px solid var(--bord); border-radius: 20px 20px 0 0; padding: 12px 16px 32px; }
-  .qp-menu-sheet__handle { width: 40px; height: 4px; background: var(--bord); border-radius: 2px; margin: 0 auto 16px; }
-  .qp-menu-sheet__title { font-family: var(--font-d); font-size: .8rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
-  .qp-menu-sheet__item { display: flex; align-items: center; gap: 14px; width: 100%; background: none; border: none; color: var(--text); font-size: 1rem; padding: 16px 8px; cursor: pointer; border-radius: 10px; text-align: left; transition: background .15s; }
-  .qp-menu-sheet__item:hover { background: rgba(255,255,255,.06); }
+  .qp-menu-sheet { display: flex; position: fixed; inset: 0; z-index: 400; align-items: flex-end; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
+  .qp-menu-sheet__panel { width: 100%; background: color-mix(in srgb, var(--surf) 95%, #fff 5%); border-top: 2px solid var(--accent); border-radius: 20px 20px 0 0; padding: 12px 16px max(32px, env(safe-area-inset-bottom, 0px) + 16px); }
+  .qp-menu-sheet__handle { width: 40px; height: 4px; background: rgba(255,255,255,.25); border-radius: 2px; margin: 0 auto 20px; }
+  .qp-menu-sheet__title { font-family: var(--font-d); font-size: .75rem; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .15em; margin-bottom: 8px; }
+  .qp-menu-sheet__item { display: flex; align-items: center; gap: 14px; width: 100%; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; color: #fff; font-size: 1rem; padding: 16px 14px; cursor: pointer; text-align: left; transition: background .15s; margin-bottom: 8px; }
+  .qp-menu-sheet__item:hover { background: rgba(255,255,255,.09); }
   .qp-menu-sheet__ico { font-size: 1.3rem; width: 28px; text-align: center; }
-  .qp-menu-sheet__close { display: block; width: 100%; margin-top: 8px; padding: 14px; background: rgba(255,255,255,.06); border: 1px solid var(--bord); border-radius: 12px; color: var(--dim); font-size: .9rem; cursor: pointer; }
+  .qp-menu-sheet__close { display: block; width: 100%; margin-top: 4px; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,.15); border-radius: 12px; color: rgba(255,255,255,.5); font-size: .9rem; cursor: pointer; }
   .qp-main { padding: 16px 12px 0; }
   .qp-hud__row { padding: 8px 12px; gap: 6px; }
   .qp-hud__name { font-size: .72rem; }

@@ -286,13 +286,13 @@ const saveCard = async () => {
 /* ── Stats ─────────────────────────────────────────────────────── */
 .finish__grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 2px; background: var(--bord);
-  border: 1px solid var(--bord); border-radius: 12px;
+  gap: 1px; background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
   overflow: hidden; width: 100%;
 }
-.finish__cell { background: var(--surf); padding: 12px 8px; text-align: center; }
-.finish__n { font-family: var(--font-d); font-size: 1.4rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-.finish__l { font-size: .6rem; color: var(--dim); text-transform: uppercase; letter-spacing: .1em; margin-top: 3px; }
+.finish__cell { background: rgba(255,255,255,.05); padding: 14px 8px; text-align: center; }
+.finish__n { font-family: var(--font-d); font-size: 1.5rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 12px var(--accent); }
+.finish__l { font-size: .6rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
 
 /* ── Selfie card ───────────────────────────────────────────────── */
 .finish__card {
