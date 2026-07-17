@@ -17,21 +17,15 @@
       <!-- Статы -->
       <div class="finish__grid">
         <div class="finish__cell">
-          <div v-motion :initial="{ scale: 0.4, opacity: 0 }"
-            :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 300 } }"
-            class="finish__n">{{ points }}</div>
+          <div class="finish__n">{{ points }}</div>
           <div class="finish__l">{{ theme.copy.pointsLabel }}</div>
         </div>
         <div class="finish__cell">
-          <div v-motion :initial="{ scale: 0.4, opacity: 0 }"
-            :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 450 } }"
-            class="finish__n">{{ completedCount }}</div>
+          <div class="finish__n">{{ completedCount }}</div>
           <div class="finish__l">заданий</div>
         </div>
         <div class="finish__cell">
-          <div v-motion :initial="{ scale: 0.4, opacity: 0 }"
-            :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 280, damping: 18, delay: 600 } }"
-            class="finish__n">{{ elapsed }}</div>
+          <div class="finish__n">{{ elapsed }}</div>
           <div class="finish__l">времени</div>
         </div>
       </div>
