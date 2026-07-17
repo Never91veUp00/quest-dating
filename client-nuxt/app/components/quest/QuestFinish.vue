@@ -130,6 +130,11 @@ const FRAME_COLORS = { gold: '#FFD700', silver: '#A8C4D4', bronze: '#C8A26E' }
 const saveCard = async () => {
   if (saving.value) return
   saving.value = true
+  cardError.value = ''
+
+  // Открываем окно синхронно — iOS Safari блокирует window.open() внутри async-колбэков
+  const tgWindow = window.open('about:blank', '_blank')
+
   try {
     const W = 800, H = 1060
     const canvas = cardCanvas.value
@@ -208,26 +213,26 @@ const saveCard = async () => {
     ctx.fillStyle = '#ffffff30'
     ctx.fillText('Quest Dating', W / 2, H - 36)
 
-    // Upload to server → open Telegram bot
-    canvas.toBlob(async (blob) => {
-      cardError.value = ''
-      try {
-        const res = await fetch('/api/telegram/card', {
-          method:  'POST',
-          headers: { 'Content-Type': 'image/png' },
-          body:    blob,
-        })
-        if (!res.ok) throw new Error(`${res.status}`)
-        const { token } = await res.json()
-        window.open(`https://t.me/QUESTDATING_BOT?start=card_${token}`, '_blank')
-      } catch (e) {
-        cardError.value = 'Не удалось загрузить карточку — попробуй ещё раз'
-      } finally {
-        saving.value = false
-      }
-    }, 'image/png', 0.92)
+    // Конвертируем canvas в blob (промисифицируем для await)
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, 'image/png', 0.92)
+    })
+
+    const res = await fetch('/api/telegram/card', {
+      method:  'POST',
+      headers: { 'Content-Type': 'image/png' },
+      body:    blob,
+    })
+    if (!res.ok) throw new Error(`${res.status}`)
+    const { token } = await res.json()
+
+    // Перенаправляем уже открытое окно — работает на iOS
+    if (tgWindow) tgWindow.location.href = `https://t.me/QUESTDATING_BOT?start=card_${token}`
 
   } catch {
+    if (tgWindow) tgWindow.close()
+    cardError.value = 'Не удалось загрузить карточку — попробуй ещё раз'
+  } finally {
     saving.value = false
   }
 }
