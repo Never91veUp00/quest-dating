@@ -604,8 +604,8 @@ onUnmounted(() => {
 .qp-hud__pts-l { font-size: .62rem; font-weight: 400; opacity: .7; }
 .qp-hud__name { flex: 1; font-size: .8rem; color: rgba(255,255,255,.55); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-hud__time { font-family: var(--font-d); font-size: .7rem; color: rgba(255,255,255,.5); white-space: nowrap; }
-.qp-hud__menu-btn { background: none; border: none; color: rgba(255,255,255,.6); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; line-height: 1; border-radius: 4px; transition: color .2s; }
-.qp-hud__menu-btn:hover { color: #fff; }
+.qp-hud__menu-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.9); font-size: 1.3rem; cursor: pointer; padding: 3px 10px; line-height: 1; border-radius: 6px; transition: background .2s, color .2s; }
+.qp-hud__menu-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
 .qp-hud__dropdown { position: absolute; top: 100%; right: 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: 8px; padding: 4px; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
 .qp-hud__dropdown-item { width: 100%; background: none; border: none; color: var(--text); font-size: .85rem; padding: 10px 14px; cursor: pointer; border-radius: 6px; text-align: left; transition: background .15s; }
 .qp-hud__dropdown-item:hover { background: rgba(255,255,255,.06); }
