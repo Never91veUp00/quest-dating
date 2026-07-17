@@ -187,7 +187,8 @@ const typeLabel = computed(() => ({
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
 .task__desc { display: flex; flex-direction: column; gap: 6px; }
 .task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; text-indent: 1.2em; }
-.task__desc--html { font-size: .85rem; color: var(--text); line-height: 1.55; opacity: .9; }
+/* dot=28px + gap=10px → сдвигаем влево чтобы левый и правый края были равны */
+.task__desc--html { font-size: .85rem; color: var(--text); line-height: 1.55; opacity: .9; margin-left: calc(-28px - 10px); }
 .task__desc--html p { margin: 0 0 .5em; }
 .task__desc--html ul, .task__desc--html ol { padding-left: 1.4em; margin: .3em 0; }
 .task__desc--html li { margin-bottom: .2em; }
