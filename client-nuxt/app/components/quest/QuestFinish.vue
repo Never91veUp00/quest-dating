@@ -266,7 +266,8 @@ const saveCard = async () => {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center;
   text-align: center; gap: 16px; max-width: 420px; width: 100%;
-  max-height: 100dvh; overflow-y: auto; padding-bottom: 12px;
+  max-height: 100dvh; overflow-y: auto;
+  padding-bottom: max(40px, env(safe-area-inset-bottom, 0px) + 24px);
 }
 
 /* ── Trophy ────────────────────────────────────────────────────── */

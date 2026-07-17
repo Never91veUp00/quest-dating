@@ -10,45 +10,46 @@
     }"
     :style="{ '--i': index }"
   >
-    <!-- Маркер слева -->
-    <div class="task__dot">
-      <span v-if="isDone">✓</span>
-      <span v-else-if="isLocked">🔒</span>
-      <span v-else>{{ typeIcon }}</span>
-    </div>
-
-    <div class="task__body">
+    <!-- Шапка: маркер + тип задания -->
+    <div class="task__head">
+      <div class="task__dot">
+        <span v-if="isDone">✓</span>
+        <span v-else-if="isLocked">🔒</span>
+        <span v-else>{{ typeIcon }}</span>
+      </div>
       <div class="task__type-label">
         <span>{{ typeIcon }}</span> {{ typeLabel }}
       </div>
-      <div class="task__title">{{ task.title }}</div>
-      <div v-if="task.description && !isDone" class="task__desc">
-        <div v-if="task.description_type === 'html'" class="task__desc--html" v-html="task.description"></div>
-        <template v-else>
-          <p v-for="(para, pi) in descParagraphs" :key="pi">{{ para }}</p>
-        </template>
-      </div>
-
-      <!-- Выполнено -->
-      <div v-if="isDone" class="task__done">
-        <span>{{ earnedEntry?.wrong ? 'Не выполнено' : theme.copy.taskDone }}</span>
-        <span v-if="task.points" class="task__pts">
-          +{{ earnedEntry?.points ?? task.points }} {{ theme.copy.pointsLabel }}
-        </span>
-      </div>
-
-      <!-- Активная задача → подкомпонент -->
-      <component
-        v-else-if="isActive && taskComponent"
-        :is="taskComponent"
-        :task="task"
-        :theme="theme"
-        @complete="$emit('complete', $event)"
-        @hint="$emit('hint', $event)"
-        @answer-change="$emit('answer-change', $event)"
-        @skip-task="$emit('skip-task', $event)"
-      />
     </div>
+
+    <!-- Полноширинный контент -->
+    <div class="task__title">{{ task.title }}</div>
+    <div v-if="task.description && !isDone" class="task__desc">
+      <div v-if="task.description_type === 'html'" class="task__desc--html" v-html="task.description"></div>
+      <template v-else>
+        <p v-for="(para, pi) in descParagraphs" :key="pi">{{ para }}</p>
+      </template>
+    </div>
+
+    <!-- Выполнено -->
+    <div v-if="isDone" class="task__done">
+      <span>{{ earnedEntry?.wrong ? 'Не выполнено' : theme.copy.taskDone }}</span>
+      <span v-if="task.points" class="task__pts">
+        +{{ earnedEntry?.points ?? task.points }} {{ theme.copy.pointsLabel }}
+      </span>
+    </div>
+
+    <!-- Активная задача → подкомпонент -->
+    <component
+      v-else-if="isActive && taskComponent"
+      :is="taskComponent"
+      :task="task"
+      :theme="theme"
+      @complete="$emit('complete', $event)"
+      @hint="$emit('hint', $event)"
+      @answer-change="$emit('answer-change', $event)"
+      @skip-task="$emit('skip-task', $event)"
+    />
   </div>
 </template>
 
@@ -132,7 +133,7 @@ const typeLabel = computed(() => ({
   border-left: 3px solid var(--bord);
   border-radius: 12px;
   padding: 12px;
-  display: flex; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
   animation: task-in .25s ease both;
   animation-delay: calc(var(--i, 0) * 0.06s);
   transition: opacity .2s, border-color .2s, box-shadow .2s;
@@ -160,35 +161,28 @@ const typeLabel = computed(() => ({
 .task--wrong .task__type-label { color: #f87171; }
 .task--locked  { opacity: .3; pointer-events: none; }
 
-/* ── Dot ──────────────────────────────────────────────────────── */
+/* ── Head row (dot + type label) ──────────────────────────────── */
+.task__head { display: flex; align-items: center; gap: 10px; }
+
 .task__dot {
   flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
   border: 1px solid var(--bord);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.72rem; color: var(--dim); margin-top: 1px;
+  font-size: 0.72rem; color: var(--dim);
+}
+.task__type-label {
+  font-size: .62rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent);
+  display: inline-flex; align-items: center; gap: 4px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-radius: 4px; padding: 2px 7px;
 }
 
-/* ── Body ─────────────────────────────────────────────────────── */
-.task__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-.task__type-label {
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border-radius: 4px;
-  padding: 2px 7px;
-}
+/* ── Content (full card width) ─────────────────────────────────── */
 .task__title { font-size: .95rem; font-weight: 700; color: #fff; }
 .task__desc { display: flex; flex-direction: column; gap: 6px; }
-.task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; text-indent: 1.2em; }
-/* dot=28px + gap=10px → сдвигаем влево чтобы левый и правый края были равны */
-.task__desc--html { font-size: .85rem; color: var(--text); line-height: 1.55; opacity: .9; margin-left: calc(-28px - 10px); }
+.task__desc p { font-size: .85rem; color: var(--text); line-height: 1.5; margin: 0; opacity: .9; white-space: pre-line; }
+.task__desc--html { font-size: .85rem; color: var(--text); line-height: 1.55; opacity: .9; }
 .task__desc--html p { margin: 0 0 .5em; }
 .task__desc--html ul, .task__desc--html ol { padding-left: 1.4em; margin: .3em 0; }
 .task__desc--html li { margin-bottom: .2em; }
@@ -294,10 +288,10 @@ const typeLabel = computed(() => ({
 
 /* ── Mobile ───────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .task { padding: 14px 12px; gap: 10px; }
+  .task { padding: 12px; gap: 8px; }
   .task__dot { width: 24px; height: 24px; font-size: .65rem; }
   .task__title { font-size: .9rem; }
-  .task__desc { font-size: .82rem; }
+  .task__desc p { font-size: .82rem; }
   :deep(.task__action) { padding: 13px; font-size: .88rem; min-height: 48px; }
   :deep(.task__ok) { min-height: 48px; padding: 0 16px; }
   :deep(.task__input) { padding: 12px; font-size: .88rem; min-height: 48px; }
