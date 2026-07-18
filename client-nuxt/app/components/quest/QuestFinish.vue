@@ -260,7 +260,7 @@ const saveCard = async () => {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center;
   text-align: center; gap: 16px; max-width: 420px; width: 100%;
-  max-height: 100dvh; overflow-y: auto;
+  max-height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
   padding-bottom: max(40px, env(safe-area-inset-bottom, 0px) + 24px);
 }
 
@@ -290,7 +290,7 @@ const saveCard = async () => {
   border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
   overflow: hidden; width: 100%;
 }
-.finish__cell { background: rgba(255,255,255,.05); padding: 14px 8px; text-align: center; }
+.finish__cell { background: rgba(255,255,255,.05); padding: 14px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; }
 .finish__n { font-family: var(--font-d); font-size: 1.5rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 12px var(--accent); }
 .finish__l { font-size: .6rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
 
