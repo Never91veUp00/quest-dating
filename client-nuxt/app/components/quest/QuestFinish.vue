@@ -285,12 +285,13 @@ const saveCard = async () => {
 
 /* ── Stats ─────────────────────────────────────────────────────── */
 .finish__grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: flex; /* flex вместо grid — iOS Safari корректно вычисляет высоту */
   gap: 1px; background: rgba(255,255,255,.1);
   border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
   overflow: hidden; width: 100%;
+  flex-shrink: 0; /* не давать родительскому flex сжимать блок */
 }
-.finish__cell { background: rgba(255,255,255,.05); padding: 14px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; }
+.finish__cell { flex: 1; background: rgba(255,255,255,.05); padding: 14px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; }
 .finish__n { font-family: var(--font-d); font-size: 1.5rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 12px var(--accent); }
 .finish__l { font-size: .6rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
 
