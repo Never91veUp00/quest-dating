@@ -380,16 +380,27 @@ const saveCard = async () => {
 }
 .finish__restart:hover { border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.9); }
 
-/* ── Mobile ────────────────────────────────────────────────────── */
+/* ── Mobile — всё умещается без скролла ────────────────────────── */
 @media (max-width: 480px) {
-  .finish { padding: 20px 16px; align-items: flex-start; }
-  .finish__body { gap: 12px; }
-  .finish__trophy { font-size: 3.5rem; }
-  .finish__title { font-size: clamp(1rem, 5vw, 1.4rem); }
+  .finish { padding: 8px 16px; align-items: flex-start; }
+  .finish__body {
+    gap: 8px;
+    max-height: 100dvh;
+    overflow: hidden; /* без скролла */
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px) + 8px);
+  }
+  .finish__trophy { font-size: 2rem; }
+  .finish__eyebrow { font-size: .5rem; }
+  .finish__title { font-size: clamp(.9rem, 4.5vw, 1.2rem); }
   .finish__n { font-size: 1.2rem; }
-  .finish__card__frame { width: 140px; height: 140px; }
-  .finish__message { padding: 12px 14px; }
-  .finish__message-text { font-size: .85rem; }
-  .finish__share--primary { min-height: 50px; font-size: .95rem; }
+  .finish__cell { min-height: 52px; padding: 8px 6px; }
+  .finish__card__frame { width: 100px; height: 100px; }
+  .finish__card__badge { font-size: .75rem; }
+  .finish__message { padding: 8px 12px; }
+  .finish__message-label { font-size: .55rem; margin-bottom: 4px; }
+  .finish__message-text { font-size: .78rem; line-height: 1.45; }
+  .finish__share--primary { min-height: 44px; font-size: .88rem; }
+  .finish__share { min-height: 40px; font-size: .82rem; }
+  .finish__restart { padding: 8px 16px; font-size: .8rem; }
 }
 </style>
