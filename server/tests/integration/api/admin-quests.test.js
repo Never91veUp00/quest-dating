@@ -104,3 +104,43 @@ describe('GET /api/admin/quests/:id — briefing', () => {
     expect(res.body.data.briefing).toBe('Для редактора')
   })
 })
+
+// Темы плеера: валидатор роута должен совпадать с CHECK created_quests_theme_check
+// и client-nuxt/app/components/quest/themes.js.
+describe('POST /api/admin/quests — theme', () => {
+  it.each(['treasure', 'proposal'])('создаёт квест с темой %s', async (theme) => {
+    const res = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody({ theme }))
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.theme).toBe(theme)
+  })
+
+  it('неизвестная тема: 400, квест не создаётся', async () => {
+    const res = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody({ theme: 'space' }))
+
+    expect(res.status).toBe(400)
+    const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM created_quests')
+    expect(rows[0].n).toBe(0)
+  })
+})
+
+describe('PUT /api/admin/quests/:id — theme', () => {
+  it('меняет тему на proposal', async () => {
+    const created = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody())
+
+    const res = await auth(request(ctx.app).put(`/api/admin/quests/${created.body.data.id}`))
+      .send(questBody({ slug: created.body.data.slug, theme: 'proposal' }))
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.theme).toBe('proposal')
+  })
+
+  it('неизвестная тема: 400, а не 500 от CHECK в БД', async () => {
+    const created = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody())
+
+    const res = await auth(request(ctx.app).put(`/api/admin/quests/${created.body.data.id}`))
+      .send(questBody({ slug: created.body.data.slug, theme: 'space' }))
+
+    expect(res.status).toBe(400)
+  })
+})
