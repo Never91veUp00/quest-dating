@@ -23,7 +23,7 @@
     "@pinia/nuxt": "^0.11.3",
     "@vueuse/motion": "^3.0.3",
     "dompurify": "^3.3.2",
-    "nuxt": "^4.3.1",
+    "nuxt": "^4.5.2",
     "vue": "^3.5.29",
     "vue-router": "^4.6.4"
   },
@@ -33,8 +33,5 @@
     "@vue/test-utils": "^2.4.0",
     "jsdom": "^24.0.0",
     "vitest": "^4.1.7"
-  },
-  "overrides": {
-    "vite": "6.x"
   }
 }
