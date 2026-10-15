@@ -36,15 +36,15 @@ afterEach(async () => {
 
 // Создаёт строку в created_quests. template_id=11 — реальный сид-шаблон
 // ('Детективное расследование'), нужен для JOIN в getQuestBySlug.
-async function makeQuest({ access_code = null, expires_at = null, template_id = 11 } = {}) {
+async function makeQuest({ access_code = null, expires_at = null, template_id = 11, briefing = null } = {}) {
   const slug = `test-quest-${Math.random().toString(36).slice(2, 10)}`
   const { rows } = await ctx.pool.query(
     `INSERT INTO created_quests
-       (template_id, slug, access_code, title, client_name, blocks, expires_at, is_public)
-     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, true)
+       (template_id, slug, access_code, title, client_name, blocks, expires_at, is_public, briefing)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, true, $8)
      RETURNING id, slug, access_code`,
     [template_id, slug, access_code, 'Тест-квест', 'Клиент',
-     JSON.stringify([{ type: 'intro', text: 'Начало' }]), expires_at]
+     JSON.stringify([{ type: 'intro', text: 'Начало' }]), expires_at, briefing]
   )
   return rows[0]
 }
@@ -319,5 +319,42 @@ describe('GET /api/quests/:slug — прохождение + защита код
   it('404 для несуществующего slug', async () => {
     const res = await request(ctx.app).get('/api/quests/no-such-quest-slug')
     expect(res.status).toBe(404)
+  })
+})
+
+// ─── Сводка перед стартом ───────────────────────────────────────────────────
+// Плеер показывает её до первого блока: факты шаблона + текст автора.
+
+describe('GET /api/quests/:slug — сводка перед стартом', () => {
+  it('отдаёт текст автора briefing и факты шаблона (сложность, тип места, длительность)', async () => {
+    const quest = await makeQuest({ briefing: 'Удобная обувь, зарядка, 90 минут пешком' })
+
+    const res = await request(ctx.app).get(`/api/quests/${quest.slug}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.briefing).toBe('Удобная обувь, зарядка, 90 минут пешком')
+    // сид-шаблон 11: medium / indoor / 60 мин
+    expect(res.body.data.difficulty).toBe('medium')
+    expect(res.body.data.location_type).toBe('indoor')
+    expect(res.body.data.duration_minutes).toBe(60)
+  })
+
+  it('briefing = null, если автор его не заполнил', async () => {
+    const quest = await makeQuest()
+
+    const res = await request(ctx.app).get(`/api/quests/${quest.slug}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data).toHaveProperty('briefing', null)
+  })
+
+  it('квест без шаблона: факты шаблона = null, ответ не падает', async () => {
+    const quest = await makeQuest({ template_id: null })
+
+    const res = await request(ctx.app).get(`/api/quests/${quest.slug}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.difficulty).toBeNull()
+    expect(res.body.data.location_type).toBeNull()
   })
 })

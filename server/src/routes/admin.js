@@ -14,6 +14,10 @@ router.use(requireAdmin)
 // Отключаем HTTP-кэш для всех admin-роутов (ETag/304 ломает свежие данные)
 router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next() })
 
+// Текст автора «Перед стартом»: пустая строка или пробелы = не заполнено
+const toBriefing = (value) =>
+  typeof value === 'string' && value.trim() ? value.trim() : null
+
 // ─── GET /api/admin/dashboard ─────────────────────────────────
 // Статистика для дашборда
 router.get('/dashboard', async (req, res, next) => {
@@ -129,7 +133,7 @@ router.post('/quests', [
       final_message, blocks, access_code,
       order_id, template_id, is_public = false,
       expires_at, show_intro = true, player_version = 'v1',
-      recipient_gender = 'f'
+      recipient_gender = 'f', briefing
     } = req.body
 
     // Проверка уникальности slug
@@ -147,8 +151,8 @@ router.post('/quests', [
     const result = await pool.query(`
       INSERT INTO created_quests
         (title, client_name, slug, theme, final_message, blocks,
-         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version, recipient_gender)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13, $14)
+         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version, recipient_gender, briefing)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13, $14, $15)
       RETURNING *
     `, [
       title, client_name, slug, theme, final_message || null,
@@ -157,7 +161,8 @@ router.post('/quests', [
       show_intro !== false,
       expires_at || null,
       player_version || 'v1',
-      recipient_gender || 'f'
+      recipient_gender || 'f',
+      toBriefing(briefing)
     ])
 
     const quest = result.rows[0]
@@ -191,7 +196,7 @@ router.put('/quests/:id', [
     const {
       title, client_name, slug, theme, final_message,
       blocks, access_code, is_public, expires_at, show_intro, player_version,
-      recipient_gender = 'f'
+      recipient_gender = 'f', briefing
     } = req.body
 
     const result = await pool.query(`
@@ -208,9 +213,10 @@ router.put('/quests/:id', [
         show_intro       = $10,
         player_version   = $11,
         recipient_gender = $12,
+        briefing         = $13,
         published_at     = CASE WHEN $8 AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at       = NOW()
-      WHERE id = $13
+      WHERE id = $14
       RETURNING *
     `, [
       title, client_name, slug,
@@ -220,6 +226,7 @@ router.put('/quests/:id', [
       show_intro !== false,
       player_version || 'v1',
       recipient_gender || 'f',
+      toBriefing(briefing),
       req.params.id
     ])
 
