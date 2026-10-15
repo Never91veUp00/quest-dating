@@ -18,6 +18,7 @@
 <script setup>
 import { ref } from 'vue'
 import TaskHint from './TaskHint.vue'
+import { isAnswerCorrect } from '~/utils/answerMatch'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -30,8 +31,8 @@ const error  = ref('')
 
 const submit = () => {
   if (!answer.value.trim()) return
-  const correct = (props.task.correct_answer || '').trim().toLowerCase()
-  if (correct && answer.value.trim().toLowerCase() !== correct) {
+  const correct = (props.task.correct_answer || '').trim()
+  if (correct && !isAnswerCorrect(answer.value, correct)) {
     error.value = props.theme.copy?.wrongAnswer || 'Неверно, попробуй ещё раз'
     return
   }
