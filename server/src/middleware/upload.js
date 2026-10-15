@@ -26,11 +26,21 @@ const imagesMimeToExt = (mime) => ({
   'image/webp': '.webp'
 }[mime] || '.jpg')
 
-const mimeToExt = (mime) => ({
+// Все типы из ALLOWED_FILE_TYPES.MEDIA должны быть здесь — fileFilter
+// пропускает только их, так что фолбэк '.bin' на практике не срабатывает.
+export const mimeToExt = (mime) => ({
   'video/mp4': '.mp4', 'video/webm': '.webm', 'video/quicktime': '.mov',
   'audio/mpeg': '.mp3', 'audio/ogg': '.ogg', 'audio/wav': '.wav',
   'audio/mp4': '.m4a', 'audio/x-m4a': '.m4a'
-}[mime] || '')
+}[mime] || '.bin')
+
+// Имя медиафайла: расширение ТОЛЬКО из mimetype. Оригинальное имя файла
+// контролирует клиент — 'evil.html' с mimetype video/mp4 прошёл бы fileFilter
+// и раздавался бы express.static как text/html (stored XSS на нашем домене).
+export const mediaFilename = (file) => {
+  const suffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+  return 'media-' + suffix + mimeToExt(file.mimetype)
+}
 
 // ─── Хранилище для изображений ────────────────────────────────
 const storage = multer.diskStorage({
@@ -65,9 +75,7 @@ const mediaStorage = multer.diskStorage({
     cb(null, UPLOAD_DIRS.media)
   },
   filename: (req, file, cb) => {
-    const suffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-    const ext = path.extname(file.originalname) || mimeToExt(file.mimetype)
-    cb(null, 'media-' + suffix + ext)
+    cb(null, mediaFilename(file))
   }
 })
 
