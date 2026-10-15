@@ -265,7 +265,7 @@ CREATE TABLE public.created_quests (
 -- Name: COLUMN created_quests.theme; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.created_quests.theme IS 'Визуальная тема плеера: detective | romantic | city | mystery';
+COMMENT ON COLUMN public.created_quests.theme IS 'Визуальная тема плеера: detective | romantic | city | mystery | treasure | proposal';
 
 
 --

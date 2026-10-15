@@ -21,8 +21,10 @@ const toBriefing = (value) =>
 // Темы плеера: синхронно с CHECK created_quests_theme_check (database/dump.sql)
 // и client-nuxt/app/components/quest/themes.js
 const QUEST_THEMES = ['detective', 'romantic', 'city', 'mystery', 'treasure', 'proposal']
-const themeValidator = () =>
-  body('theme').optional({ values: 'falsy' }).isIn(QUEST_THEMES).withMessage('Неизвестная тема квеста')
+// field: theme у created_quests, default_theme у quest_templates (там CHECK нет,
+// поэтому список держит только этот валидатор). Пустая тема → 'detective' в роуте.
+const themeValidator = (field = 'theme') =>
+  body(field).optional({ values: 'falsy' }).isIn(QUEST_THEMES).withMessage('Неизвестная тема квеста')
 
 // ─── GET /api/admin/dashboard ─────────────────────────────────
 // Статистика для дашборда
@@ -378,6 +380,7 @@ router.post('/templates/create', [
   body('difficulty').isIn(['easy', 'medium', 'hard', 'expert']).withMessage('Некорректная сложность'),
   body('duration_minutes').isInt({ min: 10 }).withMessage('Укажите длительность'),
   body('base_price').isInt({ min: 0 }).withMessage('Некорректная цена'),
+  themeValidator('default_theme'),
 ], async (req, res, next) => {
   const vErrors = validationResult(req)
   if (!vErrors.isEmpty()) {
@@ -506,6 +509,7 @@ router.put('/templates/:id', [
   body('difficulty').isIn(['easy', 'medium', 'hard', 'expert']).withMessage('Некорректная сложность'),
   body('duration_minutes').isInt({ min: 10 }).withMessage('Укажите длительность (мин. 10)'),
   body('base_price').isNumeric().withMessage('Некорректная цена'),
+  themeValidator('default_theme'),
 ], async (req, res, next) => {
   const vErrors = validationResult(req)
   if (!vErrors.isEmpty()) {
