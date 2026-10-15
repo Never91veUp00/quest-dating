@@ -3,6 +3,7 @@ import {
   normalizeAnswer,
   editDistance,
   isAnswerCorrect,
+  isCodeCorrect,
 } from '../../app/utils/answerMatch'
 
 describe('normalizeAnswer', () => {
@@ -107,5 +108,34 @@ describe('isAnswerCorrect', () => {
   it('пустые правильные ответы пропускаются', () => {
     expect(isAnswerCorrect('мост', ['', null, 'мост'])).toBe(true)
     expect(isAnswerCorrect('мост', '')).toBe(false)
+  })
+})
+
+describe('isCodeCorrect', () => {
+  it('берёт код из answer — туда его сохраняет редактор', () => {
+    const task = { type: 'code_physical', answer: 'LOVE' }
+    expect(isCodeCorrect('love', task)).toBe(true)
+    expect(isCodeCorrect('LOVA', task)).toBe(false)
+  })
+
+  it('поддерживает старое поле correct_code', () => {
+    expect(isCodeCorrect('1234', { correct_code: '1234' })).toBe(true)
+    expect(isCodeCorrect('1235', { correct_code: '1234' })).toBe(false)
+  })
+
+  it('correct_code главнее answer', () => {
+    const task = { correct_code: 'LOVE', answer: 'ответ' }
+    expect(isCodeCorrect('LOVE', task)).toBe(true)
+    expect(isCodeCorrect('ответ', task)).toBe(false)
+  })
+
+  it('опечатки в коде не прощаются', () => {
+    expect(isCodeCorrect('LOEV', { answer: 'LOVE' })).toBe(false)
+  })
+
+  it('без кода засчитывает любой непустой ввод', () => {
+    expect(isCodeCorrect('что угодно', { answer: '  ' })).toBe(true)
+    expect(isCodeCorrect('что угодно', {})).toBe(true)
+    expect(isCodeCorrect('   ', {})).toBe(false)
   })
 })
