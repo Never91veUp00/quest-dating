@@ -18,6 +18,12 @@ router.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next() })
 const toBriefing = (value) =>
   typeof value === 'string' && value.trim() ? value.trim() : null
 
+// Темы плеера: синхронно с CHECK created_quests_theme_check (database/dump.sql)
+// и client-nuxt/app/components/quest/themes.js
+const QUEST_THEMES = ['detective', 'romantic', 'city', 'mystery', 'treasure', 'proposal']
+const themeValidator = () =>
+  body('theme').optional({ values: 'falsy' }).isIn(QUEST_THEMES).withMessage('Неизвестная тема квеста')
+
 // ─── GET /api/admin/dashboard ─────────────────────────────────
 // Статистика для дашборда
 router.get('/dashboard', async (req, res, next) => {
@@ -120,7 +126,7 @@ router.post('/quests', [
   body('client_name').trim().notEmpty().withMessage('Имя клиента обязательно'),
   body('slug').trim().notEmpty().withMessage('Slug обязателен'),
   body('blocks').if(body('is_public').equals('true')).isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
-  body('theme').optional().isIn(['detective', 'romantic', 'city', 'mystery'])
+  themeValidator()
 ], async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -186,6 +192,7 @@ router.put('/quests/:id', [
   body('title').trim().notEmpty().withMessage('Название обязательно'),
   body('client_name').trim().notEmpty().withMessage('Имя клиента обязательно'),
   body('blocks').if(body('is_public').equals('true')).isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
+  themeValidator()
 ], async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
