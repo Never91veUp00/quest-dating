@@ -255,6 +255,8 @@ CREATE TABLE public.created_quests (
     final_message text,
     show_intro boolean DEFAULT true NOT NULL,
     player_version character varying(10) DEFAULT 'v1'::character varying NOT NULL,
+    recipient_gender character varying(1) DEFAULT 'f'::character varying NOT NULL,
+    briefing text,
     CONSTRAINT created_quests_theme_check CHECK (((theme)::text = ANY (ARRAY['detective'::text, 'romantic'::text, 'city'::text, 'mystery'::text, 'treasure'::text, 'proposal'::text])))
 );
 
@@ -278,6 +280,13 @@ COMMENT ON COLUMN public.created_quests.final_message IS 'Персонально
 --
 
 COMMENT ON COLUMN public.created_quests.show_intro IS 'Показывать анимированную заставку перед сплэш-экраном';
+
+
+--
+-- Name: COLUMN created_quests.briefing; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.created_quests.briefing IS 'Текст автора для сводки перед стартом: что взять, как одеться, куда ехать';
 
 
 --
