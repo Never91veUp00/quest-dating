@@ -24,6 +24,7 @@
 <script setup>
 import { ref } from 'vue'
 import TaskHint from './TaskHint.vue'
+import { isAnswerCorrect } from '~/utils/answerMatch'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -36,8 +37,9 @@ const error = ref('')
 
 const submit = () => {
   if (!code.value.trim()) return
+  // Код вводится точно: опечатку не прощаем, только регистр и пробелы
   const correct = (props.task.correct_code || '').trim()
-  if (correct && code.value.trim() !== correct) {
+  if (correct && !isAnswerCorrect(code.value, correct, { typos: false })) {
     error.value = props.theme.copy?.wrongCode || 'Неверный код'
     return
   }
