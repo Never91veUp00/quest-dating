@@ -94,3 +94,19 @@ export function isAnswerCorrect(input, correct, { typos = true } = {}) {
     return editDistance(given, expected) <= MAX_TYPOS
   })
 }
+
+/**
+ * Проверка кода в задании code_physical.
+ * Редактор сохраняет код в task.answer, старые квесты — в task.correct_code.
+ * Код вводится точно: прощаем только регистр и пробелы, опечатки — нет.
+ * Если код не задан, засчитываем любой непустой ввод.
+ * @param {unknown} input - что ввёл игрок
+ * @param {{ correct_code?: unknown, answer?: unknown }} task
+ * @returns {boolean}
+ */
+export function isCodeCorrect(input, task) {
+  if (!normalizeAnswer(input)) return false
+  const correct = normalizeAnswer(task?.correct_code) || normalizeAnswer(task?.answer)
+  if (!correct) return true
+  return isAnswerCorrect(input, correct, { typos: false })
+}
