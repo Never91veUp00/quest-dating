@@ -130,8 +130,8 @@ export default defineNuxtConfig({
       // ВАЖНО: /templates НЕ проксируем — конфликт с Nuxt pages роутом /date/[slug]
       // /uploads убран — обрабатывается через server/routes/uploads/[...path].js
       // (devProxy работает только для fetch/XHR, не для <img src>)
-      '/api':    { target: 'http://localhost:5000', changeOrigin: true },
-      '/images': { target: 'http://localhost:5000', changeOrigin: true },
+      '/api':    { target: 'http://localhost:5000/api', changeOrigin: true },
+      '/images': { target: 'http://localhost:5000/images', changeOrigin: true },
     }
   },
 
