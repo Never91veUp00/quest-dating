@@ -93,3 +93,8 @@ backups/
 # Локальные загрузки и случайные дампы (чистка 1.5.3/1.5.4)
 uploads_local/
 /dump.sql
+
+# Claude Code / tools — local artifacts
+.playwright-mcp/
+.superpowers/
+.claude/settings.local.json
