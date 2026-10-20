@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=540">
 <title>Reel — Детектив</title>
 <!--
-  Моушн-ролик темы «Детектив» (мир «Ходилки», обличье дела).
+  Моушн-ролик темы «Детектив» (мир «Ходилки», обличье дела), 8 с.
   Кадр 540×960 CSS-пикселей, запись с DPR 2 → 1080×1920.
-  Все анимации на одной шкале 7 с и стоят на паузе: record.mjs
+  Все анимации на одной шкале 8 с и стоят на паузе: record.mjs
   вызывает window.seek(t) и снимает кадр за кадром.
+  Проценты в ключевых кадрах: t (с) × 12.5.
 -->
 <style>
   @font-face { font-family: 'Dela Gothic One'; src: url('/client-nuxt/public/fonts/dela-gothic-one-400-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
@@ -19,214 +20,335 @@
   :root {
     --field: #5f4f43; --field-ink: #f1e8d8; --field-soft: #e6dccb;
     --paper: #f4efe4; --kraft: #cdb894; --ink: #2a211b; --ink-soft: #5a4c40;
-    --done: #c9ad80; --back: #4e4037; --red: #9f2b25;
-    --T: 7s;
+    --done: #c9ad80; --back: #4e4037; --red: #9f2b25; --flash: #fbf6ea;
+    --T: 8s;
+    --out: cubic-bezier(.16, 1, .3, 1);
+    --in: cubic-bezier(.7, 0, .84, 0);
   }
   * { box-sizing: border-box; margin: 0; }
   html, body { width: 540px; height: 960px; overflow: hidden; background: var(--field); }
   body { position: relative; font-family: 'PT Serif', Georgia, serif; color: var(--field-ink); }
   .a { animation-duration: var(--T); animation-fill-mode: both; animation-play-state: paused; animation-timing-function: linear; }
   .abs { position: absolute; }
+  .disp { font-family: 'Dela Gothic One', serif; font-weight: 400; }
+  svg.i { fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
+  .stamp {
+    padding: 6px 16px; border: 5px double var(--red); border-radius: 8px; background: var(--paper);
+    color: var(--red); font-family: 'Dela Gothic One', serif; font-size: 32px; letter-spacing: .06em; text-transform: uppercase;
+  }
 
-  /* ── Сцена 1: папка падает, штамп хлопает (0–1.55 с) ──────────── */
+  /* ══ Сцена 1: папка падает, штамп хлопает (0–1.25 с) ═════════════ */
   .folder {
     left: 50px; top: 250px; width: 440px; height: 420px;
-    background: var(--kraft); color: var(--ink);
-    border-radius: 4px 18px 4px 4px;
-    padding: 70px 32px 0;
-    box-shadow: 0 30px 40px -20px rgba(36, 28, 22, .85);
+    background: var(--kraft); color: var(--ink); border-radius: 4px 18px 4px 4px;
+    padding: 70px 32px 0; box-shadow: 0 30px 40px -20px rgba(36, 28, 22, .85);
     animation-name: folder;
   }
-  .folder__tab {
-    position: absolute; left: 0; bottom: 100%;
-    padding: 10px 22px 8px; background: var(--kraft); border-radius: 12px 12px 0 0;
-    font-size: 22px; color: var(--ink);
-  }
-  .folder h1 { font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 60px; line-height: 1.02; }
-  .stamp {
-    padding: 8px 18px; border: 5px double var(--red); border-radius: 8px;
-    color: var(--red); font-family: 'Dela Gothic One', serif; font-size: 34px; letter-spacing: .06em; text-transform: uppercase;
-  }
-  .stamp--secret { right: 26px; bottom: 30px; animation-name: stamp-secret; }
+  .folder__tab { position: absolute; left: 0; bottom: 100%; padding: 10px 22px 8px; background: var(--kraft); border-radius: 12px 12px 0 0; font-size: 22px; color: var(--ink); }
+  .folder h1 { font-size: 60px; line-height: 1.02; }
+  .stamp--secret { right: 26px; bottom: 30px; background: transparent; animation-name: stamp-secret; }
   @keyframes folder {
-    0%      { transform: translateY(-980px) rotate(-8deg); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    8.57%   { transform: translateY(0) rotate(-2deg); }
-    11.43%  { transform: translateY(0) rotate(-2deg); }
-    12.3%   { transform: translateY(7px) rotate(-1.4deg); }
-    13.6%   { transform: translateY(0) rotate(-2deg); }
-    17.86%  { transform: translateY(0) rotate(-2deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
-    22.14%, 100% { transform: translateY(-1150px) rotate(-4deg); }
+    0%     { transform: translateY(-980px) rotate(-8deg); animation-timing-function: var(--out); }
+    5.6%   { transform: translateY(0) rotate(-2deg); }
+    7.75%  { transform: translateY(0) rotate(-2deg); }
+    8.4%   { transform: translateY(7px) rotate(-1.4deg); }
+    9.3%   { transform: translateY(0) rotate(-2deg); }
+    12.5%  { transform: translateY(0) rotate(-2deg); animation-timing-function: var(--in); }
+    15.6%, 100% { transform: translateY(-1150px) rotate(-4deg); }
   }
   @keyframes stamp-secret {
-    0%, 10%  { opacity: 0; transform: scale(2.6) rotate(-22deg); }
-    10.01%   { opacity: 1; transform: scale(2.6) rotate(-22deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
-    12.2%, 100% { opacity: 1; transform: scale(1) rotate(-9deg); }
+    0%, 6.24% { opacity: 0; transform: scale(2.6) rotate(-22deg); }
+    6.25%     { opacity: 1; transform: scale(2.6) rotate(-22deg); animation-timing-function: var(--in); }
+    7.75%, 100% { opacity: 1; transform: scale(1) rotate(-9deg); }
   }
 
-  /* ── Сцена 2: доска улик (1.5–4.45 с) ─────────────────────────── */
+  /* ══ Сцена 2: доска и занятия (1.2–6.25 с) ═══════════════════════ */
   .board { inset: 0; animation-name: board; }
-  @keyframes board {
-    0%, 21% { opacity: 0; }
-    23%     { opacity: 1; }
-    61.4%   { opacity: 1; }
-    63.6%, 100% { opacity: 0; }
-  }
-  .board h2 {
-    left: 40px; top: 120px; width: 460px;
-    font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 44px; line-height: 1.05;
-    animation-name: rise;
-  }
-  @keyframes rise {
-    0%, 21.4% { opacity: 0; transform: translateY(30px); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    26%, 100% { opacity: 1; transform: none; }
-  }
-  .thread { left: 0; top: 0; width: 540px; height: 960px; animation-name: thread; }
-  .thread path { fill: none; stroke: var(--red); stroke-width: 3; stroke-dasharray: 720; }
-  @keyframes thread {
-    0%, 22% { clip-path: inset(0 100% 0 0); }
-    30%, 100% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-  }
-  .note {
-    width: 96px; height: 96px; border-radius: 3px;
-    display: grid; place-items: center;
-    font-family: 'Dela Gothic One', serif; font-size: 40px; color: var(--ink);
-    box-shadow: 0 14px 18px -10px rgba(36, 28, 22, .9);
-  }
-  .note::before {
-    content: ""; position: absolute; top: -9px; left: 50%; width: 18px; height: 18px; margin-left: -9px;
-    border-radius: 50%; background: var(--ink);
-  }
-  .note svg { width: 40px; height: 40px; }
-  .note .face, .note .check { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 3px; }
-  .note .face { background: var(--paper); }
-  .note .check { background: var(--done); }
-  .n1 { left: 50px;  top: 430px; transform: rotate(-4deg); }
-  .n2 { left: 172px; top: 320px; transform: rotate(3deg); }
-  .n3 { left: 296px; top: 455px; transform: rotate(-3deg); }
-  .n4 { left: 410px; top: 330px; transform: rotate(4deg); }
-  .note { animation-name: note-pop; }
-  .n2 { animation-name: note-pop2; } .n3 { animation-name: note-pop3; } .n4 { animation-name: note-pop4; }
-  @keyframes note-pop  { 0%, 22% { opacity: 0; scale: .6; } 24.5%, 100% { opacity: 1; scale: 1; } }
-  @keyframes note-pop2 { 0%, 23% { opacity: 0; scale: .6; } 25.5%, 100% { opacity: 1; scale: 1; } }
-  @keyframes note-pop3 { 0%, 24% { opacity: 0; scale: .6; } 26.5%, 100% { opacity: 1; scale: 1; } }
-  @keyframes note-pop4 { 0%, 25% { opacity: 0; scale: .6; } 27.5%, 100% { opacity: 1; scale: 1; } }
-  /* отметка «пройдено», когда фишка уходит с заметки */
-  .n1 .check { animation-name: done1; } .n2 .check { animation-name: done2; } .n3 .check { animation-name: done3; }
-  .check { opacity: 0; }
-  @keyframes done1 { 0%, 32.8% { opacity: 0; } 33.6%, 100% { opacity: 1; } }
-  @keyframes done2 { 0%, 41.4% { opacity: 0; } 42.2%, 100% { opacity: 1; } }
-  @keyframes done3 { 0%, 50%   { opacity: 0; } 50.8%, 100% { opacity: 1; } }
+  @keyframes board { 0%, 14% { opacity: 0; } 15.5% { opacity: 1; } 77% { opacity: 1; } 78.5%, 100% { opacity: 0; } }
 
+  /* мини-трасса: 5 заметок на красной нити, фишка ходит по секунде */
+  .thread { left: 0; top: 0; width: 540px; height: 300px; }
+  .thread path { fill: none; stroke: var(--red); stroke-width: 3; }
+  .note {
+    width: 64px; height: 64px; border-radius: 3px; background: var(--paper);
+    display: grid; place-items: center; color: var(--ink);
+    font-family: 'Dela Gothic One', serif; font-size: 28px;
+    box-shadow: 0 10px 14px -8px rgba(36, 28, 22, .9);
+  }
+  .note::before { content: ""; position: absolute; top: -7px; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--ink); }
+  .note .ok { position: absolute; inset: 0; display: grid; place-items: center; background: var(--done); border-radius: 3px; opacity: 0; }
+  .note .ok svg { width: 30px; height: 30px; }
+  .t1 { left: 40px;  top: 150px; transform: rotate(-4deg); }
+  .t2 { left: 136px; top: 110px; transform: rotate(3deg); }
+  .t3 { left: 232px; top: 150px; transform: rotate(-3deg); }
+  .t4 { left: 328px; top: 110px; transform: rotate(4deg); }
+  .t5 { left: 424px; top: 150px; transform: rotate(-2deg); }
+  .t1 .ok { animation-name: ok1; } .t2 .ok { animation-name: ok2; } .t3 .ok { animation-name: ok3; } .t4 .ok { animation-name: ok4; } .t5 .ok { animation-name: ok5; }
+  @keyframes ok1 { 0%, 27.4% { opacity: 0; } 27.6%, 100% { opacity: 1; } }
+  @keyframes ok2 { 0%, 39.9% { opacity: 0; } 40.1%, 100% { opacity: 1; } }
+  @keyframes ok3 { 0%, 52.4% { opacity: 0; } 52.6%, 100% { opacity: 1; } }
+  @keyframes ok4 { 0%, 64.9% { opacity: 0; } 65.1%, 100% { opacity: 1; } }
+  @keyframes ok5 { 0%, 77.4% { opacity: 0; } 77.6%, 100% { opacity: 1; } }
   .chip {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: var(--red); border: 4px solid var(--ink);
-    box-shadow: inset 0 0 0 6px #b8443c, 0 10px 12px -6px rgba(36, 28, 22, .9);
+    width: 30px; height: 30px; border-radius: 50%; background: var(--red); border: 3px solid var(--ink);
+    box-shadow: inset 0 0 0 5px #b8443c, 0 8px 10px -5px rgba(36, 28, 22, .9);
     animation-name: chip;
   }
-  /* фишка прыгает по заметкам: 1.7 → 2.3 → 2.9 → 3.5 с */
   @keyframes chip {
-    0%, 23.5% { opacity: 0; left: 108px; top: 380px; }
-    24.3%     { opacity: 1; left: 108px; top: 380px; }
-    32.8%     { left: 108px; top: 380px; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    35.7%     { left: 230px; top: 270px; }
-    41.4%     { left: 230px; top: 270px; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    44.3%     { left: 354px; top: 405px; }
-    50%       { left: 354px; top: 405px; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    52.9%, 100% { left: 468px; top: 280px; opacity: 1; }
+    0%, 15%  { left: 84px;  top: 124px; }
+    27.5%    { left: 84px;  top: 124px; animation-timing-function: var(--out); }
+    30%      { left: 180px; top: 84px; }
+    40%      { left: 180px; top: 84px; animation-timing-function: var(--out); }
+    42.5%    { left: 276px; top: 124px; }
+    52.5%    { left: 276px; top: 124px; animation-timing-function: var(--out); }
+    55%      { left: 372px; top: 84px; }
+    65%      { left: 372px; top: 84px; animation-timing-function: var(--out); }
+    67.5%, 100% { left: 468px; top: 124px; }
   }
 
-  .caption {
-    left: 40px; right: 40px; top: 700px; height: 110px;
-    display: flex; align-items: center; gap: 18px;
-    padding: 0 24px; border-radius: 12px;
+  /* карточка занятия: каждая сцена — своя секунда */
+  .card {
+    left: 36px; right: 36px; top: 270px; height: 600px;
+    padding: 30px 30px 0; border-radius: 4px;
     background: var(--paper); color: var(--ink);
-    font-family: 'Dela Gothic One', serif; font-size: 34px;
-    box-shadow: 0 20px 26px -16px rgba(36, 28, 22, .9);
+    box-shadow: 0 30px 40px -22px rgba(36, 28, 22, .95);
     opacity: 0;
   }
-  .caption svg { width: 44px; height: 44px; flex-shrink: 0; }
-  .c1 { animation-name: cap1; } .c2 { animation-name: cap2; } .c3 { animation-name: cap3; } .c4 { animation-name: cap4; }
-  @keyframes cap1 { 0%, 24%   { opacity: 0; transform: translateY(20px); } 25.5% { opacity: 1; transform: none; } 32.8% { opacity: 1; } 33.6%, 100% { opacity: 0; } }
-  @keyframes cap2 { 0%, 33.6% { opacity: 0; transform: translateY(20px); } 35%   { opacity: 1; transform: none; } 41.4% { opacity: 1; } 42.2%, 100% { opacity: 0; } }
-  @keyframes cap3 { 0%, 42.2% { opacity: 0; transform: translateY(20px); } 43.6% { opacity: 1; transform: none; } 50%   { opacity: 1; } 50.8%, 100% { opacity: 0; } }
-  @keyframes cap4 { 0%, 50.8% { opacity: 0; transform: translateY(20px); } 52.2% { opacity: 1; transform: none; } 61.4% { opacity: 1; } 63.6%, 100% { opacity: 0; } }
+  .tape { position: absolute; top: -14px; width: 110px; height: 34px; background: rgba(205, 184, 148, .78); }
+  .tape--l { left: 22px; transform: rotate(-7deg); } .tape--r { right: 22px; transform: rotate(6deg); }
+  .card h3 { display: flex; align-items: center; gap: 14px; font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 40px; line-height: 1; }
+  .card h3 svg { width: 40px; height: 40px; flex-shrink: 0; }
+  .card .q { margin-top: 22px; font-size: 30px; line-height: 1.3; }
 
-  /* ── Сцена 3: дело закрыто (4.4–5.95 с) ───────────────────────── */
+  .v1 { animation-name: v1; } .v2 { animation-name: v2; } .v3 { animation-name: v3; } .v4 { animation-name: v4; } .v5 { animation-name: v5; }
+  @keyframes v1 { 0%, 15%   { opacity: 0; transform: translateX(80px) rotate(2deg); animation-timing-function: var(--out); } 16.6% { opacity: 1; transform: rotate(-1deg); } 26.4% { opacity: 1; transform: rotate(-1deg); animation-timing-function: var(--in); } 27.5%, 100% { opacity: 0; transform: translateX(-90px) rotate(-3deg); } }
+  @keyframes v2 { 0%, 27.5% { opacity: 0; transform: translateX(80px) rotate(2deg); animation-timing-function: var(--out); } 29.1% { opacity: 1; transform: rotate(1deg); } 38.9% { opacity: 1; transform: rotate(1deg); animation-timing-function: var(--in); } 40%, 100% { opacity: 0; transform: translateX(-90px) rotate(-3deg); } }
+  @keyframes v3 { 0%, 40%   { opacity: 0; transform: translateX(80px) rotate(2deg); animation-timing-function: var(--out); } 41.6% { opacity: 1; transform: rotate(-1deg); } 51.4% { opacity: 1; transform: rotate(-1deg); animation-timing-function: var(--in); } 52.5%, 100% { opacity: 0; transform: translateX(-90px) rotate(-3deg); } }
+  @keyframes v4 { 0%, 52.5% { opacity: 0; transform: translateX(80px) rotate(2deg); animation-timing-function: var(--out); } 54.1% { opacity: 1; transform: rotate(1deg); } 63.9% { opacity: 1; transform: rotate(1deg); animation-timing-function: var(--in); } 65%, 100% { opacity: 0; transform: translateX(-90px) rotate(-3deg); } }
+  @keyframes v5 { 0%, 65%   { opacity: 0; transform: translateX(80px) rotate(2deg); animation-timing-function: var(--out); } 66.6% { opacity: 1; transform: rotate(-1deg); } 76.4% { opacity: 1; transform: rotate(-1deg); animation-timing-function: var(--in); } 77.5%, 100% { opacity: 0; transform: translateX(-90px) rotate(-3deg); } }
+
+  /* 1. Загадка: печатается ответ, «Верно» */
+  .field {
+    margin-top: 34px; height: 76px; padding: 0 22px;
+    display: flex; align-items: center;
+    border: 3px solid var(--ink); border-radius: 12px; background: var(--paper);
+    font-family: 'Dela Gothic One', serif; font-size: 34px; letter-spacing: .04em;
+  }
+  .typed { display: inline-block; animation-name: type; }
+  @keyframes type {
+    0%, 17.5% { clip-path: inset(0 100% 0 0); }
+    17.51%    { clip-path: inset(0 100% 0 0); animation-timing-function: steps(6, end); }
+    22%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  .caret { display: inline-block; width: 3px; height: 38px; margin-left: 4px; background: var(--red); }
+  .verdict { left: 30px; right: 30px; bottom: 60px; height: 84px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 14px; animation-name: verdict; }
+  .verdict svg { width: 40px; height: 40px; }
+  .verdict { background: var(--ink); color: var(--paper); font-family: 'Dela Gothic One', serif; font-size: 34px; }
+  @keyframes verdict {
+    0%, 23.2% { opacity: 0; transform: scale(.85); }
+    23.3%     { opacity: 1; transform: scale(1.12); animation-timing-function: var(--out); }
+    24.6%, 100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* 2. Угадайка: выбор варианта */
+  .opts { margin-top: 26px; display: grid; gap: 14px; }
+  .opt {
+    height: 72px; padding: 0 20px; border-radius: 12px;
+    display: flex; align-items: center; gap: 16px;
+    background: #e6dcc8; color: var(--ink); font-size: 30px;
+  }
+  .opt b { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font-family: 'Dela Gothic One', serif; font-size: 20px; font-weight: 400; }
+  .opt--pick { animation-name: pick; }
+  .opt--pick svg { width: 36px; height: 36px; margin-left: auto; opacity: 0; animation: inherit; animation-name: pick-ok; }
+  @keyframes pick { 0%, 32.4% { background: #e6dcc8; color: var(--ink); transform: none; } 32.5% { background: var(--ink); color: var(--paper); transform: scale(1.04); animation-timing-function: var(--out); } 34%, 100% { background: var(--ink); color: var(--paper); transform: none; } }
+  @keyframes pick-ok { 0%, 32.4% { opacity: 0; } 32.5%, 100% { opacity: 1; } }
+  .opt--pick b { animation: inherit; animation-name: pick-b; }
+  @keyframes pick-b { 0%, 32.4% { border-color: var(--ink); } 32.5%, 100% { border-color: var(--paper); } }
+
+  /* 3. Пары: карточки переворачиваются */
+  .pairs { margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; perspective: 900px; }
+  .pc { position: relative; height: 168px; transform-style: preserve-3d; }
+  .pc > span { position: absolute; inset: 0; border-radius: 10px; display: grid; place-items: center; backface-visibility: hidden; }
+  .pc .back { background: var(--back); }
+  .pc .back::after { content: ""; position: absolute; inset: 12px; border: 2px dashed rgba(241, 232, 216, .35); border-radius: 6px; }
+  .pc .face { background: var(--paper); border: 3px solid var(--ink); transform: rotateY(180deg); color: var(--ink); }
+  .pc .face svg { width: 64px; height: 64px; }
+  .pa { animation-name: flipA; } .pb { animation-name: flipB; } .pcc { animation-name: flipC; }
+  @keyframes flipA { 0%, 43.5% { transform: rotateY(0); animation-timing-function: var(--out); } 46%, 100% { transform: rotateY(180deg); } }
+  @keyframes flipB { 0%, 46.5% { transform: rotateY(0); animation-timing-function: var(--out); } 49%, 100% { transform: rotateY(180deg); } }
+  @keyframes flipC { 0%, 49.5% { transform: rotateY(0); animation-timing-function: var(--out); } 51.5%, 100% { transform: rotateY(180deg); } }
+  .pa .face { animation-name: matchA; } .pb .face { animation-name: matchB; } .pcc .face { animation-name: matchC; }
+  @keyframes matchA { 0%, 45.9% { background: var(--paper); } 46%, 100% { background: var(--done); } }
+  @keyframes matchB { 0%, 48.9% { background: var(--paper); } 49%, 100% { background: var(--done); } }
+  @keyframes matchC { 0%, 51.4% { background: var(--paper); } 51.5%, 100% { background: var(--done); } }
+
+  /* 4. Пазл: кусочки слетаются в карту */
+  .puzzle { position: relative; margin: 30px auto 0; width: 384px; height: 384px; }
+  .puzzle .slot { position: absolute; inset: 0; border: 3px dashed rgba(42, 33, 27, .3); border-radius: 6px; }
+  .pz {
+    position: absolute; width: 128px; height: 128px;
+    background-image: var(--map); background-size: 384px 384px;
+    box-shadow: 0 8px 12px -6px rgba(36, 28, 22, .7);
+    animation-name: snap;
+  }
+  @keyframes snap {
+    0%, 53% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); animation-timing-function: var(--out); }
+    61%, 100% { transform: none; box-shadow: none; }
+  }
+
+  /* 5. Селфи: полароид со вспышкой */
+  .polaroid {
+    position: relative; margin: 26px auto 0; width: 340px; padding: 18px 18px 56px;
+    background: #fbf8f0; border-radius: 3px; transform: rotate(-3deg);
+    box-shadow: 0 18px 24px -14px rgba(36, 28, 22, .85);
+    font-size: 26px; color: var(--ink-soft);
+  }
+  .photo { height: 304px; background: #d8c6a4; position: relative; overflow: hidden; }
+  .photo svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .polaroid figcaption { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-style: italic; }
+  .flash { inset: 0; background: var(--flash); animation-name: flash; }
+  @keyframes flash { 0%, 69.9% { opacity: 0; } 70% { opacity: .95; } 72.5%, 100% { opacity: 0; } }
+  .develop { animation-name: develop; }
+  @keyframes develop { 0%, 70% { opacity: 0; } 74%, 100% { opacity: 1; } }
+
+  /* ══ Сцена 3: дело закрыто (6.2–7.25 с) ══════════════════════════ */
   .sheet {
     left: 40px; top: 300px; width: 460px; padding: 56px 36px 64px;
     background: var(--paper); color: var(--ink); border-radius: 3px;
     box-shadow: 0 30px 40px -20px rgba(36, 28, 22, .9);
     animation-name: sheet;
   }
-  .sheet h3 { font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 54px; line-height: 1; }
+  .sheet h2 { font-size: 54px; line-height: 1; }
   .sheet p { margin-top: 20px; font-size: 30px; line-height: 1.35; }
-  .tape { position: absolute; top: -14px; width: 110px; height: 34px; background: rgba(205, 184, 148, .75); }
-  .tape--l { left: 22px; transform: rotate(-7deg); } .tape--r { right: 22px; transform: rotate(6deg); }
   @keyframes sheet {
-    0%, 62.8% { opacity: 0; transform: translateY(260px) rotate(4deg); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    68.6%     { opacity: 1; transform: rotate(-1.5deg); }
-    82.1%     { opacity: 1; transform: rotate(-1.5deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
-    85%, 100% { opacity: 0; transform: translateY(-80px) rotate(-1.5deg); }
+    0%, 77.5% { opacity: 0; transform: translateY(260px) rotate(4deg); animation-timing-function: var(--out); }
+    81%       { opacity: 1; transform: rotate(-1.5deg); }
+    88.5%     { opacity: 1; transform: rotate(-1.5deg); animation-timing-function: var(--in); }
+    90.6%, 100% { opacity: 0; transform: translateY(-80px) rotate(-1.5deg); }
   }
-  .stamp--done { right: 24px; bottom: -24px; background: var(--paper); animation-name: stamp-done; }
+  .stamp--done { right: 24px; bottom: -24px; animation-name: stamp-done; }
   @keyframes stamp-done {
-    0%, 71.4% { opacity: 0; transform: scale(2.6) rotate(-24deg); }
-    71.41%    { opacity: 1; transform: scale(2.6) rotate(-24deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
-    73.6%, 100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+    0%, 82.4% { opacity: 0; transform: scale(2.6) rotate(-24deg); }
+    82.5%     { opacity: 1; transform: scale(2.6) rotate(-24deg); animation-timing-function: var(--in); }
+    84%, 100% { opacity: 1; transform: scale(1) rotate(-8deg); }
   }
 
-  /* ── Сцена 4: марка (5.9–7 с) ─────────────────────────────────── */
+  /* ══ Сцена 4: марка (7.2–8 с) ════════════════════════════════════ */
   .brand { left: 40px; right: 40px; top: 380px; text-align: center; animation-name: brand; }
-  .brand b { display: block; font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 62px; line-height: 1; }
+  .brand b { display: block; font-size: 62px; line-height: 1; font-weight: 400; }
   .brand span { display: block; margin-top: 18px; font-size: 32px; color: var(--field-soft); }
   .brand i { display: block; height: 6px; margin: 26px auto 0; background: var(--red); border-radius: 3px; animation-name: bar; }
   @keyframes brand {
-    0%, 84.3% { opacity: 0; transform: translateY(30px); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    89%, 100% { opacity: 1; transform: none; }
+    0%, 90% { opacity: 0; transform: translateY(30px); animation-timing-function: var(--out); }
+    93.5%, 100% { opacity: 1; transform: none; }
   }
-  @keyframes bar {
-    0%, 87% { width: 0; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
-    94%, 100% { width: 220px; }
-  }
+  @keyframes bar { 0%, 92% { width: 0; animation-timing-function: var(--out); } 98%, 100% { width: 220px; } }
 </style>
 </head>
 <body>
-  <!-- Сцена 1 -->
+  <!-- ══ Сцена 1 ══ -->
   <div class="folder abs a">
     <span class="folder__tab">Дело № 1015</span>
-    <h1>Дело<br>для двоих</h1>
+    <h1 class="disp">Дело<br>для двоих</h1>
     <span class="stamp stamp--secret abs a">Секретно</span>
   </div>
 
-  <!-- Сцена 2 -->
+  <!-- ══ Сцена 2 ══ -->
   <div class="board abs a">
-    <h2 class="abs a">Ваша история —<br>на игровом поле</h2>
-    <svg class="thread abs a" viewBox="0 0 540 960" aria-hidden="true">
-      <path d="M-20 520 C40 520 60 478 98 478 S180 368 220 368 S300 503 344 503 S420 378 458 378 S540 330 560 330" />
+    <svg class="thread abs" viewBox="0 0 540 300" aria-hidden="true">
+      <path d="M-10 190 C30 190 50 182 72 182 S140 142 168 142 S240 182 264 182 S330 142 360 142 S430 182 456 182 S540 182 560 182" />
     </svg>
-    <div class="note n1 abs a"><span class="face">1</span><span class="check a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
-    <div class="note n2 abs a"><span class="face">2</span><span class="check a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
-    <div class="note n3 abs a"><span class="face">3</span><span class="check a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
-    <div class="note n4 abs a"><span class="face">4</span></div>
+    <div class="note t1 abs">1<span class="ok a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note t2 abs">2<span class="ok a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note t3 abs">3<span class="ok a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note t4 abs">4<span class="ok a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note t5 abs">5<span class="ok a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
     <span class="chip abs a"></span>
 
-    <div class="caption c1 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a2.9 2.9 0 115.1 1.9c-.9.9-2.3 1.6-2.3 3.1"/><path d="M12 18h.01"/></svg>Загадки</div>
-    <div class="caption c2 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M12 16.5a3 3 0 100-6 3 3 0 000 6z"/></svg>Фото-задания</div>
-    <div class="caption c3 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4z"/><path d="M13 13h7v7h-7z"/><path d="M16.5 4.5v6"/><path d="M13.5 7.5h6"/><path d="M5 15.5l5 3.5"/><path d="M10 15.5l-5 3.5"/></svg>Мини-игры</div>
-    <div class="caption c4 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 18h5"/><path d="M10.5 21h3"/><path d="M12 3a6 6 0 00-3.5 10.9V16h7v-2.1A6 6 0 0012 3z"/></svg>Подсказки</div>
+    <!-- 1. Загадка -->
+    <div class="card v1 abs a">
+      <span class="tape tape--l"></span><span class="tape tape--r"></span>
+      <h3><svg class="i" viewBox="0 0 24 24"><path d="M9.2 9a2.9 2.9 0 115.1 1.9c-.9.9-2.3 1.6-2.3 3.1"/><path d="M12 18h.01"/></svg>Загадка</h3>
+      <p class="q">Где вода помнит ваш первый разговор?</p>
+      <div class="field"><span class="typed a">ФОНТАН</span><span class="caret"></span></div>
+      <div class="verdict abs a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Верно</div>
+    </div>
+
+    <!-- 2. Угадайка -->
+    <div class="card v2 abs a">
+      <span class="tape tape--l"></span><span class="tape tape--r"></span>
+      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 4h7v7H4z"/><path d="M13 13h7v7h-7z"/><path d="M16.5 4.5v6"/><path d="M13.5 7.5h6"/><path d="M5 15.5l5 3.5"/><path d="M10 15.5l-5 3.5"/></svg>Угадайка</h3>
+      <p class="q">Что вы ели на первом свидании?</p>
+      <div class="opts">
+        <div class="opt"><b>А</b>Пиццу</div>
+        <div class="opt"><b>Б</b>Суши</div>
+        <div class="opt opt--pick a"><b class="a">В</b>Блины<svg class="i a" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <div class="opt"><b>Г</b>Мороженое</div>
+      </div>
+    </div>
+
+    <!-- 3. Найди пары -->
+    <div class="card v3 abs a">
+      <span class="tape tape--l"></span><span class="tape tape--r"></span>
+      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 5h7v10H4z"/><path d="M13 9h7v10h-7z"/></svg>Найди пары</h3>
+      <div class="pairs">
+        <div class="pc pa a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.7A5 5 0 0112 6.4a5 5 0 019.2 4.9C19 15.6 12 20 12 20z"/></svg></span></div>
+        <div class="pc pb a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M5 8h11v5.5A5.5 5.5 0 0110.5 19A5.5 5.5 0 015 13.5z"/><path d="M16 10h1.5a2.5 2.5 0 010 5H16"/></svg></span></div>
+        <div class="pc pcc a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M8 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20.5 12v2"/></svg></span></div>
+        <div class="pc pb a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M5 8h11v5.5A5.5 5.5 0 0110.5 19A5.5 5.5 0 015 13.5z"/><path d="M16 10h1.5a2.5 2.5 0 010 5H16"/></svg></span></div>
+        <div class="pc pcc a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M8 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20.5 12v2"/></svg></span></div>
+        <div class="pc pa a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.7A5 5 0 0112 6.4a5 5 0 019.2 4.9C19 15.6 12 20 12 20z"/></svg></span></div>
+      </div>
+    </div>
+
+    <!-- 4. Пазл: карта маршрута собирается из кусочков -->
+    <div class="card v4 abs a" style="--map: url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'><rect width='300' height='300' fill='%23e3d3b2'/><path d='M-10 210 C60 170 110 250 170 205 S260 150 310 180' fill='none' stroke='%237d93a0' stroke-width='22'/><g fill='%236f7a4c'><circle cx='50' cy='60' r='22'/><circle cx='85' cy='45' r='17'/><circle cx='240' cy='70' r='24'/><circle cx='205' cy='95' r='15'/><circle cx='120' cy='270' r='18'/></g><path d='M40 120 C90 100 120 140 160 120 S220 80 250 130' fill='none' stroke='%239f2b25' stroke-width='5' stroke-dasharray='10 9' stroke-linecap='round'/><path d='M240 120l20 20M260 120l-20 20' stroke='%239f2b25' stroke-width='7' stroke-linecap='round'/><circle cx='40' cy='120' r='9' fill='%232a211b'/></svg>&quot;);">
+      <span class="tape tape--l"></span><span class="tape tape--r"></span>
+      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 4h7v4a2 2 0 104 0V4h5v7h-4a2 2 0 100 4h4v5h-7v-4a2 2 0 10-4 0v4H4z"/></svg>Собери пазл</h3>
+      <div class="puzzle">
+        <span class="slot"></span>
+        <span class="pz a" style="left:0;top:0;background-position:0 0;--dx:-120px;--dy:-60px;--r:-25deg;animation-delay:0s"></span>
+        <span class="pz a" style="left:128px;top:0;background-position:-128px 0;--dx:30px;--dy:-140px;--r:18deg;animation-delay:.04s"></span>
+        <span class="pz a" style="left:256px;top:0;background-position:-256px 0;--dx:140px;--dy:-40px;--r:30deg;animation-delay:.08s"></span>
+        <span class="pz a" style="left:0;top:128px;background-position:0 -128px;--dx:-150px;--dy:20px;--r:22deg;animation-delay:.12s"></span>
+        <span class="pz a" style="left:128px;top:128px;background-position:-128px -128px;--dx:10px;--dy:180px;--r:-15deg;animation-delay:.16s"></span>
+        <span class="pz a" style="left:256px;top:128px;background-position:-256px -128px;--dx:150px;--dy:60px;--r:-28deg;animation-delay:.2s"></span>
+        <span class="pz a" style="left:0;top:256px;background-position:0 -256px;--dx:-90px;--dy:160px;--r:-20deg;animation-delay:.24s"></span>
+        <span class="pz a" style="left:128px;top:256px;background-position:-128px -256px;--dx:60px;--dy:200px;--r:26deg;animation-delay:.28s"></span>
+        <span class="pz a" style="left:256px;top:256px;background-position:-256px -256px;--dx:120px;--dy:150px;--r:14deg;animation-delay:.32s"></span>
+      </div>
+    </div>
+
+    <!-- 5. Селфи -->
+    <div class="card v5 abs a">
+      <span class="tape tape--l"></span><span class="tape tape--r"></span>
+      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M12 16.5a3 3 0 100-6 3 3 0 000 6z"/></svg>Селфи на месте</h3>
+      <figure class="polaroid">
+        <div class="photo">
+          <svg class="develop a" viewBox="0 0 300 300" aria-hidden="true">
+            <rect width="300" height="300" fill="#cdb894"/>
+            <circle cx="235" cy="70" r="30" fill="#e9dcc0"/>
+            <g fill="#6a5646"><circle cx="112" cy="140" r="38"/><rect x="58" y="185" width="108" height="140" rx="50"/></g>
+            <g fill="#4e4037"><circle cx="190" cy="150" r="36"/><rect x="138" y="192" width="104" height="130" rx="48"/></g>
+          </svg>
+          <span class="flash abs a"></span>
+        </div>
+        <figcaption>мы тут были</figcaption>
+      </figure>
+    </div>
   </div>
 
-  <!-- Сцена 3 -->
+  <!-- ══ Сцена 3 ══ -->
   <div class="sheet abs a">
     <span class="tape tape--l"></span><span class="tape tape--r"></span>
-    <h3>Дело<br>закрыто</h3>
+    <h2 class="disp">Дело<br>закрыто</h2>
     <p>Свидание, которое вы раскроете вдвоём</p>
     <span class="stamp stamp--done abs a">Раскрыто</span>
   </div>
 
-  <!-- Сцена 4 -->
+  <!-- ══ Сцена 4 ══ -->
   <div class="brand abs a">
-    <b>Quest Dating</b>
+    <b class="disp">Quest Dating</b>
     <span>квест под вашу пару</span>
     <i class="a"></i>
   </div>
