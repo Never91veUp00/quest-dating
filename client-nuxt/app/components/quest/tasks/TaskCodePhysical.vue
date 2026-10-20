@@ -25,6 +25,7 @@
 import { ref } from 'vue'
 import TaskHint from './TaskHint.vue'
 import { isCodeCorrect } from '~/utils/answerMatch'
+import QuestIcon from '../QuestIcon.vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },

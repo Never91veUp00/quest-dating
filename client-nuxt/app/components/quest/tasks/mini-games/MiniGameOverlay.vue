@@ -23,6 +23,7 @@
 </template>
 
 <script setup>
+import QuestIcon from '../../QuestIcon.vue'
 defineProps({
   modelValue: { type: Boolean, required: true },
   task:       { type: Object,  required: true },
