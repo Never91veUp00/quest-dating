@@ -39,6 +39,7 @@ import MiniGameOverlay from './mini-games/MiniGameOverlay.vue'
 import MiniGameQuiz    from './mini-games/MiniGameQuiz.vue'
 import MiniGamePairs   from './mini-games/MiniGamePairs.vue'
 import MiniGamePuzzle  from './mini-games/MiniGamePuzzle.vue'
+import QuestIcon from '../QuestIcon.vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },

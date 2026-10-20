@@ -171,6 +171,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
 import QuestBlockBridge from '~/components/quest/QuestBlockBridge.vue'
+import QuestIcon from '../../components/quest/QuestIcon.vue'
 
 
 const route = useRoute()

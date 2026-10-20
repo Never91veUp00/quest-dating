@@ -10,6 +10,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import QuestIcon from '../QuestIcon.vue'
 
 const props = defineProps({
   hint:  { type: String, default: '' },

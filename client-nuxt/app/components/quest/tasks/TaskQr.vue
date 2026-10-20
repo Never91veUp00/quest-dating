@@ -13,6 +13,7 @@
 
 <script setup>
 import TaskHint from './TaskHint.vue'
+import QuestIcon from '../QuestIcon.vue'
 
 defineProps({
   task:  { type: Object, required: true },
