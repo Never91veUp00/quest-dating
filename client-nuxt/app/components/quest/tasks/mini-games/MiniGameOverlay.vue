@@ -72,6 +72,20 @@ defineEmits(['update:modelValue'])
 .mg-overlay--letters :deep(.task__pairs__card__back),
 .mg-overlay--letters :deep(.task__pairs__card__front) { border-radius: 3px; clip-path: inset(0 round 3px); }
 
+/* Схема, «Найди пары»: рубашка — талон с зелёной полосой, без знака вопроса */
+.mg-overlay--metro :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background: var(--paper);
+  box-shadow: inset 0 14px 0 var(--chip);
+}
+.mg-overlay--metro :deep(.task__pairs__card__back::before) {
+  content: "";
+  position: absolute; left: 8px; right: 8px; top: 24px;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 30%, var(--paper));
+}
+.mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
+.mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+
 /* ── Header ── */
 .mg-overlay__head {
   display: flex;

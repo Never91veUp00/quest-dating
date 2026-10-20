@@ -6,6 +6,7 @@
       'task--wrong':    mode === 'review' && earnedEntry?.wrong,
       'task--casefile': decor === 'casefile',
       'task--letters':  decor === 'letters',
+      'task--metro':    decor === 'metro',
       [`task--${task.type}`]: true,
     }"
   >
@@ -15,6 +16,7 @@
     </template>
     <!-- Письмо вынуто из конверта: над листом стоит открытый клапан -->
     <span v-else-if="decor === 'letters'" class="task__flap" aria-hidden="true"></span>
+    <span v-else-if="decor === 'metro'" class="task__perf" aria-hidden="true"></span>
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
@@ -177,6 +179,44 @@ const typeLabel = computed(() => ({
 }
 .task__tape--l { left: 14px;  transform: rotate(-7deg); }
 .task__tape--r { right: 14px; transform: rotate(6deg); }
+
+/* Обличье схемы: талон с цветной полосой, корешок отделён перфорацией */
+.task--metro {
+  border: none;
+  border-radius: 6px;
+  padding: 44px 20px 22px;
+  box-shadow:
+    inset 0 12px 0 var(--chip),
+    0 1px 0 var(--paper-edge),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+}
+/* вырубка по краям линии отрыва — видно поле под талоном */
+.task--metro::before,
+.task--metro::after {
+  content: "";
+  position: absolute; top: 18px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--field);
+}
+.task--metro::before { left: -8px; }
+.task--metro::after  { right: -8px; }
+.task__perf {
+  position: absolute; left: 14px; right: 14px; top: 25px;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
+}
+/* номер — станция, как на линии */
+.task--metro .task__corner { gap: 4px; }
+.task--metro .task__no {
+  display: grid; place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--plate);
+  border: 5px solid var(--chip);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
 
 /* Обличье переписки: лист письма над открытым конвертом, номер — на марке */
 .task--letters {

@@ -243,7 +243,7 @@ const finishLabel = computed(() => ({
   detective: 'Закрыть дело',
   romantic:  'Завершить',
   mystery:   'К финалу',
-  city:      'К финишу',
+  city:      'На конечную',
   treasure:  'Клад найден',
   proposal:  'Завершить',
 }[props.theme.id] || 'Завершить'))
@@ -333,6 +333,28 @@ const finishLabel = computed(() => ({
 .block--casefile .block__mini-cell.is-active::after {
   top: -8px; right: auto; left: 50%;
   margin-left: -6px;
+}
+
+/* Обличье схемы: станции на зелёной линии */
+.block--metro .block__mini::before {
+  height: 5px; margin-top: -2.5px;
+  border-radius: 3px;
+  background: var(--chip);
+}
+.block--metro .block__mini-cell {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--back);
+  border: 3px solid var(--rule);
+}
+.block--metro .block__mini-cell.is-done { background: var(--chip); border-color: var(--field); box-shadow: 0 0 0 2px var(--chip); }
+.block--metro .block__mini-cell.is-active { width: 20px; height: 20px; background: var(--plate); border: 5px solid var(--chip); }
+.block--metro .block__mini-cell.is-active::after {
+  top: -13px; right: auto; left: 50%;
+  width: 16px; height: 9px; margin-left: -8px;
+  border: none;
+  border-radius: 5px 5px 2px 2px;
+  background: var(--rule);
 }
 
 /* Обличье переписки: конверты на атласной ленте */

@@ -19,6 +19,11 @@
           <span class="finish__tape finish__tape--r" aria-hidden="true"></span>
           <span class="finish__stamp" aria-hidden="true">Раскрыто</span>
         </template>
+        <template v-else-if="decor === 'metro'">
+          <span class="finish__perf" aria-hidden="true"></span>
+          <!-- Талон пробит на каждой пройденной станции -->
+          <span class="finish__holes" aria-hidden="true"><i v-for="n in Math.min(completedCount, 12)" :key="n"></i></span>
+        </template>
         <template v-else-if="decor === 'letters'">
           <span class="finish__flap" aria-hidden="true"></span>
           <span class="finish__postmark" aria-hidden="true">
@@ -302,6 +307,42 @@ const saveCard = async () => {
   text-transform: uppercase;
   transform: rotate(-8deg);
 }
+
+/* Обличье схемы: конечная — талон, пробитый на всех станциях */
+.finish--metro .finish__title { font-weight: 700; }
+.finish--metro .finish__message {
+  border: none;
+  border-radius: 6px;
+  padding-top: 46px;
+  box-shadow:
+    inset 0 12px 0 var(--chip),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+}
+.finish--metro .finish__message::before,
+.finish--metro .finish__message::after {
+  content: "";
+  position: absolute; top: 18px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--field);
+}
+.finish--metro .finish__message::before { left: -8px; }
+.finish--metro .finish__message::after  { right: -8px; }
+.finish__perf {
+  position: absolute; left: 14px; right: 14px; top: 25px;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
+}
+.finish__holes {
+  position: absolute; right: 18px; top: 32px;
+  display: flex; gap: 5px;
+}
+.finish__holes i {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--field);
+  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--rule) 45%, transparent);
+}
+.finish__holes i:nth-child(even) { transform: translateY(5px); }
 
 /* Обличье переписки: последнее письмо, погашенное штемпелем «Доставлено» */
 .finish--letters .finish__message { border: none; border-radius: 2px; margin-top: 10px; padding-top: 26px; }

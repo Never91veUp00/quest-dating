@@ -53,6 +53,7 @@
             <span class="splash__tape splash__tape--r" aria-hidden="true"></span>
           </template>
           <span v-else-if="decor === 'letters'" class="splash__flap" aria-hidden="true"></span>
+          <span v-else-if="decor === 'metro'" class="splash__perf" aria-hidden="true"></span>
           <h2 id="brief-h" class="splash__h splash__h--ink">Перед стартом</h2>
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
@@ -215,6 +216,30 @@ const startLabel = computed(() =>
   background: var(--paper-edge);
   clip-path: polygon(0 100%, 50% 0, 100% 100%);
 }
+
+/* Обличье схемы: «Перед стартом» — талон с полосой и линией отрыва */
+.splash--metro .splash__brief {
+  border-radius: 6px;
+  padding-top: 42px;
+  box-shadow:
+    inset 0 12px 0 var(--chip),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+}
+.splash--metro .splash__brief::before,
+.splash--metro .splash__brief::after {
+  content: "";
+  position: absolute; top: 18px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--field);
+}
+.splash--metro .splash__brief::before { left: -8px; }
+.splash--metro .splash__brief::after  { right: -8px; }
+.splash__perf {
+  position: absolute; left: 14px; right: 14px; top: 25px;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
+}
+.splash--metro .splash__title { font-weight: 700; }
 
 /* ── Код доступа ──────────────────────────────────────────────── */
 .splash__code { display: flex; flex-direction: column; }
