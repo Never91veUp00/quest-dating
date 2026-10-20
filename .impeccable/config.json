@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "${themeobj.value.fonts.googlefonts}",
+        "createdAt": "2026-10-20T12:02:29.251Z",
+        "reason": "brief 2026-10-15/20: non-pilot themes keep their own Google fonts until their own world PRs; detective is self-hosted"
+      }
+    ]
+  }
+}
