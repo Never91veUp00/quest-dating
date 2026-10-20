@@ -345,4 +345,7 @@ const typeLabel = computed(() => ({
 /* Короткая карточка тянется до низа экрана: кнопка всегда у большого пальца */
 .task:not(.task--review) { min-height: calc(100svh - 196px - var(--kb, 0px)); }
 .task__body :deep(.task__action) { margin-top: auto; }
+/* В колонке карточки поле не растягивается по высоте; flex: 1 — только в ряду */
+.task__body :deep(.task__input) { flex: none; }
+.task__body :deep(.task__row .task__input) { flex: 1; }
 </style>
