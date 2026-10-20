@@ -1,66 +1,47 @@
 <template>
-  <div class="finish" :class="`finish--${theme.id}`">
+  <div class="finish" :class="decor && `finish--${decor}`">
+    <div class="finish__inner">
+      <header class="finish__head">
+        <h2 class="finish__title">{{ finishTitle }}</h2>
+        <p class="finish__sub">{{ questData.title }}</p>
+      </header>
 
-    <!-- Частицы -->
-    <div class="finish__particles" aria-hidden="true">
-      <span v-for="n in 20" :key="n" class="finish__particle" :style="particle(n)"></span>
-    </div>
+      <p class="finish__facts">
+        <span><b>{{ points }}</b> {{ theme.copy.pointsLabel }}</span>
+        <span><b>{{ completedCount }}</b> клеток пройдено</span>
+        <span>за <b>{{ elapsed }}</b></span>
+      </p>
 
-    <div class="finish__body">
-
-      <!-- Иконка успеха -->
-      <div class="finish__trophy">{{ trophyIcon }}</div>
-
-      <div class="finish__eyebrow">{{ theme.copy.finishEyebrow }}</div>
-      <h2 class="finish__title">{{ questData.title }}</h2>
-
-      <!-- Статы -->
-      <div class="finish__grid">
-        <div class="finish__cell">
-          <div class="finish__n">{{ points }}</div>
-          <div class="finish__l">{{ theme.copy.pointsLabel }}</div>
-        </div>
-        <div class="finish__cell">
-          <div class="finish__n">{{ completedCount }}</div>
-          <div class="finish__l">заданий</div>
-        </div>
-        <div class="finish__cell">
-          <div class="finish__n">{{ elapsed }}</div>
-          <div class="finish__l">времени</div>
-        </div>
-      </div>
-
-      <!-- Карточка с селфи -->
-      <div v-if="selfieUrl" class="finish__card" :class="`finish__card--${frameLevel}`">
-        <div class="finish__card__frame">
-          <img :src="selfieUrl" alt="Твоё фото" class="finish__card__photo" />
-          <div class="finish__card__frame-inner"></div>
-        </div>
-        <div class="finish__card__badge">
-          <span class="finish__card__badge-icon">{{ frameBadge }}</span>
-          <span class="finish__card__badge-label">{{ frameLabel }}</span>
-        </div>
-      </div>
-
-      <!-- Финальное послание -->
-      <div v-if="questData.final_message" class="finish__message">
-        <div class="finish__message-label">{{ messageLabel }}</div>
+      <!-- Послание автора — последняя карта игры -->
+      <article v-if="questData.final_message" class="finish__message">
+        <template v-if="decor === 'casefile'">
+          <span class="finish__tape finish__tape--l" aria-hidden="true"></span>
+          <span class="finish__tape finish__tape--r" aria-hidden="true"></span>
+          <span class="finish__stamp" aria-hidden="true">Закрыто</span>
+        </template>
+        <h3 class="finish__message-label">{{ messageLabel }}</h3>
         <p class="finish__message-text">{{ questData.final_message }}</p>
+      </article>
+
+      <!-- Селфи с прохождения -->
+      <figure v-if="selfieUrl" class="finish__card" :class="`finish__card--${frameLevel}`">
+        <img :src="selfieUrl" alt="Твоё фото с квеста" class="finish__card__photo" />
+        <figcaption class="finish__card__label">{{ frameLabel }}</figcaption>
+      </figure>
+
+      <div class="finish__actions">
+        <button v-if="selfieUrl" class="task__action" :disabled="saving" @click="saveCard">
+          {{ saving ? 'Создаём карточку…' : 'Получить фото в Telegram' }}
+        </button>
+        <p v-if="cardError" class="finish__card-error" role="alert">{{ cardError }}</p>
+        <button class="task__action" :class="{ 'finish__secondary': selfieUrl }" @click="$emit('share')">
+          Поделиться результатом
+        </button>
+        <button class="finish__restart" @click="$emit('restart')">
+          <QuestIcon name="restart" :size="18" />
+          Пройти ещё раз
+        </button>
       </div>
-
-      <!-- Кнопки -->
-      <button v-if="selfieUrl" class="finish__share finish__share--primary"
-        :disabled="saving" @click="saveCard">
-        {{ saving ? 'Создаём карточку…' : '📸 Получить фото в Telegram' }}
-      </button>
-      <div v-if="cardError" class="finish__card-error">{{ cardError }}</div>
-      <button class="finish__share" @click="$emit('share')">
-        Поделиться результатом
-      </button>
-
-      <button class="finish__restart" @click="$emit('restart')">
-        🔄 Пройти ещё раз
-      </button>
     </div>
 
     <!-- Скрытый canvas для генерации карточки -->
@@ -70,6 +51,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import QuestIcon from './QuestIcon.vue'
 
 const props = defineProps({
   questData:      { type: Object, required: true },
@@ -87,9 +69,11 @@ const cardCanvas = ref(null)
 const saving     = ref(false)
 const cardError  = ref('')
 
-const trophyIcon = computed(() => ({
-  detective: '🗂️', romantic: '💝', mystery: '🔮', city: '🏆',
-}[props.theme.id] || '🏆'))
+// Заголовок финала: язык темы, без эмодзи
+const finishTitle = computed(() =>
+  (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
+)
+const decor = computed(() => props.theme.world?.decor ?? null)
 
 const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
@@ -109,14 +93,6 @@ const frameLabel = computed(() => ({
   bronze: 'Первое прохождение!',
 }[frameLevel.value]))
 
-const particle = (n) => ({
-  '--x':  (n * 5.1) % 100 + '%',
-  '--y':  (n * 3.7) % 100 + '%',
-  '--s':  (4 + n % 6) + 'px',
-  '--d':  (n * 0.2) % 2 + 's',
-  '--t':  (2 + n % 3) + 's',
-  background: props.theme.accent,
-})
 
 // ── Canvas card generation ────────────────────────────────────────
 const FRAME_COLORS = { gold: '#FFD700', silver: '#A8C4D4', bronze: '#C8A26E' }
@@ -234,173 +210,148 @@ const saveCard = async () => {
 
 <style scoped>
 .finish {
-  position: fixed; inset: 0; z-index: 200;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  padding: 32px 20px; overflow: hidden;
+  min-height: 100dvh;
+  background: var(--field);
+  color: var(--field-ink);
+  padding: 48px 16px max(28px, env(safe-area-inset-bottom));
+}
+.finish__inner {
+  max-width: 560px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 24px;
+}
+
+.finish__title {
+  margin: 0;
+  font-family: var(--font-d);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 9vw, 3.2rem);
+  line-height: 1.02;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.finish__sub {
+  margin: 12px 0 0;
+  font-family: var(--font-b);
+  font-size: 1.15rem;
+  color: var(--field-ink-soft);
+}
+
+.finish__facts {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  margin: 0;
+  font-family: var(--font-b);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+.finish__facts b { font-family: var(--font-d); font-weight: 400; font-size: 1.35rem; }
+
+/* ── Послание: последняя карта ────────────────────────────────── */
+.finish__message {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+  border: 3px solid var(--rule);
+  border-bottom-width: 7px;
+  border-radius: 14px;
+  padding: 22px 20px 26px;
+  box-shadow: 0 18px 26px -16px color-mix(in srgb, var(--rule) 80%, transparent);
+  animation: card-drop .7s cubic-bezier(.16, 1, .3, 1) .2s both;
+}
+@keyframes card-drop {
+  from { opacity: 0; transform: translateY(-24px) rotate(-3deg); }
+  to   { opacity: 1; transform: none; }
+}
+.finish__message-label {
+  margin: 0 0 12px;
+  font-family: var(--font-d);
+  font-weight: 400;
+  font-size: 1.3rem;
+}
+.finish__message-text {
+  margin: 0;
+  font-family: var(--font-b);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.finish--casefile .finish__message { border: none; border-radius: 3px; padding-top: 30px; }
+.finish__tape {
+  position: absolute; top: -10px;
+  width: 78px; height: 24px;
+  background: color-mix(in srgb, var(--paper-edge) 70%, transparent);
+}
+.finish__tape--l { left: 14px; transform: rotate(-7deg); }
+.finish__tape--r { right: 14px; transform: rotate(6deg); }
+.finish__stamp {
+  position: absolute; right: 14px; bottom: -14px;
+  padding: 5px 12px;
+  background: var(--paper);
+  border: 3px double var(--chip);
+  border-radius: 6px;
+  color: var(--chip);
+  font-family: var(--font-d);
+  font-size: 1.05rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+/* ── Селфи: полароид ──────────────────────────────────────────── */
+.finish__card {
+  align-self: center;
+  width: min(100%, 300px);
+  margin: 0;
+  padding: 12px 12px 14px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 4px;
+  transform: rotate(-2deg);
+  box-shadow: 0 18px 26px -16px color-mix(in srgb, var(--rule) 85%, transparent);
+}
+.finish__card__photo { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 2px; }
+.finish__card__label {
+  margin-top: 10px;
+  font-family: var(--font-d);
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* ── Действия ─────────────────────────────────────────────────── */
+.finish__actions { display: flex; flex-direction: column; gap: 12px; }
+.finish__secondary {
+  background: transparent;
+  color: var(--field-ink);
+  border: 3px solid var(--field-ink);
+}
+.finish__secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--field-ink) 12%, var(--field)); }
+.finish__restart {
+  align-self: center;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 48px;
+  padding: 0 8px;
+  background: none; border: none;
+  color: var(--field-ink-soft);
+  font-family: var(--font-b);
+  font-size: 1rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.finish__restart:hover { color: var(--field-ink); }
+.finish__restart:focus-visible { outline: 3px solid var(--field-ink); outline-offset: 2px; border-radius: 6px; }
+.finish__card-error {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--paper);
+  color: var(--wrong);
+  border-radius: 10px;
   font-family: var(--font-b);
 }
 
-/* ── Particles ─────────────────────────────────────────────────── */
-.finish__particles { position: absolute; inset: 0; pointer-events: none; }
-.finish__particle {
-  position: absolute; left: var(--x); top: var(--y);
-  width: var(--s); height: var(--s); border-radius: 2px; opacity: 0;
-  animation: confetti-fall var(--t) var(--d) ease-in both;
-}
-@keyframes confetti-fall {
-  0%   { opacity: 0; transform: translateY(-30px) rotate(0deg); }
-  15%  { opacity: 1; }
-  85%  { opacity: .6; }
-  100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
-}
-
-/* ── Body ──────────────────────────────────────────────────────── */
-.finish__body {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center; gap: 16px; max-width: 420px; width: 100%;
-  max-height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding-bottom: max(40px, env(safe-area-inset-bottom, 0px) + 24px);
-}
-
-/* ── Trophy ────────────────────────────────────────────────────── */
-.finish__trophy {
-  font-size: 4.5rem;
-  animation: trophy-in .6s cubic-bezier(.34,1.56,.64,1) both;
-  filter: drop-shadow(0 0 20px var(--accent));
-}
-@keyframes trophy-in { from { transform: scale(0) rotate(-15deg); } to { transform: scale(1) rotate(0); } }
-
-.finish__eyebrow {
-  font-family: var(--font-d); font-size: .55rem;
-  letter-spacing: .38em; color: var(--accent);
-  text-shadow: 0 0 10px var(--accent); text-transform: uppercase;
-}
-.finish__title {
-  font-family: var(--font-d); font-size: clamp(1.1rem, 5vw, 1.6rem);
-  font-weight: 900; color: #fff; margin: 0; line-height: 1.2;
-}
-.finish--romantic .finish__title { font-weight: 700; }
-
-/* ── Stats ─────────────────────────────────────────────────────── */
-.finish__grid {
-  display: flex; /* flex вместо grid — iOS Safari корректно вычисляет высоту */
-  gap: 1px; background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
-  overflow: hidden; width: 100%;
-  flex-shrink: 0; /* не давать родительскому flex сжимать блок */
-}
-.finish__cell { flex: 1; background: rgba(255,255,255,.05); padding: 14px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; }
-.finish__n { font-family: var(--font-d); font-size: 1.5rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 12px var(--accent); }
-.finish__l { font-size: .6rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
-
-/* ── Selfie card ───────────────────────────────────────────────── */
-.finish__card {
-  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px;
-}
-.finish__card__frame {
-  position: relative; border-radius: 50%; overflow: hidden;
-  width: 160px; height: 160px; flex-shrink: 0;
-}
-.finish__card__photo { width: 100%; height: 100%; object-fit: cover; display: block; }
-.finish__card__frame-inner {
-  position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
-}
-
-.finish__card--bronze .finish__card__frame-inner {
-  box-shadow: inset 0 0 0 4px #C8A26E, 0 0 16px #C8A26E44;
-}
-.finish__card--silver .finish__card__frame-inner {
-  box-shadow: inset 0 0 0 4px #A8C4D4, 0 0 20px #A8C4D466;
-}
-.finish__card--gold .finish__card__frame-inner {
-  box-shadow: inset 0 0 0 5px #FFD700, 0 0 28px #FFD70066, 0 0 56px #FFD70033;
-  animation: gold-pulse 2s ease-in-out infinite;
-}
-@keyframes gold-pulse {
-  0%, 100% { box-shadow: inset 0 0 0 5px #FFD700, 0 0 28px #FFD70066, 0 0 56px #FFD70033; }
-  50%       { box-shadow: inset 0 0 0 5px #FFD700, 0 0 44px #FFD700aa, 0 0 80px #FFD70055; }
-}
-
-.finish__card__badge {
-  display: flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600;
-}
-.finish__card--bronze .finish__card__badge { color: #C8A26E; }
-.finish__card--silver .finish__card__badge { color: #A8C4D4; }
-.finish__card--gold   .finish__card__badge { color: #FFD700; }
-.finish__card__badge-icon { font-size: 1.1rem; }
-
-/* ── Message ───────────────────────────────────────────────────── */
-.finish__message {
-  background: var(--surf); border: 1px solid var(--bord);
-  border-left: 3px solid var(--accent); border-radius: 10px;
-  padding: 14px 16px; width: 100%; text-align: left;
-}
-.finish__message-label { font-size: .6rem; text-transform: uppercase; letter-spacing: .2em; color: var(--accent); margin-bottom: 6px; }
-.finish__message-text { font-size: .9rem; line-height: 1.6; color: var(--text); margin: 0; font-style: italic; }
-.finish--romantic .finish__message {
-  background: linear-gradient(135deg, rgba(244,114,182,.06), rgba(0,0,0,0));
-}
-.finish--romantic .finish__message-text { font-family: var(--font-d); font-size: 1rem; line-height: 1.65; }
-
-/* ── Buttons ───────────────────────────────────────────────────── */
-.finish__share {
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
-  border-radius: 14px; padding: 0 28px; min-height: 48px; color: rgba(255,255,255,.8);
-  font-family: var(--font-b); font-size: .9rem; font-weight: 600;
-  cursor: pointer; width: 100%; transition: all .2s ease;
-}
-.finish__share:hover { border-color: rgba(255,255,255,.3); color: #fff; }
-
-.finish__share--primary {
-  background: var(--accent); border: none; border-radius: 14px;
-  padding: 0 28px; min-height: 52px; color: #000;
-  font-family: var(--font-b); font-size: 1rem; font-weight: 700;
-  cursor: pointer; width: 100%;
-  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
-  transition: all .2s ease;
-}
-.finish__share--primary:hover:not(:disabled) {
-  box-shadow: 0 0 36px color-mix(in srgb, var(--accent) 60%, transparent);
-  transform: translateY(-2px);
-}
-.finish__share--primary:disabled { opacity: .6; cursor: default; }
-
-.finish__card-error {
-  font-size: .8rem; color: #fc8181; text-align: center; padding: 4px 0;
-}
-
-.finish__restart {
-  background: transparent; border: 1.5px solid rgba(255,255,255,.28);
-  border-radius: 12px; padding: 12px 20px;
-  color: rgba(255,255,255,.5); font-family: var(--font-b);
-  font-size: .85rem; cursor: pointer; transition: all .25s; width: 100%;
-  box-sizing: border-box;
-}
-.finish__restart:hover { border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.9); }
-
-/* ── Mobile — всё умещается без скролла ────────────────────────── */
-@media (max-width: 480px) {
-  .finish { padding: 8px 16px; align-items: flex-start; }
-  .finish__body {
-    gap: 8px;
-    max-height: 100dvh;
-    overflow: hidden; /* без скролла */
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px) + 8px);
-  }
-  .finish__trophy { font-size: 2rem; }
-  .finish__eyebrow { font-size: .5rem; }
-  .finish__title { font-size: clamp(.9rem, 4.5vw, 1.2rem); }
-  .finish__n { font-size: 1.2rem; }
-  .finish__cell { min-height: 52px; padding: 8px 6px; }
-  .finish__card__frame { width: 100px; height: 100px; }
-  .finish__card__badge { font-size: .75rem; }
-  .finish__message { padding: 8px 12px; }
-  .finish__message-label { font-size: .55rem; margin-bottom: 4px; }
-  .finish__message-text { font-size: .78rem; line-height: 1.45; }
-  .finish__share--primary { min-height: 44px; font-size: .88rem; }
-  .finish__share { min-height: 40px; font-size: .82rem; }
-  .finish__restart { padding: 8px 16px; font-size: .8rem; }
+@media (prefers-reduced-motion: reduce) {
+  .finish__message { animation: none; }
 }
 </style>
