@@ -44,6 +44,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import QuestIcon from '../QuestIcon.vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },

@@ -12,6 +12,7 @@
 </template>
 
 <script setup>
+import QuestIcon from '../QuestIcon.vue'
 defineProps({
   task:  { type: Object, required: true },
   theme: { type: Object, required: true },
