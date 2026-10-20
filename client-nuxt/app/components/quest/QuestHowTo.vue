@@ -1,12 +1,39 @@
 <template>
-  <div class="howto">
-    <button type="button" class="howto__tile" @click="open">
-      <span class="howto__play" aria-hidden="true"><QuestIcon name="play" :size="26" /></span>
+  <section class="howto" aria-labelledby="howto-h">
+    <!-- Ролик темы: превью по кругу без звука, тап — на весь экран -->
+    <button
+      v-if="reel"
+      type="button"
+      class="howto__reel"
+      aria-label="Как это работает: открыть ролик на весь экран"
+      @click="open"
+    >
+      <span class="howto__frame">
+        <video
+          ref="preview"
+          class="howto__video"
+          :src="reel.src"
+          :poster="reel.poster"
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          aria-hidden="true"
+          @error="reelFailed = true"
+        ></video>
+        <span v-if="!autoplay" class="howto__play" aria-hidden="true"><QuestIcon name="play" :size="26" /></span>
+      </span>
       <span class="howto__text">
-        <span class="howto__title">Как это работает</span>
-        <span class="howto__sub">{{ video ? 'Видео-инструкция' : 'Короткое демо на поле' }}</span>
+        <span id="howto-h" class="howto__title">Как это работает</span>
+        <span class="howto__sub">Нажми, чтобы смотреть на весь экран</span>
       </span>
     </button>
+
+    <!-- Ролика у темы нет (или он не загрузился) — демо на поле прямо здесь -->
+    <template v-else>
+      <h2 id="howto-h" class="howto__title howto__title--field">Как это работает</h2>
+      <QuestDemo :decor="decor" />
+    </template>
 
     <teleport to="body">
       <transition name="howto">
@@ -19,63 +46,83 @@
           aria-label="Как это работает"
           @keydown.esc="close"
         >
-          <div class="howto__frame">
-            <video
-              v-if="video && !videoFailed"
-              class="howto__video"
-              :src="video"
-              autoplay
-              muted
-              playsinline
-              controls
-              preload="metadata"
-              @error="videoFailed = true"
-            ></video>
-            <QuestDemo v-else :decor="decor" />
-          </div>
+          <video
+            class="howto__full"
+            :src="reel.src"
+            :poster="reel.poster"
+            autoplay
+            muted
+            loop
+            playsinline
+            controls
+          ></video>
           <button ref="closeBtn" class="task__action howto__close" @click="close">Понятно</button>
         </div>
       </transition>
     </teleport>
-  </div>
+  </section>
 </template>
 
 <script setup>
-import { computed, ref, nextTick } from 'vue'
+import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestDemo from './QuestDemo.vue'
 import { themeToCssVars } from './themes.js'
 
-// Универсальная инструкция «как это работает»: видео из настройки сайта
-// (NUXT_PUBLIC_PLAYER_DEMO_VIDEO), а без него — анимированное демо на демо-поле.
+// «Как это работает»: моушн-ролик темы (theme.reel) по кругу без звука,
+// а у тем без ролика — анимированное демо на демо-поле.
 const props = defineProps({
   theme: { type: Object, required: true },
 })
 
-const config = useRuntimeConfig()
-const video = computed(() => config.public.playerDemoVideo || '')
+const reelFailed = ref(false)
+const reel = computed(() => (!reelFailed.value && props.theme.reel?.src) ? props.theme.reel : null)
 const decor = computed(() => props.theme.world?.decor ?? null)
 // Просмотрщик живёт в <body>, поэтому токены темы передаём явно
 const cssVars = computed(() => themeToCssVars(props.theme))
 
-const isOpen = ref(false)
-const videoFailed = ref(false)
+const preview = ref(null)
 const closeBtn = ref(null)
+const isOpen = ref(false)
+
+// Автозапуск, только если пользователь не просил меньше движения и не экономит трафик
+const autoplay = ref(false)
+let observer = null
+
+onMounted(() => {
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const saveData = navigator.connection?.saveData === true
+  autoplay.value = !reduced && !saveData
+  if (!autoplay.value || !preview.value) return
+  // Играет, только пока виден: не тратим батарею и трафик за краем экрана
+  observer = new IntersectionObserver(([entry]) => {
+    const v = preview.value
+    if (!v) return
+    if (entry.isIntersecting) v.play().catch(() => {})
+    else v.pause()
+  }, { threshold: 0.4 })
+  observer.observe(preview.value)
+})
+onUnmounted(() => observer?.disconnect())
 
 const open = async () => {
+  preview.value?.pause()
   isOpen.value = true
   await nextTick()
   closeBtn.value?.focus()
 }
-const close = () => { isOpen.value = false }
+const close = () => {
+  isOpen.value = false
+  if (autoplay.value) preview.value?.play().catch(() => {})
+}
 </script>
 
 <style scoped>
-.howto__tile {
-  display: flex; align-items: center; gap: 14px;
+/* ── Превью ролика ────────────────────────────────────────────── */
+.howto__reel {
+  display: flex; align-items: center; gap: 16px;
   width: 100%;
-  min-height: 72px;
-  padding: 12px 16px;
+  padding: 12px;
   background: var(--paper);
   color: var(--ink);
   border: none;
@@ -83,38 +130,48 @@ const close = () => { isOpen.value = false }
   text-align: left;
   cursor: pointer;
   box-shadow: 0 14px 22px -14px color-mix(in srgb, var(--rule) 80%, transparent);
-  transition: transform .15s ease;
 }
-.howto__tile:active { transform: translateY(2px); }
-.howto__tile:focus-visible { outline: 3px solid var(--field-ink); outline-offset: 3px; }
-.howto__play {
-  display: grid; place-items: center;
+.howto__reel:focus-visible { outline: 3px solid var(--field-ink); outline-offset: 3px; }
+
+.howto__frame {
+  position: relative;
   flex-shrink: 0;
-  width: 48px; height: 48px;
+  width: 112px;
+  aspect-ratio: 9 / 16;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--rule);
+}
+.howto__video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.howto__play {
+  position: absolute; left: 50%; top: 50%;
+  display: grid; place-items: center;
+  width: 48px; height: 48px; margin: -24px 0 0 -24px;
   border-radius: 50%;
   background: var(--action);
   color: var(--action-ink);
 }
-.howto__text { display: flex; flex-direction: column; gap: 2px; }
-.howto__title { font-family: var(--font-d); font-size: 1.15rem; }
-.howto__sub { font-family: var(--font-b); font-size: .98rem; color: var(--ink-soft); }
 
+.howto__text { display: flex; flex-direction: column; gap: 4px; }
+.howto__title { font-family: var(--font-d); font-weight: 400; font-size: 1.2rem; }
+.howto__title--field { margin: 0 0 10px; color: var(--field-ink); font-size: 1.3rem; }
+.howto__sub { font-family: var(--font-b); font-size: 1rem; line-height: 1.4; color: var(--ink-soft); }
+
+/* ── Ролик на весь экран ──────────────────────────────────────── */
 .howto__viewer {
   position: fixed; inset: 0; z-index: 950;
-  display: flex; flex-direction: column; justify-content: center; gap: 18px;
-  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   background: var(--field);
-  color: var(--field-ink);
 }
-.howto__frame { width: 100%; max-width: 520px; margin: 0 auto; }
-.howto__video {
+.howto__full {
   display: block;
-  width: 100%;
-  max-height: 70svh;
+  height: min(78svh, calc((100vw - 32px) * 16 / 9));
+  aspect-ratio: 9 / 16;
   border-radius: 12px;
   background: var(--rule);
 }
-.howto__close { width: 100%; max-width: 520px; margin: 0 auto; }
+.howto__close { width: 100%; max-width: 440px; }
 
 .howto-enter-active { transition: opacity .25s ease-out, transform .4s cubic-bezier(.16, 1, .3, 1); }
 .howto-leave-active { transition: opacity .2s ease-in; }
@@ -122,6 +179,6 @@ const close = () => { isOpen.value = false }
 .howto-leave-to     { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .howto-enter-active, .howto-leave-active, .howto__tile { transition: none; }
+  .howto-enter-active, .howto-leave-active { transition: none; }
 }
 </style>
