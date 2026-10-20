@@ -1,8 +1,17 @@
 <template>
   <div class="track" :class="decor && `track--${decor}`" :style="{ '--n': cells.length }">
     <svg class="track__road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <path class="track__band" :d="roadPath" />
-      <path class="track__dash" :d="roadPath" />
+      <template v-if="decor === 'casefile'">
+        <!-- Настоящая нить: тень на сукне, основа и скрутка, провисает между кнопками -->
+        <path class="thread thread--shadow" :d="threadPath" />
+        <path class="thread thread--base" :d="threadPath" />
+        <path class="thread thread--twist" :d="threadPath" />
+        <path class="thread thread--twist2" :d="threadPath" />
+      </template>
+      <template v-else>
+        <path class="track__band" :d="roadPath" />
+        <path class="track__dash" :d="roadPath" />
+      </template>
     </svg>
 
     <ol class="track__cells">
@@ -33,6 +42,9 @@
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
+        <span v-if="stampId != null && cell.id === stampId" class="cell__stamp" aria-hidden="true">
+          <QuestSeal :size="92" />
+        </span>
       </li>
     </ol>
 
@@ -43,6 +55,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
+import QuestSeal from './QuestSeal.vue'
 
 const props = defineProps({
   tasks:        { type: Array,   required: true },
@@ -52,6 +65,7 @@ const props = defineProps({
   hasNext:      { type: Boolean, default: false },
   decor:        { type: String,  default: null },
   enter:        { type: Boolean, default: false }, // фишка заезжает с края поля
+  stampId:      { type: [String, Number], default: null }, // клетка, на которую хлопает штамп
 })
 defineEmits(['open'])
 
@@ -86,6 +100,26 @@ const roadPath = computed(() => {
     const [x1, y1] = all[i]
     const mx = (x0 + x1) / 2
     d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
+  }
+  return d
+})
+
+// Нить дела: от кнопки к кнопке (верх заметки), провисает между ними
+const PIN = 14 // кнопка над центром клетки, в % высоты трассы
+const threadPath = computed(() => {
+  const pins = cells.value.map(c => [c.x, c.y - PIN])
+  if (!pins.length) return ''
+  const all = [
+    ...(props.hasPrev ? [[-4, pins[0][1] + 6]] : []),
+    ...pins,
+    ...(props.hasNext ? [[104, pins[pins.length - 1][1] + 6]] : []),
+  ]
+  let d = `M${all[0][0]} ${all[0][1]}`
+  for (let i = 1; i < all.length; i++) {
+    const [x0, y0] = all[i - 1]
+    const [x1, y1] = all[i]
+    const sag = 6 + Math.abs(x1 - x0) * 0.08
+    d += ` Q${(x0 + x1) / 2} ${Math.max(y0, y1) + sag} ${x1} ${y1}`
   }
   return d
 })
@@ -202,12 +236,16 @@ const chipStyle = computed(() => {
 }
 
 /* ── Обличье дела: заметки на кнопках, красная нить ─────────── */
-.track--casefile .track__band { display: none; }
-.track--casefile .track__dash {
-  stroke: var(--chip);
-  stroke-width: 2;
-  stroke-dasharray: none;
+.thread { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.thread--shadow {
+  stroke: color-mix(in srgb, var(--rule) 28%, transparent);
+  stroke-width: 4;
+  transform: translate(.4px, 2px);
 }
+.thread--base   { stroke: var(--chip); stroke-width: 3; }
+/* скрутка: светлые и тёмные волокна со сдвигом */
+.thread--twist  { stroke: color-mix(in srgb, var(--chip) 62%, #f4d9cf); stroke-width: 1.4; stroke-dasharray: 2.2 3.2; }
+.thread--twist2 { stroke: color-mix(in srgb, var(--chip) 70%, var(--rule)); stroke-width: 1.2; stroke-dasharray: 1.4 4; stroke-dashoffset: 2.6; }
 .track--casefile .cell {
   position: relative;
   border: none;
@@ -236,7 +274,23 @@ const chipStyle = computed(() => {
   border-width: 2px;
 }
 
+/* Сургучная печать: ложится на пройденную клетку в момент хода */
+.cell__stamp {
+  position: absolute; left: 50%; top: 50%;
+  width: 92px; height: 92px; margin: -46px 0 0 -46px;
+  z-index: 2;
+  pointer-events: none;
+  transform: rotate(-14deg);
+  animation: stamp-slam .3s cubic-bezier(.7, 0, .84, 0) .12s both;
+}
+@keyframes stamp-slam {
+  from { opacity: 0; transform: scale(1.9) rotate(-34deg); }
+  70%  { opacity: 1; transform: scale(.94) rotate(-12deg); }
+  to   { opacity: 1; transform: scale(1) rotate(-14deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .cell__stamp { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>
