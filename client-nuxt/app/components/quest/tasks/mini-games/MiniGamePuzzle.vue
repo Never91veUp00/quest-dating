@@ -61,9 +61,9 @@
         Не получается? Пропустить
       </button>
 
-      <div v-if="complete" class="task__quiz-result task__quiz-result--right">🎉 Пазл собран!</div>
+      <div v-if="complete" class="task__quiz-result task__quiz-result--right">Пазл собран</div>
       <button v-if="complete" class="task__action" @click="$emit('complete', task)">
-        Продолжаем →
+        Идти дальше
       </button>
     </template>
 
@@ -213,37 +213,37 @@ const onTap = (slotIdx) => {
 .task__puzzle__preview-timer {
   position: absolute; top: 8px; right: 10px;
   width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(0,0,0,.6); border: 1.5px solid rgba(255,255,255,.5);
+  background: color-mix(in srgb, var(--rule) 60%, transparent); border: 1.5px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: .8rem; font-weight: 700;
+  color: var(--paper); font-size: .8rem; font-weight: 700;
 }
 .task__puzzle__preview-caption {
   text-align: center; font-size: .78rem; font-weight: 600;
-  color: rgba(255,255,255,.6); letter-spacing: .04em;
+  color: var(--ink-soft); letter-spacing: .04em;
 }
 
 /* ── Progress ── */
 .task__puzzle__progress { display: flex; align-items: center; gap: 8px; }
 .task__puzzle__progress-bar {
-  flex: 1; height: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden;
+  flex: 1; height: 3px; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border-radius: 3px; overflow: hidden;
 }
 .task__puzzle__progress-fill {
-  height: 100%; background: var(--accent); border-radius: 3px;
+  height: 100%; background: var(--action); border-radius: 3px;
   transition: width .3s ease;
 }
-.task__puzzle__progress-txt { font-size: .68rem; color: rgba(255,255,255,.5); white-space: nowrap; }
+.task__puzzle__progress-txt { font-size: .68rem; color: var(--ink-soft); white-space: nowrap; }
 
 /* ── Board ── */
 .task__puzzle__board {
   display: grid; gap: 2px; width: 100%; border-radius: 8px;
-  overflow: hidden; background: var(--bg2); touch-action: manipulation;
+  overflow: hidden; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); touch-action: manipulation;
   max-width: min(100%, 420px); margin: 0 auto;
   padding: 2px;
   transition: gap .4s ease, box-shadow .4s ease;
 }
 .task__puzzle__board--complete {
   gap: 0;
-  box-shadow: 0 0 0 2px var(--accent), 0 0 28px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: 0 0 0 2px var(--action), 0 0 28px color-mix(in srgb, var(--action) 40%, transparent);
   animation: board-celebrate .6s ease;
 }
 @keyframes board-celebrate {
@@ -254,7 +254,7 @@ const onTap = (slotIdx) => {
 }
 
 .task__puzzle__board--shuffling .task__puzzle__slot {
-  animation: piece-shuffle 0.55s cubic-bezier(.34,1.56,.64,1) both;
+  animation: piece-shuffle 0.5s cubic-bezier(.16, 1, .3, 1) both;
   animation-delay: calc(var(--slot-i, 0) * 18ms);
 }
 @keyframes piece-shuffle {
@@ -265,20 +265,20 @@ const onTap = (slotIdx) => {
 .task__puzzle__slot {
   cursor: pointer; border-radius: 1px;
   transition: transform .12s, box-shadow .12s;
-  background-color: rgba(255,255,255,.04);
+  background-color: var(--ink-soft);
   background-repeat: no-repeat;
   user-select: none; -webkit-user-select: none;
 }
 .task__puzzle__slot:active { transform: scale(.94); }
 .task__puzzle__slot:not([style*="url"]) {
-  border: 1px dashed rgba(255,255,255,.08);
+  border: 1px dashed color-mix(in srgb, var(--ink) 30%, var(--paper));
 }
 .task__puzzle__slot.selected {
-  box-shadow: inset 0 0 0 3px #fff, inset 0 0 12px rgba(255,255,255,.2);
+  box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 12px color-mix(in srgb, var(--ink) 30%, var(--paper));
   z-index: 2;
 }
 .task__puzzle__slot.correct {
-  box-shadow: inset 0 0 0 2px #3cffb4;
+  box-shadow: inset 0 0 0 2px var(--ink);
   cursor: default; pointer-events: none;
 }
 .task__puzzle__board--complete .task__puzzle__slot {
@@ -306,31 +306,31 @@ const onTap = (slotIdx) => {
 /* ── Tip / skip / result ── */
 .task__puzzle__tip {
   text-align: center; font-size: .75rem;
-  color: rgba(255,255,255,.5); padding: 2px; min-height: 1.3em;
+  color: var(--ink-soft); padding: 2px; min-height: 1.3em;
 }
 .task__puzzle__skip {
   display: block; margin: 2px auto 0; background: none; border: none;
-  color: rgba(255,255,255,.45); font-size: .7rem; cursor: pointer;
+  color: var(--ink-soft); font-size: .7rem; cursor: pointer;
   transition: color .2s; padding: 4px 12px;
   text-decoration: underline; text-underline-offset: 3px;
 }
-.task__puzzle__skip:hover { color: rgba(255,255,255,.75); }
+.task__puzzle__skip:hover { color: var(--ink-soft); }
 .task__quiz-result {
   text-align: center; font-size: .88rem; padding: 6px; border-radius: 8px; font-weight: 600;
 }
-.task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
+.task__quiz-result--right { color: var(--ink); background: color-mix(in srgb, var(--done) 40%, var(--paper)); }
 
 .task__action {
   display: flex; align-items: center; justify-content: center;
   width: 100%; min-height: 48px;
-  background: transparent; border: 1.5px solid var(--accent);
-  border-radius: 14px; color: var(--accent);
+  background: transparent; border: 1.5px solid var(--action);
+  border-radius: 14px; color: var(--action);
   font-size: .92rem; font-weight: 700; cursor: pointer;
-  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--action) 50%, transparent);
   transition: all .2s ease;
 }
 .task__action:hover {
-  background: var(--accent); color: #000; text-shadow: none;
+  background: var(--action); color: var(--action-ink); text-shadow: none;
 }
 @media (max-width: 480px) { .task__puzzle__board { gap: 1px; } }
 </style>

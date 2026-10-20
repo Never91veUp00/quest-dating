@@ -13,9 +13,9 @@
   <template v-else>
     <div class="mg-launch">
       <button class="mg-launch__btn" @click="open = true">
-        <span class="mg-launch__ico">{{ gameIcon }}</span>
+        <QuestIcon class="mg-launch__ico" name="game" :size="26" />
         <span class="mg-launch__txt">{{ gameLabel }}</span>
-        <span class="mg-launch__arrow">▶</span>
+        <QuestIcon class="mg-launch__arrow" name="forward" :size="22" />
       </button>
     </div>
 
@@ -54,11 +54,10 @@ const gameComponent = computed(() => GAME_MAP[props.task.game_type] || null)
 const cssVars = computed(() => themeToCssVars(props.theme))
 
 const GAME_META = {
-  quiz:   { icon: '❓', label: 'Пройти угадайку' },
-  pairs:  { icon: '🃏', label: 'Найти все пары' },
-  puzzle: { icon: '🧩', label: 'Собрать пазл' },
+  quiz:   { label: 'Пройти угадайку' },
+  pairs:  { label: 'Найти все пары' },
+  puzzle: { label: 'Собрать пазл' },
 }
-const gameIcon  = computed(() => GAME_META[props.task.game_type]?.icon  ?? '🎮')
 const gameLabel = computed(() => GAME_META[props.task.game_type]?.label ?? 'Начать игру')
 
 const onComplete = (task) => {
@@ -83,8 +82,8 @@ const onSkip = (task) => {
   width: 100%;
   min-height: 56px;
   padding: 14px 16px;
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--action) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--action) 30%, transparent);
   border-radius: 14px;
   cursor: pointer;
   transition: background .18s, border-color .18s, transform .12s;
@@ -92,16 +91,16 @@ const onSkip = (task) => {
 }
 
 .mg-launch__btn:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--action) 14%, transparent);
+  border-color: var(--action);
 }
 .mg-launch__btn:active { transform: scale(.98); }
 
 .mg-launch__ico  { font-size: 1.3rem; flex-shrink: 0; }
-.mg-launch__txt  { flex: 1; font-size: .95rem; font-weight: 700; color: var(--text); }
+.mg-launch__txt  { flex: 1; font-size: .95rem; font-weight: 700; color: var(--ink); }
 .mg-launch__arrow {
   font-size: .75rem;
-  color: var(--accent);
+  color: var(--action);
   opacity: .7;
   flex-shrink: 0;
 }

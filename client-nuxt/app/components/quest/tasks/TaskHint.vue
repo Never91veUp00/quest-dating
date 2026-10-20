@@ -4,7 +4,7 @@
     <button v-if="!shown" class="task__hint-btn" @click="show">
       {{ theme.copy.hintBtn }}
     </button>
-    <div v-else class="task__hint">💡 {{ hint }}</div>
+    <div v-else class="task__hint"><QuestIcon name="hint" :size="18" /> {{ hint }}</div>
   </template>
 </template>
 

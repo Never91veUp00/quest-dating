@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="task__qr-prompt">
-      <span class="task__qr-prompt__icon">📷</span>
+      <QuestIcon class="task__qr-prompt__icon" name="qr" :size="22" />
       <span>{{ task.qr_hint || 'Найди QR-код и отсканируй его' }}</span>
     </div>
     <TaskHint :hint="task.hint" :theme="theme" @hint="$emit('hint', task)" />
@@ -24,10 +24,10 @@ defineEmits(['complete', 'hint'])
 <style scoped>
 .task__qr-prompt {
   display: flex; align-items: center; gap: 10px;
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--action) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--action) 20%, transparent);
   border-radius: 10px; padding: 12px 16px;
-  font-size: .9rem; color: var(--text);
+  font-size: .9rem; color: var(--ink);
 }
 .task__qr-prompt__icon { font-size: 1.4rem; flex-shrink: 0; }
 </style>

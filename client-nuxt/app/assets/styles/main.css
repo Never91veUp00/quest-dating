@@ -401,23 +401,28 @@ pre code {
     scroll-behavior: auto !important;
   }
 }
-/* ── Shared mini-game action button (works both inline and in overlay) ── */
+/* ── Кнопка-глагол плеера (инлайн и в оверлеях мини-игр) ──
+   Токены --action / --action-ink задаёт themeToCssVars (themes.js) */
 .task__action {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; min-height: 52px;
-  background: transparent;
-  border: 1.5px solid var(--accent);
-  border-radius: 14px;
-  color: var(--accent);
-  font-size: .95rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 56px;
+  padding: 0 18px;
+  background: var(--action, var(--accent));
+  border: none;
+  border-radius: 12px;
+  color: var(--action-ink, var(--bg));
+  font-family: var(--font-d);
+  font-size: 1.05rem;
+  letter-spacing: .01em;
   cursor: pointer;
-  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
-  transition: all .2s ease;
+  transition: background .2s ease, transform .15s ease;
 }
-.task__action:hover {
-  background: var(--accent);
-  color: #000;
-  text-shadow: none;
-  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
+.task__action:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--action, var(--accent)) 80%, var(--chip, #000));
 }
-.task__action:disabled { opacity: .35; cursor: default; }
+.task__action:active:not(:disabled) { transform: translateY(2px); }
+.task__action:focus-visible {
+  outline: 3px solid var(--chip, var(--accent));
+  outline-offset: 3px;
+}
+.task__action:disabled { opacity: .4; cursor: default; }

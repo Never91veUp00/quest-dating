@@ -1,7 +1,7 @@
 <template>
   <div class="task__code-wrap">
     <div class="task__code-hint">
-      <span class="task__code-hint__icon">🔐</span>
+      <QuestIcon class="task__code-hint__icon" name="code" :size="20" />
       <span>{{ task.code_hint || 'Найди код и введи его ниже' }}</span>
     </div>
     <TaskHint :hint="task.hint" :theme="theme" @hint="$emit('hint', task)" />
@@ -16,7 +16,7 @@
     />
     <p v-if="error" class="task__error">{{ error }}</p>
     <button class="task__action" :disabled="!code.trim()" @click="submit">
-      Ввести код →
+      Проверить код
     </button>
   </div>
 </template>
@@ -50,12 +50,12 @@ const submit = () => {
 .task__code-wrap { display: flex; flex-direction: column; gap: 12px; }
 .task__code-hint {
   display: flex; align-items: center; gap: 10px;
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--action) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--action) 20%, transparent);
   border-radius: 10px; padding: 12px 16px;
-  font-size: .9rem; color: var(--text);
+  font-size: .9rem; color: var(--ink);
 }
 .task__code-hint__icon { font-size: 1.4rem; flex-shrink: 0; }
 .task__input--code { letter-spacing: .35em; text-align: center; font-size: 1.1rem; }
-.task__error { color: #e05c5c; font-size: .82rem; margin: 4px 0 0; }
+.task__error { margin: 4px 0 0; font-family: var(--font-b); font-size: 1rem; color: var(--wrong); }
 </style>

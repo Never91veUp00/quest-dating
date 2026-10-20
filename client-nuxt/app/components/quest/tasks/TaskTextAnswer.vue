@@ -10,7 +10,7 @@
     />
     <p v-if="error" class="task__error">{{ error }}</p>
     <button class="task__action" :disabled="!answer.trim()" @click="submit">
-      Проверить →
+      Проверить
     </button>
   </div>
 </template>
@@ -43,5 +43,5 @@ const submit = () => {
 
 <style scoped>
 .task__answer-wrap { display: flex; flex-direction: column; gap: 12px; }
-.task__error { color: #e05c5c; font-size: .82rem; margin: 4px 0 0; }
+.task__error { margin: 4px 0 0; font-family: var(--font-b); font-size: 1rem; color: var(--wrong); }
 </style>
