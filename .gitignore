@@ -98,3 +98,6 @@ uploads_local/
 .playwright-mcp/
 .superpowers/
 .claude/settings.local.json
+
+# Временные кадры записи моушн-роликов (tools/reels/record.mjs)
+tools/reels/.frames/

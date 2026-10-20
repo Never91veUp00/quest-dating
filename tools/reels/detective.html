@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=540">
+<title>Reel — Детектив</title>
+<!--
+  Моушн-ролик темы «Детектив» (мир «Ходилки», обличье дела).
+  Кадр 540×960 CSS-пикселей, запись с DPR 2 → 1080×1920.
+  Все анимации на одной шкале 7 с и стоят на паузе: record.mjs
+  вызывает window.seek(t) и снимает кадр за кадром.
+-->
+<style>
+  @font-face { font-family: 'Dela Gothic One'; src: url('/client-nuxt/public/fonts/dela-gothic-one-400-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+  @font-face { font-family: 'Dela Gothic One'; src: url('/client-nuxt/public/fonts/dela-gothic-one-400-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2000-206F; }
+  @font-face { font-family: 'PT Serif'; src: url('/client-nuxt/public/fonts/pt-serif-400-cyrillic.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+  @font-face { font-family: 'PT Serif'; src: url('/client-nuxt/public/fonts/pt-serif-400-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2000-206F; }
+
+  :root {
+    --field: #5f4f43; --field-ink: #f1e8d8; --field-soft: #e6dccb;
+    --paper: #f4efe4; --kraft: #cdb894; --ink: #2a211b; --ink-soft: #5a4c40;
+    --done: #c9ad80; --back: #4e4037; --red: #9f2b25;
+    --T: 7s;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 540px; height: 960px; overflow: hidden; background: var(--field); }
+  body { position: relative; font-family: 'PT Serif', Georgia, serif; color: var(--field-ink); }
+  .a { animation-duration: var(--T); animation-fill-mode: both; animation-play-state: paused; animation-timing-function: linear; }
+  .abs { position: absolute; }
+
+  /* ── Сцена 1: папка падает, штамп хлопает (0–1.55 с) ──────────── */
+  .folder {
+    left: 50px; top: 250px; width: 440px; height: 420px;
+    background: var(--kraft); color: var(--ink);
+    border-radius: 4px 18px 4px 4px;
+    padding: 70px 32px 0;
+    box-shadow: 0 30px 40px -20px rgba(36, 28, 22, .85);
+    animation-name: folder;
+  }
+  .folder__tab {
+    position: absolute; left: 0; bottom: 100%;
+    padding: 10px 22px 8px; background: var(--kraft); border-radius: 12px 12px 0 0;
+    font-size: 22px; color: var(--ink);
+  }
+  .folder h1 { font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 60px; line-height: 1.02; }
+  .stamp {
+    padding: 8px 18px; border: 5px double var(--red); border-radius: 8px;
+    color: var(--red); font-family: 'Dela Gothic One', serif; font-size: 34px; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .stamp--secret { right: 26px; bottom: 30px; animation-name: stamp-secret; }
+  @keyframes folder {
+    0%      { transform: translateY(-980px) rotate(-8deg); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    8.57%   { transform: translateY(0) rotate(-2deg); }
+    11.43%  { transform: translateY(0) rotate(-2deg); }
+    12.3%   { transform: translateY(7px) rotate(-1.4deg); }
+    13.6%   { transform: translateY(0) rotate(-2deg); }
+    17.86%  { transform: translateY(0) rotate(-2deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
+    22.14%, 100% { transform: translateY(-1150px) rotate(-4deg); }
+  }
+  @keyframes stamp-secret {
+    0%, 10%  { opacity: 0; transform: scale(2.6) rotate(-22deg); }
+    10.01%   { opacity: 1; transform: scale(2.6) rotate(-22deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
+    12.2%, 100% { opacity: 1; transform: scale(1) rotate(-9deg); }
+  }
+
+  /* ── Сцена 2: доска улик (1.5–4.45 с) ─────────────────────────── */
+  .board { inset: 0; animation-name: board; }
+  @keyframes board {
+    0%, 21% { opacity: 0; }
+    23%     { opacity: 1; }
+    61.4%   { opacity: 1; }
+    63.6%, 100% { opacity: 0; }
+  }
+  .board h2 {
+    left: 40px; top: 120px; width: 460px;
+    font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 44px; line-height: 1.05;
+    animation-name: rise;
+  }
+  @keyframes rise {
+    0%, 21.4% { opacity: 0; transform: translateY(30px); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    26%, 100% { opacity: 1; transform: none; }
+  }
+  .thread { left: 0; top: 0; width: 540px; height: 960px; animation-name: thread; }
+  .thread path { fill: none; stroke: var(--red); stroke-width: 3; stroke-dasharray: 720; }
+  @keyframes thread {
+    0%, 22% { clip-path: inset(0 100% 0 0); }
+    30%, 100% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+  }
+  .note {
+    width: 96px; height: 96px; border-radius: 3px;
+    display: grid; place-items: center;
+    font-family: 'Dela Gothic One', serif; font-size: 40px; color: var(--ink);
+    box-shadow: 0 14px 18px -10px rgba(36, 28, 22, .9);
+  }
+  .note::before {
+    content: ""; position: absolute; top: -9px; left: 50%; width: 18px; height: 18px; margin-left: -9px;
+    border-radius: 50%; background: var(--ink);
+  }
+  .note svg { width: 40px; height: 40px; }
+  .note .face, .note .check { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 3px; }
+  .note .face { background: var(--paper); }
+  .note .check { background: var(--done); }
+  .n1 { left: 50px;  top: 430px; transform: rotate(-4deg); }
+  .n2 { left: 172px; top: 320px; transform: rotate(3deg); }
+  .n3 { left: 296px; top: 455px; transform: rotate(-3deg); }
+  .n4 { left: 410px; top: 330px; transform: rotate(4deg); }
+  .note { animation-name: note-pop; }
+  .n2 { animation-name: note-pop2; } .n3 { animation-name: note-pop3; } .n4 { animation-name: note-pop4; }
+  @keyframes note-pop  { 0%, 22% { opacity: 0; scale: .6; } 24.5%, 100% { opacity: 1; scale: 1; } }
+  @keyframes note-pop2 { 0%, 23% { opacity: 0; scale: .6; } 25.5%, 100% { opacity: 1; scale: 1; } }
+  @keyframes note-pop3 { 0%, 24% { opacity: 0; scale: .6; } 26.5%, 100% { opacity: 1; scale: 1; } }
+  @keyframes note-pop4 { 0%, 25% { opacity: 0; scale: .6; } 27.5%, 100% { opacity: 1; scale: 1; } }
+  /* отметка «пройдено», когда фишка уходит с заметки */
+  .n1 .check { animation-name: done1; } .n2 .check { animation-name: done2; } .n3 .check { animation-name: done3; }
+  .check { opacity: 0; }
+  @keyframes done1 { 0%, 32.8% { opacity: 0; } 33.6%, 100% { opacity: 1; } }
+  @keyframes done2 { 0%, 41.4% { opacity: 0; } 42.2%, 100% { opacity: 1; } }
+  @keyframes done3 { 0%, 50%   { opacity: 0; } 50.8%, 100% { opacity: 1; } }
+
+  .chip {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--red); border: 4px solid var(--ink);
+    box-shadow: inset 0 0 0 6px #b8443c, 0 10px 12px -6px rgba(36, 28, 22, .9);
+    animation-name: chip;
+  }
+  /* фишка прыгает по заметкам: 1.7 → 2.3 → 2.9 → 3.5 с */
+  @keyframes chip {
+    0%, 23.5% { opacity: 0; left: 108px; top: 380px; }
+    24.3%     { opacity: 1; left: 108px; top: 380px; }
+    32.8%     { left: 108px; top: 380px; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    35.7%     { left: 230px; top: 270px; }
+    41.4%     { left: 230px; top: 270px; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    44.3%     { left: 354px; top: 405px; }
+    50%       { left: 354px; top: 405px; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    52.9%, 100% { left: 468px; top: 280px; opacity: 1; }
+  }
+
+  .caption {
+    left: 40px; right: 40px; top: 700px; height: 110px;
+    display: flex; align-items: center; gap: 18px;
+    padding: 0 24px; border-radius: 12px;
+    background: var(--paper); color: var(--ink);
+    font-family: 'Dela Gothic One', serif; font-size: 34px;
+    box-shadow: 0 20px 26px -16px rgba(36, 28, 22, .9);
+    opacity: 0;
+  }
+  .caption svg { width: 44px; height: 44px; flex-shrink: 0; }
+  .c1 { animation-name: cap1; } .c2 { animation-name: cap2; } .c3 { animation-name: cap3; } .c4 { animation-name: cap4; }
+  @keyframes cap1 { 0%, 24%   { opacity: 0; transform: translateY(20px); } 25.5% { opacity: 1; transform: none; } 32.8% { opacity: 1; } 33.6%, 100% { opacity: 0; } }
+  @keyframes cap2 { 0%, 33.6% { opacity: 0; transform: translateY(20px); } 35%   { opacity: 1; transform: none; } 41.4% { opacity: 1; } 42.2%, 100% { opacity: 0; } }
+  @keyframes cap3 { 0%, 42.2% { opacity: 0; transform: translateY(20px); } 43.6% { opacity: 1; transform: none; } 50%   { opacity: 1; } 50.8%, 100% { opacity: 0; } }
+  @keyframes cap4 { 0%, 50.8% { opacity: 0; transform: translateY(20px); } 52.2% { opacity: 1; transform: none; } 61.4% { opacity: 1; } 63.6%, 100% { opacity: 0; } }
+
+  /* ── Сцена 3: дело закрыто (4.4–5.95 с) ───────────────────────── */
+  .sheet {
+    left: 40px; top: 300px; width: 460px; padding: 56px 36px 64px;
+    background: var(--paper); color: var(--ink); border-radius: 3px;
+    box-shadow: 0 30px 40px -20px rgba(36, 28, 22, .9);
+    animation-name: sheet;
+  }
+  .sheet h3 { font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 54px; line-height: 1; }
+  .sheet p { margin-top: 20px; font-size: 30px; line-height: 1.35; }
+  .tape { position: absolute; top: -14px; width: 110px; height: 34px; background: rgba(205, 184, 148, .75); }
+  .tape--l { left: 22px; transform: rotate(-7deg); } .tape--r { right: 22px; transform: rotate(6deg); }
+  @keyframes sheet {
+    0%, 62.8% { opacity: 0; transform: translateY(260px) rotate(4deg); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    68.6%     { opacity: 1; transform: rotate(-1.5deg); }
+    82.1%     { opacity: 1; transform: rotate(-1.5deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
+    85%, 100% { opacity: 0; transform: translateY(-80px) rotate(-1.5deg); }
+  }
+  .stamp--done { right: 24px; bottom: -24px; background: var(--paper); animation-name: stamp-done; }
+  @keyframes stamp-done {
+    0%, 71.4% { opacity: 0; transform: scale(2.6) rotate(-24deg); }
+    71.41%    { opacity: 1; transform: scale(2.6) rotate(-24deg); animation-timing-function: cubic-bezier(.7, 0, .84, 0); }
+    73.6%, 100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+  }
+
+  /* ── Сцена 4: марка (5.9–7 с) ─────────────────────────────────── */
+  .brand { left: 40px; right: 40px; top: 380px; text-align: center; animation-name: brand; }
+  .brand b { display: block; font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 62px; line-height: 1; }
+  .brand span { display: block; margin-top: 18px; font-size: 32px; color: var(--field-soft); }
+  .brand i { display: block; height: 6px; margin: 26px auto 0; background: var(--red); border-radius: 3px; animation-name: bar; }
+  @keyframes brand {
+    0%, 84.3% { opacity: 0; transform: translateY(30px); animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    89%, 100% { opacity: 1; transform: none; }
+  }
+  @keyframes bar {
+    0%, 87% { width: 0; animation-timing-function: cubic-bezier(.16, 1, .3, 1); }
+    94%, 100% { width: 220px; }
+  }
+</style>
+</head>
+<body>
+  <!-- Сцена 1 -->
+  <div class="folder abs a">
+    <span class="folder__tab">Дело № 1015</span>
+    <h1>Дело<br>для двоих</h1>
+    <span class="stamp stamp--secret abs a">Секретно</span>
+  </div>
+
+  <!-- Сцена 2 -->
+  <div class="board abs a">
+    <h2 class="abs a">Ваша история —<br>на игровом поле</h2>
+    <svg class="thread abs a" viewBox="0 0 540 960" aria-hidden="true">
+      <path d="M-20 520 C40 520 60 478 98 478 S180 368 220 368 S300 503 344 503 S420 378 458 378 S540 330 560 330" />
+    </svg>
+    <div class="note n1 abs a"><span class="face">1</span><span class="check a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note n2 abs a"><span class="face">2</span><span class="check a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note n3 abs a"><span class="face">3</span><span class="check a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></div>
+    <div class="note n4 abs a"><span class="face">4</span></div>
+    <span class="chip abs a"></span>
+
+    <div class="caption c1 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a2.9 2.9 0 115.1 1.9c-.9.9-2.3 1.6-2.3 3.1"/><path d="M12 18h.01"/></svg>Загадки</div>
+    <div class="caption c2 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M12 16.5a3 3 0 100-6 3 3 0 000 6z"/></svg>Фото-задания</div>
+    <div class="caption c3 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4z"/><path d="M13 13h7v7h-7z"/><path d="M16.5 4.5v6"/><path d="M13.5 7.5h6"/><path d="M5 15.5l5 3.5"/><path d="M10 15.5l-5 3.5"/></svg>Мини-игры</div>
+    <div class="caption c4 abs a"><svg viewBox="0 0 24 24" fill="none" stroke="#2a211b" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 18h5"/><path d="M10.5 21h3"/><path d="M12 3a6 6 0 00-3.5 10.9V16h7v-2.1A6 6 0 0012 3z"/></svg>Подсказки</div>
+  </div>
+
+  <!-- Сцена 3 -->
+  <div class="sheet abs a">
+    <span class="tape tape--l"></span><span class="tape tape--r"></span>
+    <h3>Дело<br>закрыто</h3>
+    <p>Свидание, которое вы раскроете вдвоём</p>
+    <span class="stamp stamp--done abs a">Раскрыто</span>
+  </div>
+
+  <!-- Сцена 4 -->
+  <div class="brand abs a">
+    <b>Quest Dating</b>
+    <span>квест под вашу пару</span>
+    <i class="a"></i>
+  </div>
+
+  <script>
+    // Ставит все анимации на момент t (секунды) — для покадровой записи
+    window.seek = (t) => {
+      for (const a of document.getAnimations()) a.currentTime = t * 1000
+    }
+    window.seek(0)
+  </script>
+</body>
+</html>
