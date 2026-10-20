@@ -12,25 +12,47 @@ export const THEMES = {
     label: 'Детектив',
     icon: '🕵️',
 
-    // Цвета
-    accent:     '#e8c547',   // желтоватый янтарь (как фонарь под дождём)
-    accentDim:  '#9a7f1a',
-    bg:         '#0a0a0a',
-    bg2:        '#111111',
-    surface:    '#161616',
-    border:     'rgba(232,197,71,0.12)',
-    text:       '#c8b89a',
-    dim:        '#5a4e3a',
+    // Цвета — доска улик и папка дела: сепия и один красный штамп
+    accent:     '#d9c39c',
+    accentDim:  '#a88b62',
+    bg:         '#5f4f43',   // сукно доски улик
+    bg2:        '#4e4037',
+    surface:    '#6b5a4c',
+    border:     'rgba(241,232,216,0.22)',
+    text:       '#f1e8d8',
+    dim:        '#e6dccb',
 
-    baseBg:     '#0a0a0a',
+    baseBg:     '#5f4f43',
     baseTone:   'dark',
     showTimer:  false,
 
+    // Мир «Ходилки» в обличье дела: клетки — приколотые заметки,
+    // карточка — лист в папке на скотче, фишка — красный штамп
+    world: {
+      decor:        'casefile',
+      field:        '#5f4f43',
+      fieldInk:     '#f1e8d8',
+      fieldInkSoft: '#e6dccb',
+      paper:        '#f4efe4',
+      paperEdge:    '#cdb894',   // край папки
+      ink:          '#2a211b',
+      inkSoft:      '#5a4c40',
+      plate:        '#f4efe4',   // свежая заметка
+      plateInk:     '#2a211b',
+      done:         '#c9ad80',   // крафт: заметка отработана
+      back:         '#4e4037',
+      chip:         '#9f2b25',   // красный штамп
+      rule:         '#2a211b',
+      wrong:        '#9f2b25',
+      action:       '#2a211b',
+      actionInk:    '#f4efe4',
+    },
+
     // Шрифты
     fonts: {
-      display: "'Courier Prime', 'Courier New', monospace",
-      body:    "'Courier Prime', 'Courier New', monospace",
-      googleFonts: 'Courier+Prime:wght@400;700'
+      display: "'Dela Gothic One', 'Arial Black', sans-serif",
+      body:    "'PT Serif', Georgia, serif",
+      googleFonts: 'Dela+Gothic+One&family=PT+Serif:ital,wght@0,400;0,700;1,400'
     },
 
     // Язык UI
@@ -38,10 +60,10 @@ export const THEMES = {
       eyebrow:       'СЕКРЕТНОЕ ДЕЛО',
       startBtn:      'ОТКРЫТЬ ДЕЛО',
       taskDone:      'Задокументировано',
-      hintBtn:       '🔍 Запросить справку (-10 очков)',
+      hintBtn:       'Запросить справку · −10 очков',
       photoZone:     'Сфотографировать улику',
       finishEyebrow: 'ДЕЛО ЗАКРЫТО',
-      shareBtn:      'Передать в архив 📋',
+      shareBtn:      'Передать в архив',
       blockPrefix:   'Улика',
       pointsLabel:   'очков',
     },
@@ -301,4 +323,32 @@ export const themeToCssVars = (theme) => ({
   '--font-b':      theme.fonts.body,
   '--base-bg':     theme.baseBg    ?? theme.bg,
   '--base-tone':   theme.baseTone  ?? 'dark',
+  ...worldVars(theme),
 })
+
+// Токены мира «Ходилки». Темы, у которых ещё нет своего мира,
+// получают их из старых токенов и выглядят как раньше по цвету.
+// Приглушённый текст: 72% основного цвета, читается на фоне темы
+const soft = (ink, ground) => `color-mix(in srgb, ${ink} 72%, ${ground})`
+
+const worldVars = (theme) => {
+  const w = theme.world ?? {}
+  return {
+    '--field':          w.field        ?? theme.bg,
+    '--field-ink':      w.fieldInk     ?? theme.text,
+    '--field-ink-soft': w.fieldInkSoft ?? soft(theme.text, theme.bg),
+    '--paper':          w.paper        ?? theme.surface,
+    '--paper-edge':     w.paperEdge    ?? theme.bg2,
+    '--ink':            w.ink          ?? theme.text,
+    '--ink-soft':       w.inkSoft      ?? soft(theme.text, theme.surface),
+    '--plate':          w.plate        ?? theme.accent,
+    '--plate-ink':      w.plateInk     ?? theme.bg,
+    '--done':           w.done         ?? theme.accentDim,
+    '--back':           w.back         ?? theme.bg2,
+    '--chip':           w.chip         ?? theme.accent,
+    '--rule':           w.rule         ?? theme.border,
+    '--wrong':          w.wrong        ?? '#e5534b',
+    '--action':         w.action       ?? theme.accent,
+    '--action-ink':     w.actionInk    ?? theme.bg,
+  }
+}
