@@ -17,7 +17,7 @@
         <template v-if="decor === 'casefile'">
           <span class="finish__tape finish__tape--l" aria-hidden="true"></span>
           <span class="finish__tape finish__tape--r" aria-hidden="true"></span>
-          <span class="finish__stamp" aria-hidden="true">Закрыто</span>
+          <span class="finish__stamp" aria-hidden="true">Раскрыто</span>
         </template>
         <h3 class="finish__message-label">{{ messageLabel }}</h3>
         <p class="finish__message-text">{{ questData.final_message }}</p>
@@ -112,15 +112,8 @@ const saveCard = async () => {
     canvas.height = H
     const ctx = canvas.getContext('2d')
 
-    // Background
-    ctx.fillStyle = '#0d0d14'
-    ctx.fillRect(0, 0, W, H)
-
-    // Accent gradient
-    const grad = ctx.createLinearGradient(0, 0, W, H * 0.55)
-    grad.addColorStop(0, props.theme.accent + '30')
-    grad.addColorStop(1, 'transparent')
-    ctx.fillStyle = grad
+    // Мир «Ходилки»: сплошное поле темы, без градиента
+    ctx.fillStyle = props.theme.world?.field ?? props.theme.bg ?? '#1d1a17'
     ctx.fillRect(0, 0, W, H)
 
     const frameColor = FRAME_COLORS[frameLevel.value]

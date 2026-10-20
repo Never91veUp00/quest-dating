@@ -73,7 +73,7 @@ const resolvedType = computed(() => {
 
 <style scoped>
 .task__media { display: flex; flex-direction: column; gap: 10px; }
-.task__media__video { width: 100%; border-radius: 10px; aspect-ratio: 16/9; max-height: 50vh; object-fit: contain; background: #000; }
+.task__media__video { width: 100%; border-radius: 10px; aspect-ratio: 16/9; max-height: 50vh; object-fit: contain; background: var(--rule); }
 .task__media__error { text-align: center; font-size: .85rem; color: var(--ink-soft); padding: 8px; }
 .task__media__audio-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 12px;

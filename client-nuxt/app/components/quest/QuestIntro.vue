@@ -68,6 +68,7 @@ onUnmounted(() => clearTimeout(timer))
 .lid--open { transform: translateY(-104%); }
 
 .lid__face {
+  container-type: inline-size;
   position: relative;
   width: 100%; max-width: 440px;
   padding: 40px 24px;
@@ -79,7 +80,8 @@ onUnmounted(() => clearTimeout(timer))
   margin: 0;
   font-family: var(--font-d);
   font-weight: 400;
-  font-size: clamp(1.7rem, 8vw, 3rem);
+  /* по ширине папки: «расследование» помещается целиком */
+  font-size: clamp(1.4rem, 8.6cqi, 2.9rem);
   line-height: 1.04;
   hyphens: auto;
   overflow-wrap: break-word;

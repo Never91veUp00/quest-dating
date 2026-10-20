@@ -279,6 +279,7 @@ const cssVars  = computed(() => themeToCssVars(themeObj.value))
 
 // Под плеером не должен проступать чёрный фон сайта: body = поле темы
 useHead(() => ({
+  htmlAttrs: { lang: 'ru' },
   bodyAttrs: { style: `background-color: ${cssVars.value['--field']}` },
 }))
 
@@ -619,7 +620,8 @@ onUnmounted(() => {
 .qp-hud__dropdown { position: absolute; top: 100%; right: max(12px, calc(50% - 288px)); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 6px; min-width: 200px; box-shadow: 0 16px 24px -12px color-mix(in srgb, var(--rule) 70%, transparent); }
 .qp-hud__dropdown-item { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; color: var(--ink); font-family: var(--font-b); font-size: 1rem; padding: 12px 14px; cursor: pointer; border-radius: 6px; text-align: left; }
 .qp-hud__dropdown-item:hover { background: color-mix(in srgb, var(--paper-edge) 35%, var(--paper)); }
-.qp-main { flex: 1; padding: 16px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+/* Запас снизу: прилипшая кнопка-глагол не закрывает конец карточки */
+.qp-main { flex: 1; padding: 16px 16px calc(88px + var(--kb, 0px)); max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
 .qp-badge { position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--paper); color: var(--ink); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; min-width: 210px; max-width: 320px; box-shadow: 0 16px 24px -12px color-mix(in srgb, var(--rule) 75%, transparent); }
 .qp-badge__ico { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: var(--action); color: var(--action-ink); }
 .qp-badge__title { font-family: var(--font-d); font-size: 1rem; color: var(--ink); }
@@ -659,7 +661,7 @@ onUnmounted(() => {
   .qp-menu-sheet__title { font-family: var(--font-d); font-size: 1.25rem; color: var(--ink); margin-bottom: 12px; }
   .qp-menu-sheet__item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; background: color-mix(in srgb, var(--paper-edge) 30%, var(--paper)); border: none; border-radius: 10px; color: var(--ink); font-family: var(--font-b); font-size: 1.05rem; padding: 0 16px; cursor: pointer; text-align: left; margin-bottom: 10px; }
   .qp-menu-sheet__close { display: block; width: 100%; min-height: 52px; background: transparent; border: 2px solid var(--ink); border-radius: 10px; color: var(--ink); font-family: var(--font-d); font-size: 1rem; cursor: pointer; }
-  .qp-main { padding: 14px 12px 0; }
+  .qp-main { padding: 14px 12px calc(88px + var(--kb, 0px)); }
   .qp-hud__row { padding: 8px 10px 8px 14px; }
 }
 .sheet-enter-active, .sheet-leave-active { transition: opacity .25s ease; }

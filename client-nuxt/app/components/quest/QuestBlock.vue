@@ -266,7 +266,11 @@ const finishLabel = computed(() => ({
   font-size: 1.1rem;
   line-height: 1.15;
   color: var(--field-ink);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .block__mini { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
