@@ -56,10 +56,9 @@
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
 
-        <!-- Как это устроено -->
-        <section class="splash__how" aria-labelledby="how-h">
-          <h2 id="how-h" class="splash__h">Как это устроено</h2>
-          <QuestDemo :decor="decor" />
+        <!-- Видео-инструкция (или демо) и правило игры -->
+        <section class="splash__how">
+          <QuestHowTo :theme="theme" />
           <p class="splash__note">Клетки открываются по очереди. Подглядывать вперёд не получится — так задумано.</p>
         </section>
 
@@ -73,7 +72,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import QuestDemo from './QuestDemo.vue'
+import QuestHowTo from './QuestHowTo.vue'
 
 // Внутренняя сторона крышки: правила игры, текст автора, спид-демо, старт.
 const props = defineProps({

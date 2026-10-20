@@ -33,6 +33,7 @@ const ICONS = {
   close:    ['M6 6l12 12', 'M18 6L6 18'],
   hint:     ['M9.5 18h5', 'M10.5 21h3', 'M12 3a6 6 0 00-3.5 10.9V16h7v-2.1A6 6 0 0012 3z'],
   restart:  ['M4 12a8 8 0 102.3-5.6', 'M4 4v4.5h4.5'],
+  play:     ['M8 5.5v13l10.5-6.5z'],
 }
 
 const props = defineProps({
