@@ -75,16 +75,7 @@
           <!-- Блок -->
           <main class="qp-main">
             <transition name="slide" mode="out-in">
-              <QuestBlockBridge
-                v-if="showBridge && blocks[blockIdx + 1]"
-                :key="'bridge-' + blockIdx"
-                :theme="themeObj"
-                :nextBlock="blocks[blockIdx + 1]"
-                :nextIndex="blockIdx + 1"
-                @advance="doNext"
-              />
               <QuestBlock
-                v-else
                 :key="blockIdx"
                 :block="currentBlock"
                 :theme="themeObj"
@@ -173,7 +164,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
-import QuestBlockBridge from '~/components/quest/QuestBlockBridge.vue'
 import QuestIcon from '../../components/quest/QuestIcon.vue'
 
 
@@ -250,7 +240,6 @@ const hintsUsed           = ref(0)
 const badge               = ref(null)
 const showMenu            = ref(false)
 const showRestartConfirm  = ref(false)
-const showBridge          = ref(false)
 const selfiePhoto         = ref(null)
 
 // ─── Timer ────────────────────────────────────────────────────
@@ -281,13 +270,6 @@ const cssVars  = computed(() => themeToCssVars(themeObj.value))
 useHead(() => ({
   htmlAttrs: { lang: 'ru' },
   bodyAttrs: { style: `background-color: ${cssVars.value['--field']}` },
-}))
-
-// Свои шрифты темы: предзагрузка кириллицы, чтобы первый экран не мигал запасным шрифтом
-useHead(() => ({
-  link: (questData.value ? themeObj.value?.fonts?.preload || [] : []).map(href => ({
-    rel: 'preload', as: 'font', type: 'font/woff2', href, crossorigin: '',
-  })),
 }))
 
 watchEffect(() => {
@@ -489,7 +471,6 @@ const next = () => {
   doNext()
 }
 const doNext = () => {
-  showBridge.value = false
   blockIdx.value++
   window.scrollTo({ top: 0, behavior: 'smooth' })
   saveProgress()

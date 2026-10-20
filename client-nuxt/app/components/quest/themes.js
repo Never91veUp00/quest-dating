@@ -54,7 +54,6 @@ export const THEMES = {
       body:    "'PT Serif', Georgia, serif",
       // свои файлы: assets/styles/fonts.css + public/fonts (не зависим от сети Google)
       selfHosted: true,
-      preload: ['/fonts/dela-gothic-one-400-cyrillic.woff2', '/fonts/pt-serif-400-cyrillic.woff2'],
     },
 
     // Язык UI
