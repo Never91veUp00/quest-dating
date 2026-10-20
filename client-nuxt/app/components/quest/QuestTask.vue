@@ -5,6 +5,7 @@
       'task--review':   mode === 'review',
       'task--wrong':    mode === 'review' && earnedEntry?.wrong,
       'task--casefile': decor === 'casefile',
+      'task--letters':  decor === 'letters',
       [`task--${task.type}`]: true,
     }"
   >
@@ -12,6 +13,8 @@
       <span class="task__tape task__tape--l" aria-hidden="true"></span>
       <span class="task__tape task__tape--r" aria-hidden="true"></span>
     </template>
+    <!-- Письмо вынуто из конверта: над листом стоит открытый клапан -->
+    <span v-else-if="decor === 'letters'" class="task__flap" aria-hidden="true"></span>
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
@@ -174,6 +177,53 @@ const typeLabel = computed(() => ({
 .task__tape--l { left: 14px;  transform: rotate(-7deg); }
 .task__tape--r { right: 14px; transform: rotate(6deg); }
 
+/* Обличье переписки: лист письма над открытым конвертом, номер — на марке */
+.task--letters {
+  margin-top: 6px;
+  border: none;
+  border-radius: 2px;
+  padding: 22px 20px 22px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 80%, transparent);
+}
+.task__flap {
+  position: absolute; left: 50%; bottom: 100%;
+  width: 62%; height: 18px;
+  transform: translateX(-50%);
+  background: var(--paper-edge);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+/* подкладка конверта: тонкая печатная полоска цвета ленты */
+.task__flap::after {
+  content: "";
+  position: absolute; inset: 5px 14% 0;
+  background: repeating-linear-gradient(115deg,
+    color-mix(in srgb, var(--chip) 55%, var(--paper-edge)) 0 2px,
+    var(--paper-edge) 2px 6px);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.task--letters .task__corner {
+  padding: 6px 7px 5px;
+  min-width: 44px;
+  background: color-mix(in srgb, var(--chip) 30%, var(--paper));
+  color: var(--ink-soft);
+  transform: rotate(2deg);
+  /* зубцы марки: дырочки перфорации только по кромке */
+  --perf: radial-gradient(circle, transparent 1.6px, currentColor 1.8px) 50% 50% / 6px 6px round;
+  -webkit-mask: linear-gradient(currentColor 0 0) content-box, var(--perf);
+          mask: linear-gradient(currentColor 0 0) content-box, var(--perf);
+}
+.task--letters .task__corner::before {
+  content: "";
+  position: absolute; inset: 5px;
+  border: 1.5px solid color-mix(in srgb, var(--chip) 70%, var(--ink));
+  pointer-events: none;
+}
+.task--letters .task__corner { position: relative; }
+.task--letters .task__no { font-weight: 700; }
+.task--letters .task__title { font-weight: 700; line-height: 1.08; }
+
 .task__head { display: flex; align-items: flex-start; gap: 12px; }
 .task__corner {
   flex-shrink: 0;
@@ -289,6 +339,7 @@ const typeLabel = computed(() => ({
   border: none;
   border-radius: 10px;
   font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
   font-size: 1rem;
   white-space: nowrap;
   cursor: pointer;

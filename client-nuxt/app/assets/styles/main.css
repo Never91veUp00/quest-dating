@@ -413,6 +413,7 @@ pre code {
   border-radius: 12px;
   color: var(--action-ink, var(--bg));
   font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
   font-size: 1.05rem;
   letter-spacing: .01em;
   cursor: pointer;

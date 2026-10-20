@@ -12,6 +12,10 @@
   >
     <div class="lid__face">
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
+      <!-- Конверт обратной стороной: клапан под сургучом открывается первым -->
+      <span v-if="decor === 'letters'" class="lid__flap" aria-hidden="true">
+        <QuestSeal class="lid__seal" :size="72" :seed="5" motto="★ ПИСЬМО ★" />
+      </span>
       <h1 class="lid__title">{{ questData.title }}</h1>
       <p v-if="questData.client_name" class="lid__for">
         для <b>{{ questData.client_name }}</b>
@@ -24,6 +28,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import QuestSeal from './QuestSeal.vue'
 
 // Крышка коробки с игрой: название и имя игрока. Поднимается сама
 // через пару секунд или по тапу и открывает правила (QuestSplash).
@@ -141,7 +146,56 @@ onUnmounted(() => clearTimeout(timer))
   opacity: .88;
 }
 
+/* ── Обличье переписки: конверт под сургучом ─────────────────── */
+.lid--letters .lid__face {
+  display: flex; flex-direction: column; justify-content: flex-end;
+  aspect-ratio: 10 / 8;
+  padding: 0 22px 26px;
+  border: none;
+  border-radius: 3px;
+  color: var(--ink);
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 14%, var(--paper-edge)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) left bottom / 50% 64% no-repeat,
+    linear-gradient(to top left,  transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 14%, var(--paper-edge)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) right bottom / 50% 64% no-repeat,
+    var(--paper-edge);
+  box-shadow: 0 22px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent);
+  perspective: 900px;
+}
+.lid__flap {
+  position: absolute; left: 0; right: 0; top: 0;
+  height: 38cqi;
+  transform-origin: top center;
+  transition: transform .4s cubic-bezier(.5, 0, .3, 1);
+  filter: drop-shadow(0 3px 2px color-mix(in srgb, var(--rule) 35%, transparent));
+}
+.lid__flap::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: color-mix(in srgb, var(--rule) 6%, var(--paper-edge));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.lid__seal {
+  position: absolute; left: 50%; bottom: 0;
+  margin: 0 0 -30px -36px;
+  transform: rotate(-8deg);
+  transition: opacity .15s;
+}
+.lid--open .lid__seal { opacity: 0; }
+.lid--letters .lid__title { position: relative; color: var(--ink); font-weight: 700; }
+.lid--letters .lid__for {
+  position: relative;
+  margin-top: 8px;
+  font-family: var(--font-h);
+  font-size: 1.55rem;
+  color: var(--ink);
+}
+.lid--letters .lid__for b { color: var(--ink); font-weight: 400; }
+/* сначала клапан откидывается, потом конверт уходит вверх */
+.lid--letters.lid--open { transition-delay: .32s; }
+.lid--letters.lid--open .lid__flap { transform: rotateX(180deg); }
+
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
+  .lid__flap { transition: none; }
 }
 </style>

@@ -335,6 +335,30 @@ const finishLabel = computed(() => ({
   margin-left: -6px;
 }
 
+/* Обличье переписки: конверты на атласной ленте */
+.block--letters .block__mini::before {
+  height: 4px; margin-top: -2px;
+  background: var(--chip);
+  box-shadow: 0 2px 2px color-mix(in srgb, var(--rule) 40%, transparent);
+}
+.block--letters .block__mini::after {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 50%;
+  margin-top: -2px;
+  border-top: 1px solid color-mix(in srgb, var(--chip) 45%, var(--paper));
+}
+.block--letters .block__mini-cell {
+  width: 19px; height: 13px;
+  border: none;
+  border-radius: 1px;
+  box-shadow: 0 3px 4px -2px color-mix(in srgb, var(--rule) 80%, transparent);
+}
+.block--letters .block__mini-cell.is-active { width: 25px; height: 18px; }
+.block--letters .block__mini-cell.is-active::after {
+  top: -10px; right: auto; left: 50%;
+  margin-left: -6px;
+}
+
 /* ── Доска: момент хода и обзор ───────────────────────────────── */
 .block__board {
   position: fixed;
@@ -370,7 +394,7 @@ const finishLabel = computed(() => ({
 }
 .block__count b {
   font-family: var(--font-d);
-  font-weight: 400;
+  font-weight: var(--font-d-wt, 400);
   color: var(--field-ink);
   font-size: 1.05rem;
 }

@@ -52,6 +52,7 @@
             <span class="splash__tape splash__tape--l" aria-hidden="true"></span>
             <span class="splash__tape splash__tape--r" aria-hidden="true"></span>
           </template>
+          <span v-else-if="decor === 'letters'" class="splash__flap" aria-hidden="true"></span>
           <h2 id="brief-h" class="splash__h splash__h--ink">Перед стартом</h2>
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
@@ -204,6 +205,21 @@ const plural = (n, one, few, many) => {
 }
 .splash__tape--l { left: 14px; transform: rotate(-6deg); }
 .splash__tape--r { right: 14px; transform: rotate(5deg); }
+
+/* Обличье переписки: письмо автора над открытым конвертом, обращение от руки */
+.splash--letters .splash__brief { border-radius: 2px; margin-top: 10px; }
+.splash--letters .splash__brief .splash__h {
+  font-family: var(--font-h);
+  font-weight: 400;
+  font-size: 1.5rem;
+}
+.splash__flap {
+  position: absolute; left: 50%; bottom: 100%;
+  width: 62%; height: 18px;
+  transform: translateX(-50%);
+  background: var(--paper-edge);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
 
 /* ── Код доступа ──────────────────────────────────────────────── */
 .splash__code { display: flex; flex-direction: column; }

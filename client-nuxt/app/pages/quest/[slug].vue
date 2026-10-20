@@ -575,7 +575,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.qp { min-height: 100dvh; background: var(--base-bg); color: var(--text); font-family: var(--font-b); position: relative; overflow-x: hidden; overflow-x: clip; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+.qp { min-height: 100dvh; background: var(--base-bg); color: var(--text); font-family: var(--font-b); font-feature-settings: var(--font-feat, normal); font-size-adjust: var(--font-adjust, none); position: relative; overflow-x: hidden; overflow-x: clip; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
 .qp-overlay { pointer-events: none; position: fixed; inset: 0; z-index: 9999; }
 .qp-overlay--scanlines { background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px); }
 .qp-overlay--grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 200px 200px; opacity: 0.5; }
@@ -599,7 +599,7 @@ onUnmounted(() => {
 .qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 64px 0 40px; background: var(--field); }
 .qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--field); border-bottom: 2px solid color-mix(in srgb, var(--field-ink) 18%, var(--field)); }
 .qp-hud__row { display: flex; align-items: center; padding: 8px 12px 8px 16px; gap: 10px; max-width: 600px; margin: 0 auto; }
-.qp-hud__pts { font-family: var(--font-d); font-size: 1.15rem; color: var(--field-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qp-hud__pts { font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.15rem; color: var(--field-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .qp-hud__pts-l { margin-left: 4px; font-family: var(--font-b); font-size: .9rem; color: var(--field-ink-soft); }
 .qp-hud__name { flex: 1; font-family: var(--font-b); font-size: .95rem; color: var(--field-ink-soft); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-hud__time { font-family: var(--font-d); font-size: .9rem; color: var(--field-ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -625,6 +625,8 @@ onUnmounted(() => {
 .qp-confirm__btn--confirm { background: var(--wrong); color: var(--paper); }
 .qp-confirm__btn:focus-visible { outline: 3px solid var(--chip); outline-offset: 2px; }
 .qp ::selection { background: var(--chip); color: var(--paper); }
+/* шорткат font у кнопок и полей сбрасывает настройки шрифта темы — возвращаем */
+.qp :is(button, input, textarea, select) { font-feature-settings: inherit; font-size-adjust: inherit; }
 .qp { scrollbar-color: color-mix(in srgb, var(--field-ink) 35%, var(--field)) var(--field); }
 .splash-out-leave-active { transition: opacity .5s ease, transform .5s ease; }
 .splash-out-leave-to { opacity: 0; transform: scale(1.04); }
