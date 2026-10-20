@@ -399,7 +399,7 @@ const loadQuest = async () => {
       showIntro.value    = false
       if (saved.sessionId) sessionData.value = { session_id: saved.sessionId }
       ticker = setInterval(() => { nowTs.value = Date.now() }, 1000)
-      flash('🔄', 'Прогресс восстановлен', `Блок ${(saved.blockIdx ?? 0) + 1}`)
+      flash('Прогресс восстановлен', `Блок ${(saved.blockIdx ?? 0) + 1}`)
     } else {
       showIntro.value = questData.value.show_intro !== false
     }
@@ -432,7 +432,7 @@ const handleStart = async () => {
   started.value = true
   startTs.value = Date.now()
   ticker = setInterval(() => { nowTs.value = Date.now() }, 1000)
-  flash('⚡', 'Начинаем!', themeObj.value.copy.eyebrow)
+  flash('Начинаем!', themeObj.value.copy.eyebrow)
 }
 
 // ─── Tasks ────────────────────────────────────────────────────
@@ -445,9 +445,9 @@ const onTaskComplete = (task) => {
   points.value += earned
 
   if (completedIds.value.length === 1)
-    flash('🎯', 'Первый шаг!', 'Продолжай в том же духе')
+    flash('Первый шаг!', 'Продолжай в том же духе')
   else if (completedIds.value.length === totalTasks.value)
-    flash('🏆', 'Все задания!', 'Финал близко...')
+    flash('Все задания!', 'Финал близко...')
 
   saveProgress()
 }
@@ -462,7 +462,7 @@ const onSkipTask = (task) => {
   if (completedIds.value.includes(task.id)) return
   completedIds.value.push(task.id)
   earnedMap.value[task.id] = { points: 0, wrong: true }
-  flash('⏭️', 'Пропущено', 'Можно вернуться позже')
+  flash('Пропущено', 'Можно вернуться позже')
   saveProgress()
 }
 
@@ -516,7 +516,7 @@ const doRestart = async () => {
   isComplete.value   = false
   started.value      = false
   clearPersistedState()
-  flash('🔄', 'Сброшено', 'Начинаем заново!')
+  flash('Сброшено', 'Начинаем заново!')
 }
 
 // ─── Save progress ────────────────────────────────────────────
@@ -536,16 +536,16 @@ const saveProgress = async () => {
 }
 
 // ─── Badge ────────────────────────────────────────────────────
-const flash = (icon, title, sub) => {
-  badge.value = { icon, title, sub }
+const flash = (title, sub) => {
+  badge.value = { title, sub }
   setTimeout(() => { badge.value = null }, 2800)
 }
 
 // ─── Share ────────────────────────────────────────────────────
 const share = () => {
-  const text = `Я прошёл квест «${questData.value.title}» и набрал ${points.value} ${themeObj.value.copy.pointsLabel}! 🎯`
+  const text = `Я прошёл квест «${questData.value.title}» и набрал ${points.value} ${themeObj.value.copy.pointsLabel}!`
   if (navigator.share) navigator.share({ title: 'Quest Dating', text, url: location.href })
-  else navigator.clipboard?.writeText(text).then(() => flash('📋', 'Скопировано!', ''))
+  else navigator.clipboard?.writeText(text).then(() => flash('Скопировано!', ''))
 }
 
 // ─── Watchers ─────────────────────────────────────────────────
