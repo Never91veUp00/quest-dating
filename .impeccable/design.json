@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-20T08:30:33.858Z",
+  "generatedAt": "2026-10-20T18:31:57.000Z",
   "title": "Design System: Quest Dating",
   "extensions": {
-    "scope": "Плеер квеста /quest/[slug]. Пилотный мир — detective (decor: casefile). Остальные пять тем идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
+    "scope": "Плеер квеста /quest/[slug]. Свой мир у двух тем: detective (decor: casefile) и romantic (decor: letters, «Переписка»); ключи токенов с префиксом romantic- — «Романтик». Остальные четыре темы (mystery, treasure, proposal, city) идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
     "tokenSource": {
       "file": "client-nuxt/app/components/quest/themes.js",
-      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b на корень плеера. Если у темы нет блока world, worldVars() выводит их из bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b."
+      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Если у темы нет блока world, worldVars() выводит цвета из bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b."
     },
     "colorMeta": {
       "field": {
@@ -229,6 +229,227 @@
           "#d5c9b4",
           "#f9edd7"
         ]
+      },
+      "romantic-field": {
+        "role": "neutral",
+        "displayName": "Подкладка шкатулки",
+        "canonical": "#6b2e35",
+        "cssVar": "--field",
+        "oklch": "oklch(38.7% 0.087 15.0)",
+        "tonalRamp": [
+          "#1f0004",
+          "#460c17",
+          "#682c33",
+          "#8c4b51",
+          "#b06c71",
+          "#d68f93",
+          "#fdb2b7",
+          "#fee9e9"
+        ]
+      },
+      "romantic-field-ink": {
+        "role": "neutral",
+        "displayName": "Сливочный мел",
+        "canonical": "#f6ebdc",
+        "cssVar": "--field-ink",
+        "oklch": "oklch(94.5% 0.023 75.9)",
+        "tonalRamp": [
+          "#110a02",
+          "#2c2418",
+          "#494034",
+          "#696053",
+          "#8b8173",
+          "#aea395",
+          "#d2c7b9",
+          "#f8edde"
+        ]
+      },
+      "romantic-field-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённый мел",
+        "canonical": "#ecdcc8",
+        "cssVar": "--field-ink-soft",
+        "oklch": "oklch(90.2% 0.032 73.5)",
+        "tonalRamp": [
+          "#130900",
+          "#2f2313",
+          "#4c402f",
+          "#6d5f4d",
+          "#8e806e",
+          "#b2a28f",
+          "#d6c6b3",
+          "#fcecd8"
+        ]
+      },
+      "romantic-paper": {
+        "role": "neutral",
+        "displayName": "Хлопковая бумага",
+        "canonical": "#f8f1e4",
+        "cssVar": "--paper / --plate / --action-ink",
+        "oklch": "oklch(96.0% 0.019 83.1)",
+        "tonalRamp": [
+          "#0f0a04",
+          "#2a241b",
+          "#474137",
+          "#666055",
+          "#888276",
+          "#aba498",
+          "#cfc8bc",
+          "#f5eee1"
+        ]
+      },
+      "romantic-paper-edge": {
+        "role": "neutral",
+        "displayName": "Конверт",
+        "canonical": "#e2c9ae",
+        "cssVar": "--paper-edge",
+        "oklch": "oklch(85.0% 0.046 69.3)",
+        "tonalRamp": [
+          "#140800",
+          "#332109",
+          "#523e26",
+          "#735d45",
+          "#957e65",
+          "#b8a086",
+          "#ddc4aa",
+          "#ffebd5"
+        ]
+      },
+      "romantic-ink": {
+        "role": "neutral",
+        "displayName": "Винные чернила",
+        "canonical": "#3b1c20",
+        "cssVar": "--ink / --rule / --action / --plate-ink",
+        "oklch": "oklch(27.1% 0.049 12.6)",
+        "tonalRamp": [
+          "#1b0206",
+          "#391a1e",
+          "#59373b",
+          "#7a5659",
+          "#9d777a",
+          "#c2999c",
+          "#e7bdc0",
+          "#ffe8ea"
+        ]
+      },
+      "romantic-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённые чернила",
+        "canonical": "#6e4a47",
+        "cssVar": "--ink-soft",
+        "oklch": "oklch(44.8% 0.050 24.5)",
+        "tonalRamp": [
+          "#1c0203",
+          "#3a1b19",
+          "#5a3735",
+          "#7b5653",
+          "#9e7774",
+          "#c39996",
+          "#e8bdb9",
+          "#fee9e7"
+        ]
+      },
+      "romantic-done": {
+        "role": "neutral",
+        "displayName": "Вскрытый конверт",
+        "canonical": "#dcbfa6",
+        "cssVar": "--done",
+        "oklch": "oklch(82.3% 0.047 62.9)",
+        "tonalRamp": [
+          "#150700",
+          "#351f0a",
+          "#543c27",
+          "#755c45",
+          "#977d65",
+          "#bb9f87",
+          "#e0c3aa",
+          "#feead9"
+        ]
+      },
+      "romantic-back": {
+        "role": "neutral",
+        "displayName": "Оборот конверта",
+        "canonical": "#8c4f52",
+        "cssVar": "--back",
+        "oklch": "oklch(50.0% 0.082 17.3)",
+        "tonalRamp": [
+          "#1e0003",
+          "#450f16",
+          "#672e32",
+          "#8a4d50",
+          "#ae6e70",
+          "#d49092",
+          "#fab4b6",
+          "#fee8e9"
+        ]
+      },
+      "romantic-chip": {
+        "role": "primary",
+        "displayName": "Атласная лента",
+        "canonical": "#d98f8f",
+        "cssVar": "--chip",
+        "oklch": "oklch(72.5% 0.090 19.5)",
+        "tonalRamp": [
+          "#1f0003",
+          "#470a12",
+          "#6a2b2e",
+          "#8d4b4c",
+          "#b26c6c",
+          "#d88e8e",
+          "#ffb2b1",
+          "#ffe8e8"
+        ]
+      },
+      "romantic-wrong": {
+        "role": "secondary",
+        "displayName": "Гранатовая ошибка",
+        "canonical": "#a3313a",
+        "cssVar": "--wrong",
+        "oklch": "oklch(48.7% 0.149 20.3)",
+        "tonalRamp": [
+          "#1f0002",
+          "#4c010d",
+          "#7f041d",
+          "#a5333c",
+          "#cc575c",
+          "#f47b7d",
+          "#feb2b1",
+          "#fee9e8"
+        ]
+      },
+      "romantic-seal-wax": {
+        "role": "secondary",
+        "displayName": "Сургуч",
+        "canonical": "#8f2630",
+        "cssVar": "--seal-wax",
+        "oklch": "oklch(43.8% 0.140 20.0)",
+        "tonalRamp": [
+          "#1f0002",
+          "#4c000d",
+          "#7b1020",
+          "#a1383f",
+          "#c85b5f",
+          "#f07e80",
+          "#feb2b1",
+          "#fee9e8"
+        ]
+      },
+      "romantic-seal-deep": {
+        "role": "secondary",
+        "displayName": "Тиснение сургуча",
+        "canonical": "#661820",
+        "cssVar": "--seal-deep",
+        "oklch": "oklch(34.3% 0.110 19.7)",
+        "tonalRamp": [
+          "#1e0003",
+          "#4c000e",
+          "#712329",
+          "#964447",
+          "#bb6567",
+          "#e28889",
+          "#ffb2b1",
+          "#ffe8e8"
+        ]
       }
     },
     "typographyMeta": {
@@ -255,11 +476,32 @@
       "label": {
         "displayName": "Label",
         "purpose": "Счётчик участка, подписи очков, мета."
+      },
+      "romantic-display": {
+        "displayName": "Романтик: Display",
+        "purpose": "Cormorant Garamond 600 (на крышке 700): название квеста на сводке, крышке и финале, факты крупными цифрами. Выровненные цифры (lnum), font-size-adjust 0.5."
+      },
+      "romantic-title": {
+        "displayName": "Романтик: Title",
+        "purpose": "Cormorant Garamond 700: название задания на письме, кнопки-глаголы (через --font-d-wt), очки в шапке, число в полосе главы."
+      },
+      "romantic-numeral": {
+        "displayName": "Романтик: Numeral",
+        "purpose": "Cormorant Garamond 700, lnum: номер на марке письма, номер активного конверта, номер или дата в штемпеле."
+      },
+      "romantic-body": {
+        "displayName": "Романтик: Body",
+        "purpose": "PT Serif: текст задания, ответы, подсказки, подписи; наследует lnum и font-size-adjust темы."
+      },
+      "romantic-hand": {
+        "displayName": "Романтик: Hand",
+        "purpose": "Bad Script 400, только адрес и обращение: «Кому:» с именем на крышке, «Перед стартом», подпись послания на финале. Никогда — текст задания, кнопки и числа."
       }
     },
     "fontLoading": {
-      "source": "Google Fonts (fonts.googleapis.com, display=swap) по theme.fonts.googleFonts",
-      "status": "Перенос на свой сервер ждёт разрешения владельца."
+      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у detective и romantic.",
+      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400.",
+      "status": "Темы без своего мира по-прежнему грузят свои шрифты с Google Fonts (theme.fonts.googleFonts)."
     },
     "shadows": [
       {
@@ -291,6 +533,21 @@
         "name": "verb-clearance",
         "value": "0 0 0 6px var(--paper)",
         "purpose": "Прилипшая кнопка-глагол закрывает текст под собой полем бумаги."
+      },
+      {
+        "name": "envelope",
+        "value": "0 1px 0 color-mix(in srgb, var(--rule) 20%, transparent), 0 9px 12px -7px color-mix(in srgb, var(--rule) 80%, transparent)",
+        "purpose": "Конверт-клетка на ленте (переписка)."
+      },
+      {
+        "name": "ribbon-shadow",
+        "value": "stroke 9px color-mix(in srgb, var(--rule) 35%, transparent), translate(.6px, 3px)",
+        "purpose": "Тень атласной ленты на подкладке; лента 7px --chip, нить блика 1.6px (лента 45% с бумагой) со сдвигом −1.6px."
+      },
+      {
+        "name": "lid-flap",
+        "value": "drop-shadow(0 3px 2px color-mix(in srgb, var(--rule) 35%, transparent))",
+        "purpose": "Закрытый клапан конверта-крышки."
       }
     ],
     "motion": [
@@ -323,6 +580,16 @@
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce",
         "purpose": "Переходы выключаются; демо показывает кадры списком."
+      },
+      {
+        "name": "postmark-hit",
+        "value": ".3s cubic-bezier(.7, 0, .84, 0) .12s; scale(1.7) rotate(-18deg) → scale(1) rotate(-8deg)",
+        "purpose": "Штемпель гасит пройденный конверт в момент хода (переписка); на финале — .9s задержки, поворот −9°."
+      },
+      {
+        "name": "lid-flap-open",
+        "value": "rotateX(180deg) .4s cubic-bezier(.5, 0, .3, 1); печать гаснет за .15s; конверт уезжает с задержкой .32s",
+        "purpose": "Открытие конверта-крышки: сначала клапан, потом конверт."
       }
     ],
     "breakpoints": [
@@ -408,18 +675,43 @@
       "description": "Штамп дела: «Секретно» на папке, «Раскрыто» на послании.",
       "html": "<span class=\"ds-stamp\">Секретно</span>",
       "css": ".ds-stamp { display:inline-block; padding:6px 12px; border:3px double var(--chip,#9f2b25); border-radius:6px; color:var(--chip,#9f2b25); font-family:'Dela Gothic One','Arial Black',sans-serif; font-size:1.15rem; letter-spacing:.06em; text-transform:uppercase; transform:rotate(-9deg); opacity:.88; }"
+    },
+    {
+      "name": "Письмо задания (переписка)",
+      "kind": "card",
+      "refersTo": "romantic-letter-sheet",
+      "description": "Карточка задания в «Романтике»: лист над открытым клапаном конверта, номер на марке с перфорацией.",
+      "html": "<div class=\"ds-l-wrap\"><article class=\"ds-letter\"><span class=\"ds-letter__flap\"></span><div class=\"ds-letter__head\"><span class=\"ds-letter__stamp\"><b>2</b></span><h3 class=\"ds-letter__title\">Где мы встретились</h3></div><p class=\"ds-letter__text\">Вспомни улицу, где всё началось. Как она называется?</p></article></div>",
+      "css": ".ds-l-wrap { --field:#6b2e35; --field-ink:#f6ebdc; --paper:#f8f1e4; --paper-edge:#e2c9ae; --ink:#3b1c20; --ink-soft:#6e4a47; --done:#dcbfa6; --back:#8c4f52; --chip:#d98f8f; --rule:#3b1c20; background:var(--field); padding:30px 16px 20px; } .ds-letter { position:relative; background:var(--paper); color:var(--ink); border-radius:2px; padding:22px 20px; display:flex; flex-direction:column; gap:14px; font-feature-settings:'lnum'; font-size-adjust:.5; box-shadow:0 1px 0 var(--paper-edge), 0 18px 26px -16px color-mix(in srgb, var(--rule) 80%, transparent); } .ds-letter__flap { position:absolute; left:50%; bottom:100%; width:62%; height:18px; transform:translateX(-50%); background:var(--paper-edge); clip-path:polygon(0 100%, 50% 0, 100% 100%); } .ds-letter__flap::after { content:''; position:absolute; inset:5px 14% 0; background:repeating-linear-gradient(115deg, color-mix(in srgb, var(--chip) 55%, var(--paper-edge)) 0 2px, var(--paper-edge) 2px 6px); clip-path:polygon(0 100%, 50% 0, 100% 100%); } .ds-letter__head { display:flex; gap:12px; align-items:flex-start; } .ds-letter__stamp { position:relative; display:grid; place-items:center; min-width:44px; padding:6px 7px 5px; background:color-mix(in srgb, var(--chip) 30%, var(--paper)); color:var(--ink-soft); transform:rotate(2deg); --perf: radial-gradient(circle, transparent 1.6px, currentColor 1.8px) 50% 50% / 6px 6px round; -webkit-mask:linear-gradient(currentColor 0 0) content-box, var(--perf); mask:linear-gradient(currentColor 0 0) content-box, var(--perf); } .ds-letter__stamp::before { content:''; position:absolute; inset:5px; border:1.5px solid color-mix(in srgb, var(--chip) 70%, var(--ink)); } .ds-letter__stamp b { font-family:'Cormorant Garamond','PT Serif',Georgia,serif; font-weight:700; font-size:1.6rem; line-height:1; color:var(--ink); } .ds-letter__title { margin:2px 0 0; font-family:'Cormorant Garamond','PT Serif',Georgia,serif; font-weight:700; font-size:1.45rem; line-height:1.08; } .ds-letter__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; }"
+    },
+    {
+      "name": "Конверты на ленте (переписка)",
+      "kind": "custom",
+      "refersTo": "romantic-envelope-active",
+      "description": "Клетки в «Романтике»: вскрытый конверт под штемпелем, активный лицом вверх с маркой, будущий обратной стороной.",
+      "html": "<div class=\"ds-env-row\"><span class=\"ds-env ds-env--done\"><svg class=\"ds-pm\" width=\"69\" height=\"46\" viewBox=\"0 0 180 120\"><g fill=\"none\" stroke=\"currentColor\"><circle cx=\"60\" cy=\"60\" r=\"50\" stroke-width=\"3.4\"/><circle cx=\"60\" cy=\"60\" r=\"31\" stroke-width=\"1.6\"/><path stroke-width=\"3\" d=\"M 108 40 q 9 -7 18 0 t 18 0 t 18 0 t 16 0 M 108 54 q 9 -7 18 0 t 18 0 t 18 0 t 16 0 M 108 68 q 9 -7 18 0 t 18 0 t 18 0 t 16 0 M 108 82 q 9 -7 18 0 t 18 0 t 18 0 t 16 0\"/></g><text x=\"60\" y=\"72\" text-anchor=\"middle\" fill=\"currentColor\" font-family=\"Cormorant Garamond, serif\" font-weight=\"700\" font-size=\"38\">1</text></svg></span><span class=\"ds-env ds-env--active\">2<i class=\"ds-env__chip\"></i></span><span class=\"ds-env ds-env--back\"></span></div>",
+      "css": ".ds-env-row { --field:#6b2e35; --field-ink:#f6ebdc; --paper:#f8f1e4; --paper-edge:#e2c9ae; --ink:#3b1c20; --ink-soft:#6e4a47; --done:#dcbfa6; --back:#8c4f52; --chip:#d98f8f; --rule:#3b1c20; position:relative; display:flex; gap:22px; align-items:center; padding:36px 24px 24px; background:var(--field); background-image:linear-gradient(var(--chip), var(--chip)); background-size:100% 7px; background-position:0 60%; background-repeat:no-repeat; } .ds-env { position:relative; display:grid; place-items:center; width:60px; height:42px; border-radius:2px; overflow:hidden; color:var(--ink); box-shadow:0 1px 0 color-mix(in srgb, var(--rule) 20%, transparent), 0 9px 12px -7px color-mix(in srgb, var(--rule) 80%, transparent); transform:rotate(-3deg); } .ds-env--done { background:var(--done); } .ds-pm { position:absolute; left:-4px; top:-3px; opacity:.88; transform:rotate(-8deg); } .ds-env--active { overflow:visible; width:76px; height:54px; background:var(--paper); font-family:'Cormorant Garamond','PT Serif',Georgia,serif; font-weight:700; font-size:1.85rem; font-feature-settings:'lnum'; transform:rotate(2.5deg); } .ds-env--active::after { content:''; position:absolute; top:5px; right:5px; width:13px; height:15px; background:var(--chip); outline:2px dotted var(--paper); outline-offset:-2px; } .ds-env__chip { position:absolute; top:-20px; left:50%; margin-left:-11px; width:22px; height:22px; border-radius:50%; background:var(--chip); border:2px solid var(--rule); box-shadow:inset 0 0 0 4px color-mix(in srgb, var(--chip) 60%, var(--paper)), 0 6px 8px -3px color-mix(in srgb, var(--rule) 60%, transparent); } .ds-env--back { background:linear-gradient(to top right, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 30%, var(--back)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) left bottom / 50% 70% no-repeat, linear-gradient(to top left, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 30%, var(--back)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) right bottom / 50% 70% no-repeat, var(--back); } .ds-env--back::before { content:''; position:absolute; inset:0 0 38% 0; background:color-mix(in srgb, #f6ebdc 14%, var(--back)); clip-path:polygon(0 0, 100% 0, 50% 100%); }"
+    },
+    {
+      "name": "Конверт-крышка под сургучом",
+      "kind": "custom",
+      "refersTo": "romantic-lid-envelope",
+      "description": "Крышка «Романтика»: конверт обратной стороной, закрытый клапан с сургучной печатью, название и «Кому:» от руки. Единственное место сургуча в переписке.",
+      "html": "<div class=\"ds-lid-wrap\"><div class=\"ds-lid\"><span class=\"ds-lid__flap\"><i class=\"ds-lid__seal\"></i></span><h1 class=\"ds-lid__title\">Наша весна</h1><p class=\"ds-lid__for\">Кому: Лизе</p></div></div>",
+      "css": ".ds-lid-wrap { --field:#6b2e35; --field-ink:#f6ebdc; --paper:#f8f1e4; --paper-edge:#e2c9ae; --ink:#3b1c20; --ink-soft:#6e4a47; --done:#dcbfa6; --back:#8c4f52; --chip:#d98f8f; --rule:#3b1c20; background:var(--field); padding:24px 16px; container-type:inline-size; } .ds-lid { position:relative; display:flex; flex-direction:column; justify-content:flex-end; aspect-ratio:10/8; padding:0 22px 26px; border-radius:3px; color:var(--ink); background:linear-gradient(to top right, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 14%, var(--paper-edge)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) left bottom / 50% 64% no-repeat, linear-gradient(to top left, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 14%, var(--paper-edge)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) right bottom / 50% 64% no-repeat, var(--paper-edge); box-shadow:0 22px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent); } .ds-lid__flap { position:absolute; left:0; right:0; top:0; height:38cqi; filter:drop-shadow(0 3px 2px color-mix(in srgb, var(--rule) 35%, transparent)); } .ds-lid__flap::before { content:''; position:absolute; inset:0; background:color-mix(in srgb, var(--rule) 6%, var(--paper-edge)); clip-path:polygon(0 0, 100% 0, 50% 100%); } .ds-lid__seal { position:absolute; left:50%; bottom:-30px; width:64px; height:64px; margin-left:-32px; border-radius:50%; background:#8f2630; box-shadow:inset 0 0 0 6px #8f2630, inset 0 0 0 8px #661820; transform:rotate(-8deg); } .ds-lid__title { position:relative; margin:0; font-family:'Cormorant Garamond','PT Serif',Georgia,serif; font-weight:700; font-size:clamp(1.4rem, 8.6cqi, 2.9rem); line-height:1.04; } .ds-lid__for { position:relative; margin:8px 0 0; font-family:'Bad Script','PT Serif',Georgia,cursive; font-size:1.55rem; }"
     }
   ],
   "narrative": {
     "northStar": "Ходилка, напечатанная для одной пары",
-    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда; остальные пять тем (romantic, mystery, treasure, proposal, city) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих пяти тем системой не являются: каждая получит свой мир в своём PR. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
+    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. Участок называется «Глава».\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда: свой мир сейчас у двух тем, detective (`casefile`) и romantic (`letters`). Остальные четыре темы (mystery, treasure, proposal, city) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих четырёх тем системой не являются: каждая получит свой мир в своём PR. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный). Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
     "keyCharacteristics": [
       "Поле — сплошная краска, без фоновых градиентов и подсветки.",
       "Одна открытая карточка на экран; будущие клетки лежат рубашкой вверх.",
       "Глубина от толщины картона: кромка снизу и тень со смещением.",
       "Цифры набраны крупным гротеском поля игры (Dela Gothic One), текст — книжной антиквой (PT Serif).",
       "Иконки — авторский SVG-набор одной толщины (2.25), без эмодзи.",
-      "Кнопка называется глаголом и всегда у низа экрана."
+      "Кнопка называется глаголом и всегда у низа экрана.",
+      "В «Переписке» глубина та же, бумажная: конверты, письма и клапаны без контура; ход отмечает штемпель, а не сургуч."
     ],
     "rules": [
       {
@@ -438,6 +730,16 @@
         "section": "colors"
       },
       {
+        "name": "The Wax On The Lid Rule",
+        "body": "Сургуч живёт только на клапане конверта-крышки. Момент хода и пройденные клетки гасит почтовый штемпель чернилами `--ink`; на трассе, письмах и финале переписки сургучной печати нет.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ribbon Is Not Red Rule",
+        "body": "Насыщенная краска игры в переписке — пыльно-розовая лента, и она не означает ошибку. Ошибка — отдельный гранат `--wrong`; сургуч — отдельная пара `--seal-wax`/`--seal-deep`. Ни фонов, ни заливок кнопок лентой.",
+        "section": "colors"
+      },
+      {
         "name": "The Board Numerals Rule",
         "body": "Любое число, которое считает игра (номер клетки, очки, количество участков и клеток, минуты), набирается дисплейным шрифтом с табличными цифрами. Подписи к числам — антиквой.",
         "section": "typography"
@@ -445,6 +747,16 @@
       {
         "name": "The No Kicker Rule",
         "body": "Над заголовками нет надписей-капсом. Капс и разрядка встречаются только внутри штампа и в поле кода доступа.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lining Figures Rule",
+        "body": "У Cormorant по умолчанию старинные цифры, поэтому тема ставит `--font-feat: \"lnum\"` и `--font-adjust: 0.5` (выравнивает мелкий глаз Cormorant по высоте строчных PT Serif) на корень плеера. Кнопки, поля, `textarea` и `select` наследуют `font-feature-settings` и `font-size-adjust` явно: шорткат `font` у элементов управления их сбрасывает. Исключение — штемпель: его подписи подобраны под круг и идут с `font-size-adjust: none`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hand Is For Address Rule",
+        "body": "Рукописный шрифт — только адрес и обращение: «Кому:» с именем, заголовок письма «Перед стартом», подпись послания на финале. Текст задания, вопрос, ответ, подсказка, кнопки и числа рукописным не набираются никогда.",
         "section": "typography"
       },
       {
@@ -472,7 +784,10 @@
       "**Do** давать глубину кромкой картона и тенью со смещением и отрицательным разбросом на основе `--rule`.",
       "**Do** набирать числа игры дисплейным шрифтом с табличными цифрами.",
       "**Do** показывать загрузку и ошибку на нейтральном картоне, не зависящем от темы.",
-      "**Do** уважать `prefers-reduced-motion`: ход фишки, доска, шторки и демо без анимации."
+      "**Do** уважать `prefers-reduced-motion`: ход фишки, доска, шторки и демо без анимации.",
+      "**Do** в переписке отмечать ход почтовым штемпелем чернилами `--ink`, а сургуч ставить только на клапан конверта-крышки.",
+      "**Do** брать вес дисплейного шрифта в кнопках-глаголах, очках шапки и счётчике полосы из `--font-d-wt`, а у кнопок и полей наследовать `font-feature-settings` и `font-size-adjust` темы.",
+      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава»."
     ],
     "donts": [
       "**Don't** писать hex в стилях компонентов плеера; новая краска появляется только как токен в `themes.js`.",
@@ -482,7 +797,10 @@
       "**Don't** показывать будущие клетки открытыми или подсказывать их содержание.",
       "**Don't** держать полную доску постоянно над заданием: она уводит тело задания вниз.",
       "**Don't** ставить надписи-капсом над заголовками; капс живёт только в штампе и поле кода.",
-      "**Don't** документировать или копировать палитры пяти тем без своего мира: это временная основа, а не система."
+      "**Don't** документировать или копировать палитры четырёх тем без своего мира (mystery, treasure, proposal, city): это временная основа, а не система.",
+      "**Don't** ставить сургучную печать на трассу, письма или финал переписки.",
+      "**Don't** набирать рукописным Bad Script текст задания, вопрос, ответ, подсказку, кнопки или числа.",
+      "**Don't** красить лентой ошибку или фоны: ошибка — `--wrong`, лента — только трасса, фишка, марка, подкладка и фокус."
     ]
   }
 }
