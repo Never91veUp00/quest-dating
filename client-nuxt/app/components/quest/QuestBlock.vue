@@ -1,65 +1,104 @@
 <template>
   <div class="block">
-    <!-- Шапка блока -->
-    <div class="block__head">
-      <div v-if="block.location" class="block__location block__anim block__anim--1">
-        <span>📍</span> {{ block.location }}
+    <!-- Поле: где мы и что уже пройдено -->
+    <section class="block__field" :aria-label="`${theme.copy.blockPrefix} ${index + 1} из ${total}`">
+      <div class="block__meta">
+        <span class="block__count">
+          {{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}
+        </span>
+        <span class="block__count">
+          клетка <b>{{ cellNo }}</b> из {{ tasks.length }}
+        </span>
       </div>
-      <div class="block__counter block__anim block__anim--2">
-        {{ theme.copy.blockPrefix }} {{ index + 1 }} / {{ total }}
-      </div>
-      <h2 class="block__title block__anim block__anim--3">{{ block.title }}</h2>
-      <p v-if="block.description" class="block__desc block__anim block__anim--4">{{ block.description }}</p>
-    </div>
 
-    <!-- Задания -->
-    <div class="block__tasks block__anim block__anim--5">
+      <h2 class="block__title">{{ block.title }}</h2>
+      <p v-if="block.location" class="block__location">
+        <QuestIcon name="pin" :size="18" />
+        <span>{{ block.location }}</span>
+      </p>
+      <p v-if="block.description" class="block__desc">{{ block.description }}</p>
+
+      <QuestTrack
+        :tasks="tasks"
+        :completedIds="completedIds"
+        :earnedMap="earnedMap"
+        :hasPrev="index > 0"
+        :hasNext="!isLast"
+        :decor="theme.world?.decor"
+        @open="reviewIdx = $event"
+      />
+    </section>
+
+    <!-- Карточка: одна активная клетка -->
+    <transition name="card" mode="out-in">
       <QuestTask
-        v-for="(task, ti) in block.tasks"
-        :key="task.id"
-        :task="task"
+        v-if="activeTask"
+        :key="activeTask.id"
+        :task="activeTask"
         :theme="theme"
-        :index="ti"
-        :isDone="completedIds.includes(task.id)"
-        :isActive="!completedIds.includes(task.id) && isUnlocked(ti)"
-        :isLocked="!isUnlocked(ti)"
-        :earnedEntry="earnedMap?.[task.id]"
+        :index="activeIdx"
+        mode="active"
         @complete="$emit('complete-task', $event)"
         @hint="$emit('use-hint', $event)"
         @skip-task="$emit('skip-task', $event)"
       />
-    </div>
 
-    <!-- Навигация -->
-    <div class="block__nav">
-      <button v-if="index > 0" class="block__nav-back" @click="$emit('prev')">
-        ← Назад
-      </button>
-      <div class="block__nav-space"></div>
-      <button
-        v-if="!isLast && blockDone"
-        class="block__nav-next"
-        @click="$emit('next')"
-      >
-        Дальше →
-      </button>
-      <button
-        v-if="isLast && blockDone"
-        class="block__nav-finish"
-        @click="$emit('finish')"
-      >
-        {{ finishLabel }}
-      </button>
-      <div v-if="!blockDone" class="block__nav-hint">
-        Выполни все задания чтобы продолжить
-      </div>
-    </div>
+      <article v-else key="done" class="block__done">
+        <p class="block__done-text">
+          {{ isLast ? 'Все клетки пройдены.' : 'Участок пройден. Фишка ждёт у выхода.' }}
+        </p>
+        <button v-if="!isLast" class="task__action" @click="$emit('next')">
+          Идти дальше
+          <QuestIcon name="forward" :size="22" />
+        </button>
+        <button v-else class="task__action" @click="$emit('finish')">
+          {{ finishLabel }}
+        </button>
+      </article>
+    </transition>
+
+    <button v-if="index > 0" class="block__back" @click="$emit('prev')">
+      <QuestIcon name="back" :size="18" />
+      Предыдущий участок
+    </button>
+
+    <!-- Перечитать пройденную клетку -->
+    <teleport to="body">
+      <transition name="sheet">
+        <div
+          v-if="reviewTask"
+          class="block__sheet"
+          :style="cssVars"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="`Клетка ${reviewIdx + 1}: ${reviewTask.title}`"
+          @click.self="reviewIdx = null"
+          @keydown.esc="reviewIdx = null"
+        >
+          <div class="block__sheet-panel">
+            <QuestTask
+              :task="reviewTask"
+              :theme="theme"
+              :index="reviewIdx"
+              :earnedEntry="earnedMap?.[reviewTask.id]"
+              mode="review"
+            />
+            <button ref="closeBtn" class="block__sheet-close" @click="reviewIdx = null">
+              Закрыть
+            </button>
+          </div>
+        </div>
+      </transition>
+    </teleport>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import QuestTask from './QuestTask.vue'
+import QuestTrack from './QuestTrack.vue'
+import QuestIcon from './QuestIcon.vue'
+import { themeToCssVars } from './themes.js'
 
 const props = defineProps({
   block:        { type: Object, required: true },
@@ -73,118 +112,165 @@ const props = defineProps({
 
 defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint', 'skip-task'])
 
-const isUnlocked = (ti) =>
-  ti === 0 || props.completedIds.includes(props.block.tasks[ti - 1]?.id)
+const tasks = computed(() => props.block.tasks ?? [])
 
-const blockDone = computed(() =>
-  props.block.tasks?.every(t => props.completedIds.includes(t.id)) ?? true
-)
+// Открыта всегда первая невыполненная клетка: порядок прохождения прежний
+const activeIdx  = computed(() => tasks.value.findIndex(t => !props.completedIds.includes(t.id)))
+const activeTask = computed(() => activeIdx.value >= 0 ? tasks.value[activeIdx.value] : null)
+const cellNo = computed(() => activeIdx.value >= 0 ? activeIdx.value + 1 : tasks.value.length)
+
+const reviewIdx  = ref(null)
+const reviewTask = computed(() => reviewIdx.value === null ? null : tasks.value[reviewIdx.value])
+const closeBtn   = ref(null)
+watch(reviewTask, async (t) => {
+  if (!t) return
+  await nextTick()
+  closeBtn.value?.focus()
+})
+
+// Шторка живёт в <body>, поэтому токены темы передаём ей явно
+const cssVars = computed(() => themeToCssVars(props.theme))
 
 const finishLabel = computed(() => ({
-  detective: 'Закрыть дело →',
-  romantic:  'Завершить ❤️',
-  mystery:   'Финал →',
-  city:      'Финиш →',
-  treasure:  'Клад найден →',
-  proposal:  'Завершить ✨',
-}[props.theme.id] || 'Завершить →'))
+  detective: 'Закрыть дело',
+  romantic:  'Завершить',
+  mystery:   'К финалу',
+  city:      'К финишу',
+  treasure:  'Клад найден',
+  proposal:  'Завершить',
+}[props.theme.id] || 'Завершить'))
 </script>
 
 <style scoped>
 .block {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 16px;
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Поле ─────────────────────────────────────────────────────── */
+.block__field {
+  color: var(--field-ink);
+  padding: 4px 4px 0;
+}
+
+.block__meta {
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
+  font-family: var(--font-b);
+  font-size: .9rem;
+  color: var(--field-ink-soft);
+  font-variant-numeric: tabular-nums;
 }
-
-/* ── Head ─────────────────────────────────────────────────────── */
-.block__head { display: flex; flex-direction: column; gap: 6px; }
-
-.block__location {
-  display: flex; align-items: center; gap: 6px;
-  font-size: .78rem; color: var(--accent); font-weight: 600;
-  letter-spacing: .04em;
-}
-
-.block__counter {
-  font-size: .68rem; text-transform: uppercase;
-  letter-spacing: .1em; color: rgba(255,255,255,.5); font-weight: 600;
+.block__count b {
+  font-family: var(--font-d);
+  font-weight: 400;
+  color: var(--field-ink);
+  font-size: 1.05rem;
 }
 
 .block__title {
-  font-size: clamp(1.1rem, 4vw, 1.4rem);
-  font-weight: 800;
-  line-height: 1.2;
-  color: #fff;
-  margin: 0;
+  margin: 14px 0 0;
   font-family: var(--font-d);
+  font-weight: 400;
+  font-size: clamp(1.55rem, 7vw, 2.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--field-ink);
+  text-wrap: balance;
+}
+
+.block__location {
+  display: flex; align-items: center; gap: 6px;
+  margin: 8px 0 0;
+  font-family: var(--font-b);
+  font-size: 1rem;
+  color: var(--field-ink-soft);
 }
 
 .block__desc {
-  font-size: .88rem;
-  line-height: 1.55;
-  color: rgba(255,255,255,.6);
+  margin: 10px 0 0;
+  font-family: var(--font-b);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--field-ink-soft);
+}
+
+/* ── Участок пройден ──────────────────────────────────────────── */
+.block__done {
+  background: var(--paper);
+  color: var(--ink);
+  border: 3px solid var(--rule);
+  border-bottom-width: 7px;
+  border-radius: 14px;
+  padding: 20px 18px 18px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.block__done-text {
   margin: 0;
+  font-family: var(--font-b);
+  font-size: 1.15rem;
+  line-height: 1.4;
 }
 
-/* ── Tasks ────────────────────────────────────────────────────── */
-.block__tasks { display: flex; flex-direction: column; gap: 8px; }
-
-/* ── Stagger animations ───────────────────────────────────────── */
-.block__anim {
-  animation: block-fade-up 0.3s ease both;
+.block__back {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  background: none; border: none;
+  color: var(--field-ink-soft);
+  font-family: var(--font-b);
+  font-size: .95rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
 }
-.block__anim--1 { animation-delay: 0.00s; }
-.block__anim--2 { animation-delay: 0.05s; }
-.block__anim--3 { animation-delay: 0.10s; }
-.block__anim--4 { animation-delay: 0.16s; }
-.block__anim--5 { animation-delay: 0.22s; }
+.block__back:hover { color: var(--field-ink); }
+.block__back:focus-visible { outline: 3px solid var(--field-ink); outline-offset: 2px; border-radius: 6px; }
 
-@keyframes block-fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Шторка перечитывания ─────────────────────────────────────── */
+.block__sheet {
+  position: fixed; inset: 0; z-index: 900;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: color-mix(in srgb, var(--rule) 55%, transparent);
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
+.block__sheet-panel {
+  width: 100%; max-width: 520px;
+  max-height: 88svh;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.block__sheet-close {
+  min-height: 52px;
+  background: var(--field);
+  color: var(--field-ink);
+  border: 3px solid var(--rule);
+  border-radius: 12px;
+  font-family: var(--font-d);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.block__sheet-close:focus-visible { outline: 3px solid var(--plate); outline-offset: 2px; }
 
-/* ── Nav ──────────────────────────────────────────────────────── */
-.block__nav {
-  display: flex; align-items: center; gap: 10px; padding: 4px 0;
-}
-.block__nav-space { flex: 1; }
-.block__nav-hint { font-size: .78rem; color: rgba(255,255,255,.45); font-style: italic; }
+/* ── Движение ─────────────────────────────────────────────────── */
+.card-enter-active { transition: transform .45s cubic-bezier(.16, 1, .3, 1), opacity .25s ease-out; }
+.card-leave-active { transition: transform .2s ease-in, opacity .2s ease-in; }
+.card-enter-from   { transform: translateY(28px); opacity: 0; }
+.card-leave-to     { transform: translateY(-10px); opacity: 0; }
 
-.block__nav-back {
-  background: var(--surf); border: 1px solid var(--bord); border-radius: 9px;
-  padding: 11px 18px; color: var(--dim); font-family: var(--font-b);
-  font-size: .88rem; font-weight: 600; cursor: pointer; transition: all .2s;
-}
-.block__nav-back:hover { color: var(--text); border-color: var(--dim); }
+.sheet-enter-active, .sheet-leave-active { transition: opacity .25s ease-out; }
+.sheet-enter-active .block__sheet-panel { transition: transform .4s cubic-bezier(.16, 1, .3, 1); }
+.sheet-leave-active .block__sheet-panel { transition: transform .2s ease-in; }
+.sheet-enter-from, .sheet-leave-to { opacity: 0; }
+.sheet-enter-from .block__sheet-panel, .sheet-leave-to .block__sheet-panel { transform: translateY(40px); }
 
-.block__nav-next, .block__nav-finish {
-  background: var(--accent); border: none; border-radius: 9px;
-  padding: 11px 24px; color: #000; font-family: var(--font-b);
-  font-size: .9rem; font-weight: 700; cursor: pointer;
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 30%, transparent);
-  transition: all .25s;
-}
-.block__nav-next:hover, .block__nav-finish:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 50%, transparent);
-}
-
-/* ── Mobile ───────────────────────────────────────────────────── */
-@media (max-width: 480px) {
-  .block { padding: 12px; border-radius: 16px; gap: 10px; }
-  .block__title { font-size: clamp(1rem, 4vw, 1.25rem); }
-  .block__desc { font-size: .82rem; }
-  .block__nav { flex-wrap: nowrap; }
-  .block__nav-back { padding: 12px 16px; min-height: 48px; flex-shrink: 0; }
-  .block__nav-next, .block__nav-finish { padding: 12px 16px; min-height: 48px; flex: 1; }
-  .block__nav-hint { font-size: .72rem; text-align: center; }
+@media (prefers-reduced-motion: reduce) {
+  .card-enter-active, .card-leave-active,
+  .sheet-enter-active, .sheet-leave-active,
+  .sheet-enter-active .block__sheet-panel, .sheet-leave-active .block__sheet-panel { transition: none; }
 }
 </style>
