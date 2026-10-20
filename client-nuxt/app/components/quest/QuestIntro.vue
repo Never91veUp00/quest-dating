@@ -14,11 +14,11 @@
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
       <!-- Конверт обратной стороной: клапан под сургучом открывается первым -->
       <span v-if="decor === 'letters'" class="lid__flap" aria-hidden="true">
-        <QuestSeal class="lid__seal" :size="72" :seed="5" motto="★ ПИСЬМО ★" />
+        <QuestSeal class="lid__seal" :size="88" :seed="5" motto="★ ПИСЬМО ★" />
       </span>
       <h1 class="lid__title">{{ questData.title }}</h1>
       <p v-if="questData.client_name" class="lid__for">
-        для <b>{{ questData.client_name }}</b>
+        {{ decor === 'letters' ? 'Кому:' : 'для' }} <b>{{ questData.client_name }}</b>
       </p>
       <span v-if="decor === 'casefile'" class="lid__stamp" aria-hidden="true">Секретно</span>
     </div>
@@ -176,7 +176,10 @@ onUnmounted(() => clearTimeout(timer))
 }
 .lid__seal {
   position: absolute; left: 50%; bottom: 0;
-  margin: 0 0 -30px -36px;
+  margin: 0 0 -36px -44px;
+  /* тиснение антиквой темы, а не гротеском дела */
+  --seal-face: 'Cormorant Garamond';
+  font-weight: 700;
   transform: rotate(-8deg);
   transition: opacity .15s;
 }

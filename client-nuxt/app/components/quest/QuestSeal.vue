@@ -87,13 +87,13 @@ const blob = computed(() => {
 .seal__emboss { fill: var(--seal-deep, #7e1a1e); stroke: var(--seal-deep, #7e1a1e); }
 .seal__emboss circle { fill: none; }
 .seal__arc {
-  font-family: 'Dela Gothic One', 'PT Serif', Georgia, serif;
+  font-family: var(--seal-face, 'Dela Gothic One'), 'PT Serif', Georgia, serif;
   font-size: 9.5px;
   letter-spacing: 1.6px;
 }
 .seal__arc--small { font-size: 7px; letter-spacing: 1.2px; }
 .seal__mono {
-  font-family: 'Dela Gothic One', 'PT Serif', Georgia, serif;
+  font-family: var(--seal-face, 'Dela Gothic One'), 'PT Serif', Georgia, serif;
   font-size: 22px;
 }
 </style>

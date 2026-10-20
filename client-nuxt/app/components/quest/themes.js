@@ -145,11 +145,12 @@ export const THEMES = {
       eyebrow:       'Персональный сюрприз',
       startBtn:      'Открыть',
       taskDone:      'Выполнено с любовью',
-      hintBtn:       'Маленькая подсказка · −10 очков',
+      hintBtn:       'Маленькая подсказка · −10 сердечек',
       photoZone:     'Сделать памятное фото',
       finishEyebrow: 'Ты справилась!',
       shareBtn:      'Поделиться моментом',
       blockPrefix:   'Глава',
+      blockForms:    ['глава', 'главы', 'глав'],
       pointsLabel:   'сердечек',
     },
 

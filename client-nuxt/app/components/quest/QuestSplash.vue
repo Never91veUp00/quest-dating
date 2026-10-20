@@ -37,7 +37,7 @@
       <template v-else>
         <!-- Факты с коробки -->
         <p class="splash__facts">
-          <span><b>{{ totalBlocks }}</b> {{ plural(totalBlocks, 'участок', 'участка', 'участков') }}</span>
+          <span><b>{{ totalBlocks }}</b> {{ plural(totalBlocks, ...(theme.copy.blockForms ?? ['участок', 'участка', 'участков'])) }}</span>
           <span><b>{{ totalTasks }}</b> {{ plural(totalTasks, 'клетка', 'клетки', 'клеток') }}</span>
           <span v-if="minutes">около <b>{{ minutes }}</b> мин</span>
         </p>
