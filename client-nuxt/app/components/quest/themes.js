@@ -48,6 +48,9 @@ export const THEMES = {
       actionInk:    '#f4efe4',
     },
 
+    // Моушн-ролик «Как это работает» (tools/reels/detective.html → record.mjs)
+    reel: { src: '/reels/detective.mp4', poster: '/reels/detective.jpg' },
+
     // Шрифты
     fonts: {
       display: "'Dela Gothic One', 'PT Serif', Georgia, serif",

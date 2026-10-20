@@ -57,10 +57,10 @@
         </section>
 
         <!-- Видео-инструкция (или демо) и правило игры -->
-        <section class="splash__how">
+        <div class="splash__how">
           <QuestHowTo :theme="theme" />
           <p class="splash__note">Клетки открываются по очереди. Подглядывать вперёд не получится — так задумано.</p>
-        </section>
+        </div>
 
         <button class="task__action splash__cta splash__cta--sticky" @click="$emit('start')">
           {{ startLabel }}
