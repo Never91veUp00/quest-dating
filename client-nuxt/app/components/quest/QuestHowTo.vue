@@ -4,7 +4,7 @@
       <span class="howto__play" aria-hidden="true"><QuestIcon name="play" :size="26" /></span>
       <span class="howto__text">
         <span class="howto__title">Как это работает</span>
-        <span class="howto__sub">{{ video ? 'Видео' : 'Короткое демо' }} · 15 секунд</span>
+        <span class="howto__sub">{{ video ? 'Видео-инструкция' : 'Короткое демо на поле' }}</span>
       </span>
     </button>
 
