@@ -5,21 +5,24 @@
 
 
     <!-- Оверлей текстуры -->
-    <div v-if="themeObj.overlay === 'scanlines'" class="qp-overlay qp-overlay--scanlines" aria-hidden="true"></div>
-    <div v-if="themeObj.overlay === 'grain'"     class="qp-overlay qp-overlay--grain"     aria-hidden="true"></div>
-    <div v-if="themeObj.overlay === 'fog'"       class="qp-overlay qp-overlay--fog"       aria-hidden="true"></div>
+    <div v-if="questData && themeObj.overlay === 'scanlines'" class="qp-overlay qp-overlay--scanlines" aria-hidden="true"></div>
+    <div v-if="questData && themeObj.overlay === 'grain'"     class="qp-overlay qp-overlay--grain"     aria-hidden="true"></div>
+    <div v-if="questData && themeObj.overlay === 'fog'"       class="qp-overlay qp-overlay--fog"       aria-hidden="true"></div>
 
     <!-- Загрузка -->
-    <div v-if="loading" class="qp-loading">
-      <div class="qp-loading__ring"></div>
-      <div class="qp-loading__text">Загрузка...</div>
+    <div v-if="loading" class="qp-loading" role="status">
+      <div class="qp-loading__cells" aria-hidden="true">
+        <span></span><span></span><span></span>
+        <i class="qp-loading__chip"></i>
+      </div>
+      <div class="qp-loading__text">Раскладываем поле…</div>
     </div>
 
     <!-- Ошибка -->
     <div v-else-if="fatalError" class="qp-error">
-      <div class="qp-error__title">Квест не найден</div>
-      <div class="qp-error__sub">{{ fatalError }}</div>
-      <NuxtLink to="/" class="qp-error__link">← На главную</NuxtLink>
+      <div class="qp-error__title">{{ errorView.title }}</div>
+      <div class="qp-error__sub">{{ errorView.text }}</div>
+      <NuxtLink to="/" class="qp-error__link">На главную</NuxtLink>
     </div>
 
     <template v-else-if="questData">
@@ -254,6 +257,18 @@ const selfiePhoto         = ref(null)
 const startTs = ref(0)
 const nowTs   = ref(Date.now())
 let ticker = null
+
+// ─── Ошибка для игрока ───────────────────────────────────────
+const errorView = computed(() => {
+  const msg = fatalError.value || ''
+  if (/истёк/i.test(msg)) {
+    return { title: 'Срок квеста истёк', text: 'Попроси того, кто подарил квест, продлить его.' }
+  }
+  if (/\b404\b|not found|не найден/i.test(msg)) {
+    return { title: 'Квест не найден', text: 'В ссылке могла закрасться опечатка. Проверь её у того, кто подарил квест.' }
+  }
+  return { title: 'Квест не открылся', text: 'Проверь интернет и обнови страницу.' }
+})
 
 // ─── Theme ────────────────────────────────────────────────────
 const themeObj = computed(() => ({
@@ -571,15 +586,21 @@ onUnmounted(() => {
 .qp-overlay--grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 200px 200px; opacity: 0.5; }
 .qp-overlay--fog { background: radial-gradient(ellipse 100% 60% at 50% 100%, rgba(167,139,250,0.05) 0%, transparent 70%); animation: fog-shift 15s ease-in-out infinite alternate; }
 @keyframes fog-shift { to { transform: translateX(20px); } }
-.qp-loading { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-.qp-loading__ring { width: 48px; height: 48px; border: 3px solid var(--surf); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+/* Загрузка и ошибка: тема ещё неизвестна — нейтральный картон, не зависит от темы */
+.qp-loading, .qp-error { --board: #3a322b; --board-ink: #efe6d6; --board-soft: #d9cdb8; --note: #c9ad80; --pin: #9f2b25; background: var(--board); color: var(--board-ink); }
+.qp-loading { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+.qp-loading__cells { position: relative; display: flex; gap: 14px; padding-top: 18px; }
+.qp-loading__cells span { width: 26px; height: 26px; border-radius: 4px; background: var(--note); }
+.qp-loading__chip { position: absolute; top: 0; left: 6px; width: 14px; height: 14px; border-radius: 50%; background: var(--pin); border: 2px solid #241e19; animation: qp-hop 1.5s cubic-bezier(.16, 1, .3, 1) infinite; }
+@keyframes qp-hop { 0%, 20% { left: 6px; } 40%, 53% { left: 46px; } 73%, 100% { left: 86px; } }
+@media (prefers-reduced-motion: reduce) { .qp-loading__chip { animation: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
-.qp-loading__text { font-family: var(--font-d); font-size: .7rem; letter-spacing: .2em; color: var(--dim); }
+.qp-loading__text { font-family: 'PT Serif', Georgia, serif; font-size: 1.05rem; color: var(--board-soft); }
 .qp-error { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px 20px; text-align: center; }
-.qp-error__icon { font-size: 4rem; }
-.qp-error__title { font-family: var(--font-d); font-size: 1.2rem; color: #fff; }
-.qp-error__sub { color: var(--dim); font-size: .9rem; }
-.qp-error__link { color: var(--accent); font-size: .9rem; text-decoration: none; margin-top: 8px; }
+.qp-error__title { font-family: 'PT Serif', Georgia, serif; font-weight: 700; font-size: 1.5rem; color: var(--board-ink); }
+.qp-error__sub { font-family: 'PT Serif', Georgia, serif; color: var(--board-soft); font-size: 1.05rem; max-width: 32ch; }
+.qp-error__link { display: inline-flex; align-items: center; min-height: 48px; margin-top: 8px; padding: 0 20px; border-radius: 10px; background: var(--board-ink); color: var(--board); font-family: 'PT Serif', Georgia, serif; font-weight: 700; text-decoration: none; }
+.qp-error__link:focus-visible { outline: 3px solid var(--note); outline-offset: 3px; }
 .qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 64px 0 40px; background: var(--field); }
 .qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--field); border-bottom: 2px solid color-mix(in srgb, var(--field-ink) 18%, var(--field)); }
 .qp-hud__row { display: flex; align-items: center; padding: 8px 12px 8px 16px; gap: 10px; max-width: 600px; margin: 0 auto; }
