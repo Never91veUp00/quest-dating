@@ -9,11 +9,11 @@
           preload="metadata"
           @error="mediaError = true"
         ></video>
-        <div v-if="mediaError" class="task__media__error">😔 Видео недоступно</div>
+        <div v-if="mediaError" class="task__media__error">Видео не загрузилось</div>
       </template>
       <template v-else-if="resolvedType === 'audio'">
         <div class="task__media__audio-wrap">
-          <div class="task__media__audio-icon">🎙️</div>
+          <QuestIcon class="task__media__audio-icon" name="media" :size="28" />
           <audio
             :src="fullUrl(task.media_url)"
             controls
@@ -21,23 +21,23 @@
             preload="metadata"
             @error="mediaError = true"
           ></audio>
-          <div v-if="mediaError" class="task__media__error">😔 Аудио недоступно</div>
+          <div v-if="mediaError" class="task__media__error">Аудио не загрузилось</div>
         </div>
       </template>
       <template v-else-if="task.media_url">
         <a :href="task.media_url" target="_blank"
           class="task__media__tg-link">
-          <div class="task__media__tg-icon">🎬</div>
+          <QuestIcon class="task__media__tg-icon" name="media" :size="28" />
           <div class="task__media__tg-text">
             <div class="task__media__tg-title">Медиа послание</div>
             <div class="task__media__tg-sub">Нажми чтобы открыть</div>
           </div>
-          <div class="task__media__tg-arrow">→</div>
+          <QuestIcon class="task__media__tg-arrow" name="forward" :size="22" />
         </a>
       </template>
     </div>
     <button class="task__action" @click="$emit('complete', task)">
-      Посмотрел(а) ✓
+      {{ theme.gender === 'm' ? 'Посмотрел' : 'Посмотрела' }}
     </button>
   </div>
 </template>
@@ -73,22 +73,22 @@ const resolvedType = computed(() => {
 <style scoped>
 .task__media { display: flex; flex-direction: column; gap: 10px; }
 .task__media__video { width: 100%; border-radius: 10px; aspect-ratio: 16/9; max-height: 50vh; object-fit: contain; background: #000; }
-.task__media__error { text-align: center; font-size: .85rem; color: var(--dim); padding: 8px; }
+.task__media__error { text-align: center; font-size: .85rem; color: var(--ink-soft); padding: 8px; }
 .task__media__audio-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 20px; background: var(--bg2); border-radius: 10px;
+  padding: 20px; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border-radius: 10px;
 }
 .task__media__audio-icon { font-size: 2rem; }
 .task__media__audio { width: 100%; }
 .task__media__tg-link {
   display: flex; align-items: center; gap: 14px;
-  background: var(--bg2); border: 1px solid var(--bord); border-radius: 12px;
-  padding: 16px; text-decoration: none; color: var(--text); transition: border-color .2s;
+  background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper)); border-radius: 12px;
+  padding: 16px; text-decoration: none; color: var(--ink); transition: border-color .2s;
 }
-.task__media__tg-link:hover { border-color: var(--accent); }
+.task__media__tg-link:hover { border-color: var(--action); }
 .task__media__tg-icon { font-size: 2rem; flex-shrink: 0; }
-.task__media__tg-title { font-weight: 600; font-size: .95rem; color: #fff; }
-.task__media__tg-sub { font-size: .78rem; color: var(--dim); margin-top: 2px; }
-.task__media__tg-arrow { font-size: 1.2rem; color: var(--accent); margin-left: auto; }
+.task__media__tg-title { font-weight: 600; font-size: .95rem; color: var(--paper); }
+.task__media__tg-sub { font-size: .78rem; color: var(--ink-soft); margin-top: 2px; }
+.task__media__tg-arrow { font-size: 1.2rem; color: var(--action); margin-left: auto; }
 @media (max-width: 480px) { .task__media__tg-link { padding: 14px; } }
 </style>

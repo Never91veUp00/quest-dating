@@ -6,10 +6,10 @@
         <!-- Header -->
         <div class="mg-overlay__head">
           <div class="mg-overlay__meta">
-            <span class="mg-overlay__icon">🎮</span>
+            <QuestIcon class="mg-overlay__icon" name="game" :size="22" />
             <span class="mg-overlay__label">{{ task.title }}</span>
           </div>
-          <button class="mg-overlay__close" @click="$emit('update:modelValue', false)" aria-label="Закрыть">✕</button>
+          <button class="mg-overlay__close" @click="$emit('update:modelValue', false)" aria-label="Закрыть"><QuestIcon name="close" :size="20" /></button>
         </div>
 
         <!-- Game content -->
@@ -36,7 +36,7 @@ defineEmits(['update:modelValue'])
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: var(--bg, #060810);
+  background: var(--paper); color: var(--ink);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -50,7 +50,7 @@ defineEmits(['update:modelValue'])
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--bord, rgba(255,255,255,.08));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
   flex-shrink: 0;
 }
 .mg-overlay__meta {
@@ -63,7 +63,7 @@ defineEmits(['update:modelValue'])
 .mg-overlay__label {
   font-size: .85rem;
   font-weight: 700;
-  color: var(--text, #c8d6ef);
+  color: var(--ink); font-family: var(--font-d); font-weight: 400; font-size: 1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -72,9 +72,9 @@ defineEmits(['update:modelValue'])
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid var(--bord, rgba(255,255,255,.12));
-  background: rgba(255,255,255,.06);
-  color: var(--text, #c8d6ef);
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  background: color-mix(in srgb, var(--paper) 86%, var(--ink));
+  color: var(--ink); font-family: var(--font-d); font-weight: 400; font-size: 1rem;
   font-size: .85rem;
   cursor: pointer;
   display: flex;
@@ -83,7 +83,7 @@ defineEmits(['update:modelValue'])
   flex-shrink: 0;
   transition: background .15s;
 }
-.mg-overlay__close:hover { background: rgba(255,255,255,.12); }
+.mg-overlay__close:hover { background: color-mix(in srgb, var(--paper) 86%, var(--ink)); }
 
 /* ── Body ── */
 .mg-overlay__body {

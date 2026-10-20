@@ -34,10 +34,10 @@
         <span v-for="i in 16" :key="i" class="task__pairs-confetti__p" :style="`--i:${i}`"></span>
       </div>
       <div v-if="textComplete" class="task__quiz-result task__quiz-result--right">
-        Все пары найдены! 🎉
+        Все пары найдены
       </div>
       <button v-if="textComplete" class="task__action" @click="$emit('complete', task)">
-        Продолжаем →
+        Идти дальше
       </button>
     </template>
 
@@ -72,10 +72,10 @@
         <span v-for="i in 16" :key="i" class="task__pairs-confetti__p" :style="`--i:${i}`"></span>
       </div>
       <div v-if="photoComplete" class="task__quiz-result task__quiz-result--right">
-        Все пары найдены! 🎉
+        Все пары найдены
       </div>
       <button v-if="photoComplete" class="task__action" @click="$emit('complete', task)">
-        Продолжаем →
+        Идти дальше
       </button>
     </template>
   </div>
@@ -183,12 +183,12 @@ const flipCard = (ci) => {
 .task__text-pairs__col { display: flex; flex-direction: column; gap: 8px; }
 .task__text-pairs__item {
   padding: 12px 14px; border-radius: 10px; font-size: .95rem; text-align: left;
-  background: rgba(255,255,255,.08); border: 2px solid transparent;
+  background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border: 2px solid transparent;
   color: inherit; cursor: pointer; transition: all .2s; line-height: 1.4;
 }
-.task__text-pairs__item:hover:not(:disabled) { border-color: var(--accent); }
-.task__text-pairs__item.selected { border-color: var(--accent); background: rgba(102,126,234,.15); }
-.task__text-pairs__item.matched { border-color: #48bb78; background: rgba(72,187,120,.15); opacity: .7; cursor: default; }
+.task__text-pairs__item:hover:not(:disabled) { border-color: var(--action); }
+.task__text-pairs__item.selected { border-color: var(--action); background: color-mix(in srgb, var(--action) 15%, var(--paper)); }
+.task__text-pairs__item.matched { border-color: var(--ink-soft); background: color-mix(in srgb, var(--done) 40%, var(--paper)); opacity: .7; cursor: default; }
 .task__text-pairs__item--right { text-align: center; }
 
 .task__pairs {
@@ -197,7 +197,7 @@ const flipCard = (ci) => {
   transform: translateZ(0); /* форсируем отдельный GPU-слой для всего грида */
 }
 .task__pairs__card {
-  aspect-ratio: 3/4; background: transparent; border: 1px solid var(--bord);
+  aspect-ratio: 3/4; background: transparent; border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
   border-radius: 8px; cursor: pointer;
   transition: border-color .2s; padding: 0;
   outline: none; /* убираем браузерный focus-outline */
@@ -205,13 +205,13 @@ const flipCard = (ci) => {
 }
 /* hover только на устройствах с мышью — на мобиле hover "прилипает" после тапа */
 @media (hover: hover) {
-  .task__pairs__card:hover:not(:disabled):not(.selected) { border-color: var(--accent); }
+  .task__pairs__card:hover:not(:disabled):not(.selected) { border-color: var(--action); }
 }
-.task__pairs__card:focus-visible:not(.selected) { border-color: var(--accent); }
+.task__pairs__card:focus-visible:not(.selected) { border-color: var(--action); }
 .task__pairs__card:disabled:not(.matched) { opacity: 1; }
-.task__pairs__card.selected { border-color: var(--accent); }
-.task__pairs__card.matched  { border-color: #3cffb4; opacity: .6; cursor: default; }
-.task__pairs__card.matched { border-color: #3cffb4; opacity: .6; cursor: default; }
+.task__pairs__card.selected { border-color: var(--action); }
+.task__pairs__card.matched  { border-color: var(--ink-soft); opacity: .6; cursor: default; }
+.task__pairs__card.matched { border-color: var(--ink-soft); opacity: .6; cursor: default; }
 .task__pairs__card__inner {
   width: 100%; height: 100%; position: relative;
   transform-style: preserve-3d; transition: transform .35s;
@@ -230,26 +230,26 @@ const flipCard = (ci) => {
   /* clip-path вместо overflow:hidden — не ломает 3D */
   clip-path: inset(0 round 7px);
 }
-.task__pairs__card__back { color: var(--accent); font-size: 1.2rem; background: var(--bg2); }
+.task__pairs__card__back { color: var(--action); font-size: 1.2rem; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); }
 .task__pairs__card__front {
-  transform: rotateY(180deg); color: var(--text);
-  background: color-mix(in srgb, var(--accent) 8%, var(--bg2));
+  transform: rotateY(180deg); color: var(--ink);
+  background: color-mix(in srgb, var(--action) 8%, color-mix(in srgb, var(--paper) 86%, var(--ink)));
 }
 .task__pairs__card__img { width: 100%; height: 100%; object-fit: cover; }
 .task__quiz-result {
   text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
   margin-bottom: 12px;
 }
-.task__quiz-result--right { color: #3cffb4; background: rgba(60,255,180,.08); }
-.task__quiz-result--wrong { color: #f87171; background: rgba(248,113,113,.08); }
+.task__quiz-result--right { color: var(--ink); background: color-mix(in srgb, var(--done) 40%, var(--paper)); }
+.task__quiz-result--wrong { color: var(--wrong); background: color-mix(in srgb, var(--wrong) 10%, var(--paper)); }
 
 .task__pairs__skip {
   display: block; margin: 8px auto 0; background: none; border: none;
-  color: rgba(255,255,255,.45); font-size: .72rem; cursor: pointer;
+  color: var(--ink-soft); font-size: .72rem; cursor: pointer;
   transition: color .2s; padding: 6px 12px;
   text-decoration: underline; text-underline-offset: 3px;
 }
-.task__pairs__skip:hover { color: rgba(255,255,255,.75); }
+.task__pairs__skip:hover { color: var(--ink-soft); }
 
 .task__pairs-confetti {
   position: relative; height: 36px; overflow: hidden; pointer-events: none; margin-top: 4px;

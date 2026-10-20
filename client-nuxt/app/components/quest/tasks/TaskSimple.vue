@@ -2,7 +2,7 @@
   <div>
     <TaskHint :hint="task.hint" :theme="theme" @hint="$emit('hint', task)" />
     <button class="task__action" @click="$emit('complete', task)">
-      {{ theme.copy.taskDone }} ✓
+      {{ theme.gender === 'm' ? 'Выполнил' : 'Выполнила' }}
     </button>
   </div>
 </template>
