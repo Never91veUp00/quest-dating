@@ -33,7 +33,7 @@
   .disp { font-family: 'Dela Gothic One', serif; font-weight: 400; }
   svg.i { fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
   .stamp {
-    padding: 6px 16px; border: 5px double var(--red); border-radius: 8px; background: var(--paper);
+    padding: 10px 20px; border: 5px double var(--red); border-radius: 8px; background: var(--paper);
     color: var(--red); font-family: 'Dela Gothic One', serif; font-size: 32px; letter-spacing: .06em; text-transform: uppercase;
   }
 
@@ -116,8 +116,8 @@
   }
   .tape { position: absolute; top: -14px; width: 110px; height: 34px; background: rgba(205, 184, 148, .78); }
   .tape--l { left: 22px; transform: rotate(-7deg); } .tape--r { right: 22px; transform: rotate(6deg); }
-  .card h3 { display: flex; align-items: center; gap: 14px; font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 40px; line-height: 1; }
-  .card h3 svg { width: 40px; height: 40px; flex-shrink: 0; }
+  .card h2 { display: flex; align-items: center; gap: 14px; font-family: 'Dela Gothic One', serif; font-weight: 400; font-size: 40px; line-height: 1; }
+  .card h2 svg { width: 40px; height: 40px; flex-shrink: 0; }
   .card .q { margin-top: 22px; font-size: 30px; line-height: 1.3; }
 
   .v1 { animation-name: v1; } .v2 { animation-name: v2; } .v3 { animation-name: v3; } .v4 { animation-name: v4; } .v5 { animation-name: v5; }
@@ -268,7 +268,7 @@
     <!-- 1. Шифровка (загадка) -->
     <div class="card v1 abs a">
       <span class="tape tape--l"></span><span class="tape tape--r"></span>
-      <h3><svg class="i" viewBox="0 0 24 24"><path d="M9.2 9a2.9 2.9 0 115.1 1.9c-.9.9-2.3 1.6-2.3 3.1"/><path d="M12 18h.01"/></svg>Шифровка</h3>
+      <h2><svg class="i" viewBox="0 0 24 24"><path d="M9.2 9a2.9 2.9 0 115.1 1.9c-.9.9-2.3 1.6-2.3 3.1"/><path d="M12 18h.01"/></svg>Шифровка</h2>
       <p class="q">«Я танцую, но ног не имею. Живу у воды, но не тону».</p>
       <div class="field"><span class="typed a">ФОНТАН</span><span class="caret"></span></div>
       <div class="verdict abs a"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Верно</div>
@@ -277,7 +277,7 @@
     <!-- 2. Досье (угадайка) -->
     <div class="card v2 abs a">
       <span class="tape tape--l"></span><span class="tape tape--r"></span>
-      <h3><svg class="i" viewBox="0 0 24 24"><path d="M7 4h10v16H7z"/><path d="M10 9h4"/><path d="M10 13h4"/></svg>Досье</h3>
+      <h2><svg class="i" viewBox="0 0 24 24"><path d="M7 4h10v16H7z"/><path d="M10 9h4"/><path d="M10 13h4"/></svg>Досье</h2>
       <p class="q">Куда подозреваемый мечтает поехать?</p>
       <div class="opts">
         <div class="opt opt--pick a"><b class="a">А</b>Япония<svg class="i a" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
@@ -290,7 +290,7 @@
     <!-- 3. Перепутанные улики (пары с текстом) -->
     <div class="card v3 abs a">
       <span class="tape tape--l"></span><span class="tape tape--r"></span>
-      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 5h7v10H4z"/><path d="M13 9h7v10h-7z"/></svg>Найди пары</h3>
+      <h2><svg class="i" viewBox="0 0 24 24"><path d="M4 5h7v10H4z"/><path d="M13 9h7v10h-7z"/></svg>Найди пары</h2>
       <div class="pairs">
         <div class="pc pa a"><span class="back"></span><span class="face a">Первая встреча</span></div>
         <div class="pc pb a"><span class="back"></span><span class="face a">Первое «я&nbsp;скучаю»</span></div>
@@ -302,7 +302,7 @@
     <!-- 4. Разорванный вещдок (пазл 4×3) -->
     <div class="card v4 abs a" style="--map: url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%23e3d3b2'/><rect y='190' width='400' height='110' fill='%23bfae86'/><g fill='%236f7a4c'><circle cx='40' cy='120' r='38'/><circle cx='85' cy='95' r='30'/><circle cx='345' cy='110' r='42'/><circle cx='300' cy='135' r='26'/></g><g fill='%235a4c40'><rect x='36' y='150' width='8' height='45'/><rect x='341' y='145' width='8' height='50'/></g><ellipse cx='200' cy='205' rx='86' ry='18' fill='%237d93a0'/><rect x='190' y='150' width='20' height='55' fill='%235a4c40'/><g fill='none' stroke='%237d93a0' stroke-width='6' stroke-linecap='round'><path d='M200 150 C180 110 150 120 140 190'/><path d='M200 150 C220 110 250 120 260 190'/><path d='M200 150 V95'/></g><rect x='60' y='225' width='110' height='10' fill='%232a211b'/><rect x='70' y='235' width='8' height='22' fill='%232a211b'/><rect x='152' y='235' width='8' height='22' fill='%232a211b'/><g fill='%239f2b25'><circle cx='98' cy='196' r='11'/><rect x='88' y='207' width='20' height='22' rx='8'/></g><g fill='%234e4037'><circle cx='128' cy='198' r='10'/><rect x='119' y='208' width='19' height='21' rx='8'/></g></svg>&quot;);">
       <span class="tape tape--l"></span><span class="tape tape--r"></span>
-      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 4h7v4a2 2 0 104 0V4h5v7h-4a2 2 0 100 4h4v5h-7v-4a2 2 0 10-4 0v4H4z"/></svg>Собери фото</h3>
+      <h2><svg class="i" viewBox="0 0 24 24"><path d="M4 4h7v4a2 2 0 104 0V4h5v7h-4a2 2 0 100 4h4v5h-7v-4a2 2 0 10-4 0v4H4z"/></svg>Собери фото</h2>
       <div class="puzzle">
         <span class="slot"></span>
         <span class="pz a" style="left:0px;top:0px;background-position:0px 0px;--dx:-110px;--dy:-70px;--r:-22deg;animation-delay:0.00s"></span>
@@ -323,7 +323,7 @@
     <!-- 5. Зафиксируй место (селфи) -->
     <div class="card v5 abs a">
       <span class="tape tape--l"></span><span class="tape tape--r"></span>
-      <h3><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M12 16.5a3 3 0 100-6 3 3 0 000 6z"/></svg>Зафиксируй место</h3>
+      <h2><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M12 16.5a3 3 0 100-6 3 3 0 000 6z"/></svg>Зафиксируй место</h2>
       <figure class="polaroid">
         <div class="photo">
           <svg class="develop a" viewBox="0 0 300 300" aria-hidden="true">
