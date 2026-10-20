@@ -56,7 +56,7 @@
           <header class="qp-hud">
             <div class="qp-hud__row">
               <span class="qp-hud__pts">
-                {{ points }}<span class="qp-hud__pts-l"> {{ themeObj.copy.pointsLabel }}</span>
+                {{ points }}<span class="qp-hud__pts-l"> {{ pointsWord(themeObj, points) }}</span>
               </span>
               <span class="qp-hud__name">{{ questData.title }}</span>
               <span v-if="themeObj.showTimer" class="qp-hud__time">{{ elapsedStr }}</span>
@@ -163,7 +163,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { getTheme, themeToCssVars } from '~/components/quest/themes.js'
+import { getTheme, themeToCssVars, pointsWord } from '~/components/quest/themes.js'
 import QuestIcon from '../../components/quest/QuestIcon.vue'
 
 
@@ -543,7 +543,7 @@ const flash = (title, sub) => {
 
 // ─── Share ────────────────────────────────────────────────────
 const share = () => {
-  const text = `Я прошёл квест «${questData.value.title}» и набрал ${points.value} ${themeObj.value.copy.pointsLabel}!`
+  const text = `Я прошёл квест «${questData.value.title}» и набрал ${points.value} ${pointsWord(themeObj.value, points.value)}!`
   if (navigator.share) navigator.share({ title: 'Quest Dating', text, url: location.href })
   else navigator.clipboard?.writeText(text).then(() => flash('Скопировано!', ''))
 }
@@ -623,8 +623,10 @@ onUnmounted(() => {
 .qp-confirm__btn { flex: 1; min-height: 52px; border-radius: 10px; font-family: var(--font-d); font-size: 1rem; cursor: pointer; border: none; }
 .qp-confirm__btn--cancel { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
 .qp-confirm__btn--confirm { background: var(--wrong); color: var(--paper); }
-.qp-confirm__btn:focus-visible { outline: 3px solid var(--chip); outline-offset: 2px; }
-.qp ::selection { background: var(--chip); color: var(--paper); }
+.qp-confirm__btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.qp ::selection { background: var(--focus); color: var(--paper); }
+/* кольцо фокуса по умолчанию — для бумаги; элементы на поле задают своё (--field-ink) */
+.qp :focus-visible { outline-color: var(--focus); }
 /* шорткат font у кнопок и полей сбрасывает настройки шрифта темы — возвращаем */
 .qp :is(button, input, textarea, select) { font-feature-settings: inherit; font-size-adjust: inherit; }
 .qp { scrollbar-color: color-mix(in srgb, var(--field-ink) 35%, var(--field)) var(--field); }

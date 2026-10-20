@@ -424,7 +424,7 @@ pre code {
 }
 .task__action:active:not(:disabled) { transform: translateY(2px); }
 .task__action:focus-visible {
-  outline: 3px solid var(--chip, var(--accent));
+  outline: 3px solid var(--focus, var(--chip, var(--accent)));
   outline-offset: 3px;
 }
 .task__action:disabled {

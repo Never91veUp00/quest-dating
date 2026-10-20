@@ -18,7 +18,7 @@
       </span>
       <h1 class="lid__title">{{ questData.title }}</h1>
       <p v-if="questData.client_name" class="lid__for">
-        {{ decor === 'letters' ? 'Кому:' : 'для' }} <b>{{ questData.client_name }}</b>
+        Кому: <b>{{ questData.client_name }}</b>
       </p>
       <span v-if="decor === 'casefile'" class="lid__stamp" aria-hidden="true">Секретно</span>
     </div>

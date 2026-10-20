@@ -45,7 +45,7 @@
       <p class="task__result">
         <template v-if="earnedEntry?.wrong">Пропущено</template>
         <template v-else>
-          {{ theme.copy.taskDone }}<span v-if="task.points"> · +{{ earnedEntry?.points ?? task.points }} {{ theme.copy.pointsLabel }}</span>
+          {{ theme.copy.taskDone }}<span v-if="task.points"> · +{{ earnedEntry?.points ?? task.points }} {{ pointsWord(theme, earnedEntry?.points ?? task.points) }}</span>
         </template>
       </p>
     </template>
@@ -68,6 +68,7 @@
 <script setup>
 import { computed } from 'vue'
 import QuestIcon        from './QuestIcon.vue'
+import { pointsWord }   from './themes.js'
 import TaskSimple       from './tasks/TaskSimple.vue'
 import TaskRiddle       from './tasks/TaskRiddle.vue'
 import TaskCodePhysical from './tasks/TaskCodePhysical.vue'
@@ -326,7 +327,7 @@ const typeLabel = computed(() => ({
 :deep(.task__input::placeholder) { color: var(--ink-soft); opacity: 1; }
 /* Поле в фокусе всегда остаётся над прилипшей кнопкой */
 :deep(.task__input) { scroll-margin-bottom: calc(96px + var(--kb, 0px)); }
-:deep(.task__input:focus) { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip) 35%, transparent); }
+:deep(.task__input:focus) { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 35%, transparent); }
 :deep(.task__input--code) { font-family: var(--font-d); letter-spacing: .25em; text-align: center; }
 :deep(.task__input.shake) { animation: shake .4s ease; border-color: var(--wrong); }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }

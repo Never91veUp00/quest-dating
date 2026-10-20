@@ -69,6 +69,7 @@ export const THEMES = {
       shareBtn:      'Передать в архив',
       blockPrefix:   'Улика',
       pointsLabel:   'очков',
+      pointsForms:   ['очко', 'очка', 'очков'],
     },
 
     // Фоновая анимация
@@ -120,6 +121,7 @@ export const THEMES = {
       wrong:        '#a3313a',
       action:       '#3b1c20',
       actionInk:    '#f8f1e4',
+      focus:        '#3b1c20',   // лента на бумаге слишком бледна для кольца фокуса
       sealWax:      '#8f2630',   // сургуч на клапане конверта-крышки
       sealDeep:     '#661820',
     },
@@ -152,6 +154,7 @@ export const THEMES = {
       blockPrefix:   'Глава',
       blockForms:    ['глава', 'главы', 'глав'],
       pointsLabel:   'сердечек',
+      pointsForms:   ['сердечко', 'сердечка', 'сердечек'],
     },
 
     bg_animation: null,
@@ -194,6 +197,7 @@ export const THEMES = {
       shareBtn:      'Поведать миру',
       blockPrefix:   'Тайна',
       pointsLabel:   'силы',
+      pointsForms:   ['очко силы', 'очка силы', 'очков силы'],
     },
 
     bg_animation: 'stars',    // плывущие звёзды и туман
@@ -238,6 +242,7 @@ export const THEMES = {
       shareBtn:      'Поделиться добычей',
       blockPrefix:   'Метка',
       pointsLabel:   'дублонов',
+      pointsForms:   ['дублон', 'дублона', 'дублонов'],
     },
 
     bg_animation: 'particles',  // золотые частицы/монеты
@@ -284,6 +289,7 @@ export const THEMES = {
       shareBtn:      'Поделиться',
       blockPrefix:   'Момент',
       pointsLabel:   'искр',
+      pointsForms:   ['искра', 'искры', 'искр'],
     },
 
     bg_animation: 'rings',   // кольца + блики
@@ -324,6 +330,7 @@ export const THEMES = {
       shareBtn:      'Поделиться результатом',
       blockPrefix:   'Точка',
       pointsLabel:   'очков',
+      pointsForms:   ['очко', 'очка', 'очков'],
     },
 
     bg_animation: 'grid',     // анимированная сетка (текущий стиль)
@@ -334,6 +341,20 @@ export const THEMES = {
 }
 
 export const getTheme = (id) => THEMES[id] || THEMES.city
+
+// Русское множественное число: 1 сердечко, 2 сердечка, 5 сердечек
+export const plural = (n, one, few, many) => {
+  const m10 = Math.abs(n) % 10, m100 = Math.abs(n) % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
+
+// Очки темы, согласованные с числом
+export const pointsWord = (theme, n) => {
+  const f = theme.copy?.pointsForms
+  return f ? plural(n, ...f) : theme.copy?.pointsLabel ?? 'очков'
+}
 
 // CSS-переменные из темы — вставляем в :root компонента
 export const themeToCssVars = (theme) => ({
@@ -380,6 +401,8 @@ const worldVars = (theme) => {
     '--wrong':          w.wrong        ?? '#e5534b',
     '--action':         w.action       ?? theme.accent,
     '--action-ink':     w.actionInk    ?? theme.bg,
+    // фокус и выделение на бумаге: по умолчанию краска фишки
+    '--focus':          w.focus        ?? w.chip ?? theme.accent,
     // сургуч: без своего цвета QuestSeal берёт запасной красный
     ...(w.sealWax  && { '--seal-wax':  w.sealWax }),
     ...(w.sealDeep && { '--seal-deep': w.sealDeep }),

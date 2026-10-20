@@ -376,6 +376,7 @@ const finishLabel = computed(() => ({
 }
 .block__board-track { margin-top: 18px; height: clamp(200px, 34svh, 300px); }
 .block__board-close { margin-top: auto; }
+.block__board-close:focus-visible { outline-color: var(--field-ink); }
 .block__board-back { margin: 8px 0 16px; }
 
 .board-enter-active { transition: opacity .3s ease-out, transform .45s cubic-bezier(.16, 1, .3, 1); }

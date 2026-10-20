@@ -4,7 +4,7 @@
       <header class="splash__head">
         <h1 class="splash__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="splash__for">
-          для <b>{{ questData.client_name }}</b>
+          Кому: <b>{{ questData.client_name }}</b>
         </p>
       </header>
 
@@ -74,6 +74,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import QuestHowTo from './QuestHowTo.vue'
+import { plural } from './themes.js'
 
 // Внутренняя сторона крышки: правила игры, текст автора, спид-демо, старт.
 const props = defineProps({
@@ -115,12 +116,6 @@ const startLabel = computed(() =>
   (props.theme.copy?.startBtn || 'Начать').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 
-const plural = (n, one, few, many) => {
-  const m10 = n % 10, m100 = n % 100
-  if (m10 === 1 && m100 !== 11) return one
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
-  return many
-}
 </script>
 
 <style scoped>
@@ -254,6 +249,8 @@ const plural = (n, one, few, many) => {
   font-size: 1rem;
 }
 .splash__cta { margin-top: 16px; }
+/* кнопка на поле: кольцо фокуса мелом, как у остальных элементов поля */
+.splash__cta:focus-visible { outline-color: var(--field-ink); }
 
 /* Кнопка старта под большим пальцем */
 .splash__cta--sticky {

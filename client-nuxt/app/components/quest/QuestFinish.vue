@@ -7,7 +7,7 @@
       </header>
 
       <p class="finish__facts">
-        <span><b>{{ points }}</b> {{ theme.copy.pointsLabel }}</span>
+        <span><b>{{ points }}</b> {{ pointsWord(theme, points) }}</span>
         <span><b>{{ completedCount }}</b> {{ plural(completedCount, 'клетка пройдена', 'клетки пройдены', 'клеток пройдено') }}</span>
         <span>за <b>{{ elapsed }}</b></span>
       </p>
@@ -59,6 +59,7 @@
 import { ref, computed, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestPostmark from './QuestPostmark.vue'
+import { plural, pointsWord } from './themes.js'
 
 const props = defineProps({
   questData:      { type: Object, required: true },
@@ -81,13 +82,6 @@ const finishTitle = computed(() =>
   (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 const decor = computed(() => props.theme.world?.decor ?? null)
-
-const plural = (n, one, few, many) => {
-  const m10 = n % 10, m100 = n % 100
-  if (m10 === 1 && m100 !== 11) return one
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
-  return many
-}
 // Дата в штемпеле — день, когда письмо дошло до адресата
 const deliveredOn = ref('')
 onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) })
@@ -181,7 +175,7 @@ const saveCard = async () => {
 
     ctx.font = '28px system-ui, sans-serif'
     ctx.fillStyle = props.theme.accent + 'bb'
-    ctx.fillText(props.theme.copy.pointsLabel, W / 2, photoY + photoR + 196)
+    ctx.fillText(pointsWord(props.theme, props.points), W / 2, photoY + photoR + 196)
 
     // Frame badge
     ctx.font = '30px system-ui, sans-serif'
@@ -360,6 +354,7 @@ const saveCard = async () => {
 
 /* ── Действия ─────────────────────────────────────────────────── */
 .finish__actions { display: flex; flex-direction: column; gap: 12px; }
+.finish__actions .task__action:focus-visible { outline-color: var(--field-ink); }
 .finish__secondary {
   background: transparent;
   color: var(--field-ink);
