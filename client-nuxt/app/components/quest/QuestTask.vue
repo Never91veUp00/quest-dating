@@ -262,8 +262,8 @@ const typeLabel = computed(() => ({
   min-width: 0;
   min-height: 54px;
   padding: 12px 14px;
-  background: color-mix(in srgb, var(--paper) 86%, var(--ink));
-  border: 2px solid color-mix(in srgb, var(--ink) 45%, var(--paper));
+  background: var(--paper);
+  border: 2px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
   border-radius: 10px;
   color: var(--ink);
   caret-color: var(--chip);
@@ -273,7 +273,9 @@ const typeLabel = computed(() => ({
   box-sizing: border-box;
   transition: border-color .2s;
 }
-:deep(.task__input::placeholder) { color: color-mix(in srgb, var(--ink) 55%, var(--paper)); }
+:deep(.task__input::placeholder) { color: var(--ink-soft); opacity: 1; }
+/* Поле в фокусе всегда остаётся над прилипшей кнопкой */
+:deep(.task__input) { scroll-margin-bottom: calc(96px + var(--kb, 0px)); }
 :deep(.task__input:focus) { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip) 35%, transparent); }
 :deep(.task__input--code) { font-family: var(--font-d); letter-spacing: .25em; text-align: center; }
 :deep(.task__input.shake) { animation: shake .4s ease; border-color: var(--wrong); }
@@ -293,7 +295,7 @@ const typeLabel = computed(() => ({
   transition: background .2s;
 }
 :deep(.task__ok:hover:not(:disabled)) { background: color-mix(in srgb, var(--action) 80%, var(--chip)); }
-:deep(.task__ok:disabled) { opacity: .4; cursor: default; }
+:deep(.task__ok:disabled) { cursor: default; background: var(--paper); color: var(--ink); border: 2px dashed var(--ink); }
 :deep(.task__wrong) { margin: 0; font-family: var(--font-b); font-size: 1rem; color: var(--wrong); }
 
 :deep(.task__hint-btn) {
@@ -333,9 +335,17 @@ const typeLabel = computed(() => ({
   box-shadow: 0 0 0 6px var(--paper);
 }
 /* Прилипшая кнопка не просвечивает: выключенное состояние — сплошной цвет */
+/* Выключенная кнопка — пустая печатная плашка, не серый блок */
 .task__body :deep(.task__action:disabled) {
   opacity: 1;
-  background: color-mix(in srgb, var(--action) 35%, var(--paper));
-  color: var(--paper);
+  background: var(--paper);
+  color: var(--ink);
+  border: 2px dashed var(--ink);
 }
+/* Короткая карточка тянется до низа экрана: кнопка всегда у большого пальца */
+.task:not(.task--review) { min-height: calc(100svh - 256px - var(--kb, 0px)); }
+.task__body :deep(.task__action) { margin-top: auto; }
+/* В колонке карточки поле не растягивается по высоте; flex: 1 — только в ряду */
+.task__body :deep(.task__input) { flex: none; }
+.task__body :deep(.task__row .task__input) { flex: 1; }
 </style>

@@ -49,6 +49,7 @@ export default defineNuxtConfig({
   },
 
   css: [
+    '~/assets/styles/fonts.css',
     '~/assets/styles/variables.css',
     '~/assets/styles/main.css',
     '~/assets/styles/animations.css',
@@ -66,6 +67,9 @@ export default defineNuxtConfig({
       // В prod: фронт в compose-сети, дефолт http://server:5000 работает как есть.
       apiBase:  process.env.NUXT_PUBLIC_API_BASE || '/api',
       appName:  'Quest Dating',
+      // Универсальная видео-инструкция плеера (одна на все квесты).
+      // Пусто — плеер показывает анимированное демо на демо-поле.
+      playerDemoVideo: process.env.NUXT_PUBLIC_PLAYER_DEMO_VIDEO || '',
     }
   },
 

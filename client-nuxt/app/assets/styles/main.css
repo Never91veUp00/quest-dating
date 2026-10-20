@@ -426,4 +426,9 @@ pre code {
   outline: 3px solid var(--chip, var(--accent));
   outline-offset: 3px;
 }
-.task__action:disabled { opacity: .4; cursor: default; }
+.task__action:disabled {
+  cursor: default;
+  background: transparent;
+  color: var(--ink, currentColor);
+  border: 2px dashed currentColor;
+}

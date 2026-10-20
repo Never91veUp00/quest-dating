@@ -59,6 +59,11 @@
             @open="reviewIdx = $event"
           />
 
+          <button v-if="index > 0" class="block__back block__board-back" @click="closeBoard(); $emit('prev')">
+            <QuestIcon name="back" :size="18" />
+            Предыдущий участок
+          </button>
+
           <button ref="boardClose" class="task__action block__board-close" @click="closeBoard">
             {{ activeTask ? 'К заданию' : 'Закрыть доску' }}
           </button>
@@ -266,7 +271,11 @@ const finishLabel = computed(() => ({
   font-size: 1.1rem;
   line-height: 1.15;
   color: var(--field-ink);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .block__mini { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -305,6 +314,7 @@ const finishLabel = computed(() => ({
 }
 .block__board-track { margin-top: 18px; height: clamp(200px, 34svh, 300px); }
 .block__board-close { margin-top: auto; }
+.block__board-back { margin: 8px 0 16px; }
 
 .board-enter-active { transition: opacity .3s ease-out, transform .45s cubic-bezier(.16, 1, .3, 1); }
 .board-leave-active { transition: opacity .25s ease-in, transform .3s ease-in; }

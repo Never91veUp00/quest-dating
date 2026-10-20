@@ -1,428 +1,488 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-15T16:21:27.267Z",
+  "generatedAt": "2026-10-20T08:30:33.858Z",
   "title": "Design System: Quest Dating",
   "extensions": {
-    "status": "snapshot-before-redesign",
+    "scope": "Плеер квеста /quest/[slug]. Пилотный мир — detective (decor: casefile). Остальные пять тем идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
+    "tokenSource": {
+      "file": "client-nuxt/app/components/quest/themes.js",
+      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b на корень плеера. Если у темы нет блока world, worldVars() выводит их из bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b."
+    },
     "colorMeta": {
-      "velvet-black": {
+      "field": {
         "role": "neutral",
-        "displayName": "Velvet Black",
-        "canonical": "#0a0a0f",
+        "displayName": "Сукно доски",
+        "canonical": "#5f4f43",
+        "cssVar": "--field",
+        "oklch": "oklch(44.0% 0.029 58.8)",
         "tonalRamp": [
-          "#1f1f2e",
-          "#353550",
-          "#4b4b71",
-          "#626293",
-          "#8282ab",
-          "#a3a3c2",
-          "#c8c8da",
-          "#f0f0f5"
+          "#140802",
+          "#2f2116",
+          "#4c3c31",
+          "#6a5a4e",
+          "#8e7c70",
+          "#b3a193",
+          "#d9c6b9",
+          "#feeadc"
         ]
       },
-      "footlight-gold": {
-        "role": "primary",
-        "displayName": "Footlight Gold",
-        "canonical": "#d4af37",
-        "tonalRamp": [
-          "#3f330e",
-          "#6d5917",
-          "#9b7f21",
-          "#c9a42b",
-          "#daba53",
-          "#e4cd81",
-          "#efe1b3",
-          "#faf7ea"
-        ]
-      },
-      "gilt-highlight": {
-        "role": "primary",
-        "displayName": "Gilt Highlight",
-        "canonical": "#f5d36e",
-        "tonalRamp": [
-          "#483705",
-          "#7c5f09",
-          "#b1870c",
-          "#e5af10",
-          "#f2c43b",
-          "#f5d470",
-          "#f9e5a9",
-          "#fdf8e7"
-        ]
-      },
-      "playbill-cream": {
+      "field-ink": {
         "role": "neutral",
-        "displayName": "Playbill Cream",
-        "canonical": "#f0ede8",
+        "displayName": "Светлый мел",
+        "canonical": "#f1e8d8",
+        "cssVar": "--field-ink",
+        "oklch": "oklch(93.4% 0.023 82.1)",
         "tonalRamp": [
-          "#2e281e",
-          "#504634",
-          "#72634a",
-          "#948161",
-          "#ac9c80",
-          "#c3b7a2",
-          "#dbd4c7",
-          "#f5f3f0"
+          "#100a02",
+          "#2a2317",
+          "#463f32",
+          "#645d4f",
+          "#877f71",
+          "#aca494",
+          "#d2c9ba",
+          "#f6eddd"
         ]
       },
-      "cross-out-red": {
-        "role": "semantic",
-        "displayName": "Cross-out Red",
-        "canonical": "#e05b5b",
+      "field-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённый мел",
+        "canonical": "#e6dccb",
+        "cssVar": "--field-ink-soft",
+        "oklch": "oklch(89.8% 0.025 81.1)",
         "tonalRamp": [
-          "#400c0c",
-          "#701515",
-          "#9f1e1e",
-          "#ce2727",
-          "#de4f4f",
-          "#e77e7e",
-          "#f0b2b2",
-          "#fbeaea"
+          "#110a02",
+          "#2a2316",
+          "#473f31",
+          "#655c4e",
+          "#887f70",
+          "#ada393",
+          "#d3c9b8",
+          "#f7eddc"
         ]
       },
-      "done-mint": {
-        "role": "semantic",
-        "displayName": "Done Mint",
-        "canonical": "#3cffb4",
+      "paper": {
+        "role": "neutral",
+        "displayName": "Лист дела",
+        "canonical": "#f4efe4",
+        "cssVar": "--paper / --plate / --action-ink",
+        "oklch": "oklch(95.3% 0.016 86.4)",
         "tonalRamp": [
-          "#004d2f",
-          "#008552",
-          "#00bd74",
-          "#00f597",
-          "#2effaf",
-          "#66ffc4",
-          "#a3ffdc",
-          "#e5fff5"
+          "#0e0b05",
+          "#27241b",
+          "#433f37",
+          "#615d54",
+          "#848076",
+          "#a9a49a",
+          "#cfcabf",
+          "#f3eee3"
         ]
       },
-      "wrong-coral": {
-        "role": "semantic",
-        "displayName": "Wrong Coral",
-        "canonical": "#f87171",
+      "paper-edge": {
+        "role": "neutral",
+        "displayName": "Крафт папки",
+        "canonical": "#cdb894",
+        "cssVar": "--paper-edge",
+        "oklch": "oklch(79.1% 0.054 81.1)",
         "tonalRamp": [
-          "#490404",
-          "#7e0606",
-          "#b40909",
-          "#e90c0c",
-          "#f53838",
-          "#f86d6d",
-          "#fba8a8",
-          "#fee7e7"
+          "#160700",
+          "#312100",
+          "#4e3d1c",
+          "#6d5b39",
+          "#917d5b",
+          "#b6a27e",
+          "#ddc8a3",
+          "#ffecc6"
         ]
       },
-      "legacy-periwinkle": {
-        "role": "legacy",
-        "displayName": "Legacy Periwinkle",
-        "canonical": "#667eea",
+      "ink": {
+        "role": "neutral",
+        "displayName": "Типографская сепия",
+        "canonical": "#2a211b",
+        "cssVar": "--ink / --rule / --action / --plate-ink",
+        "oklch": "oklch(25.6% 0.018 55.5)",
         "tonalRamp": [
-          "#091443",
-          "#102275",
-          "#1731a6",
-          "#1e3fd7",
-          "#4764e6",
-          "#788eed",
-          "#aebbf4",
-          "#e9ecfc"
+          "#110905",
+          "#2b221c",
+          "#473d37",
+          "#665b54",
+          "#897e76",
+          "#aea29a",
+          "#d4c8c0",
+          "#f8ece3"
         ]
       },
-      "legacy-plum": {
-        "role": "legacy",
-        "displayName": "Legacy Plum",
-        "canonical": "#764ba2",
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённая сепия",
+        "canonical": "#5a4c40",
+        "cssVar": "--ink-soft",
+        "oklch": "oklch(42.7% 0.027 62.6)",
         "tonalRamp": [
-          "#261834",
-          "#422a5b",
-          "#5e3c81",
-          "#7a4da7",
-          "#9670bd",
-          "#b296cf",
-          "#d1c0e2",
-          "#f2eef7"
+          "#130802",
+          "#2e2116",
+          "#4a3d31",
+          "#695b4e",
+          "#8c7d70",
+          "#b1a194",
+          "#d8c7b9",
+          "#fcebdd"
         ]
       },
-      "detective-amber": {
-        "role": "theme",
-        "displayName": "Detective Amber",
-        "canonical": "#e8c547",
+      "done": {
+        "role": "neutral",
+        "displayName": "Отработанный крафт",
+        "canonical": "#c9ad80",
+        "cssVar": "--done",
+        "oklch": "oklch(76.1% 0.068 79.2)",
         "tonalRamp": [
-          "#443709",
-          "#765f0f",
-          "#a88815",
-          "#dab01b",
-          "#e8c445",
-          "#eed477",
-          "#f5e5ad",
-          "#fcf8e8"
+          "#190500",
+          "#351f00",
+          "#533b0d",
+          "#72592e",
+          "#967c50",
+          "#bca074",
+          "#e3c698",
+          "#ffeabb"
         ]
       },
-      "romantic-rose": {
-        "role": "theme",
-        "displayName": "Romantic Rose",
-        "canonical": "#e8839a",
+      "back": {
+        "role": "neutral",
+        "displayName": "Рубашка",
+        "canonical": "#4e4037",
+        "cssVar": "--back",
+        "oklch": "oklch(38.3% 0.025 54.6)",
         "tonalRamp": [
-          "#410c18",
-          "#701529",
-          "#9f1e3b",
-          "#ce264d",
-          "#de4f6f",
-          "#e77e96",
-          "#f1b2c0",
-          "#fbe9ed"
+          "#130803",
+          "#2e2119",
+          "#4a3c34",
+          "#695a51",
+          "#8c7d73",
+          "#b1a196",
+          "#d8c7bc",
+          "#fcebdf"
         ]
       },
-      "mystery-lilac": {
-        "role": "theme",
-        "displayName": "Mystery Lilac",
-        "canonical": "#a78bfa",
+      "chip": {
+        "role": "primary",
+        "displayName": "Красный штамп",
+        "canonical": "#9f2b25",
+        "cssVar": "--chip / --wrong",
+        "oklch": "oklch(47.0% 0.153 27.7)",
         "tonalRamp": [
-          "#150349",
-          "#24057f",
-          "#3308b5",
-          "#430aeb",
-          "#6737f6",
-          "#906cf9",
-          "#bca7fb",
-          "#ece7fe"
+          "#350000",
+          "#590000",
+          "#7d0004",
+          "#a22e28",
+          "#cb554a",
+          "#f57b6e",
+          "#ffa192",
+          "#ffc5b5"
         ]
       },
-      "treasure-ochre": {
-        "role": "theme",
-        "displayName": "Treasure Ochre",
-        "canonical": "#f5a623",
+      "board-neutral": {
+        "role": "neutral",
+        "displayName": "Нейтральный картон",
+        "canonical": "#3a322b",
+        "cssVar": "--board (локально: загрузка и ошибка)",
+        "oklch": "oklch(32.3% 0.017 63.4)",
         "tonalRamp": [
-          "#492f03",
-          "#7f5106",
-          "#b47408",
-          "#ea960b",
-          "#f6ae37",
-          "#f8c46d",
-          "#fbdba7",
-          "#fef5e7"
+          "#100a05",
+          "#2a221c",
+          "#463e37",
+          "#655c54",
+          "#887e76",
+          "#aca39a",
+          "#d3c8c0",
+          "#f7ece3"
         ]
       },
-      "proposal-gold": {
-        "role": "theme",
-        "displayName": "Proposal Gold",
-        "canonical": "#d4af37",
+      "board-neutral-ink": {
+        "role": "neutral",
+        "displayName": "Мел нейтрального картона",
+        "canonical": "#efe6d6",
+        "cssVar": "--board-ink (локально)",
+        "oklch": "oklch(92.8% 0.023 82.1)",
         "tonalRamp": [
-          "#3f330e",
-          "#6d5917",
-          "#9b7f21",
-          "#c9a42b",
-          "#daba53",
-          "#e4cd81",
-          "#efe1b3",
-          "#faf7ea"
+          "#100a02",
+          "#2a2317",
+          "#463f32",
+          "#645d4f",
+          "#877f71",
+          "#aca494",
+          "#d2c9ba",
+          "#f6eddd"
         ]
       },
-      "city-cyan": {
-        "role": "theme",
-        "displayName": "City Cyan",
-        "canonical": "#00f5c4",
+      "board-neutral-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённый мел нейтрального картона",
+        "canonical": "#d9cdb8",
+        "cssVar": "--board-soft (локально)",
+        "oklch": "oklch(85.2% 0.031 81.7)",
         "tonalRamp": [
-          "#004d3d",
-          "#00856a",
-          "#00bd97",
-          "#00f5c4",
-          "#2effd5",
-          "#66ffe0",
-          "#a3ffed",
-          "#e5fffa"
+          "#120a00",
+          "#2c2312",
+          "#483e2d",
+          "#675c4a",
+          "#8a7f6b",
+          "#afa38f",
+          "#d5c9b4",
+          "#f9edd7"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Заголовок hero на витрине."
+        "purpose": "Название квеста на крышке, сводке и финале."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Заголовки секций витрины."
+        "purpose": "Название участка на развёрнутой доске."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Заголовки списков витрины."
+        "purpose": "Название задания, заголовки листов, голос кнопок-глаголов."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Числа игры: номер клетки, очки, факты; табличные цифры."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Абзацы и описания; вторичный текст — кремовый с прозрачностью 0.55–0.75."
+        "purpose": "Текст задания, текст автора, ответ и подсказка."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Надзаголовки капсом с трекингом."
+        "purpose": "Счётчик участка, подписи очков, мета."
       }
     },
-    "themeFonts": {
-      "detective": [
-        "'Courier Prime'",
-        "'Courier Prime'"
-      ],
-      "romantic": [
-        "'Dancing Script'",
-        "'Lato'"
-      ],
-      "mystery": [
-        "'Cinzel'",
-        "'Cinzel'"
-      ],
-      "treasure": [
-        "'Pirata One'",
-        "'Crimson Text'"
-      ],
-      "proposal": [
-        "'Cormorant Garamond'",
-        "'Lato'"
-      ],
-      "city": [
-        "'Orbitron'",
-        "'Rajdhani'"
-      ]
+    "fontLoading": {
+      "source": "Google Fonts (fonts.googleapis.com, display=swap) по theme.fonts.googleFonts",
+      "status": "Перенос на свой сервер ждёт разрешения владельца."
     },
     "shadows": [
       {
-        "name": "gold-glow",
-        "value": "0 8px 32px rgba(212,175,55,0.3)",
-        "purpose": "Под основной золотой кнопкой витрины."
+        "name": "plate",
+        "value": "0 6px 10px -4px color-mix(in srgb, var(--rule) 55%, transparent)",
+        "purpose": "Клетка трассы в базовой основе."
       },
       {
-        "name": "gold-glow-hover",
-        "value": "0 12px 40px rgba(212,175,55,0.4)",
-        "purpose": "Наведение на основную кнопку."
+        "name": "pinned-note",
+        "value": "0 10px 14px -8px color-mix(in srgb, var(--rule) 85%, transparent)",
+        "purpose": "Клетка-заметка в обличье дела."
       },
       {
-        "name": "task-active-glow",
-        "value": "0 4px 24px color-mix(in srgb, var(--accent) 12%, transparent)",
-        "purpose": "Активная карточка задания."
+        "name": "card",
+        "value": "0 14px 22px -14px color-mix(in srgb, var(--rule) 70%, transparent)",
+        "purpose": "Карточка задания, плитка «Как это работает»."
       },
       {
-        "name": "action-hover-glow",
-        "value": "0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)",
-        "purpose": "Наведение на кнопку действия в плеере."
+        "name": "case-sheet",
+        "value": "0 1px 0 var(--paper-edge), 0 18px 26px -16px color-mix(in srgb, var(--rule) 80%, transparent)",
+        "purpose": "Лист на скотче, послание, полароид."
       },
       {
-        "name": "task-glass",
-        "value": "backdrop-filter: blur(12px)",
-        "purpose": "Стекло карточки задания (glassmorphism)."
+        "name": "folder",
+        "value": "0 22px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent)",
+        "purpose": "Крышка-папка."
+      },
+      {
+        "name": "verb-clearance",
+        "value": "0 0 0 6px var(--paper)",
+        "purpose": "Прилипшая кнопка-глагол закрывает текст под собой полем бумаги."
       }
     ],
     "motion": [
       {
-        "name": "ease-standard",
-        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
-        "purpose": "Объявлен в variables.css."
+        "name": "ease-board",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Ход фишки (0.55s), въезд доски (0.45s), карточки (0.45s), шторки (0.4s), падение послания (0.7s)."
       },
       {
-        "name": "state-fast",
-        "value": "0.2s ease",
-        "purpose": "Самый частый переход состояний в плеере и на витрине."
+        "name": "board-moment",
+        "value": "~1.7s",
+        "purpose": "Доска разворачивается при входе на участок и после выполненного задания, затем сворачивается в полосу."
       },
       {
-        "name": "task-in",
-        "value": "0.25s ease, сдвиг 8px, задержка 0.06s × индекс",
-        "purpose": "Появление карточек заданий лесенкой."
+        "name": "lid-open",
+        "value": "transform .75s cubic-bezier(.7, 0, .2, 1)",
+        "purpose": "Крышка коробки уезжает вверх."
       },
       {
-        "name": "overshoot",
-        "value": "cubic-bezier(.34,1.56,.64,1)",
-        "purpose": "Bounce с перелётом в плеере — запрещён правилами CLAUDE.md."
+        "name": "press",
+        "value": "transform .15s ease; translateY(2px)",
+        "purpose": "Нажатие кнопки-глагола и плитки."
+      },
+      {
+        "name": "wrong-shake",
+        "value": "shake .4s ease",
+        "purpose": "Неверный ответ или код."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Переходы выключаются; демо показывает кадры списком."
       }
     ],
     "breakpoints": [
       {
-        "name": "tablet",
-        "value": "768px"
+        "name": "narrow",
+        "value": "480px"
       },
       {
-        "name": "desktop",
-        "value": "1200px"
+        "name": "primary-viewport",
+        "value": "390x844"
+      },
+      {
+        "name": "small-viewport",
+        "value": "360x740"
+      },
+      {
+        "name": "desktop-check",
+        "value": "1280px"
       }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
+      "name": "Кнопка-глагол",
       "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Основная золотая пилюля витрины.",
-      "html": "<a class=\"ds-btn-primary\" href=\"#\">Выбрать квест <span>→</span></a>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 12px; background: #d4af37; color: #0a0a0f; padding: 16px 32px; border-radius: 100px; font: 800 1.1rem/1 \"Helvetica Neue\", Arial, sans-serif; text-decoration: none; box-shadow: 0 8px 32px rgba(212,175,55,0.3); transition: transform .2s, box-shadow .2s; } .ds-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212,175,55,0.4); } .ds-btn-primary:focus-visible { outline: 2px solid #f0ede8; outline-offset: 3px; }"
+      "refersTo": "button-verb",
+      "description": "Главное действие экрана: во всю ширину, у низа, называется глаголом.",
+      "html": "<button class=\"ds-verb\">Проверить</button>",
+      "css": ".ds-verb { display:flex; align-items:center; justify-content:center; width:100%; min-height:56px; padding:0 18px; background:var(--action,#2a211b); color:var(--action-ink,#f4efe4); border:none; border-radius:12px; font-family:'Dela Gothic One','Arial Black',sans-serif; font-size:1.05rem; letter-spacing:.01em; cursor:pointer; transition:background .2s ease, transform .15s ease; } .ds-verb:hover { background:color-mix(in srgb, var(--action,#2a211b) 80%, var(--chip,#9f2b25)); } .ds-verb:active { transform:translateY(2px); } .ds-verb:focus-visible { outline:3px solid var(--chip,#9f2b25); outline-offset:3px; }"
     },
     {
-      "name": "Outline Button",
+      "name": "Кнопка-глагол, выключена",
       "kind": "button",
-      "refersTo": "button-outline",
-      "description": "Вторичная пилюля с золотой рамкой.",
-      "html": "<a class=\"ds-btn-outline\" href=\"#\">Попробовать за 499 ₽</a>",
-      "css": ".ds-btn-outline { display: inline-block; background: transparent; border: 2px solid #d4af37; color: #d4af37; padding: 16px 32px; border-radius: 100px; font: 800 1.1rem/1 \"Helvetica Neue\", Arial, sans-serif; text-decoration: none; transition: background .2s, color .2s; } .ds-btn-outline:hover { background: #d4af37; color: #0a0a0f; } .ds-btn-outline:focus-visible { outline: 2px solid #f0ede8; outline-offset: 3px; }"
+      "refersTo": "button-verb-disabled",
+      "description": "Пустая печатная плашка: бумага, сепия, пунктир. Не серый блок.",
+      "html": "<button class=\"ds-verb-off\" disabled>Проверить</button>",
+      "css": ".ds-verb-off { display:flex; align-items:center; justify-content:center; width:100%; min-height:56px; padding:0 18px; background:var(--paper,#f4efe4); color:var(--ink,#2a211b); border:2px dashed var(--ink,#2a211b); border-radius:12px; font-family:'Dela Gothic One','Arial Black',sans-serif; font-size:1.05rem; cursor:default; }"
     },
     {
-      "name": "Badge",
-      "kind": "chip",
-      "refersTo": "badge",
-      "description": "Золотой бейдж над заголовком hero.",
-      "html": "<span class=\"ds-badge\">💍 Персональные квесты-сюрпризы</span>",
-      "css": ".ds-badge { display: inline-block; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.3); color: #d4af37; padding: 6px 16px; border-radius: 100px; font: 600 0.85rem/1.4 \"Helvetica Neue\", Arial, sans-serif; }"
+      "name": "Поле ответа",
+      "kind": "input",
+      "refersTo": "input-answer",
+      "description": "Поле ответа на бумаге карточки.",
+      "html": "<input class=\"ds-answer\" placeholder=\"Ответ…\" />",
+      "css": ".ds-answer { width:100%; min-height:54px; padding:12px 14px; background:var(--paper,#f4efe4); color:var(--ink,#2a211b); caret-color:var(--chip,#9f2b25); border:2px solid color-mix(in srgb, var(--ink,#2a211b) 55%, var(--paper,#f4efe4)); border-radius:10px; font-family:'PT Serif',Georgia,serif; font-size:1.1rem; outline:none; transition:border-color .2s; } .ds-answer::placeholder { color:var(--ink-soft,#5a4c40); } .ds-answer:focus { border-color:var(--ink,#2a211b); box-shadow:0 0 0 3px color-mix(in srgb, var(--chip,#9f2b25) 35%, transparent); }"
     },
     {
-      "name": "Landing Card",
+      "name": "Лист задания на скотче",
       "kind": "card",
-      "refersTo": "card-landing",
-      "description": "Полупрозрачная карточка «что это» с эмодзи.",
-      "html": "<div class=\"ds-card\"><span class=\"ds-card__icon\">✍️</span><div class=\"ds-card__text\"><strong>Персональный сценарий</strong>Написанный специально под вашу пару</div></div>",
-      "css": ".ds-card { display: flex; gap: 16px; align-items: flex-start; max-width: 340px; background: #0a0a0f linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04)); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; transition: border-color .2s; font-family: \"Helvetica Neue\", Arial, sans-serif; } .ds-card:hover { border-color: rgba(212,175,55,0.4); } .ds-card__icon { font-size: 2rem; } .ds-card__text { font-size: .95rem; line-height: 1.6; color: rgba(240,237,232,0.75); } .ds-card__text strong { display: block; color: #f0ede8; font-weight: 700; margin-bottom: 4px; }"
+      "refersTo": "task-sheet-casefile",
+      "description": "Карточка задания в обличье дела: лист без контура, две полоски скотча.",
+      "html": "<article class=\"ds-sheet\"><span class=\"ds-tape ds-tape--l\"></span><span class=\"ds-tape ds-tape--r\"></span><div class=\"ds-sheet__head\"><b class=\"ds-sheet__no\">2</b><h3 class=\"ds-sheet__title\">Загадка номер два</h3></div><p class=\"ds-sheet__text\">Я был первым, что вы написали друг другу. Что я такое?</p></article>",
+      "css": ".ds-sheet { position:relative; background:var(--paper,#f4efe4); color:var(--ink,#2a211b); border-radius:3px; padding:26px 20px 22px; display:flex; flex-direction:column; gap:14px; box-shadow:0 1px 0 var(--paper-edge,#cdb894), 0 18px 26px -16px color-mix(in srgb, var(--rule,#2a211b) 80%, transparent); } .ds-tape { position:absolute; top:-10px; width:78px; height:24px; background:color-mix(in srgb, var(--paper-edge,#cdb894) 70%, transparent); } .ds-tape--l { left:14px; transform:rotate(-7deg); } .ds-tape--r { right:14px; transform:rotate(6deg); } .ds-sheet__head { display:flex; gap:12px; align-items:flex-start; } .ds-sheet__no { font-family:'Dela Gothic One','Arial Black',sans-serif; font-weight:400; font-size:1.6rem; line-height:1; } .ds-sheet__title { margin:2px 0 0; font-family:'Dela Gothic One','Arial Black',sans-serif; font-weight:400; font-size:1.4rem; line-height:1.15; } .ds-sheet__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; }"
     },
     {
-      "name": "Task Card (detective)",
-      "kind": "custom",
+      "name": "Карточка задания (основа)",
+      "kind": "card",
       "refersTo": "task-card",
-      "description": "Стеклянная карточка задания плеера в активном состоянии, тема «Детектив».",
-      "html": "<div class=\"ds-task\"><div class=\"ds-task__head\"><span class=\"ds-task__dot\">3</span><span class=\"ds-task__type\">ЗАГАДКА</span></div><p class=\"ds-task__q\">Где назначают встречу те, кто не хочет, чтобы их слышали?</p></div>",
-      "css": ".ds-task { --accent: #e8c547; --surf: #161616; --bord: rgba(232,197,71,0.12); max-width: 340px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, transparent), color-mix(in srgb, var(--surf) 80%, transparent) 70%), #0a0a0a; border: 1px solid var(--bord); border-left: 3px solid var(--accent); border-radius: 12px; padding: 12px; box-shadow: 0 4px 24px color-mix(in srgb, var(--accent) 12%, transparent); color: #c8b89a; font-family: \"Courier Prime\", \"Courier New\", monospace; } .ds-task__head { display: flex; align-items: center; gap: 10px; } .ds-task__dot { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: .8rem; } .ds-task__type { font-size: .7rem; letter-spacing: .12em; color: var(--accent); } .ds-task__q { margin: 8px 0 0; line-height: 1.5; }"
+      "description": "Карточка базовой основы ходилки: плотная бумага с контуром и кромкой снизу.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card__title\">Найди скамейку</h3><p class=\"ds-card__text\">Ту, где вы сидели в первый вечер.</p></article>",
+      "css": ".ds-card { background:var(--paper,#f4efe4); color:var(--ink,#2a211b); border:3px solid var(--rule,#2a211b); border-bottom-width:7px; border-radius:14px; padding:18px 18px 20px; box-shadow:0 14px 22px -14px color-mix(in srgb, var(--rule,#2a211b) 70%, transparent); } .ds-card__title { margin:0 0 10px; font-family:'Dela Gothic One','Arial Black',sans-serif; font-weight:400; font-size:1.4rem; line-height:1.15; } .ds-card__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; }"
     },
     {
-      "name": "Task Action",
-      "kind": "button",
-      "refersTo": "task-action",
-      "description": "Кнопка действия в плеере: на всю ширину, рамка акцентом темы.",
-      "html": "<button class=\"ds-task-action\">ОТКРЫТЬ ДЕЛО</button>",
-      "css": ".ds-task-action { --accent: #e8c547; display: flex; align-items: center; justify-content: center; width: 100%; max-width: 340px; min-height: 52px; background: #0a0a0a; border: 1.5px solid var(--accent); border-radius: 14px; color: var(--accent); font: 700 .95rem/1 \"Courier Prime\", \"Courier New\", monospace; cursor: pointer; text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent); transition: all .2s ease; } .ds-task-action:hover { background: var(--accent); color: #0a0a0a; text-shadow: none; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent); } .ds-task-action:focus-visible { outline: 2px solid #f0ede8; outline-offset: 3px; }"
+      "name": "Клетки и фишка (дело)",
+      "kind": "custom",
+      "refersTo": "cell-active",
+      "description": "Заметки на кнопках: пройденная, активная с фишкой, будущая рубашкой вверх.",
+      "html": "<div class=\"ds-cells\"><button class=\"ds-cell ds-cell--done\">1</button><span class=\"ds-cell ds-cell--active\">2<i class=\"ds-chip\"></i></span><span class=\"ds-cell ds-cell--back\"></span></div>",
+      "css": ".ds-cells { display:flex; gap:18px; align-items:center; padding:24px; background:var(--field,#5f4f43); } .ds-cell { position:relative; display:grid; place-items:center; width:50px; height:50px; padding:0; border:none; border-radius:2px; font-family:'Dela Gothic One','Arial Black',sans-serif; font-size:1.35rem; color:var(--ink,#2a211b); box-shadow:0 10px 14px -8px color-mix(in srgb, var(--rule,#2a211b) 85%, transparent); } .ds-cell::before { content:''; position:absolute; top:-7px; left:50%; width:13px; height:13px; margin-left:-6.5px; border-radius:50%; background:var(--rule,#2a211b); } .ds-cell--done { background:var(--done,#c9ad80); transform:rotate(-4deg); cursor:pointer; } .ds-cell--done:focus-visible { outline:3px solid var(--field-ink,#f1e8d8); outline-offset:3px; } .ds-cell--active { width:64px; height:64px; font-size:1.7rem; background:var(--plate,#f4efe4); transform:rotate(3deg); } .ds-cell--back { background:var(--back,#4e4037); transform:rotate(-4deg); } .ds-cell--back::after { content:''; position:absolute; inset:9px; border:2px dashed color-mix(in srgb, var(--field-ink,#f1e8d8) 30%, var(--back,#4e4037)); } .ds-chip { position:absolute; top:-18px; right:-12px; width:24px; height:24px; border-radius:50%; background:var(--chip,#9f2b25); border:2px solid var(--rule,#2a211b); box-shadow:0 8px 10px -4px color-mix(in srgb, var(--rule,#2a211b) 60%, transparent); }"
+    },
+    {
+      "name": "Полоса участка",
+      "kind": "nav",
+      "refersTo": "section-strip",
+      "description": "Компактная полоса над карточкой: счётчик, название участка, мини-клетки; тап раскрывает доску.",
+      "html": "<button class=\"ds-strip\"><span class=\"ds-strip__text\"><span class=\"ds-strip__count\">Улика <b>3</b> из 6</span><span class=\"ds-strip__title\">Вещественные доказательства</span></span><span class=\"ds-mini\"><i class=\"ds-mini__c is-done\"></i><i class=\"ds-mini__c is-active\"></i><i class=\"ds-mini__c\"></i></span></button>",
+      "css": ".ds-strip { display:flex; align-items:center; gap:14px; width:100%; min-height:60px; padding:8px 4px; background:var(--field,#5f4f43); border:none; border-bottom:2px dashed color-mix(in srgb, var(--field-ink,#f1e8d8) 28%, var(--field,#5f4f43)); color:var(--field-ink,#f1e8d8); text-align:left; cursor:pointer; } .ds-strip:focus-visible { outline:3px solid var(--field-ink,#f1e8d8); outline-offset:2px; border-radius:8px; } .ds-strip__text { flex:1; display:flex; flex-direction:column; gap:2px; } .ds-strip__count { font-family:'PT Serif',Georgia,serif; font-size:.9rem; color:var(--field-ink-soft,#e6dccb); font-variant-numeric:tabular-nums; } .ds-strip__count b { font-family:'Dela Gothic One','Arial Black',sans-serif; font-weight:400; font-size:1.05rem; color:var(--field-ink,#f1e8d8); } .ds-strip__title { font-family:'Dela Gothic One','Arial Black',sans-serif; font-size:1.1rem; line-height:1.15; } .ds-mini { display:flex; align-items:center; gap:6px; } .ds-mini__c { position:relative; width:16px; height:16px; border-radius:3px; background:var(--back,#4e4037); border:2px solid color-mix(in srgb, var(--field-ink,#f1e8d8) 30%, var(--back,#4e4037)); } .ds-mini__c.is-done { background:var(--done,#c9ad80); border-color:var(--rule,#2a211b); } .ds-mini__c.is-active { width:22px; height:22px; background:var(--plate,#f4efe4); border-color:var(--rule,#2a211b); } .ds-mini__c.is-active::after { content:''; position:absolute; top:-7px; right:-7px; width:12px; height:12px; border-radius:50%; background:var(--chip,#9f2b25); border:2px solid var(--rule,#2a211b); }"
+    },
+    {
+      "name": "Штамп",
+      "kind": "custom",
+      "refersTo": "chip",
+      "description": "Штамп дела: «Секретно» на папке, «Раскрыто» на послании.",
+      "html": "<span class=\"ds-stamp\">Секретно</span>",
+      "css": ".ds-stamp { display:inline-block; padding:6px 12px; border:3px double var(--chip,#9f2b25); border-radius:6px; color:var(--chip,#9f2b25); font-family:'Dela Gothic One','Arial Black',sans-serif; font-size:1.15rem; letter-spacing:.06em; text-transform:uppercase; transform:rotate(-9deg); opacity:.88; }"
     }
   ],
   "narrative": {
-    "northStar": "Театр декораций",
-    "overview": "Одна тёмная сцена, на которую каждая тема квеста ставит свои декорации. Витрина — фойе театра: бархатно-чёрный фон, золото рампы как единственный акцент, кремовый текст афиши. Плеер — сама сцена: тема подменяет фон, акцент, шрифтовую пару, фоновую анимацию, текстуру и язык интерфейса. Метафора описывает намерение, но исполнение пока его не держит: фойе собрано из типового набора лендинга, а темы различаются в основном цветом и шрифтом. Документ — снимок перед редизайном Фазы 3.1; ничего из текущего вида не закреплено.",
+    "northStar": "Ходилка, напечатанная для одной пары",
+    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда; остальные пять тем (romantic, mystery, treasure, proposal, city) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих пяти тем системой не являются: каждая получит свой мир в своём PR. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
     "keyCharacteristics": [
-      "Тёмная основа повсюду, светлой темы нет.",
-      "Один тёплый металлический акцент на витрине, у каждой темы плеера свой акцент.",
-      "Тяжёлый гротеск (900) в заголовках витрины, Cormorant Garamond подключён, но почти не используется.",
-      "Глубина строится на свечении и размытии: glow-тени, blur-орбы, glassmorphism карточек заданий.",
-      "Скругления на всём: пилюли у кнопок, 12–16px у карточек.",
-      "Эмодзи работают как иконки и как декор."
+      "Поле — сплошная краска, без фоновых градиентов и подсветки.",
+      "Одна открытая карточка на экран; будущие клетки лежат рубашкой вверх.",
+      "Глубина от толщины картона: кромка снизу и тень со смещением.",
+      "Цифры набраны крупным гротеском поля игры (Dela Gothic One), текст — книжной антиквой (PT Serif).",
+      "Иконки — авторский SVG-набор одной толщины (2.25), без эмодзи.",
+      "Кнопка называется глаголом и всегда у низа экрана."
     ],
     "rules": [
       {
-        "name": "The Single Footlight Rule",
-        "body": "На витрине один акцент — золото. Остальные цвета получаются прозрачностью кремового или золота. (Это наблюдение о текущем коде, а не требование на будущее.)",
+        "name": "The Spot Ink Rule",
+        "body": "Каждый цвет — плашечная краска из `themes.js`, приходящая в компонент как CSS-переменная (`--field`, `--paper`, `--ink`, `--chip` и т.д.). Оттенки получаются только `color-mix` из этих переменных. Hex в стилях компонента не пишется.",
         "section": "colors"
       },
       {
-        "name": "The Glow-For-Everything Rule",
-        "body": "Любой важный элемент получает свечение своего акцента: кнопки, активное задание, текст в кнопке действия (text-shadow). Это главный источник «нейроночного» вида.",
+        "name": "The One Red Stamp Rule",
+        "body": "Красная краска — единственный насыщенный цвет мира и метит только фишку, нить, штамп, ошибку и фокус. Ни фонов, ни заливок кнопок красным, кроме подтверждения сброса.",
+        "section": "colors"
+      },
+      {
+        "name": "The Neutral Board Rule",
+        "body": "Загрузка и ошибка не зависят от темы: нейтральный картон со своими локальными переменными и прыгающей фишкой, PT Serif. Ни экранов-заглушек в цветах конкретной темы, ни спиннеров.",
+        "section": "colors"
+      },
+      {
+        "name": "The Board Numerals Rule",
+        "body": "Любое число, которое считает игра (номер клетки, очки, количество участков и клеток, минуты), набирается дисплейным шрифтом с табличными цифрами. Подписи к числам — антиквой.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Kicker Rule",
+        "body": "Над заголовками нет надписей-капсом. Капс и разрядка встречаются только внутри штампа и в поле кода доступа.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Open Card Rule",
+        "body": "На экране задания открыта одна карточка; трасса сжата в полосу. Доска разворачивается только как момент хода или по запросу.",
+        "section": "layout"
+      },
+      {
+        "name": "The Thumb Rule",
+        "body": "Главное действие экрана — во всю ширину, не ниже 56px, у нижнего края в зоне большого пальца, над клавиатурой.",
+        "section": "layout"
+      },
+      {
+        "name": "The Cardboard Depth Rule",
+        "body": "Глубина — только толщина картона и тень со смещением и мягким размытием. Ни градиентной заливки поверхностей, ни стекла, ни свечения.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do продолжать отдавать характер темы через CSS-переменные из themes.js, а не через ветвления в компонентах. Этот механизм работает и переживёт редизайн.",
-      "Do держать основную кнопку действия в плеере на всю ширину и не ниже 52px: игрок нажимает её одной рукой на ходу.",
-      "Do сохранять учёт safe-area в main.css."
+      "**Do** брать каждый цвет из CSS-переменных мира (`--field`, `--paper`, `--ink`, `--chip`, `--done`, `--back`, `--action`), которые ставит `themes.js`; оттенки — через `color-mix` этих переменных.",
+      "**Do** называть кнопку глаголом действия и держать её во всю ширину у низа экрана, не ниже 56px, над клавиатурой.",
+      "**Do** держать на экране одну открытую карточку, а трассу — полосой; доску показывать как момент хода (~1.7 с) или по тапу.",
+      "**Do** класть будущие клетки рубашкой вверх: без номера, названия и типа.",
+      "**Do** выключенную кнопку-глагол рисовать пустой печатной плашкой: бумага, сепия, пунктир 2px.",
+      "**Do** давать глубину кромкой картона и тенью со смещением и отрицательным разбросом на основе `--rule`.",
+      "**Do** набирать числа игры дисплейным шрифтом с табличными цифрами.",
+      "**Do** показывать загрузку и ошибку на нейтральном картоне, не зависящем от темы.",
+      "**Do** уважать `prefers-reduced-motion`: ход фишки, доска, шторки и демо без анимации."
     ],
     "donts": [
-      "Don't брать градиент #667eea → #764ba2 и серую шкалу из variables.css для витрины или плеера: это легаси без автора.",
-      "Don't считать текущий glassmorphism карточки задания, glow на всём, blur-орбы и градиентный текст образцом. CLAUDE.md прямо называет их тем, от чего уходим.",
-      "Don't использовать cubic-bezier(.34,1.56,.64,1) (bounce с перелётом), который сейчас есть в компонентах плеера.",
-      "Don't писать #000 (заливка текста кнопки действия при наведении) и другие чистые нетонированные цвета.",
-      "Don't считать тему готовой, если она отличается от соседней только цветом и шрифтом."
+      "**Don't** писать hex в стилях компонентов плеера; новая краска появляется только как токен в `themes.js`.",
+      "**Don't** использовать плавные цветовые градиенты, стекло, `backdrop-filter`, свечение и цветные ореолы.",
+      "**Don't** ставить эмодзи вместо иконок; только SVG из `QuestIcon`.",
+      "**Don't** делать выключенную кнопку серым или полупрозрачным блоком.",
+      "**Don't** показывать будущие клетки открытыми или подсказывать их содержание.",
+      "**Don't** держать полную доску постоянно над заданием: она уводит тело задания вниз.",
+      "**Don't** ставить надписи-капсом над заголовками; капс живёт только в штампе и поле кода.",
+      "**Don't** документировать или копировать палитры пяти тем без своего мира: это временная основа, а не система."
     ]
   }
 }
