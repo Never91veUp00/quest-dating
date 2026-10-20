@@ -1,5 +1,5 @@
 <template>
-  <div class="block">
+  <div class="block" :class="theme.world?.decor && `block--${theme.world.decor}`">
     <!-- Полоса участка: всегда сверху, тап открывает доску -->
     <button
       type="button"
@@ -56,6 +56,7 @@
             :hasNext="!isLast"
             :decor="theme.world?.decor"
             :enter="entering"
+            :stampId="stampId"
             @open="reviewIdx = $event"
           />
 
@@ -173,10 +174,12 @@ watch(reviewTask, async (t) => {
 // ─── Доска: момент хода ───────────────────────────────────────
 // После выполнения задания доска разворачивается, фишка делает ход,
 // и через мгновение доска сворачивается в полосу. Тап по доске её удерживает.
-const MOMENT_MS = 1700
-const HOP_DELAY = 380
+// Штамп хлопает на пройденную клетку, пауза — и только потом фишка ходит
+const MOMENT_MS = 2000
+const HOP_DELAY = 700
 const boardOpen      = ref(false)
 const boardCompleted = ref([...props.completedIds])
+const stampId        = ref(null)
 const boardClose     = ref(null)
 let autoClose = null
 let hopTimer  = null
@@ -194,6 +197,7 @@ const closeBoard = () => {
   boardOpen.value = false
   entering.value = false
   boardCompleted.value = [...props.completedIds]
+  stampId.value = null
 }
 const holdBoard = () => { clearTimeout(autoClose) }
 
@@ -202,6 +206,7 @@ watch(() => [...props.completedIds], (now, before = []) => {
   const fresh = now.filter(id => !before.includes(id))
   const inBlock = fresh.some(id => tasks.value.some(t => t.id === id))
   if (!inBlock) { boardCompleted.value = [...now]; return }
+  stampId.value = fresh.find(id => tasks.value.some(t => t.id === id))
   // Доска открывается в прежнем состоянии, затем фишка переходит
   openBoard(true)
   hopTimer = setTimeout(() => { boardCompleted.value = [...now] }, HOP_DELAY)
@@ -278,9 +283,17 @@ const finishLabel = computed(() => ({
   overflow: hidden;
 }
 
-.block__mini { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+/* Мини-трасса: клетки на нитке, как на доске */
+.block__mini { position: relative; display: flex; align-items: center; gap: 9px; flex-shrink: 0; padding: 0 2px; }
+.block__mini::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 2px; margin-top: -1px;
+  background: color-mix(in srgb, var(--field-ink) 30%, var(--field));
+}
 .block__mini-cell {
   position: relative;
+  z-index: 1;
   width: 16px; height: 16px;
   border-radius: 3px;
   background: var(--back);
@@ -295,6 +308,20 @@ const finishLabel = computed(() => ({
   border-radius: 50%;
   background: var(--chip);
   border: 2px solid var(--rule);
+}
+
+/* Обличье дела: красная нить, заметки чуть повёрнуты, фишка — кнопка сверху */
+.block--casefile .block__mini::before { background: var(--chip); }
+.block--casefile .block__mini-cell {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 4px 5px -3px color-mix(in srgb, var(--rule) 80%, transparent);
+}
+.block--casefile .block__mini-cell:nth-child(odd)  { transform: rotate(-6deg); }
+.block--casefile .block__mini-cell:nth-child(even) { transform: rotate(5deg); }
+.block--casefile .block__mini-cell.is-active::after {
+  top: -8px; right: auto; left: 50%;
+  margin-left: -6px;
 }
 
 /* ── Доска: момент хода и обзор ───────────────────────────────── */

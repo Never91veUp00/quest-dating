@@ -33,6 +33,9 @@
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
+        <span v-if="stampId != null && cell.id === stampId" class="cell__stamp" aria-hidden="true">
+          <QuestIcon name="check" :size="26" />
+        </span>
       </li>
     </ol>
 
@@ -52,6 +55,7 @@ const props = defineProps({
   hasNext:      { type: Boolean, default: false },
   decor:        { type: String,  default: null },
   enter:        { type: Boolean, default: false }, // фишка заезжает с края поля
+  stampId:      { type: [String, Number], default: null }, // клетка, на которую хлопает штамп
 })
 defineEmits(['open'])
 
@@ -236,7 +240,25 @@ const chipStyle = computed(() => {
   border-width: 2px;
 }
 
+/* Штамп «пройдено»: хлопает на клетку в момент хода */
+.cell__stamp {
+  position: absolute; left: 50%; top: 50%;
+  display: grid; place-items: center;
+  width: 56px; height: 56px; margin: -28px 0 0 -28px;
+  border: 4px double var(--chip);
+  border-radius: 50%;
+  color: var(--chip);
+  pointer-events: none;
+  transform: rotate(-14deg);
+  animation: stamp-slam .3s cubic-bezier(.7, 0, .84, 0) .12s both;
+}
+@keyframes stamp-slam {
+  from { opacity: 0; transform: scale(2.4) rotate(-30deg); }
+  to   { opacity: 1; transform: scale(1) rotate(-14deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .cell__stamp { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>
