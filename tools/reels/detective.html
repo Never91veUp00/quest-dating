@@ -166,18 +166,18 @@
   @keyframes pick-b { 0%, 32.4% { border-color: var(--ink); } 32.5%, 100% { border-color: var(--paper); } }
 
   /* 3. Пары: карточки переворачиваются */
-  .pairs { margin-top: 30px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; perspective: 900px; }
-  .pc { position: relative; height: 200px; transform-style: preserve-3d; }
+  .pairs { margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; perspective: 900px; }
+  .pc { position: relative; height: 168px; transform-style: preserve-3d; }
   .pc > span { position: absolute; inset: 0; border-radius: 10px; display: grid; place-items: center; backface-visibility: hidden; }
   .pc .back { background: var(--back); }
   .pc .back::after { content: ""; position: absolute; inset: 12px; border: 2px dashed rgba(241, 232, 216, .35); border-radius: 6px; }
-  .pc .face { padding: 14px; background: var(--paper); border: 3px solid var(--ink); transform: rotateY(180deg); color: var(--ink); font-size: 27px; line-height: 1.2; text-align: center; }
+  .pc .face { background: var(--paper); border: 3px solid var(--ink); transform: rotateY(180deg); color: var(--ink); }
   .pc .face svg { width: 64px; height: 64px; }
-  .pa { animation-name: flipA; } .pb { animation-name: flipB; }
+  .pa { animation-name: flipA; } .pb { animation-name: flipB; } .pcc { animation-name: flipC; }
   @keyframes flipA { 0%, 43.5% { transform: rotateY(0); animation-timing-function: var(--out); } 46%, 100% { transform: rotateY(180deg); } }
   @keyframes flipB { 0%, 46.5% { transform: rotateY(0); animation-timing-function: var(--out); } 49%, 100% { transform: rotateY(180deg); } }
   @keyframes flipC { 0%, 49.5% { transform: rotateY(0); animation-timing-function: var(--out); } 51.5%, 100% { transform: rotateY(180deg); } }
-  .pa .face { animation-name: matchA; } .pb .face { animation-name: matchB; }
+  .pa .face { animation-name: matchA; } .pb .face { animation-name: matchB; } .pcc .face { animation-name: matchC; }
   @keyframes matchA { 0%, 45.9% { background: var(--paper); } 46%, 100% { background: var(--done); } }
   @keyframes matchB { 0%, 48.9% { background: var(--paper); } 49%, 100% { background: var(--done); } }
   @keyframes matchC { 0%, 51.4% { background: var(--paper); } 51.5%, 100% { background: var(--done); } }
@@ -292,10 +292,12 @@
       <span class="tape tape--l"></span><span class="tape tape--r"></span>
       <h2><svg class="i" viewBox="0 0 24 24"><path d="M4 5h7v10H4z"/><path d="M13 9h7v10h-7z"/></svg>Найди пары</h2>
       <div class="pairs">
-        <div class="pc pa a"><span class="back"></span><span class="face a">Первая встреча</span></div>
-        <div class="pc pb a"><span class="back"></span><span class="face a">Первое «я&nbsp;скучаю»</span></div>
-        <div class="pc pb a"><span class="back"></span><span class="face a">Понял: ты&nbsp;важна</span></div>
-        <div class="pc pa a"><span class="back"></span><span class="face a">Всё началось именно здесь</span></div>
+        <div class="pc pa a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.7A5 5 0 0112 6.4a5 5 0 019.2 4.9C19 15.6 12 20 12 20z"/></svg></span></div>
+        <div class="pc pb a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M5 8h11v5.5A5.5 5.5 0 0110.5 19A5.5 5.5 0 015 13.5z"/><path d="M16 10h1.5a2.5 2.5 0 010 5H16"/></svg></span></div>
+        <div class="pc pcc a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M8 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20.5 12v2"/></svg></span></div>
+        <div class="pc pb a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M5 8h11v5.5A5.5 5.5 0 0110.5 19A5.5 5.5 0 015 13.5z"/><path d="M16 10h1.5a2.5 2.5 0 010 5H16"/></svg></span></div>
+        <div class="pc pcc a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M8 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20.5 12v2"/></svg></span></div>
+        <div class="pc pa a"><span class="back"></span><span class="face a"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.7A5 5 0 0112 6.4a5 5 0 019.2 4.9C19 15.6 12 20 12 20z"/></svg></span></div>
       </div>
     </div>
 
