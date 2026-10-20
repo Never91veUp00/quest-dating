@@ -17,7 +17,6 @@
 
     <!-- Ошибка -->
     <div v-else-if="fatalError" class="qp-error">
-      <div class="qp-error__icon">💀</div>
       <div class="qp-error__title">Квест не найден</div>
       <div class="qp-error__sub">{{ fatalError }}</div>
       <NuxtLink to="/" class="qp-error__link">← На главную</NuxtLink>
@@ -52,29 +51,26 @@
 
           <!-- HUD -->
           <header class="qp-hud">
-            <div class="qp-hud__bar">
-              <div class="qp-hud__fill" :style="{ width: progressPct + '%' }"></div>
-            </div>
             <div class="qp-hud__row">
               <span class="qp-hud__pts">
                 {{ points }}<span class="qp-hud__pts-l"> {{ themeObj.copy.pointsLabel }}</span>
               </span>
               <span class="qp-hud__name">{{ questData.title }}</span>
               <span v-if="themeObj.showTimer" class="qp-hud__time">{{ elapsedStr }}</span>
-              <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню">⋮</button>
+              <button class="qp-hud__menu-btn" @click.stop="showMenu = !showMenu" aria-label="Меню"><QuestIcon name="menu" :size="22" /></button>
             </div>
             <!-- Desktop dropdown -->
             <transition name="fade">
               <div v-if="showMenu" class="qp-hud__dropdown">
                 <button class="qp-hud__dropdown-item" @click="confirmRestart">
-                  🔄 Начать сначала
+                  <QuestIcon name="restart" :size="18" /> Начать сначала
                 </button>
               </div>
             </transition>
           </header>
 
           <!-- Блок -->
-          <main class="qp-main" :class="{ 'qp-main--glow': started }">
+          <main class="qp-main">
             <transition name="slide" mode="out-in">
               <QuestBlockBridge
                 v-if="showBridge && blocks[blockIdx + 1]"
@@ -104,17 +100,6 @@
             </transition>
           </main>
 
-          <!-- Footer -->
-          <footer class="qp-foot">
-            <div class="qp-foot__dots">
-              <span
-                v-for="(_, i) in blocks"
-                :key="i"
-                class="qp-foot__dot"
-                :class="{ cur: i === blockIdx, done: isBlockDone(i) }"
-              ></span>
-            </div>
-          </footer>
 
         </div>
       </transition>
@@ -122,12 +107,12 @@
       <!-- ── МЕНЮ ── -->
       <teleport to="body">
         <transition name="sheet">
-          <div v-if="showMenu" class="qp-menu-sheet" @click.self="showMenu = false">
+          <div v-if="showMenu" class="qp-menu-sheet" :style="cssVars" @click.self="showMenu = false">
             <div class="qp-menu-sheet__panel">
               <div class="qp-menu-sheet__handle"></div>
               <div class="qp-menu-sheet__title">Меню</div>
               <button class="qp-menu-sheet__item" @click="confirmRestart">
-                <span class="qp-menu-sheet__ico">🔄</span>
+                <QuestIcon name="restart" :size="20" />
                 <span>Начать сначала</span>
               </button>
               <button class="qp-menu-sheet__close" @click="showMenu = false">Закрыть</button>
@@ -157,7 +142,7 @@
     <!-- Достижение-тост -->
     <transition name="pop">
       <div v-if="badge" class="qp-badge">
-        <span class="qp-badge__ico">{{ badge.icon }}</span>
+        <span class="qp-badge__ico" aria-hidden="true"><QuestIcon name="check" :size="20" /></span>
         <div>
           <div class="qp-badge__title">{{ badge.title }}</div>
           <div class="qp-badge__sub">{{ badge.sub }}</div>
@@ -169,7 +154,6 @@
     <transition name="fade">
       <div v-if="showRestartConfirm" class="qp-confirm-overlay" @click.self="showRestartConfirm = false">
         <div class="qp-confirm">
-          <div class="qp-confirm__icon">🔄</div>
           <div class="qp-confirm__title">Начать сначала?</div>
           <div class="qp-confirm__text">Весь прогресс будет сброшен</div>
           <div class="qp-confirm__btns">
@@ -595,50 +579,35 @@ onUnmounted(() => {
 .qp-error__title { font-family: var(--font-d); font-size: 1.2rem; color: #fff; }
 .qp-error__sub { color: var(--dim); font-size: .9rem; }
 .qp-error__link { color: var(--accent); font-size: .9rem; text-decoration: none; margin-top: 8px; }
-.qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 60px 0 60px; }
-.qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--bord); }
-.qp-hud__bar { height: 10px; background: rgba(255,255,255,.06); overflow: visible; }
-.qp-hud__fill { height: 100%; background: var(--accent); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent); transition: width .45s cubic-bezier(.4,0,.2,1); }
-.qp-hud__row { display: flex; align-items: center; padding: 10px 16px; gap: 8px; }
-.qp-hud__pts { font-family: var(--font-d); font-size: .85rem; font-weight: 700; color: var(--accent); white-space: nowrap; text-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
-.qp-hud__pts-l { font-size: .62rem; font-weight: 400; opacity: .7; }
-.qp-hud__name { flex: 1; font-size: .8rem; color: rgba(255,255,255,.55); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.qp-hud__time { font-family: var(--font-d); font-size: .7rem; color: rgba(255,255,255,.5); white-space: nowrap; }
-.qp-hud__menu-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.9); font-size: 1.3rem; cursor: pointer; padding: 3px 10px; line-height: 1; border-radius: 6px; transition: background .2s, color .2s; }
-.qp-hud__menu-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
-.qp-hud__dropdown { position: absolute; top: 100%; right: 12px; background: var(--surf); border: 1px solid var(--bord); border-radius: 8px; padding: 4px; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-.qp-hud__dropdown-item { width: 100%; background: none; border: none; color: var(--text); font-size: .85rem; padding: 10px 14px; cursor: pointer; border-radius: 6px; text-align: left; transition: background .15s; }
-.qp-hud__dropdown-item:hover { background: rgba(255,255,255,.06); }
-.qp-main { flex: 1; padding: 20px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
-.qp-main--glow::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 50%; transform: translateX(-50%);
-  width: min(100vw, 600px); height: 300px;
-  background: radial-gradient(ellipse 80% 100% at 50% 0%,
-    color-mix(in srgb, var(--accent) 8%, transparent) 0%,
-    transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-.qp-foot { position: fixed; bottom: 0; left: 0; right: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(12px); border-top: 1px solid var(--bord); padding: 12px 16px; display: flex; align-items: center; justify-content: center; z-index: 100; }
-.qp-foot__dots { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
-.qp-foot__dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); transition: all .32s cubic-bezier(.4,0,.2,1); }
-.qp-foot__dot.done { background: rgba(255,255,255,.45); }
-.qp-foot__dot.cur { width: 24px; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
-.qp-badge { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--surf); border: 1px solid var(--accent); border-radius: 11px; padding: 11px 20px; display: flex; align-items: center; gap: 11px; min-width: 200px; max-width: 300px; box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent), 0 8px 24px rgba(0,0,0,.4); backdrop-filter: blur(12px); }
-.qp-badge__ico { font-size: 1.5rem; flex-shrink: 0; }
-.qp-badge__title { font-family: var(--font-d); font-size: .7rem; font-weight: 700; color: var(--accent); }
-.qp-badge__sub { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 2px; }
-.qp-confirm-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
-.qp-confirm { background: var(--surf); border: 1px solid var(--bord); border-radius: 16px; padding: 28px 24px; text-align: center; max-width: 320px; width: 100%; }
-.qp-confirm__icon { font-size: 2.5rem; margin-bottom: 12px; }
-.qp-confirm__title { font-family: var(--font-d); font-size: 1.1rem; color: #fff; margin-bottom: 6px; }
-.qp-confirm__text { font-size: .85rem; color: var(--dim); margin-bottom: 20px; }
+.qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 64px 0 40px; background: var(--field); }
+.qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--field); border-bottom: 2px solid color-mix(in srgb, var(--field-ink) 18%, var(--field)); }
+.qp-hud__row { display: flex; align-items: center; padding: 8px 12px 8px 16px; gap: 10px; max-width: 600px; margin: 0 auto; }
+.qp-hud__pts { font-family: var(--font-d); font-size: 1.15rem; color: var(--field-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qp-hud__pts-l { margin-left: 4px; font-family: var(--font-b); font-size: .9rem; color: var(--field-ink-soft); }
+.qp-hud__name { flex: 1; font-family: var(--font-b); font-size: .95rem; color: var(--field-ink-soft); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-hud__time { font-family: var(--font-d); font-size: .9rem; color: var(--field-ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qp-hud__menu-btn { display: grid; place-items: center; width: 44px; height: 44px; background: none; border: 2px solid color-mix(in srgb, var(--field-ink) 30%, var(--field)); border-radius: 10px; color: var(--field-ink); cursor: pointer; }
+.qp-hud__menu-btn:hover { border-color: var(--field-ink); }
+.qp-hud__menu-btn:focus-visible { outline: 3px solid var(--field-ink); outline-offset: 2px; }
+.qp-hud__dropdown { position: absolute; top: 100%; right: max(12px, calc(50% - 288px)); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 6px; min-width: 200px; box-shadow: 0 16px 24px -12px color-mix(in srgb, var(--rule) 70%, transparent); }
+.qp-hud__dropdown-item { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; color: var(--ink); font-family: var(--font-b); font-size: 1rem; padding: 12px 14px; cursor: pointer; border-radius: 6px; text-align: left; }
+.qp-hud__dropdown-item:hover { background: color-mix(in srgb, var(--paper-edge) 35%, var(--paper)); }
+.qp-main { flex: 1; padding: 16px 16px 0; max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+.qp-badge { position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--paper); color: var(--ink); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; min-width: 210px; max-width: 320px; box-shadow: 0 16px 24px -12px color-mix(in srgb, var(--rule) 75%, transparent); }
+.qp-badge__ico { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: var(--action); color: var(--action-ink); }
+.qp-badge__title { font-family: var(--font-d); font-size: 1rem; color: var(--ink); }
+.qp-badge__sub { font-family: var(--font-b); font-size: .9rem; color: var(--ink-soft); margin-top: 2px; }
+.qp-confirm-overlay { position: fixed; inset: 0; z-index: 500; background: color-mix(in srgb, var(--rule) 60%, transparent); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.qp-confirm { background: var(--paper); color: var(--ink); border-radius: 12px; padding: 26px 22px 22px; max-width: 340px; width: 100%; box-shadow: 0 20px 30px -16px color-mix(in srgb, var(--rule) 80%, transparent); }
+.qp-confirm__title { font-family: var(--font-d); font-size: 1.35rem; color: var(--ink); margin-bottom: 8px; }
+.qp-confirm__text { font-family: var(--font-b); font-size: 1.05rem; color: var(--ink-soft); margin-bottom: 22px; }
 .qp-confirm__btns { display: flex; gap: 10px; }
-.qp-confirm__btn { flex: 1; padding: 12px; border-radius: 9px; font-weight: 600; font-family: var(--font-b); font-size: .88rem; cursor: pointer; border: none; }
-.qp-confirm__btn--cancel { background: var(--bg); color: var(--dim); border: 1px solid var(--bord); }
-.qp-confirm__btn--confirm { background: #f87171; color: #fff; }
+.qp-confirm__btn { flex: 1; min-height: 52px; border-radius: 10px; font-family: var(--font-d); font-size: 1rem; cursor: pointer; border: none; }
+.qp-confirm__btn--cancel { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+.qp-confirm__btn--confirm { background: var(--wrong); color: var(--paper); }
+.qp-confirm__btn:focus-visible { outline: 3px solid var(--chip); outline-offset: 2px; }
+.qp ::selection { background: var(--chip); color: var(--paper); }
+.qp { scrollbar-color: color-mix(in srgb, var(--field-ink) 35%, var(--field)) var(--field); }
 .splash-out-leave-active { transition: opacity .5s ease, transform .5s ease; }
 .splash-out-leave-to { opacity: 0; transform: scale(1.04); }
 .player-in-enter-active { transition: opacity .5s .1s ease; }
@@ -657,22 +626,14 @@ onUnmounted(() => {
 .qp-menu-sheet { display: none; }
 @media (max-width: 480px) {
   .qp-hud__dropdown { display: none !important; }
-  .qp-menu-sheet { display: flex; position: fixed; inset: 0; z-index: 400; align-items: flex-end; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
-  .qp-menu-sheet__panel { width: 100%; background: color-mix(in srgb, var(--surf) 95%, #fff 5%); border-top: 2px solid var(--accent); border-radius: 20px 20px 0 0; padding: 12px 16px max(32px, env(safe-area-inset-bottom, 0px) + 16px); }
-  .qp-menu-sheet__handle { width: 40px; height: 4px; background: rgba(255,255,255,.25); border-radius: 2px; margin: 0 auto 20px; }
-  .qp-menu-sheet__title { font-family: var(--font-d); font-size: .75rem; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .15em; margin-bottom: 8px; }
-  .qp-menu-sheet__item { display: flex; align-items: center; gap: 14px; width: 100%; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; color: #fff; font-size: 1rem; padding: 16px 14px; cursor: pointer; text-align: left; transition: background .15s; margin-bottom: 8px; }
-  .qp-menu-sheet__item:hover { background: rgba(255,255,255,.09); }
-  .qp-menu-sheet__ico { font-size: 1.3rem; width: 28px; text-align: center; }
-  .qp-menu-sheet__close { display: block; width: 100%; margin-top: 4px; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,.15); border-radius: 12px; color: rgba(255,255,255,.5); font-size: .9rem; cursor: pointer; }
-  .qp-main { padding: 16px 12px 0; }
-  .qp-hud__row { padding: 8px 12px; gap: 6px; }
-  .qp-hud__name { font-size: .72rem; }
-  .qp-foot { padding: 10px 12px; }
-  .qp-badge { min-width: 170px; padding: 10px 14px; }
-  .qp-badge__ico { font-size: 1.2rem; }
-  .qp-badge__title { font-size: .65rem; }
-  .qp-badge__sub { font-size: .65rem; }
+  .qp-menu-sheet { display: flex; position: fixed; inset: 0; z-index: 400; align-items: flex-end; background: color-mix(in srgb, var(--rule) 55%, transparent); }
+  .qp-menu-sheet__panel { width: 100%; background: var(--paper); color: var(--ink); border-radius: 16px 16px 0 0; padding: 12px 16px max(28px, env(safe-area-inset-bottom, 0px) + 16px); }
+  .qp-menu-sheet__handle { width: 44px; height: 5px; background: color-mix(in srgb, var(--ink) 30%, var(--paper)); border-radius: 3px; margin: 0 auto 18px; }
+  .qp-menu-sheet__title { font-family: var(--font-d); font-size: 1.25rem; color: var(--ink); margin-bottom: 12px; }
+  .qp-menu-sheet__item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; background: color-mix(in srgb, var(--paper-edge) 30%, var(--paper)); border: none; border-radius: 10px; color: var(--ink); font-family: var(--font-b); font-size: 1.05rem; padding: 0 16px; cursor: pointer; text-align: left; margin-bottom: 10px; }
+  .qp-menu-sheet__close { display: block; width: 100%; min-height: 52px; background: transparent; border: 2px solid var(--ink); border-radius: 10px; color: var(--ink); font-family: var(--font-d); font-size: 1rem; cursor: pointer; }
+  .qp-main { padding: 14px 12px 0; }
+  .qp-hud__row { padding: 8px 10px 8px 14px; }
 }
 .sheet-enter-active, .sheet-leave-active { transition: opacity .25s ease; }
 .sheet-enter-active .qp-menu-sheet__panel, .sheet-leave-active .qp-menu-sheet__panel { transition: transform .3s cubic-bezier(.22,1,.36,1); }
