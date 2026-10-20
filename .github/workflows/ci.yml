@@ -64,3 +64,28 @@ jobs:
 
       - name: Run integration tests
         run: npm run test:integration
+
+  client-unit:
+    # Фронт плеера стабилизирован после редизайна (Фаза 3.1, «Ходилка»),
+    # поэтому клиентские unit-тесты теперь гоняются на каждом PR.
+    name: Client unit-тесты (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: client-nuxt
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: client-nuxt/package-lock.json
+
+      # postinstall запускает `nuxt prepare` — он генерирует .nuxt/ для алиасов
+      - name: Install deps
+        run: npm ci
+
+      - name: Run client unit tests
+        run: npm run test:unit
