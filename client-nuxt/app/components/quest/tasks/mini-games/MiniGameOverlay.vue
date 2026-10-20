@@ -72,6 +72,8 @@ defineEmits(['update:modelValue'])
 .mg-overlay--letters :deep(.task__pairs__card__back),
 .mg-overlay--letters :deep(.task__pairs__card__front) { border-radius: 3px; clip-path: inset(0 round 3px); }
 
+/* Схема, «Найди пары»: талоны лежат на бумаге схемы, а не на таком же талоне */
+.mg-overlay--metro { background: var(--field); color: var(--field-ink); }
 /* Схема, «Найди пары»: рубашка — талон с зелёной полосой, без знака вопроса */
 .mg-overlay--metro :deep(.task__pairs__card__back) {
   font-size: 0;

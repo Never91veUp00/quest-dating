@@ -332,17 +332,19 @@ const saveCard = async () => {
   position: absolute; left: 14px; right: 14px; top: 25px;
   border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
 }
+/* корешок пробит: по дырочке на каждую пройденную станцию, между полосой и линией отрыва */
 .finish__holes {
-  position: absolute; right: 18px; top: 32px;
-  display: flex; gap: 5px;
+  position: absolute; right: 22px; top: 13px;
+  display: flex; gap: 6px;
 }
 .finish__holes i {
-  width: 8px; height: 8px;
+  width: 11px; height: 11px;
   border-radius: 50%;
   background: var(--field);
-  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--rule) 45%, transparent);
+  box-shadow:
+    inset 0 2px 2px color-mix(in srgb, var(--rule) 55%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--paper-edge) 80%, var(--ink));
 }
-.finish__holes i:nth-child(even) { transform: translateY(5px); }
 
 /* Обличье переписки: последнее письмо, погашенное штемпелем «Доставлено» */
 .finish--letters .finish__message { border: none; border-radius: 2px; margin-top: 10px; padding-top: 26px; }
