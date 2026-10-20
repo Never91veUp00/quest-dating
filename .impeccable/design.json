@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-20T18:31:57.000Z",
+  "generatedAt": "2026-10-21T00:00:00.000Z",
   "title": "Design System: Quest Dating",
   "extensions": {
-    "scope": "Плеер квеста /quest/[slug]. Свой мир у двух тем: detective (decor: casefile) и romantic (decor: letters, «Переписка»); ключи токенов с префиксом romantic- — «Романтик». Остальные четыре темы (mystery, treasure, proposal, city) идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
+    "scope": "Плеер квеста /quest/[slug]. Свой мир у трёх тем: detective (decor: casefile), romantic (decor: letters, «Переписка») и city (decor: metro, «Схема метро с талоном»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город». Остальные три темы (mystery, treasure, proposal) идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
     "tokenSource": {
       "file": "client-nuxt/app/components/quest/themes.js",
       "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Если у темы нет блока world, worldVars() выводит цвета из bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b."
@@ -450,6 +450,176 @@
           "#ffb2b1",
           "#ffe8e8"
         ]
+      },
+      "city-field": {
+        "role": "neutral",
+        "displayName": "Бумага схемы",
+        "canonical": "#e9eeea",
+        "cssVar": "--field",
+        "oklch": "oklch(94.4% 0.008 151.9)",
+        "tonalRamp": [
+          "#090c0a",
+          "#222623",
+          "#3f4340",
+          "#5e625f",
+          "#7f8480",
+          "#a2a6a3",
+          "#c6cbc7",
+          "#ebf0ec"
+        ]
+      },
+      "city-field-ink": {
+        "role": "neutral",
+        "displayName": "Краска схемы",
+        "canonical": "#1f2422",
+        "cssVar": "--field-ink",
+        "oklch": "oklch(25.4% 0.008 169.7)",
+        "tonalRamp": [
+          "#080c0b",
+          "#212624",
+          "#3e4341",
+          "#5d6360",
+          "#7e8481",
+          "#a0a7a4",
+          "#c4cbc8",
+          "#e9f0ed"
+        ]
+      },
+      "city-field-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённая краска схемы",
+        "canonical": "#4c5450",
+        "cssVar": "--field-ink-soft",
+        "oklch": "oklch(43.7% 0.012 164.4)",
+        "tonalRamp": [
+          "#070d0a",
+          "#202723",
+          "#3c4440",
+          "#5b635f",
+          "#7c8580",
+          "#9fa8a3",
+          "#c2ccc7",
+          "#e8f1ec"
+        ]
+      },
+      "city-paper": {
+        "role": "neutral",
+        "displayName": "Талон",
+        "canonical": "#f5e8c6",
+        "cssVar": "--paper",
+        "oklch": "oklch(93.3% 0.047 89.6)",
+        "tonalRamp": [
+          "#100a00",
+          "#2e2406",
+          "#4c4124",
+          "#6c6042",
+          "#8d8162",
+          "#b1a484",
+          "#d5c8a7",
+          "#fbeecc"
+        ]
+      },
+      "city-paper-edge": {
+        "role": "neutral",
+        "displayName": "Картон проездного",
+        "canonical": "#d8c9a4",
+        "cssVar": "--paper-edge",
+        "oklch": "oklch(83.9% 0.052 88.6)",
+        "tonalRamp": [
+          "#100a00",
+          "#2f2302",
+          "#4d401f",
+          "#6d603e",
+          "#8f815e",
+          "#b2a480",
+          "#d7c8a3",
+          "#fdedc7"
+        ]
+      },
+      "city-ink": {
+        "role": "neutral",
+        "displayName": "Типографская краска",
+        "canonical": "#1f2422",
+        "cssVar": "--ink",
+        "oklch": "oklch(25.4% 0.008 169.7)",
+        "tonalRamp": [
+          "#080c0b",
+          "#212624",
+          "#3e4341",
+          "#5d6360",
+          "#7e8481",
+          "#a0a7a4",
+          "#c4cbc8",
+          "#e9f0ed"
+        ]
+      },
+      "city-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённая краска",
+        "canonical": "#545c58",
+        "cssVar": "--ink-soft",
+        "oklch": "oklch(46.6% 0.012 164.5)",
+        "tonalRamp": [
+          "#070d0a",
+          "#202723",
+          "#3c4440",
+          "#5b635f",
+          "#7c8580",
+          "#9fa7a3",
+          "#c2ccc7",
+          "#e8f1ec"
+        ]
+      },
+      "city-plate": {
+        "role": "neutral",
+        "displayName": "Станция",
+        "canonical": "#fbf9f3",
+        "cssVar": "--plate",
+        "oklch": "oklch(98.2% 0.008 91.5)",
+        "tonalRamp": [
+          "#0c0b07",
+          "#262521",
+          "#43423d",
+          "#63615c",
+          "#84827d",
+          "#a7a59f",
+          "#cbc9c3",
+          "#f0eee8"
+        ]
+      },
+      "city-chip": {
+        "role": "primary",
+        "displayName": "Зелёная линия",
+        "canonical": "#1f8a4c",
+        "cssVar": "--chip",
+        "oklch": "oklch(56.0% 0.134 152.5)",
+        "tonalRamp": [
+          "#001004",
+          "#002e14",
+          "#055027",
+          "#07753c",
+          "#33995a",
+          "#5bbd7b",
+          "#80e29f",
+          "#c7ffd5"
+        ]
+      },
+      "city-wrong": {
+        "role": "secondary",
+        "displayName": "Кирпичная ошибка",
+        "canonical": "#b8392a",
+        "cssVar": "--wrong",
+        "oklch": "oklch(53.0% 0.166 30.2)",
+        "tonalRamp": [
+          "#1e0100",
+          "#4c0300",
+          "#7e0c03",
+          "#ab2c1e",
+          "#d35241",
+          "#fb7764",
+          "#feb3a6",
+          "#ffe9e5"
+        ]
       }
     },
     "typographyMeta": {
@@ -496,11 +666,31 @@
       "romantic-hand": {
         "displayName": "Романтик: Hand",
         "purpose": "Bad Script 400, только адрес и обращение: «Кому:» с именем на крышке, «Перед стартом», подпись послания на финале. Никогда — текст задания, кнопки и числа."
+      },
+      "city-display": {
+        "displayName": "Город: Display",
+        "purpose": "Golos Text 700: название квеста на сводке, на проездном (clamp(1.4rem, 8cqi, 2.4rem), по левому краю) и заголовок финала «Конечная!»."
+      },
+      "city-headline": {
+        "displayName": "Город: Headline",
+        "purpose": "Golos Text 500: название участка на развёрнутой доске (стили ставят 400, загружены 500–700)."
+      },
+      "city-title": {
+        "displayName": "Город: Title",
+        "purpose": "Golos Text 700, −0.01em: название задания на талоне, кнопки-глаголы, очки в шапке и счётчик полосы (через --font-d-wt: 700)."
+      },
+      "city-numeral": {
+        "displayName": "Город: Numeral",
+        "purpose": "Golos Text 700: номер станции «вы здесь» (1.45rem), номер в кружке-станции на талоне (1.1rem), факты."
+      },
+      "city-body": {
+        "displayName": "Город: Body",
+        "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи."
       }
     },
     "fontLoading": {
-      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у detective и romantic.",
-      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400.",
+      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у detective, romantic и city.",
+      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница).",
       "status": "Темы без своего мира по-прежнему грузят свои шрифты с Google Fonts (theme.fonts.googleFonts)."
     },
     "shadows": [
@@ -548,6 +738,31 @@
         "name": "lid-flap",
         "value": "drop-shadow(0 3px 2px color-mix(in srgb, var(--rule) 35%, transparent))",
         "purpose": "Закрытый клапан конверта-крышки."
+      },
+      {
+        "name": "ticket",
+        "value": "inset 0 12px 0 var(--chip), 0 1px 0 var(--paper-edge), 0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent)",
+        "purpose": "Талон задания на схеме; inset 12px — плашка полосы. «Перед стартом» — без кромки, талон финала — без кромки, 0 18px 26px -16px."
+      },
+      {
+        "name": "transit-pass",
+        "value": "inset 30px 0 0 var(--chip), 0 1px 0 var(--paper-edge), 0 22px 30px -18px color-mix(in srgb, var(--rule) 60%, transparent)",
+        "purpose": "Проездной-крышка на схеме; полоса 30px слева — плашка."
+      },
+      {
+        "name": "station-active",
+        "value": "0 0 0 3px var(--field), 0 8px 12px -6px color-mix(in srgb, var(--rule) 45%, transparent)",
+        "purpose": "Станция «вы здесь»: кольцо поля отделяет её от линии."
+      },
+      {
+        "name": "train-car",
+        "value": "0 6px 8px -4px color-mix(in srgb, var(--rule) 55%, transparent)",
+        "purpose": "Вагончик-фишка над станцией."
+      },
+      {
+        "name": "punch-hole",
+        "value": "inset 0 1px 1px color-mix(in srgb, var(--rule) 45%, transparent)",
+        "purpose": "Дырочка компостера в станции; на талоне финала — inset 0 2px 2px 55% и ободок 0 0 0 1px (--paper-edge 80% с --ink)."
       }
     ],
     "motion": [
@@ -590,6 +805,21 @@
         "name": "lid-flap-open",
         "value": "rotateX(180deg) .4s cubic-bezier(.5, 0, .3, 1); печать гаснет за .15s; конверт уезжает с задержкой .32s",
         "purpose": "Открытие конверта-крышки: сначала клапан, потом конверт."
+      },
+      {
+        "name": "punch",
+        "value": "scale(0) → scale(1) .22s cubic-bezier(.7, 0, .84, 0), шаг .06s на дырочку",
+        "purpose": "Компостер пробивает пройденную станцию в момент хода (схема)."
+      },
+      {
+        "name": "compost",
+        "value": "scale(.82) → scale(1) .36s cubic-bezier(.16, 1, .3, 1) .1s",
+        "purpose": "Станция проседает под компостером и возвращается."
+      },
+      {
+        "name": "turnstile",
+        "value": "translateY(-36px) .3s cubic-bezier(.7, 0, .84, 0); крышка уезжает с задержкой .22s",
+        "purpose": "Открытие крышки на схеме: проездной проходит турникет, потом поднимается крышка."
       }
     ],
     "breakpoints": [
@@ -699,11 +929,35 @@
       "description": "Крышка «Романтика»: конверт обратной стороной, закрытый клапан с сургучной печатью, название и «Кому:» от руки. Единственное место сургуча в переписке.",
       "html": "<div class=\"ds-lid-wrap\"><div class=\"ds-lid\"><span class=\"ds-lid__flap\"><i class=\"ds-lid__seal\"></i></span><h1 class=\"ds-lid__title\">Наша весна</h1><p class=\"ds-lid__for\">Кому: Лизе</p></div></div>",
       "css": ".ds-lid-wrap { --field:#6b2e35; --field-ink:#f6ebdc; --paper:#f8f1e4; --paper-edge:#e2c9ae; --ink:#3b1c20; --ink-soft:#6e4a47; --done:#dcbfa6; --back:#8c4f52; --chip:#d98f8f; --rule:#3b1c20; background:var(--field); padding:24px 16px; container-type:inline-size; } .ds-lid { position:relative; display:flex; flex-direction:column; justify-content:flex-end; aspect-ratio:10/8; padding:0 22px 26px; border-radius:3px; color:var(--ink); background:linear-gradient(to top right, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 14%, var(--paper-edge)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) left bottom / 50% 64% no-repeat, linear-gradient(to top left, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 14%, var(--paper-edge)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) right bottom / 50% 64% no-repeat, var(--paper-edge); box-shadow:0 22px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent); } .ds-lid__flap { position:absolute; left:0; right:0; top:0; height:38cqi; filter:drop-shadow(0 3px 2px color-mix(in srgb, var(--rule) 35%, transparent)); } .ds-lid__flap::before { content:''; position:absolute; inset:0; background:color-mix(in srgb, var(--rule) 6%, var(--paper-edge)); clip-path:polygon(0 0, 100% 0, 50% 100%); } .ds-lid__seal { position:absolute; left:50%; bottom:-30px; width:64px; height:64px; margin-left:-32px; border-radius:50%; background:#8f2630; box-shadow:inset 0 0 0 6px #8f2630, inset 0 0 0 8px #661820; transform:rotate(-8deg); } .ds-lid__title { position:relative; margin:0; font-family:'Cormorant Garamond','PT Serif',Georgia,serif; font-weight:700; font-size:clamp(1.4rem, 8.6cqi, 2.9rem); line-height:1.04; } .ds-lid__for { position:relative; margin:8px 0 0; font-family:'Bad Script','PT Serif',Georgia,cursive; font-size:1.55rem; }"
+    },
+    {
+      "name": "Талон задания (схема)",
+      "kind": "card",
+      "refersTo": "city-ticket",
+      "description": "Карточка задания в «Городе»: талон с полосой линии, вырубками по краям и пунктиром отрыва, номер — в кружке станции.",
+      "html": "<div class=\"ds-m-wrap\"><article class=\"ds-ticket\"><span class=\"ds-ticket__perf\"></span><div class=\"ds-ticket__head\"><span class=\"ds-ticket__no\">2</span><h3 class=\"ds-ticket__title\">Где мы встретились</h3></div><p class=\"ds-ticket__text\">Вспомни улицу, где всё началось. Как она называется?</p></article></div>",
+      "css": ".ds-m-wrap { --field:#e9eeea; --field-ink:#1f2422; --paper:#f5e8c6; --paper-edge:#d8c9a4; --ink:#1f2422; --ink-soft:#545c58; --plate:#fbf9f3; --chip:#1f8a4c; --rule:#1f2422; background:var(--field); padding:20px 16px; } .ds-ticket { position:relative; background:var(--paper); color:var(--ink); border-radius:6px; padding:44px 20px 22px; display:flex; flex-direction:column; gap:14px; box-shadow:inset 0 12px 0 var(--chip), 0 1px 0 var(--paper-edge), 0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent); } .ds-ticket::before, .ds-ticket::after { content:''; position:absolute; top:18px; width:16px; height:16px; border-radius:50%; background:var(--field); } .ds-ticket::before { left:-8px; } .ds-ticket::after { right:-8px; } .ds-ticket__perf { position:absolute; left:14px; right:14px; top:25px; border-top:2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper)); } .ds-ticket__head { display:flex; gap:12px; align-items:center; } .ds-ticket__no { display:grid; place-items:center; flex:none; box-sizing:border-box; width:40px; height:40px; border-radius:50%; background:var(--plate); border:5px solid var(--chip); font-family:'Golos Text','PT Serif',Arial,sans-serif; font-weight:700; font-size:1.1rem; } .ds-ticket__title { margin:0; font-family:'Golos Text','PT Serif',Arial,sans-serif; font-weight:700; letter-spacing:-0.01em; font-size:1.45rem; line-height:1.15; } .ds-ticket__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; }"
+    },
+    {
+      "name": "Станции на линии (схема)",
+      "kind": "track",
+      "refersTo": "city-station-active",
+      "description": "Трасса «Города»: зелёная линия, пройденные станции пробиты компостером, «вы здесь» с номером и вагончиком, впереди пустые кружки.",
+      "html": "<div class=\"ds-m-track\"><span class=\"ds-m-line\"></span><span class=\"ds-st ds-st--done\"><span class=\"ds-punch\"><i></i><i></i><i></i></span></span><span class=\"ds-st ds-st--done\"><span class=\"ds-punch\"><i></i><i></i><i></i></span></span><span class=\"ds-st ds-st--active\"><span class=\"ds-car\"></span>3</span><span class=\"ds-st ds-st--back\"></span><span class=\"ds-st ds-st--back\"></span></div>",
+      "css": ".ds-m-track { --field:#e9eeea; --field-ink:#1f2422; --paper:#f5e8c6; --paper-edge:#d8c9a4; --ink:#1f2422; --ink-soft:#545c58; --plate:#fbf9f3; --chip:#1f8a4c; --rule:#1f2422; position:relative; display:flex; align-items:center; justify-content:space-between; background:var(--field); padding:56px 22px 26px; } .ds-m-line { position:absolute; left:0; right:0; top:calc(50% + 15px); height:10px; margin-top:-5px; border-radius:5px; background:var(--chip); } .ds-st { position:relative; box-sizing:border-box; display:grid; place-items:center; border-radius:50%; font-family:'Golos Text','PT Serif',Arial,sans-serif; font-weight:700; color:var(--ink); } .ds-st--done { width:40px; height:40px; background:var(--chip); border:3px solid var(--field); box-shadow:0 0 0 3px var(--chip); } .ds-st--active { width:58px; height:58px; background:var(--plate); border:7px solid var(--chip); font-size:1.45rem; box-shadow:0 0 0 3px var(--field), 0 8px 12px -6px color-mix(in srgb, var(--rule) 45%, transparent); } .ds-st--back { width:26px; height:26px; background:var(--plate); border:4px solid var(--rule); } .ds-punch { display:flex; gap:3px; } .ds-punch i { width:7px; height:7px; border-radius:50%; background:var(--field); box-shadow:inset 0 1px 1px color-mix(in srgb, var(--rule) 45%, transparent); } .ds-punch i:nth-child(2) { transform:translateY(-4px); } .ds-car { position:absolute; left:50%; top:-24px; width:34px; height:18px; margin-left:-17px; border-radius:9px 9px 4px 4px; background:var(--rule); box-shadow:0 6px 8px -4px color-mix(in srgb, var(--rule) 55%, transparent); } .ds-car::before { content:''; position:absolute; left:6px; right:6px; top:4px; height:5px; border-radius:2px; background:repeating-linear-gradient(90deg, var(--field) 0 6px, transparent 6px 9px); }"
+    },
+    {
+      "name": "Проездной-крышка (схема)",
+      "kind": "lid",
+      "refersTo": "city-lid-pass",
+      "description": "Крышка «Города»: проездной с полосой линии слева, названием и «Кому:» по левому краю и маршрутом из пяти станций вдоль низа.",
+      "html": "<div class=\"ds-m-lid\"><div class=\"ds-pass\"><h3 class=\"ds-pass__title\">Наш город</h3><p class=\"ds-pass__for\">Кому: <b>Аня</b></p><span class=\"ds-pass__route\"><i></i><i></i><i></i><i></i><i></i></span></div></div>",
+      "css": ".ds-m-lid { --field:#e9eeea; --field-ink:#1f2422; --paper:#f5e8c6; --paper-edge:#d8c9a4; --ink:#1f2422; --ink-soft:#545c58; --plate:#fbf9f3; --chip:#1f8a4c; --rule:#1f2422; background:var(--field); padding:28px 16px; container-type:inline-size; } .ds-pass { position:relative; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; aspect-ratio:85.6/54; padding:22px 22px 58px 52px; border-radius:14px; background:var(--paper); color:var(--ink); box-shadow:inset 30px 0 0 var(--chip), 0 1px 0 var(--paper-edge), 0 22px 30px -18px color-mix(in srgb, var(--rule) 60%, transparent); } .ds-pass__title { margin:0; font-family:'Golos Text','PT Serif',Arial,sans-serif; font-weight:700; font-size:clamp(1.4rem, 8cqi, 2.4rem); line-height:1.04; } .ds-pass__for { margin:10px 0 0; font-family:'PT Serif',Georgia,serif; font-size:1.05rem; } .ds-pass__route { position:absolute; left:52px; right:26px; bottom:24px; display:flex; justify-content:space-between; align-items:center; height:16px; } .ds-pass__route::before { content:''; position:absolute; left:4px; right:4px; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--chip); } .ds-pass__route i { position:relative; box-sizing:border-box; width:16px; height:16px; border-radius:50%; background:var(--plate); border:4px solid var(--chip); }"
     }
   ],
   "narrative": {
     "northStar": "Ходилка, напечатанная для одной пары",
-    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. Участок называется «Глава».\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда: свой мир сейчас у двух тем, detective (`casefile`) и romantic (`letters`). Остальные четыре темы (mystery, treasure, proposal, city) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих четырёх тем системой не являются: каждая получит свой мир в своём PR. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный). Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
+    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда: свой мир сейчас у трёх тем: detective (`casefile`), romantic (`letters`) и city (`metro`). Остальные три темы (mystery, treasure, proposal) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих трёх тем системой не являются: каждая получит свой мир в своём PR. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный). Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
     "keyCharacteristics": [
       "Поле — сплошная краска, без фоновых градиентов и подсветки.",
       "Одна открытая карточка на экран; будущие клетки лежат рубашкой вверх.",
@@ -711,7 +965,8 @@
       "Цифры набраны крупным гротеском поля игры (Dela Gothic One), текст — книжной антиквой (PT Serif).",
       "Иконки — авторский SVG-набор одной толщины (2.25), без эмодзи.",
       "Кнопка называется глаголом и всегда у низа экрана.",
-      "В «Переписке» глубина та же, бумажная: конверты, письма и клапаны без контура; ход отмечает штемпель, а не сургуч."
+      "В «Переписке» глубина та же, бумажная: конверты, письма и клапаны без контура; ход отмечает штемпель, а не сургуч.",
+      "На «Схеме» поле светлое, а насыщенная краска одна — зелёная линия; ход отмечает компостер, а не печать."
     ],
     "rules": [
       {
@@ -773,6 +1028,21 @@
         "name": "The Cardboard Depth Rule",
         "body": "Глубина — только толщина картона и тень со смещением и мягким размытием. Ни градиентной заливки поверхностей, ни стекла, ни свечения.",
         "section": "elevation"
+      },
+      {
+        "name": "The Only Green Rule",
+        "body": "Зелёная линия — единственная насыщенная краска схемы и метит только путь: линию, станции, полосы талона и проездного. Ни текста, ни фонов, ни заливок кнопок зелёным; ошибка — отдельный кирпич `--wrong`, фокус — чернила `--ink`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Punch Not Stamp Rule",
+        "body": "Ход на схеме отмечает компостер: три дырочки цвета поля в пройденной станции. Финал — талон, пробитый по дырочке на каждую пройденную станцию (не больше 12). Сургучной печати и штампов на схеме нет нигде.",
+        "section": "colors"
+      },
+      {
+        "name": "The Generic Line Rule",
+        "body": "Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального транспорта. Одна линия — одна зелёная краска.",
+        "section": "colors"
       }
     ],
     "dos": [
@@ -786,8 +1056,10 @@
       "**Do** показывать загрузку и ошибку на нейтральном картоне, не зависящем от темы.",
       "**Do** уважать `prefers-reduced-motion`: ход фишки, доска, шторки и демо без анимации.",
       "**Do** в переписке отмечать ход почтовым штемпелем чернилами `--ink`, а сургуч ставить только на клапан конверта-крышки.",
+      "**Do** на схеме отмечать ход компостером (три дырочки цвета поля в пройденной станции), а финал — талоном, пробитым по разу на станцию.",
+      "**Do** держать зелёную линию за путём (линия, станции, полосы талона и проездного), а текст и фокус на схеме набирать чернилами.",
       "**Do** брать вес дисплейного шрифта в кнопках-глаголах, очках шапки и счётчике полосы из `--font-d-wt`, а у кнопок и полей наследовать `font-feature-settings` и `font-size-adjust` темы.",
-      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава»."
+      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия»."
     ],
     "donts": [
       "**Don't** писать hex в стилях компонентов плеера; новая краска появляется только как токен в `themes.js`.",
@@ -797,10 +1069,14 @@
       "**Don't** показывать будущие клетки открытыми или подсказывать их содержание.",
       "**Don't** держать полную доску постоянно над заданием: она уводит тело задания вниз.",
       "**Don't** ставить надписи-капсом над заголовками; капс живёт только в штампе и поле кода.",
-      "**Don't** документировать или копировать палитры четырёх тем без своего мира (mystery, treasure, proposal, city): это временная основа, а не система.",
+      "**Don't** документировать или копировать палитры трёх тем без своего мира (mystery, treasure, proposal): это временная основа, а не система.",
       "**Don't** ставить сургучную печать на трассу, письма или финал переписки.",
       "**Don't** набирать рукописным Bad Script текст задания, вопрос, ответ, подсказку, кнопки или числа.",
-      "**Don't** красить лентой ошибку или фоны: ошибка — `--wrong`, лента — только трасса, фишка, марка, подкладка и фокус."
+      "**Don't** красить лентой ошибку или фоны: ошибка — `--wrong`, лента — только трасса, фишка, марка, подкладка и фокус.",
+      "**Don't** набирать текст зелёной линией и красить ею фоны и кнопки: 3.6–3.7:1 мало для текста.",
+      "**Don't** ставить на схему логотип, букву «М» или фирменные цвета линий реального транспорта.",
+      "**Don't** переносить на светлую схему плотные тени тёмных полей (70–90% `--rule`): на схеме тени 45–60%.",
+      "**Don't** ставить на схему сургучную печать или штампы: ход отмечает только компостер."
     ]
   }
 }
