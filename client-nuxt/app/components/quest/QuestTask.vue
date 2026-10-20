@@ -295,7 +295,7 @@ const typeLabel = computed(() => ({
   transition: background .2s;
 }
 :deep(.task__ok:hover:not(:disabled)) { background: color-mix(in srgb, var(--action) 80%, var(--chip)); }
-:deep(.task__ok:disabled) { opacity: .4; cursor: default; }
+:deep(.task__ok:disabled) { cursor: default; background: var(--paper); color: var(--ink); border: 2px dashed var(--ink); }
 :deep(.task__wrong) { margin: 0; font-family: var(--font-b); font-size: 1rem; color: var(--wrong); }
 
 :deep(.task__hint-btn) {

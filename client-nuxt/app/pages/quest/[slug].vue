@@ -283,8 +283,16 @@ useHead(() => ({
   bodyAttrs: { style: `background-color: ${cssVars.value['--field']}` },
 }))
 
+// Свои шрифты темы: предзагрузка кириллицы, чтобы первый экран не мигал запасным шрифтом
+useHead(() => ({
+  link: (questData.value ? themeObj.value?.fonts?.preload || [] : []).map(href => ({
+    rel: 'preload', as: 'font', type: 'font/woff2', href, crossorigin: '',
+  })),
+}))
+
 watchEffect(() => {
-  if (!themeObj.value?.fonts?.googleFonts) return
+  // Пока квест не загружен, тема неизвестна — шрифты «по умолчанию» не тянем
+  if (!questData.value || !themeObj.value?.fonts?.googleFonts) return
   useHead({
     link: [{
       rel: 'stylesheet',

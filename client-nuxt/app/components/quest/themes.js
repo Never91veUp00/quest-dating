@@ -50,9 +50,11 @@ export const THEMES = {
 
     // Шрифты
     fonts: {
-      display: "'Dela Gothic One', 'Arial Black', sans-serif",
+      display: "'Dela Gothic One', 'PT Serif', Georgia, serif",
       body:    "'PT Serif', Georgia, serif",
-      googleFonts: 'Dela+Gothic+One&family=PT+Serif:ital,wght@0,400;0,700;1,400'
+      // свои файлы: assets/styles/fonts.css + public/fonts (не зависим от сети Google)
+      selfHosted: true,
+      preload: ['/fonts/dela-gothic-one-400-cyrillic.woff2', '/fonts/pt-serif-400-cyrillic.woff2'],
     },
 
     // Язык UI
@@ -75,7 +77,7 @@ export const THEMES = {
     splash_decor: ['🔍', '📋', '🗂️', '💡', '🔦'],
 
     // Оверлей текстуры
-    overlay: 'grain',         // зернистость плёнки
+    overlay: null,            // мир дела — плоская печать, без зерна
   },
 
   // ══════════════════════════════════════════════════════════════
