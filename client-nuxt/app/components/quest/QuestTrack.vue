@@ -8,6 +8,12 @@
         <path class="thread thread--twist" :d="threadPath" />
         <path class="thread thread--twist2" :d="threadPath" />
       </template>
+      <template v-else-if="decor === 'letters'">
+        <!-- Атласная лента: тень на подкладке, лента и блик на изгибах -->
+        <path class="ribbon ribbon--shadow" :d="roadPath" />
+        <path class="ribbon ribbon--base" :d="roadPath" />
+        <path class="ribbon ribbon--sheen" :d="roadPath" />
+      </template>
       <template v-else>
         <path class="track__band" :d="roadPath" />
         <path class="track__dash" :d="roadPath" />
@@ -29,7 +35,14 @@
           :aria-label="`Клетка ${cell.n}: ${cell.title}. ${cell.state === 'wrong' ? 'Пропущено' : 'Выполнено'}. Открыть`"
           @click="$emit('open', cell.index)"
         >
-          <QuestIcon :name="cell.state === 'wrong' ? 'close' : 'check'" :size="22" />
+          <!-- В переписке пройденный конверт погашен штемпелем, свежий — с ударом -->
+          <QuestPostmark
+            v-if="decor === 'letters' && cell.state === 'done'"
+            class="cell__postmark"
+            :class="{ 'is-fresh': cell.id === stampId }"
+            :size="46" :no="cell.n" :seed="cell.n"
+          />
+          <QuestIcon v-else :name="cell.state === 'wrong' ? 'close' : 'check'" :size="22" />
         </button>
         <span
           v-else-if="cell.state === 'active'"
@@ -42,7 +55,7 @@
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
-        <span v-if="stampId != null && cell.id === stampId" class="cell__stamp" aria-hidden="true">
+        <span v-if="stampId != null && cell.id === stampId && decor !== 'letters'" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -56,6 +69,7 @@
 import { computed, ref, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestSeal from './QuestSeal.vue'
+import QuestPostmark from './QuestPostmark.vue'
 
 const props = defineProps({
   tasks:        { type: Array,   required: true },
@@ -274,6 +288,82 @@ const chipStyle = computed(() => {
   border-width: 2px;
 }
 
+/* ── Обличье переписки: конверты на атласной ленте ──────────── */
+.ribbon { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.ribbon--shadow {
+  stroke: color-mix(in srgb, var(--rule) 35%, transparent);
+  stroke-width: 9;
+  transform: translate(.6px, 3px);
+}
+.ribbon--base  { stroke: var(--chip); stroke-width: 7; }
+/* блик атласа: светлая нить по одному краю ленты */
+.ribbon--sheen {
+  stroke: color-mix(in srgb, var(--chip) 45%, var(--paper));
+  stroke-width: 1.6;
+  transform: translateY(-1.6px);
+}
+.track--letters .cell {
+  --w: 60px; --h: 42px;
+  position: relative;
+  width: var(--w); height: var(--h);
+  border: none;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--rule) 20%, transparent),
+    0 9px 12px -7px color-mix(in srgb, var(--rule) 80%, transparent);
+}
+.track--letters .track__slot:nth-child(odd)  .cell { transform: rotate(-3deg); }
+.track--letters .track__slot:nth-child(even) .cell { transform: rotate(2.5deg); }
+/* Лицом вверх: адресная сторона с маркой в углу */
+.track--letters .cell--active {
+  --w: 76px; --h: 54px;
+  font-weight: 700;
+  font-size: 1.85rem;
+}
+.track--letters .cell--active::after {
+  content: "";
+  position: absolute; top: 5px; right: 5px;
+  width: 13px; height: 15px;
+  background: var(--chip);
+  outline: 2px dotted var(--paper);
+  outline-offset: -2px;
+}
+/* Доставлен: оттиск штемпеля, кромка конверта обрезает волны гашения */
+.track--letters .cell--done { color: var(--ink); }
+.cell__postmark {
+  position: absolute; left: -4px; top: -3px;
+  transform: rotate(-8deg);
+}
+.cell__postmark.is-fresh { animation: postmark-hit .3s cubic-bezier(.7, 0, .84, 0) .12s both; }
+.track--letters .cell--wrong { color: var(--wrong); }
+/* Обратной стороной: клапан закрыт, видны сгибы — содержимого не видно */
+.track--letters .cell--back {
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 30%, var(--back)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) left bottom / 50% 70% no-repeat,
+    linear-gradient(to top left,  transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 30%, var(--back)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) right bottom / 50% 70% no-repeat,
+    var(--back);
+}
+.track--letters .cell--back::before {
+  content: "";
+  position: absolute; inset: 0 0 38% 0;
+  background: color-mix(in srgb, var(--field-ink) 14%, var(--back));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.track--letters .track__chip {
+  width: 22px; height: 22px;
+  margin: -42px 0 0 22px;
+  border: 2px solid var(--rule);
+  box-shadow:
+    inset 0 0 0 4px color-mix(in srgb, var(--chip) 60%, var(--paper)),
+    0 6px 8px -3px color-mix(in srgb, var(--rule) 60%, transparent);
+}
+@keyframes postmark-hit {
+  from { opacity: 0; transform: scale(1.7) rotate(-18deg); }
+  70%  { opacity: 1; transform: scale(.95) rotate(-7deg); }
+  to   { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
+
 /* Сургучная печать: ложится на пройденную клетку в момент хода */
 .cell__stamp {
   position: absolute; left: 50%; top: 50%;
@@ -290,7 +380,7 @@ const chipStyle = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell__stamp { animation: none; }
+  .cell__stamp, .cell__postmark.is-fresh { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>

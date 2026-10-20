@@ -4,7 +4,7 @@
       <header class="splash__head">
         <h1 class="splash__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="splash__for">
-          для <b>{{ questData.client_name }}</b>
+          Кому: <b>{{ questData.client_name }}</b>
         </p>
       </header>
 
@@ -37,7 +37,7 @@
       <template v-else>
         <!-- Факты с коробки -->
         <p class="splash__facts">
-          <span><b>{{ totalBlocks }}</b> {{ plural(totalBlocks, 'участок', 'участка', 'участков') }}</span>
+          <span><b>{{ totalBlocks }}</b> {{ plural(totalBlocks, ...(theme.copy.blockForms ?? ['участок', 'участка', 'участков'])) }}</span>
           <span><b>{{ totalTasks }}</b> {{ plural(totalTasks, 'клетка', 'клетки', 'клеток') }}</span>
           <span v-if="minutes">около <b>{{ minutes }}</b> мин</span>
         </p>
@@ -52,6 +52,7 @@
             <span class="splash__tape splash__tape--l" aria-hidden="true"></span>
             <span class="splash__tape splash__tape--r" aria-hidden="true"></span>
           </template>
+          <span v-else-if="decor === 'letters'" class="splash__flap" aria-hidden="true"></span>
           <h2 id="brief-h" class="splash__h splash__h--ink">Перед стартом</h2>
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
@@ -73,6 +74,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import QuestHowTo from './QuestHowTo.vue'
+import { plural } from './themes.js'
 
 // Внутренняя сторона крышки: правила игры, текст автора, спид-демо, старт.
 const props = defineProps({
@@ -114,12 +116,6 @@ const startLabel = computed(() =>
   (props.theme.copy?.startBtn || 'Начать').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 
-const plural = (n, one, few, many) => {
-  const m10 = n % 10, m100 = n % 100
-  if (m10 === 1 && m100 !== 11) return one
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
-  return many
-}
 </script>
 
 <style scoped>
@@ -205,6 +201,21 @@ const plural = (n, one, few, many) => {
 .splash__tape--l { left: 14px; transform: rotate(-6deg); }
 .splash__tape--r { right: 14px; transform: rotate(5deg); }
 
+/* Обличье переписки: письмо автора над открытым конвертом, обращение от руки */
+.splash--letters .splash__brief { border-radius: 2px; margin-top: 10px; }
+.splash--letters .splash__brief .splash__h {
+  font-family: var(--font-h);
+  font-weight: 400;
+  font-size: 1.5rem;
+}
+.splash__flap {
+  position: absolute; left: 50%; bottom: 100%;
+  width: 62%; height: 18px;
+  transform: translateX(-50%);
+  background: var(--paper-edge);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+
 /* ── Код доступа ──────────────────────────────────────────────── */
 .splash__code { display: flex; flex-direction: column; }
 .splash__code .splash__note { margin: 0 0 14px; }
@@ -238,6 +249,8 @@ const plural = (n, one, few, many) => {
   font-size: 1rem;
 }
 .splash__cta { margin-top: 16px; }
+/* кнопка на поле: кольцо фокуса мелом, как у остальных элементов поля */
+.splash__cta:focus-visible { outline-color: var(--field-ink); }
 
 /* Кнопка старта под большим пальцем */
 .splash__cta--sticky {

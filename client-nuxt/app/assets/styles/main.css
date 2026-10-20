@@ -413,6 +413,7 @@ pre code {
   border-radius: 12px;
   color: var(--action-ink, var(--bg));
   font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
   font-size: 1.05rem;
   letter-spacing: .01em;
   cursor: pointer;
@@ -423,7 +424,7 @@ pre code {
 }
 .task__action:active:not(:disabled) { transform: translateY(2px); }
 .task__action:focus-visible {
-  outline: 3px solid var(--chip, var(--accent));
+  outline: 3px solid var(--focus, var(--chip, var(--accent)));
   outline-offset: 3px;
 }
 .task__action:disabled {

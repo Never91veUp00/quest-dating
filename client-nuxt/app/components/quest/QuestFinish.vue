@@ -7,8 +7,8 @@
       </header>
 
       <p class="finish__facts">
-        <span><b>{{ points }}</b> {{ theme.copy.pointsLabel }}</span>
-        <span><b>{{ completedCount }}</b> клеток пройдено</span>
+        <span><b>{{ points }}</b> {{ pointsWord(theme, points) }}</span>
+        <span><b>{{ completedCount }}</b> {{ plural(completedCount, 'клетка пройдена', 'клетки пройдены', 'клеток пройдено') }}</span>
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
@@ -18,6 +18,12 @@
           <span class="finish__tape finish__tape--l" aria-hidden="true"></span>
           <span class="finish__tape finish__tape--r" aria-hidden="true"></span>
           <span class="finish__stamp" aria-hidden="true">Раскрыто</span>
+        </template>
+        <template v-else-if="decor === 'letters'">
+          <span class="finish__flap" aria-hidden="true"></span>
+          <span class="finish__postmark" aria-hidden="true">
+            <QuestPostmark :size="64" :no="deliveredOn" :seed="11" />
+          </span>
         </template>
         <h3 class="finish__message-label">{{ messageLabel }}</h3>
         <p class="finish__message-text">{{ questData.final_message }}</p>
@@ -50,8 +56,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
+import QuestPostmark from './QuestPostmark.vue'
+import { plural, pointsWord } from './themes.js'
 
 const props = defineProps({
   questData:      { type: Object, required: true },
@@ -74,6 +82,9 @@ const finishTitle = computed(() =>
   (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 const decor = computed(() => props.theme.world?.decor ?? null)
+// Дата в штемпеле — день, когда письмо дошло до адресата
+const deliveredOn = ref('')
+onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) })
 
 const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
@@ -164,7 +175,7 @@ const saveCard = async () => {
 
     ctx.font = '28px system-ui, sans-serif'
     ctx.fillStyle = props.theme.accent + 'bb'
-    ctx.fillText(props.theme.copy.pointsLabel, W / 2, photoY + photoR + 196)
+    ctx.fillText(pointsWord(props.theme, props.points), W / 2, photoY + photoR + 196)
 
     // Frame badge
     ctx.font = '30px system-ui, sans-serif'
@@ -292,6 +303,35 @@ const saveCard = async () => {
   transform: rotate(-8deg);
 }
 
+/* Обличье переписки: последнее письмо, погашенное штемпелем «Доставлено» */
+.finish--letters .finish__message { border: none; border-radius: 2px; margin-top: 10px; padding-top: 26px; }
+.finish--letters .finish__message-label {
+  font-family: var(--font-h);
+  font-weight: 400;
+  font-size: 1.6rem;
+  padding-right: 92px;
+}
+.finish__flap {
+  position: absolute; left: 50%; bottom: 100%;
+  width: 62%; height: 18px;
+  transform: translateX(-50%);
+  background: var(--paper-edge);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.finish__postmark {
+  position: absolute; right: -6px; top: -18px;
+  transform: rotate(-9deg);
+  animation: postmark-hit .3s cubic-bezier(.7, 0, .84, 0) .9s both;
+}
+@keyframes postmark-hit {
+  from { opacity: 0; transform: scale(1.5) rotate(-16deg); }
+  70%  { opacity: 1; transform: scale(.96) rotate(-8deg); }
+  to   { opacity: 1; transform: scale(1) rotate(-9deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finish__postmark { animation: none; }
+}
+
 /* ── Селфи: полароид ──────────────────────────────────────────── */
 .finish__card {
   align-self: center;
@@ -314,6 +354,7 @@ const saveCard = async () => {
 
 /* ── Действия ─────────────────────────────────────────────────── */
 .finish__actions { display: flex; flex-direction: column; gap: 12px; }
+.finish__actions .task__action:focus-visible { outline-color: var(--field-ink); }
 .finish__secondary {
   background: transparent;
   color: var(--field-ink);

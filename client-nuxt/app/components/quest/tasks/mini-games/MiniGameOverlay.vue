@@ -1,7 +1,7 @@
 <template>
   <teleport to="body">
     <transition name="mg-overlay">
-      <div v-if="modelValue" class="mg-overlay" :style="cssVars">
+      <div v-if="modelValue" class="mg-overlay" :class="decor && `mg-overlay--${decor}`" :style="cssVars">
 
         <!-- Header -->
         <div class="mg-overlay__head">
@@ -28,6 +28,7 @@ defineProps({
   modelValue: { type: Boolean, required: true },
   task:       { type: Object,  required: true },
   cssVars:    { type: Object,  default: () => ({}) },
+  decor:      { type: String,  default: null },
 })
 defineEmits(['update:modelValue'])
 </script>
@@ -38,12 +39,38 @@ defineEmits(['update:modelValue'])
   inset: 0;
   z-index: 1000;
   background: var(--paper); color: var(--ink);
+  /* окно вынесено в body, мимо корня плеера: настройки шрифта темы ставим здесь */
+  font-feature-settings: var(--font-feat, normal);
+  font-size-adjust: var(--font-adjust, none);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   isolation: isolate;
   transform: translateZ(0);
 }
+
+.mg-overlay :deep(:is(button, input)) { font-feature-settings: inherit; font-size-adjust: inherit; }
+.mg-overlay :deep(:focus-visible) { outline-color: var(--focus); }
+.mg-overlay :deep(::selection) { background: var(--focus); color: var(--paper); }
+
+/* Переписка, «Найди пары»: рубашка — конверт обратной стороной, клапан закрыт, знака вопроса нет */
+.mg-overlay--letters :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 30%, var(--back)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) left bottom / 50% 60% no-repeat,
+    linear-gradient(to top left,  transparent calc(50% - 1px), color-mix(in srgb, var(--rule) 30%, var(--back)) calc(50% - 1px) calc(50% + .5px), transparent calc(50% + .5px)) right bottom / 50% 60% no-repeat,
+    var(--back);
+}
+.mg-overlay--letters :deep(.task__pairs__card__back::before) {
+  content: "";
+  position: absolute; inset: 0 0 46% 0;
+  background: color-mix(in srgb, var(--field-ink) 14%, var(--back));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.mg-overlay--letters :deep(.task__pairs__card) { border-width: 3px; border-radius: 4px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
+.mg-overlay--letters :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+.mg-overlay--letters :deep(.task__pairs__card__back),
+.mg-overlay--letters :deep(.task__pairs__card__front) { border-radius: 3px; clip-path: inset(0 round 3px); }
 
 /* ── Header ── */
 .mg-overlay__head {

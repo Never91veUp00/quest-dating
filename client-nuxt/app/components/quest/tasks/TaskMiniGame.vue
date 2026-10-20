@@ -19,7 +19,7 @@
       </button>
     </div>
 
-    <MiniGameOverlay v-model="open" :task="task" :cssVars="cssVars">
+    <MiniGameOverlay v-model="open" :task="task" :cssVars="cssVars" :decor="theme.world?.decor">
       <component
         v-if="gameComponent"
         :is="gameComponent"
