@@ -311,7 +311,18 @@ const finishLabel = computed(() => ({
 }
 
 /* Обличье дела: красная нить, заметки чуть повёрнуты, фишка — кнопка сверху */
-.block--casefile .block__mini::before { background: var(--chip); }
+.block--casefile .block__mini::before {
+  height: 3px; margin-top: -1.5px;
+  background: var(--chip);
+  box-shadow: 0 2px 2px color-mix(in srgb, var(--rule) 45%, transparent);
+}
+/* волокна скрутки поверх основы */
+.block--casefile .block__mini::after {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 50%;
+  margin-top: -.5px;
+  border-top: 1px dashed color-mix(in srgb, var(--chip) 62%, #f4d9cf);
+}
 .block--casefile .block__mini-cell {
   border: none;
   border-radius: 2px;
