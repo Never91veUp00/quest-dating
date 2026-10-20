@@ -1,33 +1,70 @@
 <template>
   <div class="block">
-    <!-- Поле: где мы и что уже пройдено -->
-    <section class="block__field" :aria-label="`${theme.copy.blockPrefix} ${index + 1} из ${total}`">
-      <div class="block__meta">
-        <span class="block__count">
-          {{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}
-        </span>
-        <span class="block__count">
-          клетка <b>{{ cellNo }}</b> из {{ tasks.length }}
-        </span>
-      </div>
+    <!-- Полоса участка: всегда сверху, тап открывает доску -->
+    <button
+      type="button"
+      class="block__strip"
+      :aria-label="`${theme.copy.blockPrefix} ${index + 1} из ${total}: ${block.title}. Открыть доску`"
+      @click="openBoard(false)"
+    >
+      <span class="block__strip-text">
+        <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
+        <span class="block__strip-title">{{ block.title }}</span>
+      </span>
+      <span class="block__mini" aria-hidden="true">
+        <span
+          v-for="(t, ti) in tasks"
+          :key="t.id"
+          class="block__mini-cell"
+          :class="{
+            'is-done':   completedIds.includes(t.id),
+            'is-active': ti === activeIdx,
+          }"
+        ></span>
+      </span>
+    </button>
 
-      <h2 class="block__title">{{ block.title }}</h2>
-      <p v-if="block.location" class="block__location">
-        <QuestIcon name="pin" :size="18" />
-        <span>{{ block.location }}</span>
-      </p>
-      <p v-if="block.description" class="block__desc">{{ block.description }}</p>
+    <!-- Доска: момент хода и обзор участка -->
+    <transition name="board">
+      <section
+        v-if="boardOpen"
+        class="block__board"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="`Доска: ${block.title}`"
+        @pointerdown="holdBoard"
+        @keydown.esc="closeBoard"
+      >
+        <div class="block__board-inner">
+          <div class="block__meta">
+            <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
+            <span class="block__count">клетка <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
+          </div>
+          <h2 class="block__title">{{ block.title }}</h2>
+          <p v-if="block.location" class="block__location">
+            <QuestIcon name="pin" :size="18" />
+            <span>{{ block.location }}</span>
+          </p>
+          <p v-if="block.description" class="block__desc">{{ block.description }}</p>
 
-      <QuestTrack
-        :tasks="tasks"
-        :completedIds="completedIds"
-        :earnedMap="earnedMap"
-        :hasPrev="index > 0"
-        :hasNext="!isLast"
-        :decor="theme.world?.decor"
-        @open="reviewIdx = $event"
-      />
-    </section>
+          <QuestTrack
+            class="block__board-track"
+            :tasks="tasks"
+            :completedIds="boardCompleted"
+            :earnedMap="earnedMap"
+            :hasPrev="index > 0"
+            :hasNext="!isLast"
+            :decor="theme.world?.decor"
+            :enter="entering"
+            @open="reviewIdx = $event"
+          />
+
+          <button ref="boardClose" class="task__action block__board-close" @click="closeBoard">
+            {{ activeTask ? 'К заданию' : 'Закрыть доску' }}
+          </button>
+        </div>
+      </section>
+    </transition>
 
     <!-- Карточка: одна активная клетка -->
     <transition name="card" mode="out-in">
@@ -94,7 +131,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import QuestTask from './QuestTask.vue'
 import QuestTrack from './QuestTrack.vue'
 import QuestIcon from './QuestIcon.vue'
@@ -128,6 +165,67 @@ watch(reviewTask, async (t) => {
   closeBtn.value?.focus()
 })
 
+// ─── Доска: момент хода ───────────────────────────────────────
+// После выполнения задания доска разворачивается, фишка делает ход,
+// и через мгновение доска сворачивается в полосу. Тап по доске её удерживает.
+const MOMENT_MS = 1700
+const HOP_DELAY = 380
+const boardOpen      = ref(false)
+const boardCompleted = ref([...props.completedIds])
+const boardClose     = ref(null)
+let autoClose = null
+let hopTimer  = null
+
+const clearTimers = () => { clearTimeout(autoClose); clearTimeout(hopTimer) }
+const openBoard = (moment) => {
+  clearTimers()
+  boardOpen.value = true
+  if (moment) autoClose = setTimeout(closeBoard, MOMENT_MS)
+  else nextTick(() => boardClose.value?.focus())
+}
+const entering = ref(false)
+const closeBoard = () => {
+  clearTimers()
+  boardOpen.value = false
+  entering.value = false
+  boardCompleted.value = [...props.completedIds]
+}
+const holdBoard = () => { clearTimeout(autoClose) }
+
+// Копия: плеер дописывает completedIds на месте, ссылка не меняется
+watch(() => [...props.completedIds], (now, before = []) => {
+  const fresh = now.filter(id => !before.includes(id))
+  const inBlock = fresh.some(id => tasks.value.some(t => t.id === id))
+  if (!inBlock) { boardCompleted.value = [...now]; return }
+  // Доска открывается в прежнем состоянии, затем фишка переходит
+  openBoard(true)
+  hopTimer = setTimeout(() => { boardCompleted.value = [...now] }, HOP_DELAY)
+})
+
+// ─── Клавиатура: кнопка-глагол держится над ней ─────────────────
+const setKeyboardInset = () => {
+  const vv = window.visualViewport
+  if (!vv) return
+  const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+  document.documentElement.style.setProperty('--kb', `${Math.round(inset)}px`)
+}
+
+onMounted(() => {
+  // Свежий участок: показываем доску, фишка заезжает на первую клетку
+  if (!tasks.value.some(t => props.completedIds.includes(t.id))) {
+    entering.value = true
+    openBoard(true)
+  }
+  window.visualViewport?.addEventListener('resize', setKeyboardInset)
+  window.visualViewport?.addEventListener('scroll', setKeyboardInset)
+})
+onUnmounted(() => {
+  clearTimers()
+  window.visualViewport?.removeEventListener('resize', setKeyboardInset)
+  window.visualViewport?.removeEventListener('scroll', setKeyboardInset)
+  document.documentElement.style.removeProperty('--kb')
+})
+
 // Шторка живёт в <body>, поэтому токены темы передаём ей явно
 const cssVars = computed(() => themeToCssVars(props.theme))
 
@@ -148,11 +246,70 @@ const finishLabel = computed(() => ({
   gap: 14px;
 }
 
-/* ── Поле ─────────────────────────────────────────────────────── */
-.block__field {
+/* ── Полоса участка ───────────────────────────────────────────── */
+.block__strip {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px dashed color-mix(in srgb, var(--field-ink) 28%, var(--field));
   color: var(--field-ink);
-  padding: 4px 4px 0;
+  text-align: left;
+  cursor: pointer;
 }
+.block__strip:focus-visible { outline: 3px solid var(--field-ink); outline-offset: 2px; border-radius: 8px; }
+.block__strip-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.block__strip-title {
+  font-family: var(--font-d);
+  font-size: 1.1rem;
+  line-height: 1.15;
+  color: var(--field-ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.block__mini { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.block__mini-cell {
+  position: relative;
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  background: var(--back);
+  border: 2px solid color-mix(in srgb, var(--field-ink) 30%, var(--back));
+}
+.block__mini-cell.is-done   { background: var(--done); border-color: var(--rule); }
+.block__mini-cell.is-active { width: 22px; height: 22px; background: var(--plate); border-color: var(--rule); }
+.block__mini-cell.is-active::after {
+  content: "";
+  position: absolute; top: -7px; right: -7px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--chip);
+  border: 2px solid var(--rule);
+}
+
+/* ── Доска: момент хода и обзор ───────────────────────────────── */
+.block__board {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--field);
+  color: var(--field-ink);
+  overflow-y: auto;
+  padding: 76px 16px max(24px, env(safe-area-inset-bottom));
+}
+.block__board-inner {
+  max-width: 600px; margin: 0 auto;
+  min-height: 100%;
+  display: flex; flex-direction: column;
+}
+.block__board-track { margin-top: 18px; height: clamp(200px, 34svh, 300px); }
+.block__board-close { margin-top: auto; }
+
+.board-enter-active { transition: opacity .3s ease-out, transform .45s cubic-bezier(.16, 1, .3, 1); }
+.board-leave-active { transition: opacity .25s ease-in, transform .3s ease-in; }
+.board-enter-from   { opacity: 0; transform: translateY(-24px); }
+.board-leave-to     { opacity: 0; transform: translateY(-40px); }
 
 .block__meta {
   display: flex;
@@ -271,6 +428,7 @@ const finishLabel = computed(() => ({
 @media (prefers-reduced-motion: reduce) {
   .card-enter-active, .card-leave-active,
   .sheet-enter-active, .sheet-leave-active,
-  .sheet-enter-active .block__sheet-panel, .sheet-leave-active .block__sheet-panel { transition: none; }
+  .sheet-enter-active .block__sheet-panel, .sheet-leave-active .block__sheet-panel,
+  .board-enter-active, .board-leave-active { transition: none; }
 }
 </style>

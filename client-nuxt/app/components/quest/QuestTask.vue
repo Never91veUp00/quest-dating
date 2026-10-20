@@ -48,16 +48,17 @@
     </template>
 
     <!-- Активная клетка → подкомпонент задания -->
-    <component
-      v-else-if="taskComponent"
-      :is="taskComponent"
-      :task="task"
-      :theme="theme"
-      @complete="$emit('complete', $event)"
-      @hint="$emit('hint', $event)"
-      @answer-change="$emit('answer-change', $event)"
-      @skip-task="$emit('skip-task', $event)"
-    />
+    <div v-else-if="taskComponent" class="task__body">
+      <component
+        :is="taskComponent"
+        :task="task"
+        :theme="theme"
+        @complete="$emit('complete', $event)"
+        @hint="$emit('hint', $event)"
+        @answer-change="$emit('answer-change', $event)"
+        @skip-task="$emit('skip-task', $event)"
+      />
+    </div>
   </article>
 </template>
 
@@ -319,4 +320,22 @@ const typeLabel = computed(() => ({
 }
 
 :deep(.task__action--location) { border-style: dashed; }
+
+/* ── Кнопка-глагол под большим пальцем ────────────────────────────
+   Обёртки подкомпонента «прозрачны», поэтому кнопка липнет к низу
+   экрана в пределах всей карточки и поднимается над клавиатурой (--kb). */
+.task__body,
+.task__body > :deep(div) { display: contents; }
+.task__body :deep(.task__action) {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom) + var(--kb, 0px));
+  z-index: 5;
+  box-shadow: 0 0 0 6px var(--paper);
+}
+/* Прилипшая кнопка не просвечивает: выключенное состояние — сплошной цвет */
+.task__body :deep(.task__action:disabled) {
+  opacity: 1;
+  background: color-mix(in srgb, var(--action) 35%, var(--paper));
+  color: var(--paper);
+}
 </style>

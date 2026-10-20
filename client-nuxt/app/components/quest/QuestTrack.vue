@@ -51,6 +51,7 @@ const props = defineProps({
   hasPrev:      { type: Boolean, default: false },
   hasNext:      { type: Boolean, default: false },
   decor:        { type: String,  default: null },
+  enter:        { type: Boolean, default: false }, // фишка заезжает с края поля
 })
 defineEmits(['open'])
 
@@ -90,7 +91,7 @@ const roadPath = computed(() => {
 })
 
 // Новый участок: фишка заезжает с края поля на первую клетку
-const entered = ref(!props.hasPrev)
+const entered = ref(!(props.hasPrev && props.enter))
 onMounted(() => {
   if (entered.value) return
   requestAnimationFrame(() => requestAnimationFrame(() => { entered.value = true }))
