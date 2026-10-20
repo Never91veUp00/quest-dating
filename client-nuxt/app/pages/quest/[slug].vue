@@ -277,6 +277,11 @@ const themeObj = computed(() => ({
 }))
 const cssVars  = computed(() => themeToCssVars(themeObj.value))
 
+// Под плеером не должен проступать чёрный фон сайта: body = поле темы
+useHead(() => ({
+  bodyAttrs: { style: `background-color: ${cssVars.value['--field']}` },
+}))
+
 watchEffect(() => {
   if (!themeObj.value?.fonts?.googleFonts) return
   useHead({
