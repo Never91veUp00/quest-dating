@@ -88,6 +88,16 @@ defineEmits(['update:modelValue'])
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
 .mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
 
+/* Хеллоуин, «Найди пары»: рубашка — тёмный картон с оранжевой тыквой-кружком */
+.mg-overlay--diecut :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background:
+    radial-gradient(ellipse 28% 22% at 50% 56%, var(--chip) 96%, transparent 100%),
+    var(--back);
+}
+.mg-overlay--diecut :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }
+.mg-overlay--diecut :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: var(--rule); }
+
 /* Зельеварня, «Найди пары»: рубашка — камень подвала с пустым флаконом мелом */
 .mg-overlay--potion :deep(.task__pairs__card__back) {
   font-size: 0;

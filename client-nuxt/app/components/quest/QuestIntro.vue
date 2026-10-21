@@ -12,6 +12,15 @@
   >
     <div class="lid__face">
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
+      <!-- Хеллоуин: приглашение на вечеринку — шапка-вырубка с луной, котом и летучими мышами -->
+      <svg v-if="decor === 'diecut'" class="lid__scene" viewBox="0 0 280 96" aria-hidden="true">
+        <rect class="lid__scene-sky" width="280" height="96" />
+        <circle class="lid__scene-moon" cx="196" cy="44" r="30" />
+        <path class="lid__scene-cut" d="M0 96 V78 Q20 70 40 78 T80 76 T120 80 T160 74 T200 80 T240 76 T280 78 V96 Z" />
+        <path class="lid__scene-cut" d="M70 78 C66 74 66 66 70 62 C68 60 68 56 69 53 L68 48 L72 51.6 C74 51 78 51 80 51.6 L84 48 L83 53 C84 56 84 60 82 62 C85 66 85 71 83 74 C86 74 88 72 88 69 L89 69 C89 74 86 77 81 76 Z" />
+        <path class="lid__scene-cut" d="M120 30 q6 -8 12 -2 q4 -6 8 0 q4 -6 8 0 q6 -6 12 2 q-8 -2 -12 4 q-4 -4 -8 0 q-4 -4 -8 0 q-4 -6 -12 -4 Z" />
+        <path class="lid__scene-cut" d="M228 18 q4 -5 8 -1 q3 -4 5 0 q3 -4 5 0 q4 -4 8 1 q-5 -1 -8 3 q-3 -3 -5 0 q-3 -3 -5 0 q-3 -4 -8 -3 Z" />
+      </svg>
       <!-- Зельеварня: большой флакон, пробка под сургучом, ярлык с именем — поверх колбы -->
       <QuestFlask v-if="decor === 'potion'" class="lid__flask" :size="260" :level=".38" />
       <span v-if="decor === 'potion'" class="lid__wax" aria-hidden="true"></span>
@@ -29,7 +38,7 @@
         <path d="M37 27 L28 48 L34 46 L38 49 Z M43 27 L52 48 L46 46 L42 49 Z" />
         <rect x="34" y="19" width="12" height="12" rx="3" />
       </svg>
-      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : decor === 'potion' ? 'lid__label' : 'lid__text'">
+      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : decor === 'potion' ? 'lid__label' : decor === 'diecut' ? 'lid__invite' : 'lid__text'">
         <h1 class="lid__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="lid__for">
           Кому: <b>{{ questData.client_name }}</b>
@@ -258,6 +267,36 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open { transition-delay: .22s; }
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
+/* ── Обличье вырубки: приглашение на вечеринку ──────────────────── */
+.lid--diecut .lid__face {
+  border: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
+  padding: 0 0 26px;
+}
+.lid--diecut .lid__face {
+  max-width: 320px;
+  overflow: hidden;
+  transition: transform .4s cubic-bezier(.5, 0, .3, 1);
+}
+.lid__scene { display: block; width: 100%; height: auto; margin-bottom: 18px; }
+.lid__scene-sky  { fill: var(--rule); }
+.lid__scene-moon { fill: var(--chip); }
+.lid__scene-cut  { fill: var(--field); stroke: var(--field-ink); stroke-width: .8; stroke-linejoin: round; }
+.lid__invite { padding: 0 22px; }
+.lid--diecut .lid__title { color: var(--ink); font-size: clamp(1.6rem, 10cqi, 2.4rem); }
+.lid--diecut .lid__for { margin-top: 10px; color: var(--ink-soft); }
+.lid--diecut .lid__for b { color: var(--ink); }
+/* приглашение наклоняется, затем крышка уходит вверх */
+.lid--diecut.lid--open { transition-delay: .3s; }
+.lid--diecut.lid--open .lid__face { transform: rotate(-6deg) translateY(-14px); }
+
 /* ── Обличье зельеварни: флакон с ярлыком, пробка выскакивает ─── */
 .lid--potion .lid__face {
   display: grid; place-items: center;
@@ -449,6 +488,6 @@ onUnmounted(() => clearTimeout(timer))
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
   .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax,
-  .lid__flask :deep(.fl__cork) { transition: none; }
+  .lid__flask :deep(.fl__cork), .lid--diecut .lid__face { transition: none; }
 }
 </style>

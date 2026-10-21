@@ -12,6 +12,17 @@
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
+      <!-- Хеллоуин: луна и двое на крыше, рядом кот — вырубка из картона -->
+      <svg v-if="decor === 'diecut'" class="finish__night" viewBox="0 0 320 170" aria-hidden="true">
+        <circle class="finish__night-moon" cx="196" cy="78" r="66" />
+        <path class="finish__night-roof" d="M0 170 V138 L60 104 L120 138 H200 L250 112 L320 140 V170 Z" />
+        <g class="finish__night-cut">
+          <path d="M150 140 C148 128 150 118 156 112 C152 108 152 100 158 96 C164 92 172 96 172 104 C172 110 168 114 164 116 C170 120 172 130 170 140 Z" />
+          <path d="M172 140 C170 130 172 120 178 114 C174 110 174 102 180 98 C186 94 194 98 194 106 C194 112 190 116 186 118 C192 122 194 132 192 140 Z" />
+          <path d="M222 128 C219 125 219 118 222 114 C220 112 220 108 221 105 L220 100 L224 103.6 C226 103 230 103 232 103.6 L236 100 L235 105 C236 108 236 112 234 114 C237 118 237 123 235 126 C238 126 240 124 240 121 L241 121 C241 126 238 129 233 128 Z" />
+        </g>
+      </svg>
+
       <!-- Зельеварня: полный флакон зелья для двоих -->
       <div v-if="decor === 'potion'" class="finish__flask">
         <QuestFlask :size="150" :level=".8" label="на двоих" fresh />
@@ -136,6 +147,7 @@ const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
   mystery: 'Последняя карта', city: 'Личное сообщение',
   treasure: 'Записка в сундуке', proposal: 'От меня', potion: 'К зелью прилагается',
+  halloween: 'В корзинке с конфетами',
 }[props.theme.id] || 'Послание'))
 
 const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
@@ -386,6 +398,25 @@ const saveCard = async () => {
   box-shadow:
     inset 0 2px 2px color-mix(in srgb, var(--rule) 55%, transparent),
     0 0 0 1px color-mix(in srgb, var(--paper-edge) 80%, var(--ink));
+}
+
+/* Обличье вырубки: ночная сцена на крыше и записка на кремовой карточке */
+.finish--diecut .finish__title { letter-spacing: .01em; }
+.finish__night { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; }
+.finish__night-moon { fill: var(--chip); }
+.finish__night-roof { fill: var(--rule); stroke: var(--field-ink); stroke-width: 1.4; stroke-linejoin: round; }
+.finish__night-cut path { fill: var(--rule); }
+.finish--diecut .finish__message {
+  border: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
+  padding: 24px 22px 22px;
 }
 
 /* Обличье зельеварни: полный флакон и записка на странице рецепта */
