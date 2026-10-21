@@ -245,7 +245,7 @@ const finishLabel = computed(() => ({
   romantic:  'Завершить',
   mystery:   'Открыть расклад',
   city:      'На конечную',
-  treasure:  'Клад найден',
+  treasure:  'К кладу',
   proposal:  'Завершить',
 }[props.theme.id] || 'Завершить'))
 </script>
@@ -409,6 +409,33 @@ const finishLabel = computed(() => ({
   transform: rotate(45deg);
 }
 
+/* Обличье карты: метки на пунктире, пройденные перечёркнуты, флажок над текущей */
+.block--map .block__mini::before {
+  height: 0; margin-top: 0;
+  border-top: 2px dashed color-mix(in srgb, var(--field-ink) 55%, var(--field));
+  background: none;
+}
+.block--map .block__mini-cell {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--rule);
+}
+.block--map .block__mini-cell.is-done {
+  background:
+    linear-gradient(45deg,  transparent calc(50% - 1.2px), var(--chip) calc(50% - 1.2px) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
+    linear-gradient(-45deg, transparent calc(50% - 1.2px), var(--chip) calc(50% - 1.2px) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
+    var(--paper);
+}
+.block--map .block__mini-cell.is-active { width: 20px; height: 20px; }
+.block--map .block__mini-cell.is-active::after {
+  top: -15px; right: -9px;
+  width: 9px; height: 7px;
+  border: none; border-radius: 0;
+  background: var(--chip);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
 /* ── Доска: момент хода и обзор ───────────────────────────────── */
 .block__board {
   position: fixed;
@@ -418,6 +445,11 @@ const finishLabel = computed(() => ({
   color: var(--field-ink);
   overflow-y: auto;
   padding: 76px 16px max(24px, env(safe-area-inset-bottom));
+}
+.block--map .block__board {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Cpath d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='%23ecdfc0' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 64px 40px,
+    var(--field);
 }
 .block__board-inner {
   max-width: 600px; margin: 0 auto;
@@ -478,6 +510,24 @@ const finishLabel = computed(() => ({
 }
 
 /* ── Участок пройден ──────────────────────────────────────────── */
+/* на карте конец острова — тоже обрывок пергамента с рваным краем */
+.block--map .block__done {
+  position: relative;
+  margin: 8px 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block--map .block__done::before,
+.block--map .block__done::after {
+  content: "";
+  position: absolute; left: 0; right: 0;
+  height: 7px;
+  background: var(--paper);
+  pointer-events: none;
+}
+.block--map .block__done::before { bottom: calc(100% - 1px); clip-path: polygon(0 100%, 0.0% 43%, 3.8% 28%, 7.7% 70%, 11.5% 21%, 15.4% 61%, 19.2% 46%, 23.1% 20%, 26.9% 58%, 30.8% 18%, 34.6% 52%, 38.5% 21%, 42.3% 23%, 46.2% 51%, 50.0% 85%, 53.8% 26%, 57.7% 34%, 61.5% 68%, 65.4% 96%, 69.2% 64%, 73.1% 49%, 76.9% 98%, 80.8% 19%, 84.6% 88%, 88.5% 40%, 92.3% 27%, 96.2% 25%, 100.0% 41%, 100% 100%); }
+.block--map .block__done::after  { top: calc(100% - 1px);    clip-path: polygon(0 0, 0.0% 69%, 3.8% 15%, 7.7% 49%, 11.5% 54%, 15.4% 32%, 19.2% 47%, 23.1% 5%, 26.9% 5%, 30.8% 18%, 34.6% 58%, 38.5% 36%, 42.3% 27%, 46.2% 50%, 50.0% 39%, 53.8% 25%, 57.7% 68%, 61.5% 59%, 65.4% 21%, 69.2% 49%, 73.1% 45%, 76.9% 74%, 80.8% 62%, 84.6% 24%, 88.5% 83%, 92.3% 10%, 96.2% 36%, 100.0% 64%, 100% 0); }
 /* в колоде конец расклада — тоже карта: без контура, с гравированной рамкой */
 .block--tarot .block__done {
   position: relative;

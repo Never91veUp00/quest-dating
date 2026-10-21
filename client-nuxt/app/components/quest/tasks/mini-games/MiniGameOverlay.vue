@@ -88,6 +88,16 @@ defineEmits(['update:modelValue'])
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
 .mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
 
+/* Карта, «Найди пары»: рубашка — пергамент с чернильной розой ветров */
+.mg-overlay--map :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%232a1f14' stroke-width='1.4' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='13'/%3E%3Cpath d='M20 3 L23 17 L37 20 L23 23 L20 37 L17 23 L3 20 L17 17 Z'/%3E%3C/g%3E%3Cpath d='M20 3 L23 17 L20 20 Z M37 20 L23 23 L20 20 Z M20 37 L17 23 L20 20 Z M3 20 L17 17 L20 20 Z' fill='%232a1f14'/%3E%3C/svg%3E") center / 62% no-repeat,
+    var(--paper-edge);
+}
+.mg-overlay--map :deep(.task__pairs__card) { border-width: 3px; border-radius: 4px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
+.mg-overlay--map :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+
 /* Колода, «Найди пары»: рубашка — киноварная решётка с рамкой, как у карт расклада */
 .mg-overlay--tarot :deep(.task__pairs__card__back) {
   font-size: 0;

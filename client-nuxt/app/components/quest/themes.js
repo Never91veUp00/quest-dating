@@ -249,45 +249,80 @@ export const THEMES = {
     id: 'treasure',
     label: 'Искатель клада',
 
-    accent:     '#f5a623',   // золото
-    accentDim:  '#8a5a00',
-    bg:         '#0d0a05',
-    bg2:        '#150f07',
-    surface:    '#1e1509',
-    border:     'rgba(245,166,35,0.15)',
-    text:       '#e8d5a3',
-    dim:        '#5c3d0a',
+    // Цвета — пиратская карта: море старой карты, пергаментный остров, чернила и один красный крест
+    accent:     '#b3261e',
+    accentDim:  '#b3261e',
+    bg:         '#1f4547',   // море
+    bg2:        '#2a5557',
+    surface:    '#ecdcb4',
+    border:     'rgba(14,32,33,0.4)',
+    text:       '#ecdfc0',
+    dim:        '#a9bcb2',
 
-    baseBg:     '#0d0a05',
+    baseBg:     '#1f4547',
     baseTone:   'dark',
     showTimer:  false,
 
+    // Мир «Ходилки» в обличье пиратской карты: метки на пергаментном острове,
+    // пройденную перечёркивает красный крест, фишка — флажок на древке
+    world: {
+      decor:        'map',
+      field:        '#1f4547',
+      fieldInk:     '#ecdfc0',
+      fieldInkSoft: '#a9bcb2',
+      paper:        '#ecdcb4',   // пергамент
+      paperEdge:    '#c9b285',   // старый край, обрез
+      ink:          '#2a1f14',   // чернила из орешков
+      inkSoft:      '#5e4b33',
+      plate:        '#ecdcb4',   // метка «сейчас»
+      plateInk:     '#2a1f14',
+      done:         '#ecdcb4',   // пройденная, под красным крестом
+      back:         '#ecdcb4',   // впереди: пустой кружок
+      chip:         '#b3261e',   // крест и вымпел флажка
+      rule:         '#0e2021',
+      wrong:        '#8f3a1c',
+      action:       '#b3261e',
+      actionInk:    '#f4ead2',
+      actionHover:  '#8f1d17',   // кнопка и крест одной краской: наведение — глубже
+      focus:        '#2a1f14',
+      sealWax:      '#9b2a20',
+      sealDeep:     '#6e1a13',
+    },
+
+    // Моушн-ролик «Как это работает» (tools/reels/treasure.html → record.mjs)
+    reel: { src: '/reels/treasure.mp4', poster: '/reels/treasure.jpg' },
+
+    // Шрифты
     fonts: {
-      display: "'Pirata One', cursive",
-      body:    "'Crimson Text', serif",
-      googleFonts: 'Pirata+One&family=Crimson+Text:wght@400;600'
+      display: "'Kurale', 'PT Serif', Georgia, serif",
+      body:    "'PT Serif', Georgia, serif",
+      // свои файлы: assets/styles/fonts.css + public/fonts
+      selfHosted: true,
     },
 
     copy: {
-      eyebrow:       'КАРТА СОКРОВИЩ',
-      startBtn:      'Отправиться в путь',
-      taskDone:      'Метка найдена!',
-      hintBtn:       'Подсказка штурмана · −10 очков',
+      eyebrow:       'Карта готова',
+      startBtn:      'В путь',
+      taskDone:      'Метка найдена',
+      hintBtn:       'Подсказка · −10 дублонов',
       photoZone:     'Сфотографировать находку',
-      finishEyebrow: 'КЛАД НАЙДЕН!',
+      finishEyebrow: 'Клад найден!',
       shareBtn:      'Поделиться добычей',
-      blockPrefix:   'Метка',
+      blockPrefix:   'Остров',
+      blockForms:    ['остров', 'острова', 'островов'],
+      cellForms:     ['метка', 'метки', 'меток'],
+      cellsDone:     ['метка найдена', 'метки найдены', 'меток найдено'],
+      blockDone:     'Остров пройден. Корабль ждёт у берега.',
+      allDone:       'Все метки найдены.',
+      nextBtn:       'Плыть дальше',
+      finishShare:   'Поделиться добычей',
       pointsLabel:   'дублонов',
       pointsForms:   ['дублон', 'дублона', 'дублонов'],
     },
 
-    bg_animation: 'particles',  // золотые частицы/монеты
-
-
-    overlay: 'grain',
+    bg_animation: null,
+    overlay: null,            // карта — плоская печать, без зерна и золотых частиц
   },
-
-
 
   // ══════════════════════════════════════════════════════════════
   // ПРЕДЛОЖЕНИЕ — бриллианты, золото, шампанское

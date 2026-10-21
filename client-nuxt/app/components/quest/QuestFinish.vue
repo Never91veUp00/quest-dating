@@ -12,6 +12,19 @@
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
+      <!-- Карта: пунктир через пройденные метки к большому красному кресту -->
+      <svg v-if="decor === 'map'" class="finish__chart" viewBox="0 0 340 120" aria-hidden="true">
+        <path class="finish__chart-route" d="M14 96 C60 96 70 40 118 52 S190 104 232 70 S244 52 254 50" />
+        <g class="finish__chart-marks">
+          <circle v-for="(m, i) in chartMarks" :key="i" :cx="m[0]" :cy="m[1]" r="7" />
+        </g>
+        <!-- островок клада: крест ставится на суше, а не в море -->
+        <path class="finish__chart-isle" d="M252 44 C246 18 272 4 296 9 C320 4 340 24 335 44 C340 66 316 80 295 73 C272 82 250 68 252 44 Z" />
+        <g class="finish__chart-x" transform="translate(294 42)">
+          <path d="M-15 -15 L15 15" /><path d="M15 -15 L-15 15" />
+        </g>
+      </svg>
+
       <!-- Колода: расклад из открытых карт веером, у каждой свой знак -->
       <div v-if="decor === 'tarot' && spread" class="finish__spread" :style="{ '--n': spread }" aria-hidden="true">
         <span v-for="i in spread" :key="i" class="finish__spread-card" :style="{ '--i': i - 1 }">
@@ -96,6 +109,9 @@ const finishTitle = computed(() =>
   (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 const decor = computed(() => props.theme.world?.decor ?? null)
+// Метки на пунктире к кладу: по одной на пройденную, не больше четырёх
+const CHART_PTS = [[60, 84], [118, 52], [176, 82], [232, 70]]
+const chartMarks = computed(() => CHART_PTS.slice(0, Math.min(props.completedCount, 4)))
 // Карт в раскладе: по одной на пройденную клетку, веер не шире семи
 const spread = computed(() => Math.min(props.completedCount, 7))
 // Дата в штемпеле — день, когда письмо дошло до адресата
@@ -105,6 +121,7 @@ onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { d
 const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
   mystery: 'Последняя карта', city: 'Личное сообщение',
+  treasure: 'Записка в сундуке',
 }[props.theme.id] || 'Послание'))
 
 const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
@@ -355,6 +372,42 @@ const saveCard = async () => {
   box-shadow:
     inset 0 2px 2px color-mix(in srgb, var(--rule) 55%, transparent),
     0 0 0 1px color-mix(in srgb, var(--paper-edge) 80%, var(--ink));
+}
+
+/* Обличье карты: путь к кладу и записка на обрывке пергамента */
+.finish__chart { display: block; width: 100%; max-width: 420px; height: auto; margin: 4px auto -4px; overflow: visible; }
+.finish__chart-route {
+  fill: none;
+  stroke: var(--field-ink);
+  stroke-width: 2.5;
+  stroke-dasharray: 8 8;
+  stroke-linecap: round;
+}
+.finish__chart-isle { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.finish__chart-marks circle { fill: var(--field); stroke: var(--field-ink); stroke-width: 2.5; }
+.finish__chart-x path {
+  fill: none;
+  stroke: var(--chip);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 50;
+  animation: chart-x .3s cubic-bezier(.6, 0, .4, 1) .3s both;
+}
+.finish__chart-x path + path { animation-delay: .7s; }
+@keyframes chart-x { from { stroke-dashoffset: 50; } to { stroke-dashoffset: 0; } }
+.finish--map .finish__message { border: none; border-radius: 0; margin: 8px 0; }
+.finish--map .finish__message::before,
+.finish--map .finish__message::after {
+  content: "";
+  position: absolute; left: 0; right: 0;
+  height: 7px;
+  background: var(--paper);
+  pointer-events: none;
+}
+.finish--map .finish__message::before { bottom: calc(100% - 1px); clip-path: polygon(0 100%, 0.0% 43%, 3.8% 28%, 7.7% 70%, 11.5% 21%, 15.4% 61%, 19.2% 46%, 23.1% 20%, 26.9% 58%, 30.8% 18%, 34.6% 52%, 38.5% 21%, 42.3% 23%, 46.2% 51%, 50.0% 85%, 53.8% 26%, 57.7% 34%, 61.5% 68%, 65.4% 96%, 69.2% 64%, 73.1% 49%, 76.9% 98%, 80.8% 19%, 84.6% 88%, 88.5% 40%, 92.3% 27%, 96.2% 25%, 100.0% 41%, 100% 100%); }
+.finish--map .finish__message::after  { top: calc(100% - 1px);    clip-path: polygon(0 0, 0.0% 69%, 3.8% 15%, 7.7% 49%, 11.5% 54%, 15.4% 32%, 19.2% 47%, 23.1% 5%, 26.9% 5%, 30.8% 18%, 34.6% 58%, 38.5% 36%, 42.3% 27%, 46.2% 50%, 50.0% 39%, 53.8% 25%, 57.7% 68%, 61.5% 59%, 65.4% 21%, 69.2% 49%, 73.1% 45%, 76.9% 74%, 80.8% 62%, 84.6% 24%, 88.5% 83%, 92.3% 10%, 96.2% 36%, 100.0% 64%, 100% 0); }
+@media (prefers-reduced-motion: reduce) {
+  .finish__chart-x path { animation: none; }
 }
 
 /* Обличье колоды: веер открытых карт и последняя карта с рамкой */

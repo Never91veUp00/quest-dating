@@ -8,6 +8,7 @@
       'task--letters':  decor === 'letters',
       'task--metro':    decor === 'metro',
       'task--tarot':    decor === 'tarot',
+      'task--map':      decor === 'map',
       [`task--${task.type}`]: true,
     }"
   >
@@ -220,6 +221,32 @@ const typeLabel = computed(() => ({
   font-weight: 700;
 }
 .task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Обличье карты: обрывок пергамента, рваный край сверху и снизу, номер — метка в кружке */
+.task--map {
+  margin: 8px 0;
+  border: none;
+  border-radius: 0;
+  padding: 22px 20px 22px;
+  box-shadow: 0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.task--map::before,
+.task--map::after {
+  content: "";
+  position: absolute; left: 0; right: 0;
+  height: 7px;
+  background: var(--paper);
+  pointer-events: none;
+}
+.task--map::before { bottom: calc(100% - 1px); clip-path: polygon(0 100%, 0.0% 43%, 3.8% 28%, 7.7% 70%, 11.5% 21%, 15.4% 61%, 19.2% 46%, 23.1% 20%, 26.9% 58%, 30.8% 18%, 34.6% 52%, 38.5% 21%, 42.3% 23%, 46.2% 51%, 50.0% 85%, 53.8% 26%, 57.7% 34%, 61.5% 68%, 65.4% 96%, 69.2% 64%, 73.1% 49%, 76.9% 98%, 80.8% 19%, 84.6% 88%, 88.5% 40%, 92.3% 27%, 96.2% 25%, 100.0% 41%, 100% 100%); }
+.task--map::after  { top: calc(100% - 1px);    clip-path: polygon(0 0, 0.0% 69%, 3.8% 15%, 7.7% 49%, 11.5% 54%, 15.4% 32%, 19.2% 47%, 23.1% 5%, 26.9% 5%, 30.8% 18%, 34.6% 58%, 38.5% 36%, 42.3% 27%, 46.2% 50%, 50.0% 39%, 53.8% 25%, 57.7% 68%, 61.5% 59%, 65.4% 21%, 69.2% 49%, 73.1% 45%, 76.9% 74%, 80.8% 62%, 84.6% 24%, 88.5% 83%, 92.3% 10%, 96.2% 36%, 100.0% 64%, 100% 0); }
+.task--map .task__no {
+  display: grid; place-items: center;
+  width: 42px; height: 42px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  font-size: 1.35rem;
+}
 
 /* Обличье колоды: вытянутая карта слоновой бумаги, рамка гравюрой */
 .task--tarot {
