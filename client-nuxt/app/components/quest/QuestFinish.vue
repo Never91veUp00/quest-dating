@@ -7,8 +7,8 @@
       </header>
 
       <p class="finish__facts">
-        <span><b>{{ points }}</b> {{ pointsWord(theme, points) }}</span>
-        <span><b>{{ completedCount }}</b> {{ plural(completedCount, ...(theme.copy.cellsDone ?? ['клетка пройдена', 'клетки пройдены', 'клеток пройдено'])) }}</span>
+        <span><b>{{ shownPoints }}</b> {{ pointsWord(theme, points) }}</span>
+        <span><b>{{ shownCount }}</b> {{ plural(completedCount, ...(theme.copy.cellsDone ?? ['клетка пройдена', 'клетки пройдены', 'клеток пройдено'])) }}</span>
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
@@ -135,6 +135,25 @@ const finishTitle = computed(() =>
   (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 const decor = computed(() => props.theme.world?.decor ?? null)
+
+// Счёт на финале набирается: сначала заголовок и сцена мира, потом цифры
+const shownPoints = ref(0)
+const shownCount  = ref(0)
+const COUNT_AT = 900, COUNT_MS = 900
+onMounted(() => {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    shownPoints.value = props.points; shownCount.value = props.completedCount; return
+  }
+  const start = performance.now() + COUNT_AT
+  const tick = (now) => {
+    const k = Math.min(1, Math.max(0, (now - start) / COUNT_MS))
+    const e = 1 - Math.pow(1 - k, 3)
+    shownPoints.value = Math.round(props.points * e)
+    shownCount.value  = Math.round(props.completedCount * e)
+    if (k < 1) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+})
 // Метки на пунктире к кладу: по одной на пройденную, не больше трёх
 const CHART_PTS = [[50, 104], [96, 64], [140, 80]]
 const chartMarks = computed(() => CHART_PTS.slice(0, Math.min(props.completedCount, 3)))
@@ -283,6 +302,22 @@ const saveCard = async () => {
   max-width: 560px; margin: 0 auto;
   display: flex; flex-direction: column; gap: 24px;
 }
+/* нарастание: заголовок → сцена мира → счёт → послание → кнопки */
+.finish__head, .finish__facts, .finish__actions,
+.finish__night, .finish__flask, .finish__box, .finish__chart, .finish__spread {
+  animation: finish-rise .6s cubic-bezier(.16, 1, .3, 1) both;
+}
+.finish__night, .finish__flask, .finish__box, .finish__chart, .finish__spread { animation-delay: .35s; }
+.finish__facts   { animation-delay: .8s; }
+.finish__actions { animation-delay: 2.1s; }
+@keyframes finish-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finish__head, .finish__facts, .finish__actions,
+  .finish__night, .finish__flask, .finish__box, .finish__chart, .finish__spread { animation: none; }
+}
 
 .finish__title {
   margin: 0;
@@ -321,7 +356,7 @@ const saveCard = async () => {
   border-radius: 14px;
   padding: 22px 20px 26px;
   box-shadow: 0 18px 26px -16px color-mix(in srgb, var(--rule) 80%, transparent);
-  animation: card-drop .7s cubic-bezier(.16, 1, .3, 1) .2s both;
+  animation: card-drop .7s cubic-bezier(.16, 1, .3, 1) 1.5s both;
 }
 @keyframes card-drop {
   from { opacity: 0; transform: translateY(-24px) rotate(-3deg); }
@@ -490,9 +525,9 @@ const saveCard = async () => {
   stroke-width: 9;
   stroke-linecap: round;
   stroke-dasharray: 80;
-  animation: chart-x .3s cubic-bezier(.6, 0, .4, 1) .3s both;
+  animation: chart-x .3s cubic-bezier(.6, 0, .4, 1) .7s both;
 }
-.finish__chart-x path + path { animation-delay: .7s; }
+.finish__chart-x path + path { animation-delay: 1.1s; }
 @keyframes chart-x { from { stroke-dashoffset: 80; } to { stroke-dashoffset: 0; } }
 .finish--map .finish__message { border: none; border-radius: 0; margin: 8px 0; }
 .finish--map .finish__message::before,
@@ -533,7 +568,7 @@ const saveCard = async () => {
   transform-origin: 50% 220%;
   transform: translateX(calc((var(--i) - var(--mid)) * 26px)) rotate(calc((var(--i) - var(--mid)) * 8deg));
   animation: spread-out .5s cubic-bezier(.16, 1, .3, 1) both;
-  animation-delay: calc(var(--i) * 70ms + .15s);
+  animation-delay: calc(var(--i) * 70ms + .5s);
 }
 @keyframes spread-out {
   from { transform: none; opacity: 0; }

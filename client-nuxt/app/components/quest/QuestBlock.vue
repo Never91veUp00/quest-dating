@@ -38,12 +38,18 @@
       <section
         v-if="boardOpen"
         class="block__board"
+        :class="{ 'block__board--entering': entering }"
         role="dialog"
         aria-modal="true"
         :aria-label="`Доска: ${block.title}`"
         @pointerdown="holdBoard"
         @keydown.esc="closeBoard"
       >
+        <!-- Новый участок: крупная плашка «Рецепт 2» с названием, потом доска -->
+        <div v-if="entering" class="block__plate" aria-hidden="true">
+          <span class="block__plate-no">{{ theme.copy.blockPrefix }} {{ index + 1 }}</span>
+          <span class="block__plate-title">{{ block.title }}</span>
+        </div>
         <div class="block__board-inner">
           <div class="block__meta">
             <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
@@ -199,10 +205,12 @@ let autoClose = null
 let hopTimer  = null
 
 const clearTimers = () => { clearTimeout(autoClose); clearTimeout(hopTimer) }
-const openBoard = (moment) => {
+// на новом участке доска держится дольше: сначала плашка участка, потом ход фишки
+const ENTER_MS = 2700
+const openBoard = (moment, ms = MOMENT_MS) => {
   clearTimers()
   boardOpen.value = true
-  if (moment) autoClose = setTimeout(closeBoard, MOMENT_MS)
+  if (moment) autoClose = setTimeout(closeBoard, ms)
   else nextTick(() => boardClose.value?.focus())
 }
 const entering = ref(false)
@@ -238,7 +246,7 @@ onMounted(() => {
   // Свежий участок: показываем доску, фишка заезжает на первую клетку
   if (!tasks.value.some(t => props.completedIds.includes(t.id))) {
     entering.value = true
-    openBoard(true)
+    openBoard(true, ENTER_MS)
   }
   window.visualViewport?.addEventListener('resize', setKeyboardInset)
   window.visualViewport?.addEventListener('scroll', setKeyboardInset)
@@ -554,6 +562,43 @@ const finishLabel = computed(() => ({
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23ecdfc0' stroke-opacity='.5' stroke-width='.7' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='13'/%3E%3Ccircle cx='20' cy='20' r='16.5'/%3E%3Cpath d='M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z M20 8 L21.6 18.4 L32 20 L21.6 21.6 L20 32 L18.4 21.6 L8 20 L18.4 18.4 Z' transform='rotate(45 20 20)'/%3E%3Cpath d='M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z'/%3E%3C/g%3E%3Cpath d='M20 1 L23 17 L20 20 Z M39 20 L23 23 L20 20 Z M20 39 L17 23 L20 20 Z M1 20 L17 17 L20 20 Z' fill='%23ecdfc0' fill-opacity='.45'/%3E%3C/svg%3E") right 18% bottom 130px / 132px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Cpath d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='%23ecdfc0' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 64px 40px,
     var(--field);
+}
+/* на новом участке трасса проявляется, когда плашка уходит */
+.block__board--entering .block__board-track { animation: track-in .45s cubic-bezier(.16, 1, .3, 1) 1s both; }
+@keyframes track-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .block__board--entering .block__board-track { animation: none; } }
+/* Плашка начала участка: бумага мира поверх доски, держится ~1 с и уходит */
+.block__plate {
+  position: absolute; left: 16px; right: 16px; top: 50%;
+  z-index: 2;
+  max-width: 420px; margin: 0 auto;
+  padding: 22px 20px 20px;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 12px;
+  box-shadow: 0 20px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent);
+  pointer-events: none;
+  animation: plate-life 1.25s cubic-bezier(.2, .7, .2, 1) both;
+}
+.block__plate-no {
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: clamp(2rem, 11vw, 3rem);
+  line-height: 1;
+}
+.block__plate-title { font-family: var(--font-b); font-size: 1.1rem; color: var(--ink-soft); }
+@keyframes plate-life {
+  0%   { opacity: 0; transform: translateY(-40%) scale(.96); }
+  18%  { opacity: 1; transform: translateY(-50%) scale(1); }
+  72%  { opacity: 1; transform: translateY(-50%) scale(1); }
+  100% { opacity: 0; transform: translateY(-58%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .block__plate { animation: plate-fade 1.25s linear both; }
+  @keyframes plate-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 }
 .block__board-inner {
   max-width: 600px; margin: 0 auto;
