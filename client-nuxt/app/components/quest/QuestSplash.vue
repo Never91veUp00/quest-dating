@@ -64,7 +64,7 @@
         <!-- Видео-инструкция (или демо) и правило игры -->
         <div class="splash__how">
           <QuestHowTo :theme="theme" />
-          <p class="splash__note">Клетки открываются по очереди. Подглядывать вперёд не получится — так задумано.</p>
+          <p class="splash__note">{{ theme.copy.splashNote ?? 'Клетки открываются по очереди. Подглядывать вперёд не получится — так задумано.' }}</p>
         </div>
 
         <button class="task__action splash__cta splash__cta--sticky" @click="$emit('start')">
@@ -303,8 +303,8 @@ const startLabel = computed(() =>
   background: var(--paper);
   pointer-events: none;
 }
-.splash--map .splash__brief::before { bottom: calc(100% - 1px); clip-path: polygon(0 100%, 0.0% 43%, 3.8% 28%, 7.7% 70%, 11.5% 21%, 15.4% 61%, 19.2% 46%, 23.1% 20%, 26.9% 58%, 30.8% 18%, 34.6% 52%, 38.5% 21%, 42.3% 23%, 46.2% 51%, 50.0% 85%, 53.8% 26%, 57.7% 34%, 61.5% 68%, 65.4% 96%, 69.2% 64%, 73.1% 49%, 76.9% 98%, 80.8% 19%, 84.6% 88%, 88.5% 40%, 92.3% 27%, 96.2% 25%, 100.0% 41%, 100% 100%); }
-.splash--map .splash__brief::after  { top: calc(100% - 1px);    clip-path: polygon(0 0, 0.0% 69%, 3.8% 15%, 7.7% 49%, 11.5% 54%, 15.4% 32%, 19.2% 47%, 23.1% 5%, 26.9% 5%, 30.8% 18%, 34.6% 58%, 38.5% 36%, 42.3% 27%, 46.2% 50%, 50.0% 39%, 53.8% 25%, 57.7% 68%, 61.5% 59%, 65.4% 21%, 69.2% 49%, 73.1% 45%, 76.9% 74%, 80.8% 62%, 84.6% 24%, 88.5% 83%, 92.3% 10%, 96.2% 36%, 100.0% 64%, 100% 0); }
+.splash--map .splash__brief::before { bottom: calc(100% - 1px); clip-path: var(--torn-top); }
+.splash--map .splash__brief::after  { top: calc(100% - 1px);    clip-path: var(--torn-bottom); }
 
 /* Обличье колоды: «Перед стартом» — карта с гравированной рамкой */
 .splash--tarot .splash__brief {

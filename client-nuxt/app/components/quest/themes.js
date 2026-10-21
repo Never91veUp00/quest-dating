@@ -68,6 +68,9 @@ export const THEMES = {
       finishEyebrow: 'ДЕЛО ЗАКРЫТО',
       shareBtn:      'Передать в архив',
       blockPrefix:   'Улика',
+      finishBtn:     'Закрыть дело',
+      messageLabel:  'Личное послание',
+      splashNote:    'Карточки дела открываются по очереди. Подглядывать вперёд не получится — так задумано.',
       pointsLabel:   'очков',
       pointsForms:   ['очко', 'очка', 'очков'],
     },
@@ -152,6 +155,9 @@ export const THEMES = {
       finishEyebrow: 'Ты справилась!',
       shareBtn:      'Поделиться моментом',
       blockPrefix:   'Глава',
+      finishBtn:     'Завершить',
+      messageLabel:  'Слова для тебя',
+      splashNote:    'Письма приходят по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['глава', 'главы', 'глав'],
       pointsLabel:   'сердечек',
       pointsForms:   ['сердечко', 'сердечка', 'сердечек'],
@@ -227,6 +233,9 @@ export const THEMES = {
       finishEyebrow: 'Ваш расклад',
       shareBtn:      'Поделиться раскладом',
       blockPrefix:   'Расклад',
+      finishBtn:     'Открыть расклад',
+      messageLabel:  'Последняя карта',
+      splashNote:    'Карты открываются по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['расклад', 'расклада', 'раскладов'],
       cellForms:     ['карта', 'карты', 'карт'],
       cellsDone:     ['карта открыта', 'карты открыты', 'карт открыто'],
@@ -309,6 +318,9 @@ export const THEMES = {
       finishEyebrow: 'Клад найден!',
       shareBtn:      'Поделиться добычей',
       blockPrefix:   'Остров',
+      finishBtn:     'К кладу',
+      messageLabel:  'Записка в сундуке',
+      splashNote:    'Метки открываются по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['остров', 'острова', 'островов'],
       cellForms:     ['метка', 'метки', 'меток'],
       cellsDone:     ['метка найдена', 'метки найдены', 'меток найдено'],
@@ -389,6 +401,9 @@ export const THEMES = {
       finishEyebrow: 'А теперь — главный вопрос',
       shareBtn:      'Поделиться',
       blockPrefix:   'Момент',
+      finishBtn:     'К главному',
+      messageLabel:  'От меня',
+      splashNote:    'Шаги открываются по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['момент', 'момента', 'моментов'],
       cellForms:     ['шаг', 'шага', 'шагов'],
       cellsDone:     ['шаг пройден', 'шага пройдено', 'шагов пройдено'],
@@ -464,6 +479,9 @@ export const THEMES = {
       finishEyebrow: 'Конечная!',
       shareBtn:      'Поделиться результатом',
       blockPrefix:   'Линия',
+      finishBtn:     'На конечную',
+      messageLabel:  'Личное сообщение',
+      splashNote:    'Станции открываются по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['линия', 'линии', 'линий'],
       pointsLabel:   'очков',
       pointsForms:   ['очко', 'очка', 'очков'],
@@ -540,6 +558,9 @@ export const THEMES = {
       finishEyebrow: 'Зелье готово!',
       shareBtn:      'Поделиться зельем',
       blockPrefix:   'Рецепт',
+      finishBtn:     'Снять с огня',
+      messageLabel:  'К зелью прилагается',
+      splashNote:    'Флаконы наполняются по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['рецепт', 'рецепта', 'рецептов'],
       cellForms:     ['флакон', 'флакона', 'флаконов'],
       cellsDone:     ['флакон наполнен', 'флакона наполнено', 'флаконов наполнено'],
@@ -621,6 +642,9 @@ export const THEMES = {
       finishEyebrow: 'Сладость найдена!',
       shareBtn:      'Поделиться уловом',
       blockPrefix:   'Дом',
+      finishBtn:     'Домой',
+      messageLabel:  'В корзинке с конфетами',
+      splashNote:    'Тыквы вырезаются по очереди. Подглядывать вперёд не получится — так задумано.',
       blockForms:    ['дом', 'дома', 'домов'],
       cellForms:     ['тыква', 'тыквы', 'тыкв'],
       cellsDone:     ['тыква вырезана', 'тыквы вырезано', 'тыкв вырезано'],
@@ -714,5 +738,42 @@ const worldVars = (theme) => {
     ...(w.sealDeep && { '--seal-deep': w.sealDeep }),
     // сургуч на пробке (тема «Зельеварня»)
     ...(w.wax && { '--wax': w.wax }),
+    ...worldArt(w),
+  }
+}
+
+// Узоры-картинки мира. Внутрь data-URI CSS-переменные не проходят,
+// поэтому SVG собирается здесь из цветов темы и отдаётся переменной --art-*:
+// сменится цвет темы — сменится и узор.
+const svgUrl = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+const SVG = "xmlns='http://www.w3.org/2000/svg'"
+
+// смесь двух hex-цветов: доля t первого, как color-mix(in srgb, a t, b)
+const mixHex = (a, b, t) => {
+  const ch = (h, i) => parseInt(h.slice(1 + i * 2, 3 + i * 2), 16)
+  return '#' + [0, 1, 2].map(i => Math.round(ch(a, i) * t + ch(b, i) * (1 - t)).toString(16).padStart(2, '0')).join('')
+}
+
+const ROSE_RAYS = 'M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z'
+const SEA_WAVES = (ink) => svgUrl(`<svg ${SVG} width='64' height='40'><path d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='${ink}' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/></svg>`)
+
+const worldArt = (w) => {
+  switch (w.decor) {
+    case 'map': return {
+      // роза ветров мелом в море и волны — поле доски и крышки
+      '--art-sea-rose': svgUrl(`<svg ${SVG} viewBox='0 0 40 40'><g fill='none' stroke='${w.fieldInk}' stroke-opacity='.5' stroke-width='.7' stroke-linejoin='round'><circle cx='20' cy='20' r='13'/><circle cx='20' cy='20' r='16.5'/><path d='${ROSE_RAYS} M20 8 L21.6 18.4 L32 20 L21.6 21.6 L20 32 L18.4 21.6 L8 20 L18.4 18.4 Z' transform='rotate(45 20 20)'/><path d='${ROSE_RAYS}'/></g><path d='M20 1 L23 17 L20 20 Z M39 20 L23 23 L20 20 Z M20 39 L17 23 L20 20 Z M1 20 L17 17 L20 20 Z' fill='${w.fieldInk}' fill-opacity='.45'/></svg>`),
+      '--art-sea-waves': SEA_WAVES(w.fieldInk),
+      // рубашка «Найди пары»: роза ветров чернилами на пергаменте
+      '--art-card-back': svgUrl(`<svg ${SVG} viewBox='0 0 40 40'><g fill='none' stroke='${w.ink}' stroke-width='1.4' stroke-linejoin='round'><circle cx='20' cy='20' r='13'/><path d='M20 3 L23 17 L37 20 L23 23 L20 37 L17 23 L3 20 L17 17 Z'/></g><path d='M20 3 L23 17 L20 20 Z M37 20 L23 23 L20 20 Z M20 37 L17 23 L20 20 Z M3 20 L17 17 L20 20 Z' fill='${w.ink}'/></svg>`),
+    }
+    case 'potion': return {
+      // рубашка «Найди пары»: пустой флакон мелом на камне
+      '--art-card-back': svgUrl(`<svg ${SVG} viewBox='0 0 40 48'><path d='M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z' fill='none' stroke='${w.fieldInk}' stroke-opacity='.75' stroke-width='1.6' stroke-linejoin='round'/></svg>`),
+    }
+    case 'diecut': return {
+      // рубашка «Найди пары»: невырезанная тыква, цвета как у QuestPumpkin
+      '--art-card-back': svgUrl(`<svg ${SVG} viewBox='0 0 40 40'><path d='M18.6 12.4 C18.4 8.6 19.6 6.2 22.6 4.8 L24 6.6 C22 7.6 21.4 9.4 21.6 12.4 Z' fill='${mixHex(w.chip, w.rule, .3)}' stroke='${w.rule}' stroke-width='.9'/><ellipse cx='20' cy='24.5' rx='16' ry='12.5' fill='${w.chip}' stroke='${w.rule}' stroke-width='1.5'/><path d='M20 12 C12.5 15 12.5 34 20 37 M20 12 C27.5 15 27.5 34 20 37' fill='none' stroke='${w.rule}' stroke-width='1.2'/></svg>`),
+    }
+    default: return {}
   }
 }

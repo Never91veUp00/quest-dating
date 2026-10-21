@@ -406,7 +406,7 @@ onUnmounted(() => clearTimeout(timer))
 /* ── Обличье карты: свиток под сургучом на море ───────────────── */
 .lid--map {
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Cpath d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='%23ecdfc0' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 64px 40px,
+    var(--art-sea-waves) 0 0 / 64px 40px,
     var(--field);
 }
 .lid--map .lid__face {
