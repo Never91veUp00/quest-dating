@@ -88,6 +88,7 @@ const landed           = ref([]) // куски, только что вставш
 
 let previewTimer = null
 let shuffleTimer = null
+const landTimers = new Set()
 
 onMounted(() => {
   if (props.task.puzzle_image) {
@@ -101,6 +102,7 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(previewTimer)
   clearTimeout(shuffleTimer)
+  landTimers.forEach(clearTimeout)
 })
 
 const startPreview = () => {
@@ -201,7 +203,11 @@ const onTap = (slotIdx) => {
   const fresh = [a, b].filter(x => x.pieceIdx === x.i).map(x => x.i)
   if (fresh.length) {
     landed.value = [...landed.value, ...fresh]
-    setTimeout(() => { landed.value = landed.value.filter(i => !fresh.includes(i)) }, 650)
+    const t = setTimeout(() => {
+      landTimers.delete(t)
+      landed.value = landed.value.filter(i => !fresh.includes(i))
+    }, 650)
+    landTimers.add(t)
   }
   selectedSlot.value = null
 }
@@ -279,7 +285,7 @@ const onTap = (slotIdx) => {
 .task__puzzle__slot.selected {
   z-index: 2;
   transform: scale(1.06);
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--chip), 0 10px 16px -6px color-mix(in srgb, var(--rule) 80%, transparent);
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--mi-sel, var(--chip)), 0 10px 16px -6px color-mix(in srgb, var(--rule) 80%, transparent);
 }
 .task__puzzle__slot.correct { cursor: default; pointer-events: none; }
 /* только что встал на место: короткая рамка тает */
@@ -298,7 +304,9 @@ const onTap = (slotIdx) => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .task__puzzle__slot.selected { transform: none; }
+  .task__puzzle__slot.selected,
+  .task__puzzle__slot:active { transform: none; }
+  .task__puzzle__slot.landed::after { animation: none; opacity: 0; }
   .task__puzzle__board--shuffling .task__puzzle__slot { animation: none; }
 }
 </style>
