@@ -210,6 +210,14 @@ if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
         if (!t.title.trim()) errs.push(`Блок ${bi + 1}, задание ${ti + 1}: укажи заголовок`)
         if (t.type === 'riddle' && !t.answer?.trim())
           errs.push(`Блок ${bi + 1}, задание ${ti + 1}: укажи правильный ответ`)
+        if (t.type === 'mini_game') {
+          const where = `Блок ${bi + 1}, задание ${ti + 1}`
+          if (t.game_type === 'word' && !t.word_answer?.trim()) errs.push(`${where}: укажи слово-ответ`)
+          if (t.game_type === 'cipher' && !t.cipher_phrase?.trim()) errs.push(`${where}: укажи фразу для шифра`)
+          if (t.game_type === 'scratch' && !t.scratch_image && !t.scratch_text?.trim()) errs.push(`${where}: добавь фото или текст под слой`)
+          if (t.game_type === 'timeline' && (t.timeline_items || []).filter(it => it.text?.trim()).length < 3)
+            errs.push(`${where}: нужно хотя бы 3 события с текстом`)
+        }
       })
     })
     return errs

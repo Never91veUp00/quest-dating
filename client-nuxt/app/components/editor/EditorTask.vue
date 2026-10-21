@@ -88,12 +88,14 @@
         @pair-image-upload="handlePairImageUpload"
         @media-upload="handleMediaUpload"
         @media-clear="handleMediaClear"
+        @image-upload="handleImageUpload"
       />
 
       <!-- Hidden inputs -->
       <input :ref="el => { puzzleInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onPuzzleFile" />
       <input :ref="el => { pairInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onPairImageFile" />
       <input :ref="el => { pairReplaceInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onPairReplaceFile" />
+      <input :ref="el => { imageInput = el }" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" @change="onImageFile" />
       <input :ref="el => { mediaInput = el }" type="file" accept="video/mp4,video/webm,video/quicktime,audio/mpeg,audio/ogg,audio/wav,audio/mp4,audio/x-m4a" style="display:none" @change="onMediaFile" />
     </div>
   </div>
@@ -114,6 +116,8 @@ let pairInput        = null
 let pairReplaceInput = null
 let pairReplaceIdx   = null
 let mediaInput       = null
+let imageInput       = null
+let imageSetter      = null
 let mediaTask        = null
 
 const API_BASE = useRuntimeConfig().public.apiBase.replace('/api', '')
@@ -127,6 +131,23 @@ const handlePairImageUpload = (task, idx) => {
     pairReplaceIdx = idx
     pairReplaceInput?.click()
   }
+}
+
+// фото для новых игр: поле само говорит, куда положить картинку
+const handleImageUpload = (setter) => {
+  imageSetter = setter
+  imageInput?.click()
+}
+
+const onImageFile = (e) => {
+  const file = e.target.files[0]
+  const setter = imageSetter
+  e.target.value = ''
+  imageSetter = null
+  if (!file || !setter) return
+  const reader = new FileReader()
+  reader.onload = (ev) => setter(ev.target.result)
+  reader.readAsDataURL(file)
 }
 
 const handleMediaUpload = (task) => {

@@ -87,8 +87,9 @@ const TASK_LABELS = {
   media:       'Медиа',
 }
 
+const GAME_ICONS = { quiz: '🧠', pairs: '🔗', word: '🔤', timeline: '🗓️', scratch: '🪙', cipher: '🔐' }
 const taskIcon  = (task) => {
-  if (task.type === 'mini_game') return task.game_type === 'quiz' ? '🧠' : task.game_type === 'pairs' ? '🔗' : '🎮'
+  if (task.type === 'mini_game') return GAME_ICONS[task.game_type] || '🎮'
   return TASK_ICONS[task.type] || '🎯'
 }
 const taskLabel = (type) => TASK_LABELS[type] || 'Задание'
