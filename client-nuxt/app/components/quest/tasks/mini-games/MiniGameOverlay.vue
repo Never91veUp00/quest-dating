@@ -88,11 +88,11 @@ defineEmits(['update:modelValue'])
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
 .mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
 
-/* Хеллоуин, «Найди пары»: рубашка — тёмный картон с оранжевой тыквой-кружком */
+/* Хеллоуин, «Найди пары»: рубашка — тёмный картон с невырезанной тыквой (форма QuestPumpkin) */
 .mg-overlay--diecut :deep(.task__pairs__card__back) {
   font-size: 0;
   background:
-    radial-gradient(ellipse 28% 22% at 50% 56%, var(--chip) 96%, transparent 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M18.6 12.4 C18.4 8.6 19.6 6.2 22.6 4.8 L24 6.6 C22 7.6 21.4 9.4 21.6 12.4 Z' fill='%235a3418' stroke='%230f0c0a' stroke-width='.9'/%3E%3Cellipse cx='20' cy='24.5' rx='16' ry='12.5' fill='%23e8711c' stroke='%230f0c0a' stroke-width='1.5'/%3E%3Cpath d='M20 12 C12.5 15 12.5 34 20 37 M20 12 C27.5 15 27.5 34 20 37' fill='none' stroke='%230f0c0a' stroke-width='1.2'/%3E%3C/svg%3E") center / 58% no-repeat,
     var(--back);
 }
 .mg-overlay--diecut :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }

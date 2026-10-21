@@ -15,7 +15,8 @@
       <!-- Хеллоуин: луна и двое на крыше, рядом кот — вырубка из картона -->
       <svg v-if="decor === 'diecut'" class="finish__night" viewBox="0 0 320 170" aria-hidden="true">
         <circle class="finish__night-moon" cx="196" cy="78" r="66" />
-        <path class="finish__night-roof" d="M0 170 V138 L60 104 L120 138 H200 L250 112 L320 140 V170 Z" />
+        <path class="finish__night-roof" d="M0 170 V138 L60 104 L120 138 H200 L250 112 L320 140 V170 Z M78 114 V92 H92 V122 Z" />
+        <path class="finish__night-ridge" d="M0 138 L60 104 L120 138 H200 L250 112 L320 140" />
         <g class="finish__night-cut">
           <path d="M150 140 C148 128 150 118 156 112 C152 108 152 100 158 96 C164 92 172 96 172 104 C172 110 168 114 164 116 C170 120 172 130 170 140 Z" />
           <path d="M172 140 C170 130 172 120 178 114 C174 110 174 102 180 98 C186 94 194 98 194 106 C194 112 190 116 186 118 C192 122 194 132 192 140 Z" />
@@ -404,7 +405,8 @@ const saveCard = async () => {
 .finish--diecut .finish__title { letter-spacing: .01em; }
 .finish__night { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; }
 .finish__night-moon { fill: var(--chip); }
-.finish__night-roof { fill: var(--rule); stroke: var(--field-ink); stroke-width: 1.4; stroke-linejoin: round; }
+.finish__night-roof  { fill: var(--back); }
+.finish__night-ridge { fill: none; stroke: color-mix(in srgb, var(--field-ink) 60%, var(--back)); stroke-width: 1.4; stroke-linejoin: round; }
 .finish__night-cut path { fill: var(--rule); }
 .finish--diecut .finish__message {
   border: none;

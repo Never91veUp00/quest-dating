@@ -241,6 +241,7 @@ const typeLabel = computed(() => ({
   filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
   padding: 24px 22px 22px;
 }
+.task--diecut .task__corner { flex-direction: row; align-items: center; gap: 8px; }
 .task--diecut .task__no {
   display: grid; place-items: center;
   min-width: 40px; height: 32px;

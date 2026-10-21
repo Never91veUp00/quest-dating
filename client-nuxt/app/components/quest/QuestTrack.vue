@@ -584,17 +584,24 @@ const chipStyle = computed(() => {
 }
 .cell__skippk { position: relative; display: block; }
 .track--diecut .cell__skipx { top: 62%; }
-/* фишка — силуэт кота мелом, вырезанный из картона */
+/* фишка — чёрный кот из картона: кремовое поле вырубки и сам силуэт поверх */
 .track--diecut .track__chip {
-  width: 26px; height: 30px;
-  margin: -84px 0 0 -13px;
+  width: 34px; height: 40px;
+  margin: -98px 0 0 -17px;
   border: none;
   border-radius: 0;
-  background: var(--field-ink);
+  background: none;
   box-shadow: none;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 30'%3E%3Cpath d='M7 29 C4 26 4 19 7 15 C5 13 5 9 6 6 L5 1 L9 4.6 C11 4 15 4 17 4.6 L21 1 L20 6 C21 9 21 13 19 15 C22 19 22 24 20 27 C23 27 25 25 25 22 L26 22 C26 27 23 30 18 29 Z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
-          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 30'%3E%3Cpath d='M7 29 C4 26 4 19 7 15 C5 13 5 9 6 6 L5 1 L9 4.6 C11 4 15 4 17 4.6 L21 1 L20 6 C21 9 21 13 19 15 C22 19 22 24 20 27 C23 27 25 25 25 22 L26 22 C26 27 23 30 18 29 Z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
 }
+.track--diecut .track__chip::before,
+.track--diecut .track__chip::after {
+  content: "";
+  position: absolute;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 36'%3E%3Cpath d='M8 35 C4 31 4 22 8 17 C5 14 5 9 6.5 5 L5.5 0 L11 4.2 C13 3.6 17 3.6 19 4.2 L24.5 0 L23.5 5 C25 9 25 14 22 17 C26 22 26 29 23 32 C27 32 29 29 29 25 L30.5 25 C30.5 32 27 36 21 35 Z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 36'%3E%3Cpath d='M8 35 C4 31 4 22 8 17 C5 14 5 9 6.5 5 L5.5 0 L11 4.2 C13 3.6 17 3.6 19 4.2 L24.5 0 L23.5 5 C25 9 25 14 22 17 C26 22 26 29 23 32 C27 32 29 29 29 25 L30.5 25 C30.5 32 27 36 21 35 Z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.track--diecut .track__chip::before { inset: -3px; background: var(--paper); }
+.track--diecut .track__chip::after  { inset: 0; background: var(--rule); }
 
 /* ── Обличье зельеварни: флаконы на медной трубке ───────────── */
 .track--potion { height: clamp(190px, 30svh, 280px); }

@@ -16,10 +16,11 @@
       <svg v-if="decor === 'diecut'" class="lid__scene" viewBox="0 0 280 96" aria-hidden="true">
         <rect class="lid__scene-sky" width="280" height="96" />
         <circle class="lid__scene-moon" cx="196" cy="44" r="30" />
-        <path class="lid__scene-cut" d="M0 96 V78 Q20 70 40 78 T80 76 T120 80 T160 74 T200 80 T240 76 T280 78 V96 Z" />
-        <path class="lid__scene-cut" d="M70 78 C66 74 66 66 70 62 C68 60 68 56 69 53 L68 48 L72 51.6 C74 51 78 51 80 51.6 L84 48 L83 53 C84 56 84 60 82 62 C85 66 85 71 83 74 C86 74 88 72 88 69 L89 69 C89 74 86 77 81 76 Z" />
-        <path class="lid__scene-cut" d="M120 30 q6 -8 12 -2 q4 -6 8 0 q4 -6 8 0 q6 -6 12 2 q-8 -2 -12 4 q-4 -4 -8 0 q-4 -4 -8 0 q-4 -6 -12 -4 Z" />
-        <path class="lid__scene-cut" d="M228 18 q4 -5 8 -1 q3 -4 5 0 q3 -4 5 0 q4 -4 8 1 q-5 -1 -8 3 q-3 -3 -5 0 q-3 -3 -5 0 q-3 -4 -8 -3 Z" />
+        <path class="lid__scene-hill" d="M0 96 V78 Q20 70 40 78 T80 76 T120 80 T160 74 T200 80 T240 76 T280 78 V96 Z" />
+        <path class="lid__scene-cut" d="M66 80 C62 75 62 66 66 61 C64 59 64 54 65 50 L64 43 L69 47.6 C71 47 76 47 78 47.6 L83 43 L82 50 C83 54 83 59 81 61 C85 66 85 72 82 76 C86 76 89 73 89 69 L91 69 C91 76 87 80 80 79 Z" />
+        <path class="lid__scene-cut" transform="translate(186 34) scale(1.1)" d="M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z" />
+        <path class="lid__scene-cut" transform="translate(120 22) scale(.75)" d="M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z" />
+        <path class="lid__scene-cut" transform="translate(248 16) scale(.6)" d="M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z" />
       </svg>
       <!-- Зельеварня: большой флакон, пробка под сургучом, ярлык с именем — поверх колбы -->
       <QuestFlask v-if="decor === 'potion'" class="lid__flask" :size="260" :level=".38" />
@@ -280,15 +281,30 @@ onUnmounted(() => clearTimeout(timer))
   filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
   padding: 0 0 26px;
 }
+/* вырубка углов маской: вогнутые углы режут и шапку-сцену; тень маска срезала бы, поэтому без неё */
 .lid--diecut .lid__face {
+  background: var(--paper);
+  filter: none;
+  -webkit-mask:
+    radial-gradient(circle at 0 0,       transparent 11px, #000 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, #000 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, #000 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, #000 11.5px) bottom right / 51% 51% no-repeat;
+          mask:
+    radial-gradient(circle at 0 0,       transparent 11px, #000 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, #000 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, #000 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, #000 11.5px) bottom right / 51% 51% no-repeat;
   max-width: 320px;
   overflow: hidden;
   transition: transform .4s cubic-bezier(.5, 0, .3, 1);
 }
 .lid__scene { display: block; width: 100%; height: auto; margin-bottom: 18px; }
-.lid__scene-sky  { fill: var(--rule); }
+.lid__scene-sky  { fill: var(--back); }
 .lid__scene-moon { fill: var(--chip); }
-.lid__scene-cut  { fill: var(--field); stroke: var(--field-ink); stroke-width: .8; stroke-linejoin: round; }
+/* небо — слой бурого картона, холмы и силуэты — сплошной чёрный картон поверх */
+.lid__scene-hill { fill: var(--rule); }
+.lid__scene-cut  { fill: var(--rule); }
 .lid__invite { padding: 0 22px; }
 .lid--diecut .lid__title { color: var(--ink); font-size: clamp(1.6rem, 10cqi, 2.4rem); }
 .lid--diecut .lid__for { margin-top: 10px; color: var(--ink-soft); }
