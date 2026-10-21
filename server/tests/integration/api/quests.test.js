@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import request from 'supertest'
 import { setupIntegration, teardownIntegration } from '../../helpers/integration-db.js'
 
@@ -16,7 +16,13 @@ import { setupIntegration, teardownIntegration } from '../../helpers/integration
 // возвращает БД к состоянию dump между тестами (тот же подход, что в orders).
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const tick = () => new Promise(r => setImmediate(r)) // дать fire-and-forget промису отработать
+// Счётчики квеста сервер обновляет fire-and-forget: отдельный запрос к БД после ответа.
+// Один тик цикла событий его не дожидается (на CI тест падал), поэтому опрашиваем БД.
+const counterOf = (column, questId) => vi.waitFor(async () => {
+  const { rows } = await ctx.pool.query(`SELECT ${column} FROM created_quests WHERE id = $1`, [questId])
+  expect(rows[0][column]).toBe(1)
+  return rows[0][column]
+}, { timeout: 3000, interval: 50 })
 
 let ctx
 
@@ -84,12 +90,7 @@ describe('POST /api/quests/:questId/session — создание сессии (�
     const quest = await makeQuest()
 
     await request(ctx.app).post(`/api/quests/${quest.id}/session`).expect(201)
-    await tick() // started_count обновляется не в основном промисе ответа
-
-    const { rows } = await ctx.pool.query(
-      'SELECT started_count FROM created_quests WHERE id = $1', [quest.id]
-    )
-    expect(rows[0].started_count).toBe(1)
+    expect(await counterOf('started_count', quest.id)).toBe(1)
   })
 
   it('404 если квест не существует', async () => {
@@ -173,9 +174,7 @@ describe('POST /api/quests/session/:sessionId/complete — завершение 
     expect(rows[0].completed_at).not.toBeNull()
     expect(rows[0].total_time_seconds).toBe(1800)
 
-    await tick()
-    const q = await ctx.pool.query('SELECT completed_count FROM created_quests WHERE id = $1', [quest.id])
-    expect(q.rows[0].completed_count).toBe(1)
+    expect(await counterOf('completed_count', quest.id)).toBe(1)
   })
 
   it('400 если quest_id не передан', async () => {
