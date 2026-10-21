@@ -12,6 +12,14 @@
         <!-- Линия маршрута: прямые перегоны, как на схеме -->
         <path class="metro-line" :d="linePath" />
       </template>
+      <template v-else-if="decor === 'map'">
+        <!-- Пергаментный остров: береговая линия и второй контур мелководья, по суше — пунктир маршрута -->
+        <path class="isle isle--shoal" :d="ISLE" transform="translate(50 50) scale(1.06 1.1) translate(-50 -50)" />
+        <path class="isle isle--land" :d="ISLE" />
+        <!-- по суше маршрут идёт чернилами, к соседним островам по морю — мелом -->
+        <path class="map-route map-route--sea" :d="roadPath" />
+        <path class="map-route" :d="landRoute" />
+      </template>
       <template v-else-if="decor === 'tarot'">
         <!-- Расклад на сукне: тонкая меловая разметка от карты к карте -->
         <path class="tarot-line" :d="linePath" />
@@ -57,6 +65,17 @@
             :class="{ 'is-fresh': cell.id === stampId }"
             aria-hidden="true"
           ><i></i><i></i><i></i></span>
+          <!-- На карте пройденную метку перечёркивает красный крест: два штриха пером -->
+          <svg
+            v-else-if="decor === 'map' && cell.state === 'done'"
+            class="cell__x" :class="{ 'is-fresh': cell.id === stampId }"
+            viewBox="0 0 24 24" aria-hidden="true"
+          ><path d="M5 5.5 L19 18.5" /><path d="M18.5 5 L5.5 19" /></svg>
+          <!-- Пропущенная метка: перечёркнута одним чернильным штрихом, не крестом клада -->
+          <svg
+            v-else-if="decor === 'map' && cell.state === 'wrong'"
+            class="cell__skip" viewBox="0 0 24 24" aria-hidden="true"
+          ><path d="M6 12 H18" /></svg>
           <!-- В колоде пройденная карта перевёрнута лицом и показывает свой знак -->
           <QuestArcana
             v-else-if="decor === 'tarot' && cell.state === 'done'"
@@ -78,7 +97,7 @@
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
-        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot'].includes(decor)" class="cell__stamp" aria-hidden="true">
+        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map'].includes(decor)" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -108,6 +127,9 @@ const props = defineProps({
 })
 defineEmits(['open'])
 
+// Остров на карте: изрезанный берег с двумя бухтами и мысом вокруг всей трассы (координаты трассы, 0–100)
+const ISLE = 'M97.3 46.4 Q96.4 50.0 95.8 53.3 Q95.2 56.7 94.2 59.9 Q93.2 63.1 93.4 67.0 Q93.6 70.8 91.0 73.4 Q88.3 76.1 86.1 78.9 Q83.8 81.7 80.6 83.4 Q77.3 85.2 73.4 85.4 Q69.4 85.6 65.7 85.2 Q62.1 84.8 59.0 84.8 Q55.9 84.8 52.9 87.8 Q50.0 90.8 46.3 92.0 Q42.7 93.2 38.9 93.2 Q35.0 93.2 31.9 91.1 Q28.8 89.0 26.1 86.7 Q23.3 84.4 20.6 82.2 Q17.9 80.0 14.5 78.2 Q11.1 76.4 10.3 72.9 Q9.5 69.3 7.1 66.6 Q4.6 63.8 3.8 60.4 Q3.0 57.0 4.1 53.5 Q5.1 50.0 4.1 46.5 Q3.1 43.0 7.6 40.8 Q12.2 38.5 13.1 35.7 Q14.1 32.9 14.0 29.2 Q14.0 25.5 16.1 22.8 Q18.1 20.2 19.9 16.9 Q21.8 13.6 25.0 11.8 Q28.2 9.9 32.1 9.8 Q36.0 9.7 39.3 7.8 Q42.5 5.8 46.3 6.7 Q50.0 7.7 53.8 6.2 Q57.7 4.7 61.2 6.1 Q64.8 7.4 68.6 8.1 Q72.4 8.9 74.6 12.2 Q76.8 15.5 81.1 16.2 Q85.5 16.8 89.0 18.9 Q92.6 21.0 93.1 25.1 Q93.5 29.3 93.4 33.0 Q93.3 36.8 95.8 39.8 Q98.2 42.8 97.3 46.4 Z'
+
 // Карта, которую только что прошли: следующая за ней открывается с переворотом
 const stampIndex = computed(() =>
   props.stampId == null ? Infinity : props.tasks.findIndex(t => t.id === props.stampId)
@@ -126,7 +148,8 @@ const cells = computed(() => {
       : i === firstOpen ? 'active' : 'back'
     return {
       id: t.id, index: i, n: i + 1, title: t.title || 'Задание', state,
-      x: n === 1 ? 50 : 14 + (72 * i) / (n - 1),
+      // на карте метки держатся на суше, дальше от берега
+      x: n === 1 ? 50 : props.decor === 'map' ? 20 + (60 * i) / (n - 1) : 14 + (72 * i) / (n - 1),
       y: n === 1 ? 48 : WAVE[i % WAVE.length],
     }
   })
@@ -142,6 +165,20 @@ const roadPath = computed(() => {
   for (let i = 1; i < all.length; i++) {
     const [x0, y0] = all[i - 1]
     const [x1, y1] = all[i]
+    const mx = (x0 + x1) / 2
+    d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
+  }
+  return d
+})
+
+// Маршрут по острову: те же кривые, но только между метками, без выхода в море
+const landRoute = computed(() => {
+  const pts = cells.value.map(c => [c.x, c.y])
+  if (!pts.length) return ''
+  let d = `M${pts[0][0]} ${pts[0][1]}`
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1]
+    const [x1, y1] = pts[i]
     const mx = (x0 + x1) / 2
     d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
   }
@@ -482,6 +519,89 @@ const chipStyle = computed(() => {
   to   { opacity: 1; transform: scale(1) rotate(-8deg); }
 }
 
+/* ── Обличье пиратской карты: метки на пергаментном острове ──── */
+/* остров не растягивается на десктопе: ширина доски ограничена, по центру */
+.track--map { width: 100%; height: clamp(200px, 32svh, 300px); max-width: 440px; margin-inline: auto; }
+.isle { vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.isle--land {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 2;
+  filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--rule) 70%, transparent));
+}
+/* мелководье: второй береговой контур штрихом по морю */
+.isle--shoal {
+  fill: none;
+  stroke: color-mix(in srgb, var(--field-ink) 45%, var(--field));
+  stroke-width: 1.2;
+  stroke-dasharray: 3 4;
+}
+.map-route {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  stroke-linecap: round;
+}
+.map-route--sea { stroke: var(--field-ink); stroke-width: 1.6; opacity: .7; }
+.track--map .cell {
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  box-shadow: none;
+}
+/* впереди: пустой кружок, ещё не исследовано */
+.track--map .cell--back {
+  --size: 22px;
+  background: var(--back);
+  border: 2px dotted var(--ink);
+}
+/* сейчас здесь: номер в кружке, двойной контур пером */
+.track--map .cell--active {
+  --size: 54px;
+  font-size: 1.6rem;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px var(--ink);
+}
+.track--map .cell--done { --size: 40px; }
+.track--map .cell--wrong { color: var(--ink-soft); }
+.cell__skip { width: 22px; height: 22px; }
+.cell__skip path { fill: none; stroke: var(--ink-soft); stroke-width: 3; stroke-linecap: round; }
+.cell__x { width: 30px; height: 30px; overflow: visible; }
+.cell__x path {
+  fill: none;
+  stroke: var(--chip);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-dasharray: 20;
+}
+/* ход: крест рисуется пером — сначала один штрих, потом второй */
+.cell__x.is-fresh path { animation: x-stroke .22s cubic-bezier(.6, 0, .4, 1) .1s both; }
+.cell__x.is-fresh path + path { animation-delay: .34s; }
+@keyframes x-stroke { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+/* фишка: флажок на древке, вымпел — красная краска */
+.track--map .track__chip {
+  width: 22px; height: 34px;
+  margin: -62px 0 0 6px;
+  border: none; border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.track--map .track__chip::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2.5px;
+  border-radius: 1px;
+  background: var(--ink);
+}
+.track--map .track__chip::after {
+  content: "";
+  position: absolute; left: 2.5px; top: 1px;
+  border-left: 18px solid var(--chip);
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  filter: drop-shadow(0 2px 1px color-mix(in srgb, var(--rule) 40%, transparent));
+}
+
 /* ── Обличье колоды: карты на сукне ─────────────────────────── */
 .tarot-line {
   fill: none;
@@ -587,7 +707,7 @@ const chipStyle = computed(() => {
 @media (prefers-reduced-motion: reduce) {
   .cell__stamp, .cell__postmark.is-fresh, .cell__punch.is-fresh i, .track--metro .cell--done:has(.is-fresh),
   .track--tarot .cell--done:has(.is-fresh), .cell__arcana.is-fresh,
-  .track--tarot .cell--active.is-reveal { animation: none; }
+  .track--tarot .cell--active.is-reveal, .cell__x.is-fresh path { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>

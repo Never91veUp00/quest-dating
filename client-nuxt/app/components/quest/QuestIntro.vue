@@ -12,6 +12,8 @@
   >
     <div class="lid__face">
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
+      <!-- Свиток: скатанные концы сверху и снизу, внизу сургуч -->
+      <QuestSeal v-if="decor === 'map'" class="lid__seal lid__seal--map" :size="84" :seed="9" motto="★ КАРТА ★" />
       <!-- Конверт обратной стороной: клапан под сургучом открывается первым -->
       <span v-if="decor === 'letters'" class="lid__flap" aria-hidden="true">
         <QuestSeal class="lid__seal" :size="88" :seed="5" motto="★ ПИСЬМО ★" />
@@ -245,6 +247,53 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open { transition-delay: .22s; }
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
+/* ── Обличье карты: свиток под сургучом на море ───────────────── */
+.lid--map {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Cpath d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='%23ecdfc0' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 64px 40px,
+    var(--field);
+}
+.lid--map .lid__face {
+  max-width: 340px;
+  margin: 22px 0;
+  padding: 46px 26px 64px;
+  border: none;
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 26px 34px -18px color-mix(in srgb, var(--rule) 95%, transparent);
+}
+/* скатанные концы свитка: валик чуть шире листа, с линией витка */
+.lid--map .lid__face::before,
+.lid--map .lid__face::after {
+  content: "";
+  position: absolute; left: -10px; right: -10px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--paper-edge);
+  box-shadow:
+    inset 0 -5px 0 color-mix(in srgb, var(--ink) 16%, var(--paper-edge)),
+    inset 0 2px 0 color-mix(in srgb, var(--paper) 70%, var(--paper-edge)),
+    0 6px 8px -4px color-mix(in srgb, var(--rule) 70%, transparent);
+}
+.lid--map .lid__face::before { top: -14px; }
+.lid--map .lid__face::after  { bottom: -14px; }
+.lid--map .lid__hint { margin-top: 64px; }
+.lid--map .lid__title { color: var(--ink); font-size: clamp(1.6rem, 10cqi, 2.6rem); }
+.lid--map .lid__for { color: var(--ink-soft); }
+.lid--map .lid__for b { color: var(--ink); }
+.lid__seal--map {
+  position: absolute; left: 50%; bottom: -36px;
+  margin-left: -42px;
+  z-index: 1;
+  --seal-face: 'Kurale';
+  transform: rotate(-6deg);
+  transition: opacity .2s, transform .3s cubic-bezier(.7, 0, .84, 0);
+}
+/* сургуч ломается, потом свиток уходит вверх */
+.lid--map.lid--open { transition-delay: .3s; }
+.lid--map.lid--open .lid__seal--map { opacity: 0; transform: rotate(-6deg) scale(1.3); }
+
 /* ── Обличье колоды: новая колода в бандероли ───────────────── */
 .lid--tarot .lid__face {
   display: flex; flex-direction: column; justify-content: center;
@@ -288,6 +337,6 @@ onUnmounted(() => clearTimeout(timer))
 
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .lid__flap, .lid--metro .lid__face, .lid__band { transition: none; }
+  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map { transition: none; }
 }
 </style>
