@@ -163,12 +163,7 @@ const spread = computed(() => Math.min(props.completedCount, 7))
 const deliveredOn = ref('')
 onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) })
 
-const messageLabel = computed(() => ({
-  detective: 'Личное послание', romantic: 'Слова для тебя',
-  mystery: 'Последняя карта', city: 'Личное сообщение',
-  treasure: 'Записка в сундуке', proposal: 'От меня', potion: 'К зелью прилагается',
-  halloween: 'В корзинке с конфетами',
-}[props.theme.id] || 'Послание'))
+const messageLabel = computed(() => props.theme.copy.messageLabel ?? 'Послание')
 
 const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
 const frameLevel = computed(() => {
@@ -538,8 +533,8 @@ const saveCard = async () => {
   background: var(--paper);
   pointer-events: none;
 }
-.finish--map .finish__message::before { bottom: calc(100% - 1px); clip-path: polygon(0 100%, 0.0% 43%, 3.8% 28%, 7.7% 70%, 11.5% 21%, 15.4% 61%, 19.2% 46%, 23.1% 20%, 26.9% 58%, 30.8% 18%, 34.6% 52%, 38.5% 21%, 42.3% 23%, 46.2% 51%, 50.0% 85%, 53.8% 26%, 57.7% 34%, 61.5% 68%, 65.4% 96%, 69.2% 64%, 73.1% 49%, 76.9% 98%, 80.8% 19%, 84.6% 88%, 88.5% 40%, 92.3% 27%, 96.2% 25%, 100.0% 41%, 100% 100%); }
-.finish--map .finish__message::after  { top: calc(100% - 1px);    clip-path: polygon(0 0, 0.0% 69%, 3.8% 15%, 7.7% 49%, 11.5% 54%, 15.4% 32%, 19.2% 47%, 23.1% 5%, 26.9% 5%, 30.8% 18%, 34.6% 58%, 38.5% 36%, 42.3% 27%, 46.2% 50%, 50.0% 39%, 53.8% 25%, 57.7% 68%, 61.5% 59%, 65.4% 21%, 69.2% 49%, 73.1% 45%, 76.9% 74%, 80.8% 62%, 84.6% 24%, 88.5% 83%, 92.3% 10%, 96.2% 36%, 100.0% 64%, 100% 0); }
+.finish--map .finish__message::before { bottom: calc(100% - 1px); clip-path: var(--torn-top); }
+.finish--map .finish__message::after  { top: calc(100% - 1px);    clip-path: var(--torn-bottom); }
 @media (prefers-reduced-motion: reduce) {
   .finish__chart-x path { animation: none; }
 }

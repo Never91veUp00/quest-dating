@@ -104,7 +104,7 @@ defineEmits(['update:modelValue'])
 .mg-overlay--diecut :deep(.task__pairs__card__back) {
   font-size: 0;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M18.6 12.4 C18.4 8.6 19.6 6.2 22.6 4.8 L24 6.6 C22 7.6 21.4 9.4 21.6 12.4 Z' fill='%235a3418' stroke='%230f0c0a' stroke-width='.9'/%3E%3Cellipse cx='20' cy='24.5' rx='16' ry='12.5' fill='%23e8711c' stroke='%230f0c0a' stroke-width='1.5'/%3E%3Cpath d='M20 12 C12.5 15 12.5 34 20 37 M20 12 C27.5 15 27.5 34 20 37' fill='none' stroke='%230f0c0a' stroke-width='1.2'/%3E%3C/svg%3E") center / 58% no-repeat,
+    var(--art-card-back) center / 58% no-repeat,
     var(--back);
 }
 .mg-overlay--diecut :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }
@@ -114,7 +114,7 @@ defineEmits(['update:modelValue'])
 .mg-overlay--potion :deep(.task__pairs__card__back) {
   font-size: 0;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'%3E%3Cpath d='M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z' fill='none' stroke='%23e6e1d6' stroke-opacity='.75' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center / 46% no-repeat,
+    var(--art-card-back) center / 46% no-repeat,
     var(--back);
 }
 .mg-overlay--potion :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }
@@ -137,7 +137,7 @@ defineEmits(['update:modelValue'])
 .mg-overlay--map :deep(.task__pairs__card__back) {
   font-size: 0;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%232a1f14' stroke-width='1.4' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='13'/%3E%3Cpath d='M20 3 L23 17 L37 20 L23 23 L20 37 L17 23 L3 20 L17 17 Z'/%3E%3C/g%3E%3Cpath d='M20 3 L23 17 L20 20 Z M37 20 L23 23 L20 20 Z M20 37 L17 23 L20 20 Z M3 20 L17 17 L20 20 Z' fill='%232a1f14'/%3E%3C/svg%3E") center / 62% no-repeat,
+    var(--art-card-back) center / 62% no-repeat,
     var(--paper-edge);
 }
 .mg-overlay--map :deep(.task__pairs__card) { border-width: 3px; border-radius: 4px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
