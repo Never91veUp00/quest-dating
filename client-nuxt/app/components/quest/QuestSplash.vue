@@ -244,6 +244,20 @@ const startLabel = computed(() =>
 }
 .splash--metro .splash__title { font-weight: 700; }
 
+/* Обличье вырубки: «Перед стартом» — кремовая карточка с вогнутыми углами */
+.splash--diecut .splash__brief {
+  border: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
+  padding: 22px 20px 20px;
+}
+
 /* Обличье зельеварни: «Перед стартом» — страница рецепта */
 .splash--potion .splash__brief {
   border: none;

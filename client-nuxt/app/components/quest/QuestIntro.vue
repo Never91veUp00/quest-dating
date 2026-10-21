@@ -12,6 +12,16 @@
   >
     <div class="lid__face">
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
+      <!-- Хеллоуин: приглашение на вечеринку — шапка-вырубка с луной, котом и летучими мышами -->
+      <svg v-if="decor === 'diecut'" class="lid__scene" viewBox="0 0 280 96" aria-hidden="true">
+        <rect class="lid__scene-sky" width="280" height="96" />
+        <circle class="lid__scene-moon" cx="196" cy="44" r="30" />
+        <path class="lid__scene-hill" d="M0 96 V78 Q20 70 40 78 T80 76 T120 80 T160 74 T200 80 T240 76 T280 78 V96 Z" />
+        <path class="lid__scene-cut" d="M66 80 C62 75 62 66 66 61 C64 59 64 54 65 50 L64 43 L69 47.6 C71 47 76 47 78 47.6 L83 43 L82 50 C83 54 83 59 81 61 C85 66 85 72 82 76 C86 76 89 73 89 69 L91 69 C91 76 87 80 80 79 Z" />
+        <path class="lid__scene-cut" transform="translate(186 34) scale(1.1)" d="M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z" />
+        <path class="lid__scene-cut" transform="translate(120 22) scale(.75)" d="M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z" />
+        <path class="lid__scene-cut" transform="translate(248 16) scale(.6)" d="M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z" />
+      </svg>
       <!-- Зельеварня: большой флакон, пробка под сургучом, ярлык с именем — поверх колбы -->
       <QuestFlask v-if="decor === 'potion'" class="lid__flask" :size="260" :level=".38" />
       <span v-if="decor === 'potion'" class="lid__wax" aria-hidden="true"></span>
@@ -29,7 +39,7 @@
         <path d="M37 27 L28 48 L34 46 L38 49 Z M43 27 L52 48 L46 46 L42 49 Z" />
         <rect x="34" y="19" width="12" height="12" rx="3" />
       </svg>
-      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : decor === 'potion' ? 'lid__label' : 'lid__text'">
+      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : decor === 'potion' ? 'lid__label' : decor === 'diecut' ? 'lid__invite' : 'lid__text'">
         <h1 class="lid__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="lid__for">
           Кому: <b>{{ questData.client_name }}</b>
@@ -258,6 +268,41 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open { transition-delay: .22s; }
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
+/* ── Обличье вырубки: приглашение на вечеринку ──────────────────── */
+/* вырубка углов маской: вогнутые углы режут и шапку-сцену; тень маска срезала бы, поэтому без неё */
+.lid--diecut .lid__face {
+  border: none;
+  border-radius: 0;
+  padding: 0 0 26px;
+  background: var(--paper);
+  -webkit-mask:
+    radial-gradient(circle at 0 0,       transparent 11px, #000 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, #000 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, #000 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, #000 11.5px) bottom right / 51% 51% no-repeat;
+          mask:
+    radial-gradient(circle at 0 0,       transparent 11px, #000 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, #000 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, #000 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, #000 11.5px) bottom right / 51% 51% no-repeat;
+  max-width: 320px;
+  overflow: hidden;
+  transition: transform .4s cubic-bezier(.5, 0, .3, 1);
+}
+.lid__scene { display: block; width: 100%; height: auto; margin-bottom: 18px; }
+.lid__scene-sky  { fill: var(--back); }
+.lid__scene-moon { fill: var(--chip); }
+/* небо — слой бурого картона, холмы и силуэты — сплошной чёрный картон поверх */
+.lid__scene-hill { fill: var(--rule); }
+.lid__scene-cut  { fill: var(--rule); }
+.lid__invite { padding: 0 22px; }
+.lid--diecut .lid__title { color: var(--ink); font-size: clamp(1.6rem, 10cqi, 2.4rem); }
+.lid--diecut .lid__for { margin-top: 10px; color: var(--ink-soft); }
+.lid--diecut .lid__for b { color: var(--ink); }
+/* приглашение наклоняется, затем крышка уходит вверх */
+.lid--diecut.lid--open { transition-delay: .3s; }
+.lid--diecut.lid--open .lid__face { transform: rotate(-6deg) translateY(-14px); }
+
 /* ── Обличье зельеварни: флакон с ярлыком, пробка выскакивает ─── */
 .lid--potion .lid__face {
   display: grid; place-items: center;
@@ -449,6 +494,6 @@ onUnmounted(() => clearTimeout(timer))
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
   .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax,
-  .lid__flask :deep(.fl__cork) { transition: none; }
+  .lid__flask :deep(.fl__cork), .lid--diecut .lid__face { transition: none; }
 }
 </style>

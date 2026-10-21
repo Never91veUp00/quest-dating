@@ -21,8 +21,12 @@
             'is-wrong':  earnedMap?.[t.id]?.wrong,
             'is-active': ti === activeIdx,
           }"
-        ><QuestFlask
-          v-if="theme.world?.decor === 'potion'"
+        ><QuestPumpkin
+          v-if="theme.world?.decor === 'diecut'"
+          :size="ti === activeIdx ? 20 : 15"
+          :state="ti === activeIdx ? 'active' : completedIds.includes(t.id) && !earnedMap?.[t.id]?.wrong ? 'done' : 'back'"
+        /><QuestFlask
+          v-else-if="theme.world?.decor === 'potion'"
           :size="ti === activeIdx ? 18 : 13"
           :level="completedIds.includes(t.id) && !earnedMap?.[t.id]?.wrong ? .72 : 0"
         /></span>
@@ -150,6 +154,7 @@ import QuestTask from './QuestTask.vue'
 import QuestTrack from './QuestTrack.vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestFlask from './QuestFlask.vue'
+import QuestPumpkin from './QuestPumpkin.vue'
 import { themeToCssVars } from './themes.js'
 
 const props = defineProps({
@@ -256,6 +261,7 @@ const finishLabel = computed(() => ({
   treasure:  'К кладу',
   proposal:  'К главному',
   potion:    'Снять с огня',
+  halloween: 'Домой',
 }[props.theme.id] || 'Завершить'))
 </script>
 
@@ -449,6 +455,29 @@ const finishLabel = computed(() => ({
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
+/* Обличье вырубки: тыковки на нити, вырезанные — с лицом */
+.block--diecut .block__mini::before {
+  height: 0; margin-top: 0;
+  border-top: 1.5px dotted color-mix(in srgb, var(--field-ink) 50%, var(--field));
+  background: none;
+}
+.block--diecut .block__mini-cell,
+.block--diecut .block__mini-cell.is-done,
+.block--diecut .block__mini-cell.is-active {
+  width: auto; height: auto;
+  border: none;
+  border-radius: 0;
+  background: none;
+  --pk-line: 2;
+}
+.block--diecut .block__mini-cell.is-active::after {
+  top: -10px; right: auto; left: 50%;
+  width: 7px; height: 7px; margin-left: -3.5px;
+  border: none;
+  border-radius: 50%;
+  background: var(--field-ink);
+}
+
 /* Обличье зельеварни: флакончики на трубке, наполненные — янтарные */
 .block--potion .block__mini::before {
   height: 4px; margin-top: -2px;
@@ -585,6 +614,19 @@ const finishLabel = computed(() => ({
 }
 
 /* ── Участок пройден ──────────────────────────────────────────── */
+/* во вырубке конец дома — та же кремовая карточка с вогнутыми углами */
+.block--diecut .block__done {
+  border: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
+  padding: 22px 20px 20px;
+}
 /* в зельеварне конец рецепта — тоже страница рецепта */
 .block--potion .block__done {
   position: relative;

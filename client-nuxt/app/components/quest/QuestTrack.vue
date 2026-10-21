@@ -20,6 +20,10 @@
         <path class="map-route map-route--sea" :d="roadPath" />
         <path class="map-route" :d="landRoute" />
       </template>
+      <template v-else-if="decor === 'diecut'">
+        <!-- Нить гирлянды: кремовый пунктир от тыквы к тыкве -->
+        <path class="garland" :d="roadPath" />
+      </template>
       <template v-else-if="decor === 'potion'">
         <!-- Медная трубка перегонного куба: тёмный контур и медная жила -->
         <path class="tube tube--outer" :d="roadPath" />
@@ -85,6 +89,15 @@
             v-else-if="decor === 'potion' && cell.state === 'done'"
             :size="58" :level=".72" :fresh="cell.id === stampId"
           />
+          <!-- Тыква: пройденная — с вырезанным лицом, свежая прорезается на ходу; пропущенная — невырезанная с крестиком -->
+          <QuestPumpkin
+            v-else-if="decor === 'diecut' && cell.state === 'done'"
+            :size="54" state="done" :fresh="cell.id === stampId"
+          />
+          <span v-else-if="decor === 'diecut' && cell.state === 'wrong'" class="cell__skippk">
+            <QuestPumpkin :size="44" state="back" />
+            <QuestIcon class="cell__skipx" name="close" :size="16" />
+          </span>
           <!-- Пропущенный флакон: пустой, на шаре — чернильный крестик -->
           <span v-else-if="decor === 'potion' && cell.state === 'wrong'" class="cell__skipflask">
             <QuestFlask :size="44" />
@@ -117,14 +130,15 @@
           :aria-label="`Клетка ${cell.n}: сейчас здесь`"
         >
           <QuestFlask v-if="decor === 'potion'" :size="76" :label="cell.n" />
+          <QuestPumpkin v-else-if="decor === 'diecut'" :size="68" state="active" :label="cell.n" />
           <template v-else>{{ decor === 'tarot' ? roman(cell.n) : cell.n }}</template>
         </span>
         <span
           v-else
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
-        ><QuestFlask v-if="decor === 'potion'" :size="44" /></span>
-        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map', 'ringbox', 'potion'].includes(decor)" class="cell__stamp" aria-hidden="true">
+        ><QuestFlask v-if="decor === 'potion'" :size="44" /><QuestPumpkin v-else-if="decor === 'diecut'" :size="42" state="back" /></span>
+        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map', 'ringbox', 'potion', 'diecut'].includes(decor)" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -142,6 +156,7 @@ import QuestPostmark from './QuestPostmark.vue'
 import QuestArcana from './QuestArcana.vue'
 import QuestRingbox from './QuestRingbox.vue'
 import QuestFlask from './QuestFlask.vue'
+import QuestPumpkin from './QuestPumpkin.vue'
 import { roman } from './themes.js'
 
 const props = defineProps({
@@ -547,6 +562,46 @@ const chipStyle = computed(() => {
   70%  { opacity: 1; transform: scale(.95) rotate(-7deg); }
   to   { opacity: 1; transform: scale(1) rotate(-8deg); }
 }
+
+/* ── Обличье вырубки: тыквы на нити гирлянды ─────────────────── */
+.track--diecut { height: clamp(190px, 30svh, 280px); }
+.garland {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke: color-mix(in srgb, var(--field-ink) 50%, var(--field));
+  stroke-width: 1.6;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+/* тыква рисует себя сама: у клетки нет плашки и контура */
+.track--diecut .cell {
+  width: auto; height: auto;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 80%, transparent));
+}
+.cell__skippk { position: relative; display: block; }
+.track--diecut .cell__skipx { top: 62%; }
+/* фишка — чёрный кот из картона: кремовое поле вырубки и сам силуэт поверх */
+.track--diecut .track__chip {
+  width: 34px; height: 40px;
+  margin: -98px 0 0 -17px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.track--diecut .track__chip::before,
+.track--diecut .track__chip::after {
+  content: "";
+  position: absolute;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 36'%3E%3Cpath d='M8 35 C4 31 4 22 8 17 C5 14 5 9 6.5 5 L5.5 0 L11 4.2 C13 3.6 17 3.6 19 4.2 L24.5 0 L23.5 5 C25 9 25 14 22 17 C26 22 26 29 23 32 C27 32 29 29 29 25 L30.5 25 C30.5 32 27 36 21 35 Z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 36'%3E%3Cpath d='M8 35 C4 31 4 22 8 17 C5 14 5 9 6.5 5 L5.5 0 L11 4.2 C13 3.6 17 3.6 19 4.2 L24.5 0 L23.5 5 C25 9 25 14 22 17 C26 22 26 29 23 32 C27 32 29 29 29 25 L30.5 25 C30.5 32 27 36 21 35 Z' fill='black'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.track--diecut .track__chip::before { inset: -3px; background: var(--paper); }
+.track--diecut .track__chip::after  { inset: 0; background: var(--rule); }
 
 /* ── Обличье зельеварни: флаконы на медной трубке ───────────── */
 .track--potion { height: clamp(190px, 30svh, 280px); }

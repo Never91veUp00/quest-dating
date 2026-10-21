@@ -554,6 +554,87 @@ export const THEMES = {
     bg_animation: null,
     overlay: null,            // камень и стекло — без пара, свечения и бликов
   },
+
+  // ══════════════════════════════════════════════════════════════
+  // ХЕЛЛОУИН — бумажная вырубка 1920–30-х, жутко-романтично, без хоррора
+  // ══════════════════════════════════════════════════════════════
+  halloween: {
+    id: 'halloween',
+    label: 'Хеллоуин',
+
+    // Цвета — тёплый чёрный картон, кремовая бумага, один тыквенный оранжевый
+    accent:     '#e8711c',
+    accentDim:  '#e8711c',
+    bg:         '#1c1714',   // картон
+    bg2:        '#2a221d',
+    surface:    '#f3e6c8',
+    border:     'rgba(15,12,10,0.5)',
+    text:       '#f1e3c6',
+    dim:        '#b9a98e',
+
+    baseBg:     '#1c1714',
+    baseTone:   'dark',
+    showTimer:  false,
+
+    // Мир «Ходилки» в обличье бумажной вырубки: клетки — тыквы, у пройденной
+    // прорезано лицо, маршрут — нить гирлянды, фишка — силуэт кота
+    world: {
+      decor:        'diecut',
+      field:        '#1c1714',
+      fieldInk:     '#f1e3c6',
+      fieldInkSoft: '#b9a98e',
+      paper:        '#f3e6c8',   // кремовая бумага вырубки, прорези тыкв
+      paperEdge:    '#d9c39a',
+      ink:          '#1c1714',
+      inkSoft:      '#5a4a3c',
+      plate:        '#f3e6c8',
+      plateInk:     '#1c1714',
+      done:         '#e8711c',
+      back:         '#3b302a',   // тыква, которую ещё не вырезали
+      chip:         '#e8711c',   // тыквенный оранжевый
+      rule:         '#0f0c0a',
+      wrong:        '#b5432a',
+      action:       '#e8711c',
+      actionInk:    '#1c1714',
+      actionHover:  '#f08a3c',   // тёмный текст на оранжевом: наведение — светлее
+      focus:        '#1c1714',
+    },
+
+    // Моушн-ролик «Как это работает» (tools/reels/halloween.html → record.mjs)
+    reel: { src: '/reels/halloween.mp4', poster: '/reels/halloween.jpg' },
+
+    // Шрифты
+    fonts: {
+      display: "'Yanone Kaffeesatz', 'PT Serif', Georgia, serif",
+      body:    "'PT Serif', Georgia, serif",
+      displayWeight: 700,
+      // свои файлы: assets/styles/fonts.css + public/fonts
+      selfHosted: true,
+    },
+
+    copy: {
+      eyebrow:       'Тыквы ждут',
+      startBtn:      'Сладость или гадость',
+      taskDone:      'Тыква вырезана',
+      hintBtn:       'Подсказка · −10 конфет',
+      photoZone:     'Сфотографировать находку',
+      finishEyebrow: 'Сладость найдена!',
+      shareBtn:      'Поделиться уловом',
+      blockPrefix:   'Дом',
+      blockForms:    ['дом', 'дома', 'домов'],
+      cellForms:     ['тыква', 'тыквы', 'тыкв'],
+      cellsDone:     ['тыква вырезана', 'тыквы вырезано', 'тыкв вырезано'],
+      blockDone:     'Дом обойдён. Следующая дверь ждёт.',
+      allDone:       'Все тыквы вырезаны.',
+      nextBtn:       'К следующему дому',
+      finishShare:   'Поделиться уловом',
+      pointsLabel:   'конфет',
+      pointsForms:   ['конфета', 'конфеты', 'конфет'],
+    },
+
+    bg_animation: null,
+    overlay: null,            // плоский картон — без тумана, свечения и неона
+  },
 }
 
 export const getTheme = (id) => THEMES[id] || THEMES.city

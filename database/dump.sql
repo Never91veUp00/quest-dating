@@ -257,7 +257,7 @@ CREATE TABLE public.created_quests (
     player_version character varying(10) DEFAULT 'v1'::character varying NOT NULL,
     recipient_gender character varying(1) DEFAULT 'f'::character varying NOT NULL,
     briefing text,
-    CONSTRAINT created_quests_theme_check CHECK (((theme)::text = ANY (ARRAY['detective'::text, 'romantic'::text, 'city'::text, 'mystery'::text, 'treasure'::text, 'proposal'::text, 'potion'::text])))
+    CONSTRAINT created_quests_theme_check CHECK (((theme)::text = ANY (ARRAY['detective'::text, 'romantic'::text, 'city'::text, 'mystery'::text, 'treasure'::text, 'proposal'::text, 'potion'::text, 'halloween'::text])))
 );
 
 
@@ -265,7 +265,7 @@ CREATE TABLE public.created_quests (
 -- Name: COLUMN created_quests.theme; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.created_quests.theme IS 'Визуальная тема плеера: detective | romantic | city | mystery | treasure | proposal | potion';
+COMMENT ON COLUMN public.created_quests.theme IS 'Визуальная тема плеера: detective | romantic | city | mystery | treasure | proposal | potion | halloween';
 
 
 --

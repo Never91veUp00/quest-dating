@@ -11,6 +11,7 @@
       'task--map':      decor === 'map',
       'task--ringbox':  decor === 'ringbox',
       'task--potion':   decor === 'potion',
+      'task--diecut':   decor === 'diecut',
       [`task--${task.type}`]: true,
     }"
   >
@@ -226,6 +227,30 @@ const typeLabel = computed(() => ({
   font-weight: 700;
 }
 .task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Обличье вырубки: кремовая карточка с вогнутыми углами штанцевого ножа, номер — на оранжевой бирке */
+.task--diecut {
+  border: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
+  padding: 24px 22px 22px;
+}
+.task--diecut .task__corner { flex-direction: row; align-items: center; gap: 8px; }
+.task--diecut .task__no {
+  display: grid; place-items: center;
+  min-width: 40px; height: 32px;
+  padding: 0 7px;
+  border: 1.5px solid var(--rule);
+  border-radius: 999px;
+  background: var(--chip);
+  font-size: 1.25rem;
+}
 
 /* Обличье зельеварни: страница рецепта, номер — на ярлыке флакона с подрезанными углами */
 .task--potion {

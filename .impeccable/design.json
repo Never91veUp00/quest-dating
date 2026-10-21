@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-21T23:00:00.000Z",
+  "generatedAt": "2026-10-21T23:30:00.000Z",
   "title": "Design System: Quest Dating",
   "extensions": {
-    "scope": "Плеер квеста /quest/[slug]. Свой мир у всех семи тем: detective (decor: casefile), romantic (decor: letters, «Переписка»), city (decor: metro, «Схема метро с талоном»), mystery (decor: tarot, «Колода»), treasure (decor: map, «Пиратская карта»), proposal (decor: ringbox, «Футляр с кольцом») и potion (decor: potion, «Кабинет зелий»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город», с префиксом mystery- — «Мистика», с префиксом treasure- — «Искатель клада», с префиксом proposal- — «Предложение», с префиксом potion- — «Зельеварня». Публичные страницы не переведены, токенов для них нет.",
+    "scope": "Плеер квеста /quest/[slug]. Свой мир у всех восьми тем: detective (decor: casefile), romantic (decor: letters, «Переписка»), city (decor: metro, «Схема метро с талоном»), mystery (decor: tarot, «Колода»), treasure (decor: map, «Пиратская карта»), proposal (decor: ringbox, «Футляр с кольцом»), potion (decor: potion, «Кабинет зелий») и halloween (decor: diecut, «Бумажная вырубка»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город», с префиксом mystery- — «Мистика», с префиксом treasure- — «Искатель клада», с префиксом proposal- — «Предложение», с префиксом potion- — «Зельеварня», с префиксом halloween- — «Хеллоуин». Публичные страницы не переведены, токенов для них нет.",
     "tokenSource": {
       "file": "client-nuxt/app/components/quest/themes.js",
-      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный) и --action-hover (world.actionHover, наведение на кнопку-глагол; без него --action смешивается с --chip), а также --wax (world.wax, сургуч на пробке флакона-крышки; сейчас только у potion). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Запасной путь worldVars() из старых полей темы (bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b) в коде остался, но ни одна тема им не пользуется: все семь задают полный набор цветовых ключей world; единственное срабатывающее умолчание — --focus у detective (берёт world.chip). Язык темы — theme.copy: blockPrefix, blockForms, pointsForms и необязательные cellForms (формы «клетка» для 1/2/5), cellsDone (факт финала), blockDone и allDone (конец участка и всех участков), nextBtn (кнопка конца участка), finishShare (кнопка «Поделиться» финала); без них компоненты берут нейтральные слова основы. Id темы, кроме themes.js, стоит в QUEST_THEMES (server/src/routes/admin.js), в CHECK created_quests_theme_check (миграция, для potion — database/migrations/011_add_potion_theme.sql, и database/dump.sql) и в списках EditorMeta.vue и AdminTemplateModal.vue. roman(n) даёт римский номер карты для decor: tarot."
+      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный) и --action-hover (world.actionHover, наведение на кнопку-глагол; без него --action смешивается с --chip), а также --wax (world.wax, сургуч на пробке флакона-крышки; сейчас только у potion). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Запасной путь worldVars() из старых полей темы (bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b) в коде остался, но ни одна тема им не пользуется: все восемь задают полный набор цветовых ключей world; единственное срабатывающее умолчание — --focus у detective (берёт world.chip). Язык темы — theme.copy: blockPrefix, blockForms, pointsForms и необязательные cellForms (формы «клетка» для 1/2/5), cellsDone (факт финала), blockDone и allDone (конец участка и всех участков), nextBtn (кнопка конца участка), finishShare (кнопка «Поделиться» финала); без них компоненты берут нейтральные слова основы. Id темы, кроме themes.js, стоит в QUEST_THEMES (server/src/routes/admin.js), в CHECK created_quests_theme_check (миграция, для halloween — database/migrations/012_add_halloween_theme.sql, и database/dump.sql) и в списках EditorMeta.vue и AdminTemplateModal.vue. roman(n) даёт римский номер карты для decor: tarot."
     },
     "colorMeta": {
       "field": {
@@ -1487,6 +1487,210 @@
           "#f7b99a",
           "#ffeadf"
         ]
+      },
+      "halloween-field": {
+        "role": "neutral",
+        "displayName": "Тёплый чёрный картон",
+        "canonical": "#1c1714",
+        "cssVar": "--field",
+        "oklch": "oklch(20.9% 0.010 52.9)",
+        "tonalRamp": [
+          "#0f0a07",
+          "#292421",
+          "#46413d",
+          "#66605c",
+          "#87817d",
+          "#aaa39f",
+          "#cfc7c3",
+          "#f4ede8"
+        ]
+      },
+      "halloween-field-ink": {
+        "role": "neutral",
+        "displayName": "Кремовый мел",
+        "canonical": "#f1e3c6",
+        "cssVar": "--field-ink",
+        "oklch": "oklch(92.0% 0.041 85.3)",
+        "tonalRamp": [
+          "#110a00",
+          "#2e230b",
+          "#4c4028",
+          "#6c6046",
+          "#8e8166",
+          "#b1a488",
+          "#d5c8ab",
+          "#fbedd0"
+        ]
+      },
+      "halloween-field-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённый мел",
+        "canonical": "#b9a98e",
+        "cssVar": "--field-ink-soft",
+        "oklch": "oklch(74.1% 0.042 80.8)",
+        "tonalRamp": [
+          "#120900",
+          "#2f230b",
+          "#4d4028",
+          "#6e5f46",
+          "#8f8066",
+          "#b3a388",
+          "#d7c7ab",
+          "#fdecd0"
+        ]
+      },
+      "halloween-paper": {
+        "role": "neutral",
+        "displayName": "Кремовая бумага вырубки",
+        "canonical": "#f3e6c8",
+        "cssVar": "--paper",
+        "oklch": "oklch(92.8% 0.042 87.4)",
+        "tonalRamp": [
+          "#110a00",
+          "#2e240a",
+          "#4b4127",
+          "#6b6046",
+          "#8d8166",
+          "#b0a488",
+          "#d5c8ab",
+          "#fbedcf"
+        ]
+      },
+      "halloween-paper-edge": {
+        "role": "neutral",
+        "displayName": "Край картона",
+        "canonical": "#d9c39a",
+        "cssVar": "--paper-edge",
+        "oklch": "oklch(82.5% 0.060 82.9)",
+        "tonalRamp": [
+          "#120a00",
+          "#322200",
+          "#513f19",
+          "#725e38",
+          "#947f59",
+          "#b7a27a",
+          "#dcc69d",
+          "#feeccb"
+        ]
+      },
+      "halloween-ink": {
+        "role": "neutral",
+        "displayName": "Чернила",
+        "canonical": "#1c1714",
+        "cssVar": "--ink",
+        "oklch": "oklch(20.9% 0.010 52.9)",
+        "tonalRamp": [
+          "#0f0a07",
+          "#292421",
+          "#46413d",
+          "#66605c",
+          "#87817d",
+          "#aaa39f",
+          "#cfc7c3",
+          "#f4ede8"
+        ]
+      },
+      "halloween-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённые чернила",
+        "canonical": "#5a4a3c",
+        "cssVar": "--ink-soft",
+        "oklch": "oklch(42.1% 0.031 63.0)",
+        "tonalRamp": [
+          "#140801",
+          "#302215",
+          "#4e3f31",
+          "#6e5e4f",
+          "#907f6f",
+          "#b4a191",
+          "#d8c5b5",
+          "#feebda"
+        ]
+      },
+      "halloween-back": {
+        "role": "neutral",
+        "displayName": "Бурый картон",
+        "canonical": "#3b302a",
+        "cssVar": "--back",
+        "oklch": "oklch(31.9% 0.019 50.3)",
+        "tonalRamp": [
+          "#120905",
+          "#2d221d",
+          "#4b3f39",
+          "#6b5e58",
+          "#8c7f78",
+          "#b0a29b",
+          "#d4c6be",
+          "#faebe3"
+        ]
+      },
+      "halloween-chip": {
+        "role": "primary",
+        "displayName": "Тыквенный оранжевый",
+        "canonical": "#e8711c",
+        "cssVar": "--chip",
+        "oklch": "oklch(67.8% 0.171 49.4)",
+        "tonalRamp": [
+          "#180500",
+          "#3f1801",
+          "#6b2e00",
+          "#9a4501",
+          "#cb5e03",
+          "#f77f30",
+          "#feb68f",
+          "#ffeadf"
+        ]
+      },
+      "halloween-action-hover": {
+        "role": "primary",
+        "displayName": "Светлая тыква",
+        "canonical": "#f08a3c",
+        "cssVar": "--action-hover",
+        "oklch": "oklch(73.0% 0.153 54.5)",
+        "tonalRamp": [
+          "#170600",
+          "#3c1b00",
+          "#673202",
+          "#944a04",
+          "#c56401",
+          "#ed8739",
+          "#ffb787",
+          "#ffeadd"
+        ]
+      },
+      "halloween-wrong": {
+        "role": "secondary",
+        "displayName": "Ржавая ошибка",
+        "canonical": "#b5432a",
+        "cssVar": "--wrong",
+        "oklch": "oklch(53.6% 0.153 33.9)",
+        "tonalRamp": [
+          "#1d0200",
+          "#490a00",
+          "#7a1801",
+          "#a6351c",
+          "#cd5940",
+          "#f57d62",
+          "#ffb4a2",
+          "#ffe9e4"
+        ]
+      },
+      "halloween-rule": {
+        "role": "neutral",
+        "displayName": "Чёрный картон силуэтов",
+        "canonical": "#0f0c0a",
+        "cssVar": "--rule",
+        "oklch": "oklch(15.7% 0.007 55.8)",
+        "tonalRamp": [
+          "#0d0a09",
+          "#282422",
+          "#45413f",
+          "#64605e",
+          "#86817f",
+          "#a8a4a1",
+          "#cdc8c5",
+          "#f2edea"
+        ]
       }
     },
     "typographyMeta": {
@@ -1633,11 +1837,35 @@
       "potion-body": {
         "displayName": "Зельеварня: Body",
         "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи, «Кому:»."
+      },
+      "halloween-display": {
+        "displayName": "Хеллоуин: Display",
+        "purpose": "Yanone Kaffeesatz 400: название квеста на сводке, на приглашении (clamp(1.6rem, 10cqi, 2.4rem)) и заголовок финала «Сладость найдена!» (разрядка 0.01em). Все размеры Yanone выходят в 1.22 раза крупнее из-за size-adjust: 122% в @font-face."
+      },
+      "halloween-headline": {
+        "displayName": "Хеллоуин: Headline",
+        "purpose": "Yanone Kaffeesatz 400: название участка на развёрнутой доске."
+      },
+      "halloween-title": {
+        "displayName": "Хеллоуин: Title",
+        "purpose": "Yanone Kaffeesatz 400: название задания на вырубке, заголовки «Перед стартом» и «В корзинке с конфетами»; заголовки темы в 700 не переводятся."
+      },
+      "halloween-verb": {
+        "displayName": "Хеллоуин: Verb",
+        "purpose": "Yanone Kaffeesatz 700: кнопки-глаголы (тёмные чернила на оранжевом), очки в шапке и счётчик полосы (--font-d-wt: 700)."
+      },
+      "halloween-numeral": {
+        "displayName": "Хеллоуин: Numeral",
+        "purpose": "Yanone Kaffeesatz 400: номер на бирке-пилюле задания (1.25rem), номер на бирке текущей тыквы (8.5 единицы сетки 40), факты сводки и финала."
+      },
+      "halloween-body": {
+        "displayName": "Хеллоуин: Body",
+        "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи, «Кому:»."
       }
     },
     "fontLoading": {
-      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у всех семи тем.",
-      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница); Old Standard TT 400 и 700 (кириллица, расширенная кириллица, латиница); Kurale 400 (кириллица, расширенная кириллица, латиница); Prata 400 (кириллица, расширенная кириллица, латиница) и 'Prata Digits' — PT Serif 400 latin, ограниченный U+0030-0039, потому что «1» Prata читается как «l». Philosopher 400 и 700 (кириллица, расширенная кириллица, латиница).",
+      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у всех восьми тем.",
+      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница); Old Standard TT 400 и 700 (кириллица, расширенная кириллица, латиница); Kurale 400 (кириллица, расширенная кириллица, латиница); Prata 400 (кириллица, расширенная кириллица, латиница) и 'Prata Digits' — PT Serif 400 latin, ограниченный U+0030-0039, потому что «1» Prata читается как «l». Philosopher 400 и 700 (кириллица, расширенная кириллица, латиница). Yanone Kaffeesatz переменный 400–700 (кириллица, расширенная кириллица, латиница) с size-adjust: 122% в каждом @font-face: шрифт узкий, а font-size-adjust темы (--font-adjust) увеличил бы и PT Serif. Kelly Slab пробовали и отвергли: кириллическая «в» читается как «B», «1» — как «l»; замену согласовал владелец.",
       "status": "Ни одна тема не задаёт theme.fonts.googleFonts; подключение Google Fonts в pages/quest/[slug].vue осталось, но не срабатывает."
     },
     "shadows": [
@@ -1820,6 +2048,21 @@
         "name": "potion-pairs-back",
         "value": "0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent)",
         "purpose": "Карточка «Найди пары» в зельеварне (рубашка — камень с флаконом мелом)."
+      },
+      {
+        "name": "diecut-card",
+        "value": "drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent))",
+        "purpose": "filter кремовой вырубки с вогнутыми углами: задание, «Перед стартом», конец дома, послание финала; тень по форме, без box-shadow и контура. Приглашение-крышка без тени: углы режет маска."
+      },
+      {
+        "name": "pumpkin-on-garland",
+        "value": "drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 80%, transparent))",
+        "purpose": "filter тыкв трассы (SVG QuestPumpkin); у клетки нет плашки."
+      },
+      {
+        "name": "halloween-pairs-back",
+        "value": "0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent)",
+        "purpose": "Карточка «Найди пары» в «Хеллоуине» (рубашка — бурый картон с невырезанной тыквой)."
       }
     ],
     "motion": [
@@ -1937,6 +2180,16 @@
         "name": "cork-pop",
         "value": "translateY(-34px) rotate(-18deg), opacity 0 .35s cubic-bezier(.3, 0, .2, 1); крышка поднимается с задержкой .32s",
         "purpose": "Открытие флакона-крышки: пробка с сургучом выскакивает, потом крышка уходит вверх."
+      },
+      {
+        "name": "carve-face",
+        "value": "scale(0) → none: глаза .22s cubic-bezier(.3, 0, .2, 1) с задержкой .12s и .3s, рот .3s с задержкой .5s; transform-origin — центр каждой прорези",
+        "purpose": "Момент хода в «Хеллоуине»: на свежей тыкве прорезается лицо, сначала глаза, потом рот."
+      },
+      {
+        "name": "invite-tilt",
+        "value": "rotate(-6deg) translateY(-14px) .4s cubic-bezier(.5, 0, .3, 1); крышка поднимается с задержкой .3s",
+        "purpose": "Открытие приглашения-крышки «Хеллоуина»."
       }
     ],
     "breakpoints": [
@@ -2166,11 +2419,35 @@
       "description": "Крышка «Зельеварни»: большой флакон на камне, на треть налитый зельем, сургуч на пробке, поверх шара — бумажный ярлык с подрезанными углами, названием и «Кому:»; при наведении пробка выскакивает.",
       "html": "<div class=\"ds-z-lid\"><div class=\"ds-zlid\"><svg class=\"ds-fl ds-zlid__flask\" viewBox=\"0 0 40 48\" aria-hidden=\"true\"><path class=\"ds-fl__glass\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><clipPath id=\"ds-zf4\"><path d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/></clipPath><g clip-path=\"url(#ds-zf4)\"><rect class=\"ds-fl__potion\" x=\"0\" y=\"31.28\" width=\"40\" height=\"48\"/><path class=\"ds-fl__men\" d=\"M4 31.28 H36\"/></g><path class=\"ds-fl__line\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><rect class=\"ds-fl__cork\" x=\"15\" y=\"0.8\" width=\"10\" height=\"4.4\" rx=\"1.2\"/></svg><span class=\"ds-zlid__wax\"></span><div class=\"ds-zlid__label\"><h3 class=\"ds-zlid__title\">Детектив в парке</h3><p class=\"ds-zlid__for\">Кому: <b>Екатерина</b></p></div></div></div>",
       "css": ".ds-z-lid { --field:#2b3540; --field-ink:#e6e1d6; --field-ink-soft:#a9b0b6; --paper:#efe7d6; --paper-edge:#d6c9ae; --ink:#1f2328; --ink-soft:#545a60; --plate:#efe7d6; --done:#e0892b; --back:#35414d; --chip:#e0892b; --rule:#141a20; --wrong:#a0442a; --action:#a5531a; --action-ink:#fff6e8; --action-hover:#86410f; --wax:#6e3a1e; background:var(--field); padding:32px 20px; container-type:inline-size; } .ds-zlid { --fl-line:.8; position:relative; display:grid; place-items:center; max-width:300px; margin:0 auto; } .ds-zlid__flask { width:260px; height:auto; filter:drop-shadow(0 26px 22px color-mix(in srgb, var(--rule) 80%, transparent)); } .ds-zlid__flask .ds-fl__cork, .ds-zlid__wax { transition:transform .35s cubic-bezier(.3, 0, .2, 1), opacity .35s; transform-box:fill-box; } .ds-zlid__wax { position:absolute; left:50%; top:2px; width:50px; height:22px; margin-left:-25px; border-radius:40% 45% 50% 50% / 50% 50% 60% 60%; background:var(--wax); box-shadow:inset 0 -4px 0 color-mix(in srgb, var(--rule) 30%, transparent); } .ds-zlid__label { position:absolute; left:50%; top:62%; width:78%; transform:translate(-50%, -50%) rotate(-2deg); padding:18px 16px 16px; background:var(--paper); color:var(--ink); border:1.5px solid var(--rule); text-align:center; clip-path:polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px); } .ds-zlid__title { margin:0; font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:clamp(1.4rem, 8cqi, 2.1rem); line-height:1.04; } .ds-zlid__for { margin:8px 0 0; font-family:'PT Serif',Georgia,serif; color:var(--ink-soft); } .ds-zlid__for b { color:var(--ink); } .ds-zlid:hover .ds-zlid__wax, .ds-zlid:hover .ds-fl__cork { transform:translateY(-34px) rotate(-18deg); opacity:0; } @media (prefers-reduced-motion: reduce) { .ds-zlid__wax, .ds-zlid__flask .ds-fl__cork { transition:none; } } .ds-fl { display:block; overflow:visible; } .ds-fl__glass { fill:color-mix(in srgb, var(--field-ink) 10%, var(--field)); } .ds-fl__line { fill:none; stroke:var(--rule); stroke-width:var(--fl-line, 1.5); stroke-linejoin:round; } .ds-fl__potion { fill:var(--chip); } .ds-fl__men { stroke:color-mix(in srgb, var(--chip) 55%, var(--paper)); stroke-width:1.2; } .ds-fl__cork { fill:var(--paper-edge); stroke:var(--rule); stroke-width:calc(var(--fl-line, 1.5) * .8); } .ds-fl__label { fill:var(--paper); stroke:var(--rule); stroke-width:calc(var(--fl-line, 1.5) * .6); } .ds-fl__no { fill:var(--ink); font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:9px; } .ds-fl.is-fresh .ds-fl__potion, .ds-fl.is-fresh .ds-fl__men { animation:ds-fill-up .7s cubic-bezier(.3, 0, .2, 1) .1s both; } @keyframes ds-fill-up { from { transform:translateY(44px); } to { transform:none; } } @media (prefers-reduced-motion: reduce) { .ds-fl.is-fresh .ds-fl__potion, .ds-fl.is-fresh .ds-fl__men { animation:none; } }"
+    },
+    {
+      "name": "Вырубка задания (Хеллоуин)",
+      "kind": "card",
+      "refersTo": "halloween-diecut-card",
+      "description": "Карточка задания в «Хеллоуине»: кремовая вырубка с вогнутыми углами 11px и тенью по форме, номер на оранжевой бирке-пилюле, кнопка-глагол оранжевая с тёмным текстом, наведение светлее.",
+      "html": "<div class=\"ds-h-wrap\"><article class=\"ds-hcard\"><div class=\"ds-hcard__head\"><span class=\"ds-hcard__no\">1</span><h3 class=\"ds-hcard__title\">Записка у фонтана</h3></div><p class=\"ds-hcard__text\">Я танцую, но ног не имею. Живу у воды, но не тону. Где ты меня найдёшь?</p><button class=\"ds-hbtn\">Проверить</button></article></div>",
+      "css": ".ds-h-wrap { --field:#1c1714; --field-ink:#f1e3c6; --field-ink-soft:#b9a98e; --paper:#f3e6c8; --paper-edge:#d9c39a; --ink:#1c1714; --ink-soft:#5a4a3c; --plate:#f3e6c8; --done:#e8711c; --back:#3b302a; --chip:#e8711c; --rule:#0f0c0a; --wrong:#b5432a; --action:#e8711c; --action-ink:#1c1714; --action-hover:#f08a3c; background:var(--field); padding:26px 16px; } .ds-hcard { background:radial-gradient(circle at 0 0, transparent 11px, var(--paper) 11.5px) top left / 51% 51% no-repeat, radial-gradient(circle at 100% 0, transparent 11px, var(--paper) 11.5px) top right / 51% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 11px, var(--paper) 11.5px) bottom left / 51% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat; color:var(--ink); padding:24px 22px 22px; display:flex; flex-direction:column; gap:14px; filter:drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent)); } .ds-hcard__head { display:flex; align-items:center; gap:12px; } .ds-hcard__no { display:grid; place-items:center; min-width:40px; height:32px; padding:0 7px; border:1.5px solid var(--rule); border-radius:999px; background:var(--chip); color:var(--ink); font-family:'Yanone Kaffeesatz','PT Serif',Georgia,serif; font-size:1.5rem; line-height:1; } .ds-hcard__title { margin:0; font-family:'Yanone Kaffeesatz','PT Serif',Georgia,serif; font-weight:400; font-size:1.6rem; line-height:1.15; } .ds-hcard__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; } .ds-hbtn { min-height:56px; border:0; border-radius:12px; background:var(--action); color:var(--action-ink); font-family:'Yanone Kaffeesatz','PT Serif',Georgia,serif; font-weight:700; font-size:1.28rem; cursor:pointer; transition:background .2s, transform .1s; } .ds-hbtn:hover { background:var(--action-hover); } .ds-hbtn:active { transform:translateY(2px); } .ds-hbtn:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }"
+    },
+    {
+      "name": "Тыквы на нити гирлянды (Хеллоуин)",
+      "kind": "track",
+      "refersTo": "halloween-pumpkin-active",
+      "description": "Трасса «Хеллоуина»: кремовый пунктир гирлянды, пройденная тыква с вырезанным лицом (глаза, затем рот), текущая — оранжевая с биркой-номером под котом-фишкой с кремовым полем вырубки, впереди — тёмная невырезанная.",
+      "html": "<div class=\"ds-h-track\"><svg class=\"ds-h-garland\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path d=\"M18 64 C32 64 38 44 50 44 S68 62 82 60\"/></svg><span class=\"ds-hc\" style=\"left:18%;top:64%;width:54px\"><svg class=\"ds-pk ds-pk--done is-fresh\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><path class=\"ds-pk__stem\" d=\"M18.6 12.4 C18.4 8.6 19.6 6.2 22.6 4.8 L24 6.6 C22 7.6 21.4 9.4 21.6 12.4 Z\"/><ellipse class=\"ds-pk__body\" cx=\"20\" cy=\"24.5\" rx=\"16\" ry=\"12.5\"/><path class=\"ds-pk__rib\" d=\"M20 12 C12.5 15 12.5 34 20 37 M20 12 C27.5 15 27.5 34 20 37\"/><g><path class=\"ds-pk__cut ds-pk__cut--l\" d=\"M11.6 22.6 L15.4 17.6 L18.4 22.6 Z\"/><path class=\"ds-pk__cut ds-pk__cut--r\" d=\"M21.6 22.6 L24.6 17.6 L28.4 22.6 Z\"/><path class=\"ds-pk__cut ds-pk__cut--m\" d=\"M10.6 26.4 Q20 34.6 29.4 26.4 L26.6 27.8 L24.6 26.6 L22.4 29 L20 27.4 L17.6 29 L15.4 26.6 L13.4 27.8 Z\"/></g></svg></span><span class=\"ds-hc\" style=\"left:50%;top:44%;width:68px\"><span class=\"ds-h-cat\"></span><svg class=\"ds-pk ds-pk--active\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><path class=\"ds-pk__stem\" d=\"M18.6 12.4 C18.4 8.6 19.6 6.2 22.6 4.8 L24 6.6 C22 7.6 21.4 9.4 21.6 12.4 Z\"/><ellipse class=\"ds-pk__body\" cx=\"20\" cy=\"24.5\" rx=\"16\" ry=\"12.5\"/><path class=\"ds-pk__rib\" d=\"M20 12 C12.5 15 12.5 34 20 37 M20 12 C27.5 15 27.5 34 20 37\"/><rect class=\"ds-pk__tag\" x=\"12.5\" y=\"20\" width=\"15\" height=\"10\" rx=\"1.5\"/><text class=\"ds-pk__no\" x=\"20\" y=\"28\" text-anchor=\"middle\">2</text></svg></span><span class=\"ds-hc\" style=\"left:82%;top:60%;width:42px\"><svg class=\"ds-pk ds-pk--back\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><path class=\"ds-pk__stem\" d=\"M18.6 12.4 C18.4 8.6 19.6 6.2 22.6 4.8 L24 6.6 C22 7.6 21.4 9.4 21.6 12.4 Z\"/><ellipse class=\"ds-pk__body\" cx=\"20\" cy=\"24.5\" rx=\"16\" ry=\"12.5\"/><path class=\"ds-pk__rib\" d=\"M20 12 C12.5 15 12.5 34 20 37 M20 12 C27.5 15 27.5 34 20 37\"/></svg></span></div>",
+      "css": ".ds-h-track { --field:#1c1714; --field-ink:#f1e3c6; --field-ink-soft:#b9a98e; --paper:#f3e6c8; --paper-edge:#d9c39a; --ink:#1c1714; --ink-soft:#5a4a3c; --plate:#f3e6c8; --done:#e8711c; --back:#3b302a; --chip:#e8711c; --rule:#0f0c0a; --wrong:#b5432a; --action:#e8711c; --action-ink:#1c1714; --action-hover:#f08a3c; position:relative; height:240px; background:var(--field); } .ds-h-garland { position:absolute; inset:0; width:100%; height:100%; overflow:visible; } .ds-h-garland path { fill:none; vector-effect:non-scaling-stroke; stroke:color-mix(in srgb, var(--field-ink) 50%, var(--field)); stroke-width:1.6; stroke-dasharray:2 5; stroke-linecap:round; } .ds-hc { position:absolute; transform:translate(-50%, -50%); filter:drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 80%, transparent)); } .ds-h-cat { position:absolute; left:50%; top:-64px; width:34px; height:40px; margin-left:-17px; } .ds-h-cat::before, .ds-h-cat::after { content:\"\"; position:absolute; -webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 36'%3E%3Cpath d='M8 35 C4 31 4 22 8 17 C5 14 5 9 6.5 5 L5.5 0 L11 4.2 C13 3.6 17 3.6 19 4.2 L24.5 0 L23.5 5 C25 9 25 14 22 17 C26 22 26 29 23 32 C27 32 29 29 29 25 L30.5 25 C30.5 32 27 36 21 35 Z' fill='black'/%3E%3C/svg%3E\") center / contain no-repeat; mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 36'%3E%3Cpath d='M8 35 C4 31 4 22 8 17 C5 14 5 9 6.5 5 L5.5 0 L11 4.2 C13 3.6 17 3.6 19 4.2 L24.5 0 L23.5 5 C25 9 25 14 22 17 C26 22 26 29 23 32 C27 32 29 29 29 25 L30.5 25 C30.5 32 27 36 21 35 Z' fill='black'/%3E%3C/svg%3E\") center / contain no-repeat; } .ds-h-cat::before { inset:-3px; background:var(--paper); } .ds-h-cat::after { inset:0; background:var(--rule); } .ds-pk { display:block; width:100%; height:auto; overflow:visible; } .ds-pk__body { stroke:var(--rule); stroke-width:1.5; } .ds-pk__rib { fill:none; stroke:var(--rule); stroke-width:1.2; } .ds-pk__stem { fill:color-mix(in srgb, var(--chip) 30%, var(--rule)); stroke:var(--rule); stroke-width:.9; stroke-linejoin:round; } .ds-pk--back .ds-pk__body { fill:var(--back); } .ds-pk--back .ds-pk__rib { stroke:color-mix(in srgb, var(--field-ink) 22%, var(--back)); } .ds-pk--active .ds-pk__body, .ds-pk--done .ds-pk__body { fill:var(--chip); } .ds-pk__cut { fill:var(--paper); stroke:var(--rule); stroke-width:.9; stroke-linejoin:round; transform-box:fill-box; transform-origin:50% 50%; } .ds-pk__tag { fill:var(--paper); stroke:var(--rule); stroke-width:.9; } .ds-pk__no { fill:var(--ink); font-family:'Yanone Kaffeesatz','PT Serif',Georgia,serif; font-size:10.4px; } .ds-pk.is-fresh .ds-pk__cut--l { animation:ds-cut-in .22s cubic-bezier(.3, 0, .2, 1) .12s both; } .ds-pk.is-fresh .ds-pk__cut--r { animation:ds-cut-in .22s cubic-bezier(.3, 0, .2, 1) .3s both; } .ds-pk.is-fresh .ds-pk__cut--m { animation:ds-cut-in .3s cubic-bezier(.3, 0, .2, 1) .5s both; } @keyframes ds-cut-in { from { transform:scale(0); } to { transform:none; } } @media (prefers-reduced-motion: reduce) { .ds-pk.is-fresh .ds-pk__cut { animation:none; } }"
+    },
+    {
+      "name": "Приглашение «Кому» (Хеллоуин)",
+      "kind": "lid",
+      "refersTo": "halloween-lid-invite",
+      "description": "Крышка «Хеллоуина»: приглашение на вечеринку с вогнутыми углами, вырезанными маской вместе с шапкой-сценой (бурое небо, оранжевая луна, чёрные холмы, кот и летучие мыши), название и «Кому:»; при наведении приглашение наклоняется.",
+      "html": "<div class=\"ds-h-lid\"><div class=\"ds-hlid\"><svg class=\"ds-hlid__scene\" viewBox=\"0 0 280 96\" aria-hidden=\"true\"><rect class=\"ds-hlid__sky\" width=\"280\" height=\"96\"/><circle class=\"ds-hlid__moon\" cx=\"196\" cy=\"44\" r=\"30\"/><path class=\"ds-hlid__cut\" d=\"M0 96 V78 Q20 70 40 78 T80 76 T120 80 T160 74 T200 80 T240 76 T280 78 V96 Z\"/><path class=\"ds-hlid__cut\" d=\"M66 80 C62 75 62 66 66 61 C64 59 64 54 65 50 L64 43 L69 47.6 C71 47 76 47 78 47.6 L83 43 L82 50 C83 54 83 59 81 61 C85 66 85 72 82 76 C86 76 89 73 89 69 L91 69 C91 76 87 80 80 79 Z\"/><path class=\"ds-hlid__cut\" transform=\"translate(186 34) scale(1.1)\" d=\"M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z\"/><path class=\"ds-hlid__cut\" transform=\"translate(120 22) scale(.75)\" d=\"M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z\"/><path class=\"ds-hlid__cut\" transform=\"translate(248 16) scale(.6)\" d=\"M0 2 C-3 -2 -6 -2 -8 -6 C-9 -2 -12 -1 -16 -3 C-15 1 -12 4 -8 4 C-6 7 -3 5 -1.5 7.5 L0 5 L1.5 7.5 C3 5 6 7 8 4 C12 4 15 1 16 -3 C12 -1 9 -2 8 -6 C6 -2 3 -2 0 2 Z\"/></svg><div class=\"ds-hlid__text\"><h3 class=\"ds-hlid__title\">Детектив в парке</h3><p class=\"ds-hlid__for\">Кому: <b>Екатерина</b></p></div></div></div>",
+      "css": ".ds-h-lid { --field:#1c1714; --field-ink:#f1e3c6; --field-ink-soft:#b9a98e; --paper:#f3e6c8; --paper-edge:#d9c39a; --ink:#1c1714; --ink-soft:#5a4a3c; --plate:#f3e6c8; --done:#e8711c; --back:#3b302a; --chip:#e8711c; --rule:#0f0c0a; --wrong:#b5432a; --action:#e8711c; --action-ink:#1c1714; --action-hover:#f08a3c; background:var(--field); padding:32px 20px; container-type:inline-size; } .ds-hlid { max-width:320px; margin:0 auto; padding:0 0 26px; overflow:hidden; background:var(--paper); color:var(--ink); text-align:center; -webkit-mask:radial-gradient(circle at 0 0, transparent 11px, #000 11.5px) top left / 51% 51% no-repeat, radial-gradient(circle at 100% 0, transparent 11px, #000 11.5px) top right / 51% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 11px, #000 11.5px) bottom left / 51% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 11px, #000 11.5px) bottom right / 51% 51% no-repeat; mask:radial-gradient(circle at 0 0, transparent 11px, #000 11.5px) top left / 51% 51% no-repeat, radial-gradient(circle at 100% 0, transparent 11px, #000 11.5px) top right / 51% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 11px, #000 11.5px) bottom left / 51% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 11px, #000 11.5px) bottom right / 51% 51% no-repeat; transition:transform .4s cubic-bezier(.5, 0, .3, 1); } .ds-hlid:hover { transform:rotate(-6deg) translateY(-14px); } .ds-hlid__scene { display:block; width:100%; height:auto; margin-bottom:18px; } .ds-hlid__sky { fill:var(--back); } .ds-hlid__moon { fill:var(--chip); } .ds-hlid__cut { fill:var(--rule); } .ds-hlid__text { padding:0 22px; } .ds-hlid__title { margin:0; font-family:'Yanone Kaffeesatz','PT Serif',Georgia,serif; font-weight:400; font-size:clamp(1.95rem, 12.2cqi, 2.93rem); line-height:1.04; } .ds-hlid__for { margin:10px 0 0; font-family:'PT Serif',Georgia,serif; color:var(--ink-soft); } .ds-hlid__for b { color:var(--ink); } @media (prefers-reduced-motion: reduce) { .ds-hlid { transition:none; } }"
     }
   ],
   "narrative": {
     "northStar": "Ходилка, напечатанная для одной пары",
-    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nЧетвёртая тема «Мистика» надевает на ходилку обличье колоды на столе гадалки (`decor: 'tarot'`). Поле — зелёно-чёрное сукно, карты — слоновая бумага с гравюрой одной чёрной краской, единственная яркая краска — киноварь. Трасса — расклад: карты лежат на сукне в ряд, связанные меловым пунктиром. Будущая карта лежит рубашкой вверх (киноварная решётка), текущая открыта и несёт римский номер, пройденная перевёрнута лицом и показывает свой знак — авторскую гравюру из набора `QuestArcana` (солнце, луна, звезда, ключ, чаша, око, колесо, сердце, роза, два кольца). Момент хода — карта переворачивается. Фишка — киноварный ромб над открытой картой. Карточка задания — вытянутая карта с двойной гравированной рамкой и римским номером. Крышка — новая колода рубашкой вверх в бумажной бандероли «Кому:», бандероль снимается; финал «Ваш расклад» — веер открытых карт, по одной на пройденную клетку. В «Найди пары» рубашка карточки — та же киноварная решётка. Участок называется «Расклад», клетка — «карта». Ни звёздного неба, ни тумана, ни свечения, ни фиолета: у темы `overlay: null` и `bg_animation: null`, а колода своя, не копия Райдера — Уэйта.\n\nПятая тема «Искатель клада» надевает на ходилку обличье пиратской карты (`decor: 'map'`). Поле — глубокое сине-зелёное море старой карты со штрихами волн, трасса лежит на пергаментном острове с чернильной береговой линией и вторым пунктирным контуром мелководья и идёт по суше чернильным пунктиром. Клетки — метки на карте: впереди пустой кружок точечным пером, «сейчас здесь» — номер в кружке с двойным контуром, пройденная перечёркнута красным крестом, который в момент хода рисуется пером в два штриха. Пропущенная метка гасится одним чернильным штрихом, а не крестом клада. Фишка — флажок на древке с красным вымпелом. Карточка задания — обрывок пергамента с рваным краем сверху и снизу, номер клетки — в чернильном кружке. Крышка — свиток со скатанными концами под сургучом «★ КАРТА ★», адресованный «Кому:»; финал «Клад найден!» — пунктир через пройденные метки к островку с большим красным крестом и «Записка в сундуке» на обрывке пергамента. В «Найди пары» рубашка карточки — старый пергамент с чернильной розой ветров. Участок называется «Остров», клетка — «метка», очки — дублоны. Ни золотых частиц, ни зерна, ни черепов, ни «дублонового» блеска: у темы `overlay: null` и `bg_animation: null`.\n\nШестая тема «Предложение» надевает на ходилку обличье футляра с кольцом (`decor: 'ringbox'`). Поле — пудровый бархат, второй светлый мир после «Города»; карточки — слоновый шёлк подкладки с прострочкой по краю, чернила — тёмный гранатово-коричневый, единственная яркая краска — гранат. Трасса — шёлковая нить пунктиром стёжков, клетки — маленькие бархатные футляры: будущий закрыт и без номера, текущий крупнее и несёт номер на крышке, пройденный открыт и показывает на подушечке гранатовый камешек (`QuestRingbox`). Момент хода — крышка откидывается и проступает камень. Фишка — жемчужина. Карточка задания — шёлковая карточка с пунктирным швом, номер клетки — на бархатной крышке. Крышка экрана — бархатная коробка, перевязанная гранатовой лентой крест-накрест с бантом, с шёлковой биркой «Кому:»; финал не печатает вопрос: открытый футляр с кольцом, заголовок «А теперь — главный вопрос» и послание автора под заголовком «От меня» — вопрос звучит вслух, кто бы кому ни делал предложение. В «Найди пары» рубашка карточки — тот же закрытый футляр. Участок называется «Момент», клетка — «шаг», очки обычные. Ни золота на чёрном, ни бликов, ни колец-частиц, ни свечения: у темы `overlay: null` и `bg_animation: null`.\n\nСедьмая тема «Зельеварня» надевает на ходилку обличье кабинета зелий в каменном подвале своей школы волшебства (`decor: 'potion'`). Школа своя, в духе книжной фэнтези-школы, но без имён, мест, гербов, надписей и словечек чужой франшизы. Поле — холодный сине-серый камень, бумага рецептов — тёплая, чернила почти чёрные, единственная яркая краска — янтарное зелье. Трасса — медная трубка перегонного куба, клетки — круглодонные флаконы на ней (`QuestFlask`): будущий — пустое стекло, текущий крупнее и несёт бумажный ярлык с номером, пройденный наполнен янтарным зельем. Момент хода — уровень зелья поднимается от дна. Фишка — капля зелья. Карточка задания — страница рецепта с двойной линейкой сверху, номер клетки — на ярлыке с подрезанными углами. Крышка — большой флакон с сургучом на пробке и бумажным ярлыком «Кому:», пробка выскакивает; финал «Зелье готово!» — полный флакон с ярлыком «на двоих» и послание под заголовком «К зелью прилагается». В «Найди пары» рубашка карточки — камень с пустым флаконом мелом. Участок называется «Рецепт», клетка — «флакон», очки — капли. Ни пара, ни свечения, ни бликов на стекле: у темы `overlay: null` и `bg_animation: null`.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. Токены берутся из блока `world` темы: свой мир теперь у всех семи тем: detective (`casefile`), romantic (`letters`), city (`metro`), mystery (`tarot`), treasure (`map`), proposal (`ringbox`) и potion (`potion`). Тема живёт не только в `themes.js`: её id стоит ещё в `QUEST_THEMES` (`server/src/routes/admin.js`), в CHECK `created_quests_theme_check` (своя миграция — для «Зельеварни» `database/migrations/011_add_potion_theme.sql` — и `database/dump.sql`) и в списках тем админки (`EditorMeta.vue`, `AdminTemplateModal.vue`); без них квест с новой темой не сохранится. `worldVars()` переводит `world` в переменные основы. Запасной путь из старых цветов темы (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`) в коде остался, но ни одна тема им больше не пользуется: все семь задают полный набор цветовых ключей мира. Единственное умолчание, которое ещё срабатывает, — `--focus`: у «Детектива» нет `world.focus`, и фокус берёт `world.chip`. Старые поля темы (`bg`, `surface`, `accent` и т.д.) по-прежнему ставят `--bg`, `--surf` и прочие переменные для кода вне плеера, но палитрой мира не являются. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный) и `--action-hover` (`world.actionHover`, наведение на кнопку-глагол; без него `--action` смешивается с `--chip`), а также `--wax` (`world.wax`, сургуч на пробке флакона-крышки; сейчас только у «Зельеварни»). Язык темы живёт в `copy`: кроме `blockPrefix`, `blockForms` и `pointsForms` тема может задать необязательные ключи `cellForms` (формы слова «клетка» для 1/2/5: счётчик полосы «карта N из M» и факт сводки), `cellsDone` (формы факта финала «N клеток пройдено»), `blockDone` и `allDone` (строка конца участка и конца всех участков), `nextBtn` (кнопка конца участка) и `finishShare` (кнопка «Поделиться» на финале). Без них компоненты берут нейтральные слова основы: «клетка», «клетка пройдена», «Участок пройден. Фишка ждёт у выхода.», «Все клетки пройдены.», «Идти дальше», «Поделиться результатом». Сейчас эти ключи задают «Мистика», «Искатель клада», «Предложение» (без `finishShare`) и «Зельеварня» (все шесть). Римский номер карты даёт `roman()` из `themes.js`. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
+    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nЧетвёртая тема «Мистика» надевает на ходилку обличье колоды на столе гадалки (`decor: 'tarot'`). Поле — зелёно-чёрное сукно, карты — слоновая бумага с гравюрой одной чёрной краской, единственная яркая краска — киноварь. Трасса — расклад: карты лежат на сукне в ряд, связанные меловым пунктиром. Будущая карта лежит рубашкой вверх (киноварная решётка), текущая открыта и несёт римский номер, пройденная перевёрнута лицом и показывает свой знак — авторскую гравюру из набора `QuestArcana` (солнце, луна, звезда, ключ, чаша, око, колесо, сердце, роза, два кольца). Момент хода — карта переворачивается. Фишка — киноварный ромб над открытой картой. Карточка задания — вытянутая карта с двойной гравированной рамкой и римским номером. Крышка — новая колода рубашкой вверх в бумажной бандероли «Кому:», бандероль снимается; финал «Ваш расклад» — веер открытых карт, по одной на пройденную клетку. В «Найди пары» рубашка карточки — та же киноварная решётка. Участок называется «Расклад», клетка — «карта». Ни звёздного неба, ни тумана, ни свечения, ни фиолета: у темы `overlay: null` и `bg_animation: null`, а колода своя, не копия Райдера — Уэйта.\n\nПятая тема «Искатель клада» надевает на ходилку обличье пиратской карты (`decor: 'map'`). Поле — глубокое сине-зелёное море старой карты со штрихами волн, трасса лежит на пергаментном острове с чернильной береговой линией и вторым пунктирным контуром мелководья и идёт по суше чернильным пунктиром. Клетки — метки на карте: впереди пустой кружок точечным пером, «сейчас здесь» — номер в кружке с двойным контуром, пройденная перечёркнута красным крестом, который в момент хода рисуется пером в два штриха. Пропущенная метка гасится одним чернильным штрихом, а не крестом клада. Фишка — флажок на древке с красным вымпелом. Карточка задания — обрывок пергамента с рваным краем сверху и снизу, номер клетки — в чернильном кружке. Крышка — свиток со скатанными концами под сургучом «★ КАРТА ★», адресованный «Кому:»; финал «Клад найден!» — пунктир через пройденные метки к островку с большим красным крестом и «Записка в сундуке» на обрывке пергамента. В «Найди пары» рубашка карточки — старый пергамент с чернильной розой ветров. Участок называется «Остров», клетка — «метка», очки — дублоны. Ни золотых частиц, ни зерна, ни черепов, ни «дублонового» блеска: у темы `overlay: null` и `bg_animation: null`.\n\nШестая тема «Предложение» надевает на ходилку обличье футляра с кольцом (`decor: 'ringbox'`). Поле — пудровый бархат, второй светлый мир после «Города»; карточки — слоновый шёлк подкладки с прострочкой по краю, чернила — тёмный гранатово-коричневый, единственная яркая краска — гранат. Трасса — шёлковая нить пунктиром стёжков, клетки — маленькие бархатные футляры: будущий закрыт и без номера, текущий крупнее и несёт номер на крышке, пройденный открыт и показывает на подушечке гранатовый камешек (`QuestRingbox`). Момент хода — крышка откидывается и проступает камень. Фишка — жемчужина. Карточка задания — шёлковая карточка с пунктирным швом, номер клетки — на бархатной крышке. Крышка экрана — бархатная коробка, перевязанная гранатовой лентой крест-накрест с бантом, с шёлковой биркой «Кому:»; финал не печатает вопрос: открытый футляр с кольцом, заголовок «А теперь — главный вопрос» и послание автора под заголовком «От меня» — вопрос звучит вслух, кто бы кому ни делал предложение. В «Найди пары» рубашка карточки — тот же закрытый футляр. Участок называется «Момент», клетка — «шаг», очки обычные. Ни золота на чёрном, ни бликов, ни колец-частиц, ни свечения: у темы `overlay: null` и `bg_animation: null`.\n\nСедьмая тема «Зельеварня» надевает на ходилку обличье кабинета зелий в каменном подвале своей школы волшебства (`decor: 'potion'`). Школа своя, в духе книжной фэнтези-школы, но без имён, мест, гербов, надписей и словечек чужой франшизы. Поле — холодный сине-серый камень, бумага рецептов — тёплая, чернила почти чёрные, единственная яркая краска — янтарное зелье. Трасса — медная трубка перегонного куба, клетки — круглодонные флаконы на ней (`QuestFlask`): будущий — пустое стекло, текущий крупнее и несёт бумажный ярлык с номером, пройденный наполнен янтарным зельем. Момент хода — уровень зелья поднимается от дна. Фишка — капля зелья. Карточка задания — страница рецепта с двойной линейкой сверху, номер клетки — на ярлыке с подрезанными углами. Крышка — большой флакон с сургучом на пробке и бумажным ярлыком «Кому:», пробка выскакивает; финал «Зелье готово!» — полный флакон с ярлыком «на двоих» и послание под заголовком «К зелью прилагается». В «Найди пары» рубашка карточки — камень с пустым флаконом мелом. Участок называется «Рецепт», клетка — «флакон», очки — капли. Ни пара, ни свечения, ни бликов на стекле: у темы `overlay: null` и `bg_animation: null`.\n\nВосьмая тема «Хеллоуин» надевает на ходилку обличье бумажной вырубки 1920–30-х годов (`decor: 'diecut'`): жутко-романтично, а не хоррор. Поле — тёплый чёрный картон, бумага — кремовая с фигурной вырубкой края, силуэты — плоский чёрный картон, единственная яркая краска — тыквенный оранжевый. Трасса — нить гирлянды кремовым пунктиром, клетки — тыквы на ней (`QuestPumpkin`): будущая — тёмная, ещё не вырезанная, текущая — оранжевая с бумажной биркой-номером, пройденная — с вырезанным лицом, и в прорезях видна кремовая бумага, а не свет. Момент хода — у тыквы прорезается лицо: сначала глаза, потом рот. Фишка — силуэт чёрного кота с кремовым полем вырубки. Карточка задания — кремовая вырубка с вогнутыми углами штанцевого ножа, номер клетки — на оранжевой бирке-пилюле. Крышка — приглашение на вечеринку с вогнутыми углами: сверху шапка-сцена (луна, холмы, кот и летучие мыши на буром небе), ниже название и «Кому:»; финал «Сладость найдена!» — луна, крыша с трубой и двое на коньке рядом с котом, послание под заголовком «В корзинке с конфетами». В «Найди пары» рубашка карточки — бурый картон с невырезанной тыквой. Участок называется «Дом» (от дома к дому, как в «сладость или гадость»), клетка — «тыква», очки — конфеты. Ни крови, ни черепов, ни пауков-страшилок, ни тумана, ни неонового свечения: у темы `overlay: null` и `bg_animation: null`.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. Токены берутся из блока `world` темы: свой мир теперь у всех восьми тем: detective (`casefile`), romantic (`letters`), city (`metro`), mystery (`tarot`), treasure (`map`), proposal (`ringbox`), potion (`potion`) и halloween (`diecut`). Тема живёт не только в `themes.js`: её id стоит ещё в `QUEST_THEMES` (`server/src/routes/admin.js`), в CHECK `created_quests_theme_check` (своя миграция — для «Хеллоуина» `database/migrations/012_add_halloween_theme.sql` — и `database/dump.sql`) и в списках тем админки (`EditorMeta.vue`, `AdminTemplateModal.vue`); без них квест с новой темой не сохранится. `worldVars()` переводит `world` в переменные основы. Запасной путь из старых цветов темы (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`) в коде остался, но ни одна тема им больше не пользуется: все восемь задают полный набор цветовых ключей мира. Единственное умолчание, которое ещё срабатывает, — `--focus`: у «Детектива» нет `world.focus`, и фокус берёт `world.chip`. Старые поля темы (`bg`, `surface`, `accent` и т.д.) по-прежнему ставят `--bg`, `--surf` и прочие переменные для кода вне плеера, но палитрой мира не являются. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный) и `--action-hover` (`world.actionHover`, наведение на кнопку-глагол; без него `--action` смешивается с `--chip`), а также `--wax` (`world.wax`, сургуч на пробке флакона-крышки; сейчас только у «Зельеварни»). Язык темы живёт в `copy`: кроме `blockPrefix`, `blockForms` и `pointsForms` тема может задать необязательные ключи `cellForms` (формы слова «клетка» для 1/2/5: счётчик полосы «карта N из M» и факт сводки), `cellsDone` (формы факта финала «N клеток пройдено»), `blockDone` и `allDone` (строка конца участка и конца всех участков), `nextBtn` (кнопка конца участка) и `finishShare` (кнопка «Поделиться» на финале). Без них компоненты берут нейтральные слова основы: «клетка», «клетка пройдена», «Участок пройден. Фишка ждёт у выхода.», «Все клетки пройдены.», «Идти дальше», «Поделиться результатом». Сейчас эти ключи задают «Мистика», «Искатель клада», «Предложение» (без `finishShare`), «Зельеварня» и «Хеллоуин» (обе — все шесть). Римский номер карты даёт `roman()` из `themes.js`. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
     "keyCharacteristics": [
       "Поле — сплошная краска, без фоновых градиентов и подсветки.",
       "Одна открытая карточка на экран; будущие клетки лежат рубашкой вверх.",
@@ -2183,7 +2460,8 @@
       "В «Колоде» поле — тёмное сукно, насыщенная краска одна — киноварь рубашек, ромба и кнопки; ход отмечает переворот карты, а не печать.",
       "На «Карте» поле — тёмное море, насыщенная краска одна — красная: крест, вымпел флажка и кнопка; ход отмечает крест, проведённый пером, а не печать.",
       "В «Футляре» поле — светлый пудровый бархат, насыщенная краска одна — гранат: камень, лента с бантом на крышке и кнопка; ход отмечает открывшийся футляр, а не печать.",
-      "В «Зельеварне» поле — тёмный камень, насыщенная краска одна — янтарное зелье: зелье во флаконах, капля-фишка и медная жила трубки; кнопка — его варёный тон; ход отмечает наполнившийся флакон, а не печать."
+      "В «Зельеварне» поле — тёмный камень, насыщенная краска одна — янтарное зелье: зелье во флаконах, капля-фишка и медная жила трубки; кнопка — его варёный тон; ход отмечает наполнившийся флакон, а не печать.",
+      "На «Вырубке» поле — тёплый чёрный картон, насыщенная краска одна — тыквенный оранжевый: тыквы, луна, бирка-пилюля номера и кнопка с тёмным текстом; ход отмечает прорезанное лицо тыквы, а не печать."
     ],
     "rules": [
       {
@@ -2345,6 +2623,36 @@
         "name": "The Own School Rule",
         "body": "Школа волшебства своя: ни имён, ни мест, ни гербов, ни факультетских цветов, ни надписей, ни шрифтов, ни словечек чужой франшизы. Язык темы — рецепт, флакон, капля, котёл.",
         "section": "colors"
+      },
+      {
+        "name": "The One Pumpkin Rule",
+        "body": "Тыквенный оранжевый — единственная яркая краска вырубки и метит только тыквы, луну, бирку-пилюлю номера и кнопку-глагол. Текст оранжевым не набирается, а на кремовой бумаге оранжевый лежит только плашкой с контуром `--rule` и тёмной цифрой (2.5:1); ошибка — отдельная ржавчина `--wrong`, фокус на бумаге — чернила `--ink`. На оранжевом набираются только тёмные чернила, поэтому наведение `--action-hover` светлее кнопки.",
+        "section": "colors"
+      },
+      {
+        "name": "The Carve Not Stamp Rule",
+        "body": "Ход на вырубке отмечает прорезанное лицо тыквы: сначала глаза, затем рот; в прорезях видна кремовая бумага. Печати `QuestSeal`, штампов, штемпеля, компостера, креста, переворота, открытия футляра и наполнения здесь нет; сургуча у темы нет вовсе. Пропущенная тыква остаётся тёмной и невырезанной.",
+        "section": "colors"
+      },
+      {
+        "name": "The Spooky Sweet Rule",
+        "body": "Хеллоуин жутко-романтичный, а не страшный: ни крови, ни черепов, ни пауков-страшилок, ни тумана, ни неонового свечения; у темы `overlay: null` и `bg_animation: null`. Тыква не светится изнутри: прорези — плоская кремовая бумага без ореола. Силуэты — плоский чёрный картон.",
+        "section": "colors"
+      },
+      {
+        "name": "The Condensed Face Rule",
+        "body": "Yanone Kaffeesatz узкий, и при том же кегле он заметно мельче PT Serif. Поэтому увеличение стоит в самом `@font-face` (`size-adjust: 122%` во всех трёх файлах), а не в `--font-adjust` темы: `font-size-adjust` на корне плеера наследуется всем текстом и увеличил бы и PT Serif. `size-adjust` действует только на Yanone, и все размеры дисплейного шрифта в этой теме выходят в 1.22 раза крупнее записанных; `font-size-adjust: none` на бирке тыквы его не отменяет. Новое объявление этого шрифта (в том числе в ролике) повторяет `size-adjust: 122%`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Legible Glyph Rule",
+        "body": "Сначала дисплейным шрифтом темы был Kelly Slab, но в нём кириллическая «в» читается как латинская «B», а «1» — как «l»; владелец согласовал замену на Yanone Kaffeesatz. Шрифт-кандидат для темы проверяется на «в», «1» и «l» до того, как его берут.",
+        "section": "typography"
+      },
+      {
+        "name": "The Shaped Shadow Rule",
+        "body": "У вырубки с вогнутыми углами тень — только `filter: drop-shadow` по форме листа: `box-shadow` нарисовал бы прямоугольник под вырезанными углами. Если форму режет маска (приглашение), тени нет совсем.",
+        "section": "elevation"
       }
     ],
     "dos": [
@@ -2361,7 +2669,7 @@
       "**Do** на схеме отмечать ход компостером (три дырочки цвета поля в пройденной станции), а финал — талоном, пробитым по разу на станцию.",
       "**Do** держать зелёную линию за путём (линия, станции, полосы талона и проездного), а текст и фокус на схеме набирать чернилами.",
       "**Do** брать вес дисплейного шрифта в кнопках-глаголах, очках шапки и счётчике полосы из `--font-d-wt`, а у кнопок и полей наследовать `font-feature-settings` и `font-size-adjust` темы.",
-      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия», в «Мистике» — «Расклад», в «Искателе клада» — «Остров», в «Предложении» — «Момент», в «Зельеварне» — «Рецепт».",
+      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия», в «Мистике» — «Расклад», в «Искателе клада» — «Остров», в «Предложении» — «Момент», в «Зельеварне» — «Рецепт», в «Хеллоуине» — «Дом».",
       "**Do** слова клетки, конца участка и кнопок финала брать из необязательных ключей `copy` (`cellForms`, `cellsDone`, `blockDone`, `allDone`, `nextBtn`, `finishShare`) с нейтральным словом основы по умолчанию, а не вписывать слово темы в компонент.",
       "**Do** в колоде отмечать ход переворотом карты: пройденная показывает свой знак `QuestArcana`, открытая — римский номер, будущие лежат киноварной рубашкой.",
       "**Do** набирать на киновари только слоновую бумагу, а карту-рубашку и ромб на сукне обводить бумагой.",
@@ -2375,6 +2683,12 @@
       "**Do** в зельеварне отмечать ход наполнением флакона: зелье поднимается от дна; будущие и пропущенные флаконы пустые, номер — только на ярлыке текущего.",
       "**Do** держать янтарное зелье в стекле и на камне, а кнопку-глагол красить его варёным тоном `--action`: светлый текст на светлом зелье не читается.",
       "**Do** давать странице рецепта двойную линейку сверху и кромку среза бумаги вместо контура.",
+      "**Do** на вырубке отмечать ход прорезанным лицом тыквы: сначала глаза, затем рот, в прорезях — кремовая бумага; будущие и пропущенные тыквы тёмные и невырезанные, номер — только на бирке текущей.",
+      "**Do** набирать на тыквенном оранжевом только тёмные чернила, а наведение на кнопку-глагол делать светлее (`--action-hover`), а не темнее.",
+      "**Do** вырубать углы карточек вогнутыми радиусом 11px и давать им тень `filter: drop-shadow` по форме, без контура и `box-shadow`.",
+      "**Do** класть чёрный силуэт на картон поля только с кремовым полем вырубки (кот-фишка) или на цветной слой (луна, бурое небо, крыша): к полю чёрный картон даёт 1.1:1.",
+      "**Do** увеличивать узкий дисплейный шрифт `size-adjust` в `@font-face`, а не `--font-adjust` темы: `font-size-adjust` на корне увеличит и PT Serif.",
+      "**Do** проверять шрифт-кандидат темы на кириллической «в» и цифре «1» до того, как его брать.",
       "**Do** заводить новую тему сразу во всех списках тем: `themes.js`, `QUEST_THEMES` в `server/src/routes/admin.js`, CHECK `created_quests_theme_check` (новая миграция и `database/dump.sql`), `EditorMeta.vue` и `AdminTemplateModal.vue`."
     ],
     "donts": [
@@ -2385,7 +2699,7 @@
       "**Don't** показывать будущие клетки открытыми или подсказывать их содержание.",
       "**Don't** держать полную доску постоянно над заданием: она уводит тело задания вниз.",
       "**Don't** ставить надписи-капсом над заголовками; капс живёт только в штампе и поле кода.",
-      "**Don't** брать палитру мира из старых полей темы (`bg`, `surface`, `accent`) через запасной путь `worldVars()`: у всех семи тем свой `world`, и новая тема приходит с ним же.",
+      "**Don't** брать палитру мира из старых полей темы (`bg`, `surface`, `accent`) через запасной путь `worldVars()`: у всех восьми тем свой `world`, и новая тема приходит с ним же.",
       "**Don't** ставить сургучную печать на трассу, письма или финал переписки.",
       "**Don't** набирать рукописным Bad Script текст задания, вопрос, ответ, подсказку, кнопки или числа.",
       "**Don't** красить лентой ошибку или фоны: ошибка — `--wrong`, лента — только трасса, фишка, марка, подкладка и фокус.",
@@ -2408,7 +2722,13 @@
       "**Don't** брать в «Зельеварню» имена, места, гербы, факультетские цвета, надписи, шрифты или словечки чужой франшизы: школа волшебства своя.",
       "**Don't** класть в подвал пар, свечение, блики на стекле или искры; зелье — плоская краска с линией мениска.",
       "**Don't** ставить в зельеварню печать `QuestSeal`, штампы, штемпель, компостер или крест: ход отмечает только наполнившийся флакон, сургуч `--wax` — только на пробке крышки.",
-      "**Don't** набирать текст зельем и класть зелье на бумагу рецепта: на бумаге 2.2:1."
+      "**Don't** набирать текст зельем и класть зелье на бумагу рецепта: на бумаге 2.2:1.",
+      "**Don't** класть в «Хеллоуин» кровь, черепа, пауков-страшилок, туман или неоновое свечение: тема жутко-романтичная, а не страшная.",
+      "**Don't** зажигать свет в тыкве: прорези лица — плоская кремовая бумага, без свечения и ореола.",
+      "**Don't** ставить на вырубку печать `QuestSeal`, штампы, штемпель, компостер или крест: ход отмечает только прорезанное лицо тыквы.",
+      "**Don't** набирать текст оранжевым и класть оранжевый на кремовую бумагу без контура и тёмной цифры: на бумаге 2.5:1.",
+      "**Don't** затемнять оранжевую кнопку при наведении: тёмный текст на потемневшем оранжевом теряет контраст.",
+      "**Don't** брать для темы Kelly Slab: его «в» читается как «B», а «1» — как «l»."
     ]
   }
 }
