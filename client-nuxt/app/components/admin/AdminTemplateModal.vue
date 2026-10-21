@@ -152,6 +152,7 @@
                 <option value="treasure">🗺️ Искатель клада</option>
                 <option value="proposal">💍 Предложение</option>
                 <option value="potion">🧪 Зельеварня</option>
+                <option value="halloween">🎃 Хеллоуин</option>
               </select>
               <div class="adm-tform__hint">Применяется автоматически в редакторе при выборе шаблона</div>
             </div>

@@ -108,7 +108,7 @@ describe('GET /api/admin/quests/:id — briefing', () => {
 // Темы плеера: валидатор роута должен совпадать с CHECK created_quests_theme_check
 // и client-nuxt/app/components/quest/themes.js.
 describe('POST /api/admin/quests — theme', () => {
-  it.each(['treasure', 'proposal', 'potion'])('создаёт квест с темой %s', async (theme) => {
+  it.each(['treasure', 'proposal', 'potion', 'halloween'])('создаёт квест с темой %s', async (theme) => {
     const res = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody({ theme }))
 
     expect(res.status).toBe(201)
