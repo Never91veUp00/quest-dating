@@ -10,6 +10,9 @@
     />
   </div>
 
+  <!-- Старое задание «текстовые пары»: режим убран, задание не застревает — только переход дальше -->
+  <button v-else-if="legacyTextPairs" class="task__action" @click="$emit('complete', task)">Идти дальше</button>
+
   <!-- Pairs и Puzzle — кнопка запуска + полноэкранный оверлей -->
   <template v-else>
     <div class="mg-launch mgw" :class="worldClass">
@@ -53,6 +56,7 @@ const open = ref(false)
 
 const GAME_MAP = { quiz: MiniGameQuiz, pairs: MiniGamePairs, puzzle: MiniGamePuzzle }
 const gameComponent = computed(() => GAME_MAP[props.task.game_type] || null)
+const legacyTextPairs = computed(() => props.task.game_type === 'pairs' && !(props.task.game_images || []).length)
 
 const cssVars = computed(() => themeToCssVars(props.theme))
 const worldClass = computed(() => props.theme.world?.decor ? `mgw--${props.theme.world.decor}` : null)
@@ -91,4 +95,7 @@ const onSkip = (task) => {
   .mg-launch__btn:hover .mg-launch__arrow { transform: translateX(3px); }
 }
 .mg-launch__btn:active { transform: translateY(2px); }
+@media (prefers-reduced-motion: reduce) {
+  .mg-launch__btn:active, .mg-launch__btn:hover .mg-launch__arrow { transform: none; }
+}
 </style>

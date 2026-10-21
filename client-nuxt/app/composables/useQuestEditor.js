@@ -173,7 +173,7 @@ if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
     qr:            { points: 35,  answer: '', qr_instruction: '', qr_preview: null },
     mini_game:     { points: 40,  game_type: 'quiz', game_question: '',
                      game_options: ['','','',''], game_correct: 0,
-                     pairs_mode: 'photos', pairs_grid_size: 4, game_images: [], pairs: [],
+                     pairs_mode: 'photos', pairs_grid_size: 4, game_images: [],
                      puzzle_image: null, puzzle_pieces: 30 },
   }
 
@@ -196,8 +196,6 @@ if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
   // ─── Pairs ────────────────────────────────────────────────────
   const addPairImage    = (task, imageUrl) => { task.game_images = [...(task.game_images || []), imageUrl] }
   const removePairImage = (task, idx)      => task.game_images.splice(idx, 1)
-  const addTextPair     = (task)           => { task.pairs = [...(task.pairs || []), { left: '', right: '' }] }
-  const removeTextPair  = (task, idx)      => task.pairs.splice(idx, 1)
 
   // ─── Validation ───────────────────────────────────────────────
   const validate = () => {
@@ -289,7 +287,7 @@ if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
     form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,
     addBlock, removeBlock, moveBlock, toggleBlock,
     addTask, removeTask, moveTask,
-    generateQR, addPairImage, removePairImage, addTextPair, removeTextPair,
+    generateQR, addPairImage, removePairImage,
     loadTemplate, autoSlug,
     save, previewQuest, showToast,
   }

@@ -1,77 +1,38 @@
 <template>
   <div>
-    <!-- Текстовые пары -->
-    <template v-if="task.pairs_mode === 'text' || (!task.pairs_mode && task.pairs && task.pairs.length && (!task.game_images || !task.game_images.length))">
-      <div class="task__text-pairs mg-board">
-        <QuestMark v-if="mark" :key="mark.key" :decor="decor" :kind="mark.kind" />
-        <div class="task__text-pairs__cols">
-          <div class="task__text-pairs__col">
-            <button
-              v-for="(pair, pi) in task.pairs" :key="'l'+pi"
-              class="task__text-pairs__item mg-item"
-              :class="{ 'is-selected': leftSelected === pi, 'is-matched': matchedLeft.includes(pi), 'is-miss': miss && miss.l === pi }"
-              :disabled="matchedLeft.includes(pi)"
-              @click="selectLeft(pi)"
-            ><span class="task__text-pairs__txt">{{ pair.left }}</span><span v-if="matchedLeft.includes(pi)" class="mg-item__seal">{{ matchedLeft.indexOf(pi) + 1 }}</span></button>
-          </div>
-          <div class="task__text-pairs__col">
-            <button
-              v-for="(item, ri) in rightShuffled" :key="'r'+ri"
-              class="task__text-pairs__item task__text-pairs__item--right mg-item"
-              :class="{ 'is-selected': rightSelected === ri, 'is-matched': matchedRight.includes(ri), 'is-miss': miss && miss.r === ri }"
-              :disabled="matchedRight.includes(ri)"
-              @click="selectRight(ri)"
-            ><span class="task__text-pairs__txt">{{ item.value }}</span><span v-if="matchedRight.includes(ri)" class="mg-item__seal">{{ matchedRight.indexOf(ri) + 1 }}</span></button>
+    <!-- Фото-пары (текстовый режим убран; старые задания без фото — в TaskMiniGame) -->
+    <div class="task__pairs mg-board" :class="{ 'task__pairs--done': photoComplete }" :style="{ '--pairs-cols': task.pairs_grid_size || 4 }">
+      <QuestMark v-if="mark" :key="mark.key" :decor="decor" :kind="mark.kind" />
+      <button
+        v-for="(card, ci) in photoCards" :key="ci"
+        class="task__pairs__card"
+        :class="{
+          flipped:  photoFlipped.includes(ci) || photoMatched.includes(ci),
+          matched:  photoMatched.includes(ci),
+          selected: photoSelected.includes(ci),
+          miss:     photoMiss.includes(ci),
+        }"
+        :disabled="photoMatched.includes(ci) || photoFlipped.length === 2"
+        :aria-label="photoMatched.includes(ci) ? 'Пара найдена' : photoFlipped.includes(ci) ? 'Открытая карточка' : `Карточка ${ci + 1}`"
+        @click="flipCard(ci)"
+      >
+        <div class="task__pairs__card__inner">
+          <div class="task__pairs__card__back" aria-hidden="true"></div>
+          <div class="task__pairs__card__front">
+            <img v-if="isImage(card.value)" :src="card.value" alt="" class="task__pairs__card__img"
+                 @error="e => e.target.style.opacity = '0.25'" />
+            <span v-else>{{ card.value }}</span>
           </div>
         </div>
-      </div>
-      <p class="task__pairs__tip" aria-live="polite">
-        <template v-if="wrongText">Не совпадает, попробуй ещё раз</template>
-        <template v-else-if="!textComplete">{{ leftSelected === null && rightSelected === null ? 'Выбери половинку слева или справа' : 'Теперь — её пару' }}</template>
-      </p>
-      <button v-if="!textComplete" class="mg-skip" @click="$emit('skip-task', task)">
-        Не получается? Пропустить
       </button>
-      <p v-if="textComplete" class="mg-result" role="status">Все пары найдены</p>
-      <button v-if="textComplete" class="task__action" @click="$emit('complete', task)">
-        Идти дальше
-      </button>
-    </template>
-
-    <!-- Фото-пары -->
-    <template v-else>
-      <div class="task__pairs mg-board" :style="{ '--pairs-cols': task.pairs_grid_size || 4 }">
-        <QuestMark v-if="mark" :key="mark.key" :decor="decor" :kind="mark.kind" />
-        <button
-          v-for="(card, ci) in photoCards" :key="ci"
-          class="task__pairs__card"
-          :class="{
-            flipped:  photoFlipped.includes(ci) || photoMatched.includes(ci),
-            matched:  photoMatched.includes(ci),
-            selected: photoSelected.includes(ci),
-            miss:     photoMiss.includes(ci),
-          }"
-          :disabled="photoMatched.includes(ci) || photoFlipped.length === 2"
-          @click="flipCard(ci)"
-        >
-          <div class="task__pairs__card__inner">
-            <div class="task__pairs__card__back" aria-hidden="true"></div>
-            <div class="task__pairs__card__front">
-              <img v-if="isImage(card.value)" :src="card.value" class="task__pairs__card__img"
-                   @error="e => e.target.style.opacity = '0.25'" />
-              <span v-else>{{ card.value }}</span>
-            </div>
-          </div>
-        </button>
-      </div>
-      <button v-if="!photoComplete" class="mg-skip" @click="$emit('skip-task', task)">
-        Не получается? Пропустить
-      </button>
-      <p v-if="photoComplete" class="mg-result" role="status">Все пары найдены</p>
-      <button v-if="photoComplete" class="task__action" @click="$emit('complete', task)">
-        Идти дальше
-      </button>
-    </template>
+    </div>
+    <button v-if="!photoComplete" class="mg-skip" @click="$emit('skip-task', task)">
+      Не получается? Пропустить
+    </button>
+    <p v-if="photoComplete" class="mg-result" role="status">Все пары найдены</p>
+    <button v-if="photoComplete" class="task__action" @click="$emit('complete', task)">
+      Идти дальше
+    </button>
   </div>
 </template>
 
@@ -85,58 +46,11 @@ const props = defineProps({
 })
 defineEmits(['complete', 'skip-task'])
 
-// Отметка мира на доске: промах в текстовых парах и собранная игра
+// Отметка мира на доске: собранная игра
 const decor = computed(() => props.theme.world?.decor ?? null)
 const mark = ref(null)
 let markKey = 0
 const showMark = (kind) => { mark.value = { kind, key: ++markKey } }
-
-// ── Текстовые пары ───────────────────────────────────────────────
-const leftSelected  = ref(null)
-const rightSelected = ref(null)
-const matchedLeft   = ref([])
-const matchedRight  = ref([])
-const wrongText     = ref(false)
-const miss          = ref(null) // { l, r } — какие две половинки не сошлись, пока видно промах
-let missTimer = null
-
-const rightShuffled = computed(() => {
-  if (!props.task.pairs) return []
-  return props.task.pairs
-    .map((p, i) => ({ value: p.right, originalIdx: i }))
-    .sort(() => Math.random() - 0.5)
-})
-const textComplete = computed(() =>
-  props.task.pairs && matchedLeft.value.length === props.task.pairs.length
-)
-
-const selectLeft = (pi) => {
-  wrongText.value = false
-  leftSelected.value = pi
-  if (rightSelected.value !== null) checkPair()
-}
-const selectRight = (ri) => {
-  wrongText.value = false
-  rightSelected.value = ri
-  if (leftSelected.value !== null) checkPair()
-}
-const checkPair = () => {
-  const li = leftSelected.value
-  const ri = rightSelected.value
-  const rightItem = rightShuffled.value[ri]
-  if (rightItem.originalIdx === li) {
-    matchedLeft.value  = [...matchedLeft.value, li]
-    matchedRight.value = [...matchedRight.value, ri]
-  } else {
-    wrongText.value = true
-    miss.value = { l: li, r: ri }
-    showMark('wrong')
-    clearTimeout(missTimer)
-    missTimer = setTimeout(() => { wrongText.value = false; miss.value = null }, 1000)
-  }
-  leftSelected.value  = null
-  rightSelected.value = null
-}
 
 // ── Фото-пары ────────────────────────────────────────────────────
 const photoCards    = ref([])
@@ -161,9 +75,9 @@ onMounted(() => {
   }
 })
 
-onUnmounted(() => { if (flipTimer) clearTimeout(flipTimer); clearTimeout(missTimer) })
+onUnmounted(() => { if (flipTimer) clearTimeout(flipTimer) })
 
-watch(() => textComplete.value || photoComplete.value, (done) => { if (done) showMark('right') })
+watch(photoComplete, (done) => { if (done) showMark('right') })
 
 const isImage = (v) => v && (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/'))
 
@@ -189,20 +103,9 @@ const flipCard = (ci) => {
 </script>
 
 <style scoped>
-.task__text-pairs { margin-bottom: 6px; }
-.task__text-pairs__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.task__text-pairs__col { display: flex; flex-direction: column; gap: 10px; }
-.task__text-pairs__item { width: 100%; height: 100%; }
-.task__text-pairs__txt { flex: 1; }
-.task__pairs__tip {
-  margin: 4px 0 0; min-height: 1.4em;
-  text-align: center; font-size: .85rem; color: var(--ink-soft);
-}
-
-
 .task__pairs {
   display: grid; grid-template-columns: repeat(var(--pairs-cols, 4), 1fr); gap: 6px; margin-bottom: 12px;
-  width: 100%; max-width: 440px; margin-inline: auto; /* на десктопе сетка влезает в экран без прокрутки */
+  width: 100%; max-width: min(440px, 62dvh); margin-inline: auto; /* на десктопе сетка влезает в экран без прокрутки */
   isolation: isolate;
   transform: translateZ(0); /* форсируем отдельный GPU-слой для всего грида */
 }
@@ -250,6 +153,9 @@ const flipCard = (ci) => {
   background: color-mix(in srgb, var(--action) 8%, color-mix(in srgb, var(--paper) 86%, var(--ink)));
 }
 .task__pairs__card__img { width: 100%; height: 100%; object-fit: cover; }
+/* игра собрана: снимки снова в полную силу, а не выцветшая сетка */
+.task__pairs--done .task__pairs__card.matched { opacity: 1; transition: opacity .4s ease; }
+
 /* промах в фото-парах: открытая пара обведена краской ошибки, пока не закроется */
 .task__pairs__card.miss { border-color: var(--wrong); border-width: 3px; }
 

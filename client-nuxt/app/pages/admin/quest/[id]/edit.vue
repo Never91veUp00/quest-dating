@@ -53,8 +53,6 @@
             @generate-qr="generateQR"
             @add-pair-image="addPairImage"
             @remove-pair-image="removePairImage"
-            @add-text-pair="addTextPair"
-            @remove-text-pair="removeTextPair"
           />
         </div>
 
@@ -89,7 +87,7 @@ const {
   form, saving, errors, openBlocks, templates, selectedTemplate, toast, isEdit, origin,
   addBlock, removeBlock, moveBlock, toggleBlock,
   addTask, removeTask, moveTask,
-  generateQR, addPairImage, removePairImage, addTextPair, removeTextPair,
+  generateQR, addPairImage, removePairImage,
   loadTemplate, autoSlug,
   save, previewQuest,
 } = useQuestEditor()
