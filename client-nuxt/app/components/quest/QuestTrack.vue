@@ -62,13 +62,14 @@
             v-else-if="decor === 'tarot' && cell.state === 'done'"
             class="cell__arcana"
             :class="{ 'is-fresh': cell.id === stampId }"
-            :no="cell.index" :size="26"
+            :no="cell.index" :size="34"
           />
           <QuestIcon v-else :name="cell.state === 'wrong' ? 'close' : 'check'" :size="22" />
         </button>
         <span
           v-else-if="cell.state === 'active'"
           class="cell cell--active"
+          :class="{ 'is-reveal': cell.index > stampIndex }"
           aria-current="step"
           :aria-label="`Клетка ${cell.n}: сейчас здесь`"
         >{{ decor === 'tarot' ? roman(cell.n) : cell.n }}</span>
@@ -106,6 +107,11 @@ const props = defineProps({
   stampId:      { type: [String, Number], default: null }, // клетка, на которую хлопает штамп
 })
 defineEmits(['open'])
+
+// Карта, которую только что прошли: следующая за ней открывается с переворотом
+const stampIndex = computed(() =>
+  props.stampId == null ? Infinity : props.tasks.findIndex(t => t.id === props.stampId)
+)
 
 // Змейка: клетки идут слева направо, качаясь вверх-вниз, как трасса на поле
 const WAVE = [64, 34, 60, 30, 62, 36, 58, 32]
@@ -485,8 +491,12 @@ const chipStyle = computed(() => {
   stroke-dasharray: 1 6;
   stroke-linecap: round;
 }
+/* колода крупнее прочих досок: карта — главный предмет хода */
+.track--tarot { height: clamp(210px, 32svh, 290px); }
 .track--tarot .cell {
-  --w: 38px; --h: 56px;
+  /* ширина карты по числу карт на столе, пропорции колоды 2:3 */
+  --w: clamp(34px, calc(300px / var(--n)), 56px);
+  --h: calc(var(--w) * 1.5);
   position: relative;
   width: var(--w); height: var(--h);
   border: none;
@@ -509,9 +519,9 @@ const chipStyle = computed(() => {
 .track--tarot .cell { transform: rotate(var(--tilt)); }
 /* открыта сейчас: крупнее, римский номер */
 .track--tarot .cell--active {
-  --w: 50px; --h: 74px;
+  --w: clamp(46px, calc(390px / var(--n)), 72px);
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.55rem;
   letter-spacing: .02em;
 }
 .track--tarot .cell--done { color: var(--ink); }
@@ -536,6 +546,14 @@ const chipStyle = computed(() => {
   from { transform: rotate(var(--tilt)) perspective(240px) rotateY(180deg); }
   to   { transform: rotate(var(--tilt)) perspective(240px) rotateY(0); }
 }
+/* следующая карта открывается: рубашка уходит, проступает римский номер */
+.track--tarot .cell--active.is-reveal { animation: card-reveal .56s cubic-bezier(.45, 0, .2, 1) .15s both; }
+@keyframes card-reveal {
+  0%    { transform: rotate(var(--tilt)) perspective(300px) rotateY(180deg); background: var(--back); color: transparent; }
+  49.9% { background: var(--back); color: transparent; }
+  50%   { background: var(--plate); color: var(--plate-ink); }
+  100%  { transform: rotate(var(--tilt)) perspective(300px) rotateY(0); background: var(--plate); color: var(--plate-ink); }
+}
 @keyframes arcana-in {
   0%  { opacity: 0; }
   50% { opacity: 1; }
@@ -543,7 +561,8 @@ const chipStyle = computed(() => {
 /* фишка: киноварный указатель-ромб над картой */
 .track--tarot .track__chip {
   width: 16px; height: 16px;
-  margin: -58px 0 0 -8px;
+  /* над открытой картой: половина её высоты и зазор */
+  margin: calc(clamp(46px, calc(390px / var(--n)), 72px) * -.75 - 22px) 0 0 -8px;
   border-radius: 2px;
   border: 2px solid var(--paper);
   transform: rotate(45deg);
@@ -567,7 +586,8 @@ const chipStyle = computed(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .cell__stamp, .cell__postmark.is-fresh, .cell__punch.is-fresh i, .track--metro .cell--done:has(.is-fresh),
-  .track--tarot .cell--done:has(.is-fresh), .cell__arcana.is-fresh { animation: none; }
+  .track--tarot .cell--done:has(.is-fresh), .cell__arcana.is-fresh,
+  .track--tarot .cell--active.is-reveal { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>

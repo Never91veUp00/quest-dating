@@ -8,14 +8,14 @@
 
       <p class="finish__facts">
         <span><b>{{ points }}</b> {{ pointsWord(theme, points) }}</span>
-        <span><b>{{ completedCount }}</b> {{ plural(completedCount, 'клетка пройдена', 'клетки пройдены', 'клеток пройдено') }}</span>
+        <span><b>{{ completedCount }}</b> {{ plural(completedCount, ...(theme.copy.cellsDone ?? ['клетка пройдена', 'клетки пройдены', 'клеток пройдено'])) }}</span>
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
       <!-- Колода: расклад из открытых карт веером, у каждой свой знак -->
       <div v-if="decor === 'tarot' && spread" class="finish__spread" :style="{ '--n': spread }" aria-hidden="true">
         <span v-for="i in spread" :key="i" class="finish__spread-card" :style="{ '--i': i - 1 }">
-          <QuestArcana :no="i - 1" :size="30" />
+          <QuestArcana :no="i - 1" :size="38" />
         </span>
       </div>
 
@@ -54,7 +54,7 @@
         </button>
         <p v-if="cardError" class="finish__card-error" role="alert">{{ cardError }}</p>
         <button class="task__action" :class="{ 'finish__secondary': selfieUrl }" @click="$emit('share')">
-          Поделиться результатом
+          {{ theme.copy.finishShare ?? 'Поделиться результатом' }}
         </button>
         <button class="finish__restart" @click="$emit('restart')">
           <QuestIcon name="restart" :size="18" />
@@ -361,15 +361,15 @@ const saveCard = async () => {
 .finish--tarot .finish__title { font-weight: 700; }
 .finish__spread {
   position: relative;
-  height: 136px;
+  height: 170px;
   margin: 8px 0 -4px;
 }
 .finish__spread-card {
   --mid: calc((var(--n) - 1) / 2);
   position: absolute; left: 50%; bottom: 0;
   display: grid; place-items: center;
-  width: 58px; height: 88px;
-  margin-left: -29px;
+  width: 74px; height: 111px;
+  margin-left: -37px;
   border-radius: 5px;
   background: var(--paper);
   color: var(--ink);
@@ -379,7 +379,7 @@ const saveCard = async () => {
     0 0 0 1px color-mix(in srgb, var(--rule) 60%, transparent),
     0 10px 14px -8px color-mix(in srgb, var(--rule) 95%, transparent);
   transform-origin: 50% 220%;
-  transform: translateX(calc((var(--i) - var(--mid)) * 22px)) rotate(calc((var(--i) - var(--mid)) * 8deg));
+  transform: translateX(calc((var(--i) - var(--mid)) * 26px)) rotate(calc((var(--i) - var(--mid)) * 8deg));
   animation: spread-out .5s cubic-bezier(.16, 1, .3, 1) both;
   animation-delay: calc(var(--i) * 70ms + .15s);
 }
