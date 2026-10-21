@@ -31,7 +31,7 @@ const props = defineProps({
   task:  { type: Object, required: true },
   theme: { type: Object, required: true },
 })
-const emit = defineEmits(['complete', 'hint'])
+const emit = defineEmits(['complete', 'hint', 'wrong'])
 
 const code  = ref('')
 const error = ref('')
@@ -40,6 +40,7 @@ const submit = () => {
   if (!code.value.trim()) return
   if (!isCodeCorrect(code.value, props.task)) {
     error.value = props.theme.copy?.wrongCode || 'Неверный код'
+    emit('wrong')
     return
   }
   error.value = ''

@@ -38,12 +38,18 @@
       <section
         v-if="boardOpen"
         class="block__board"
+        :class="{ 'block__board--entering': entering }"
         role="dialog"
         aria-modal="true"
         :aria-label="`Доска: ${block.title}`"
         @pointerdown="holdBoard"
         @keydown.esc="closeBoard"
       >
+        <!-- Новый участок: крупная плашка «Рецепт 2» с названием, потом доска -->
+        <div v-if="entering" class="block__plate" aria-hidden="true">
+          <span class="block__plate-no">{{ theme.copy.blockPrefix }} {{ theme.world?.decor === 'tarot' ? roman(index + 1) : index + 1 }}</span>
+          <span class="block__plate-title">{{ block.title }}</span>
+        </div>
         <div class="block__board-inner">
           <div class="block__meta">
             <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
@@ -155,7 +161,7 @@ import QuestTrack from './QuestTrack.vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestFlask from './QuestFlask.vue'
 import QuestPumpkin from './QuestPumpkin.vue'
-import { themeToCssVars } from './themes.js'
+import { themeToCssVars, roman } from './themes.js'
 
 const props = defineProps({
   block:        { type: Object, required: true },
@@ -199,10 +205,12 @@ let autoClose = null
 let hopTimer  = null
 
 const clearTimers = () => { clearTimeout(autoClose); clearTimeout(hopTimer) }
-const openBoard = (moment) => {
+// на новом участке доска держится дольше: сначала плашка участка, потом ход фишки
+const ENTER_MS = 3000
+const openBoard = (moment, ms = MOMENT_MS) => {
   clearTimers()
   boardOpen.value = true
-  if (moment) autoClose = setTimeout(closeBoard, MOMENT_MS)
+  if (moment) autoClose = setTimeout(closeBoard, ms)
   else nextTick(() => boardClose.value?.focus())
 }
 const entering = ref(false)
@@ -238,7 +246,7 @@ onMounted(() => {
   // Свежий участок: показываем доску, фишка заезжает на первую клетку
   if (!tasks.value.some(t => props.completedIds.includes(t.id))) {
     entering.value = true
-    openBoard(true)
+    openBoard(true, ENTER_MS)
   }
   window.visualViewport?.addEventListener('resize', setKeyboardInset)
   window.visualViewport?.addEventListener('scroll', setKeyboardInset)
@@ -554,6 +562,122 @@ const finishLabel = computed(() => ({
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23ecdfc0' stroke-opacity='.5' stroke-width='.7' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='13'/%3E%3Ccircle cx='20' cy='20' r='16.5'/%3E%3Cpath d='M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z M20 8 L21.6 18.4 L32 20 L21.6 21.6 L20 32 L18.4 21.6 L8 20 L18.4 18.4 Z' transform='rotate(45 20 20)'/%3E%3Cpath d='M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z'/%3E%3C/g%3E%3Cpath d='M20 1 L23 17 L20 20 Z M39 20 L23 23 L20 20 Z M20 39 L17 23 L20 20 Z M1 20 L17 17 L20 20 Z' fill='%23ecdfc0' fill-opacity='.45'/%3E%3C/svg%3E") right 18% bottom 130px / 132px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Cpath d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='%23ecdfc0' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 64px 40px,
     var(--field);
+}
+/* на новом участке трасса проявляется, когда плашка уходит */
+.block__board--entering .block__board-track { animation: track-in .45s cubic-bezier(.16, 1, .3, 1) 1s both; }
+@keyframes track-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .block__board--entering .block__board-track,
+  .block__board--entering .block__meta, .block__board--entering .block__title,
+  .block__board--entering .block__location, .block__board--entering .block__desc { animation: none; }
+}
+/* Плашка начала участка: бумага мира поверх доски, держится ~1 с и уходит */
+.block__plate {
+  position: absolute; left: 16px; right: 16px; top: 50%;
+  z-index: 2;
+  max-width: 420px; margin: 0 auto;
+  padding: 22px 20px 20px;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 12px;
+  box-shadow: 0 20px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent);
+  pointer-events: none;
+  /* после непрозрачной доски: вход доски занимает .3 с */
+  animation: plate-life 1.25s cubic-bezier(.2, .7, .2, 1) .3s both;
+}
+/* шапка доски и трасса проявляются, когда плашка уходит — название не печатается дважды */
+.block__board--entering .block__meta,
+.block__board--entering .block__title,
+.block__board--entering .block__location,
+.block__board--entering .block__desc { animation: track-in .45s cubic-bezier(.16, 1, .3, 1) 1.3s both; }
+
+/* плашка — предмет своего мира, а не одна карточка на всех */
+.block--casefile .block__plate { border-radius: 2px; }
+.block--casefile .block__plate::before,
+.block--casefile .block__plate::after {
+  content: ""; position: absolute; top: -10px;
+  width: 72px; height: 22px;
+  background: color-mix(in srgb, var(--paper-edge) 70%, transparent);
+}
+.block--casefile .block__plate::before { left: 14px; transform: rotate(-6deg); }
+.block--casefile .block__plate::after  { right: 14px; transform: rotate(5deg); }
+.block--letters .block__plate { border-radius: 2px; margin-top: 10px; }
+.block--letters .block__plate::before {
+  content: ""; position: absolute; left: 50%; bottom: 100%;
+  width: 62%; height: 18px; transform: translateX(-50%);
+  background: var(--paper-edge);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+}
+.block--metro .block__plate {
+  border-radius: 6px;
+  padding-top: 40px;
+  box-shadow: inset 0 12px 0 var(--chip), 0 20px 30px -18px color-mix(in srgb, var(--rule) 60%, transparent);
+}
+.block--metro .block__plate::before {
+  content: ""; position: absolute; left: 14px; right: 14px; top: 25px;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
+}
+.block--tarot .block__plate {
+  border-radius: 8px;
+  padding: 28px 24px 26px;
+  box-shadow:
+    inset 0 0 0 8px var(--paper), inset 0 0 0 9.5px color-mix(in srgb, var(--ink) 70%, var(--paper)),
+    inset 0 0 0 12.5px var(--paper), inset 0 0 0 13.5px color-mix(in srgb, var(--ink) 40%, var(--paper)),
+    0 20px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block--map .block__plate { border-radius: 0; }
+.block--map .block__plate::before,
+.block--map .block__plate::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 7px;
+  background: var(--paper);
+}
+.block--map .block__plate::before { bottom: calc(100% - 1px); clip-path: polygon(0 100%, 0.0% 43%, 3.8% 28%, 7.7% 70%, 11.5% 21%, 15.4% 61%, 19.2% 46%, 23.1% 20%, 26.9% 58%, 30.8% 18%, 34.6% 52%, 38.5% 21%, 42.3% 23%, 46.2% 51%, 50.0% 85%, 53.8% 26%, 57.7% 34%, 61.5% 68%, 65.4% 96%, 69.2% 64%, 73.1% 49%, 76.9% 98%, 80.8% 19%, 84.6% 88%, 88.5% 40%, 92.3% 27%, 96.2% 25%, 100.0% 41%, 100% 100%); }
+.block--map .block__plate::after  { top: calc(100% - 1px);    clip-path: polygon(0 0, 0.0% 69%, 3.8% 15%, 7.7% 49%, 11.5% 54%, 15.4% 32%, 19.2% 47%, 23.1% 5%, 26.9% 5%, 30.8% 18%, 34.6% 58%, 38.5% 36%, 42.3% 27%, 46.2% 50%, 50.0% 39%, 53.8% 25%, 57.7% 68%, 61.5% 59%, 65.4% 21%, 69.2% 49%, 73.1% 45%, 76.9% 74%, 80.8% 62%, 84.6% 24%, 88.5% 83%, 92.3% 10%, 96.2% 36%, 100.0% 64%, 100% 0); }
+.block--ringbox .block__plate {
+  border-radius: 12px;
+  outline: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper));
+  outline-offset: -8px;
+}
+.block--potion .block__plate {
+  border-radius: 0;
+  isolation: isolate;
+  background: var(--rule);
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+}
+.block--potion .block__plate::before {
+  content: ""; position: absolute; inset: 1.5px; z-index: -1;
+  background: var(--paper);
+  clip-path: polygon(13.4px 0, calc(100% - 13.4px) 0, 100% 13.4px, 100% calc(100% - 13.4px), calc(100% - 13.4px) 100%, 13.4px 100%, 0 calc(100% - 13.4px), 0 13.4px);
+}
+.block--diecut .block__plate {
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
+}
+.block__plate-no {
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: clamp(2rem, 11vw, 3rem);
+  line-height: 1;
+}
+.block__plate-title { font-family: var(--font-b); font-size: 1.1rem; color: var(--ink-soft); }
+@keyframes plate-life {
+  0%   { opacity: 0; transform: translateY(-40%) scale(.96); }
+  18%  { opacity: 1; transform: translateY(-50%) scale(1); }
+  72%  { opacity: 1; transform: translateY(-50%) scale(1); }
+  100% { opacity: 0; transform: translateY(-58%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .block__plate { animation: plate-fade 1.25s linear both; }
+  @keyframes plate-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 }
 .block__board-inner {
   max-width: 600px; margin: 0 auto;
