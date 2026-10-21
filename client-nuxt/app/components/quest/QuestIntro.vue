@@ -21,6 +21,8 @@
         Кому: <b>{{ questData.client_name }}</b>
       </p>
       <span v-if="decor === 'casefile'" class="lid__stamp" aria-hidden="true">Секретно</span>
+      <!-- Проездной: линия маршрута со станциями вдоль нижнего края -->
+      <span v-if="decor === 'metro'" class="lid__route" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
     </div>
     <p class="lid__hint">Нажми, чтобы открыть</p>
   </div>
@@ -197,8 +199,50 @@ onUnmounted(() => clearTimeout(timer))
 .lid--letters.lid--open { transition-delay: .32s; }
 .lid--letters.lid--open .lid__flap { transform: rotateX(180deg); }
 
+/* ── Обличье схемы: проездной на бумаге схемы ───────────────── */
+.lid--metro .lid__face {
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  aspect-ratio: 85.6 / 54;
+  padding: 22px 22px 58px 52px;
+  border: none;
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  box-shadow:
+    inset 30px 0 0 var(--chip),
+    0 1px 0 var(--paper-edge),
+    0 22px 30px -18px color-mix(in srgb, var(--rule) 60%, transparent);
+  transition: transform .3s cubic-bezier(.7, 0, .84, 0);
+}
+.lid--metro .lid__title { font-weight: 700; color: var(--ink); font-size: clamp(1.4rem, 8cqi, 2.4rem); }
+.lid--metro .lid__for { margin-top: 10px; color: var(--ink); }
+.lid--metro .lid__for b { color: var(--ink); }
+.lid__route {
+  position: absolute; left: 52px; right: 26px; bottom: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  height: 16px;
+}
+.lid__route::before {
+  content: "";
+  position: absolute; left: 4px; right: 4px; top: 50%;
+  height: 6px; margin-top: -3px;
+  border-radius: 3px;
+  background: var(--chip);
+}
+.lid__route i {
+  position: relative;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--plate);
+  border: 4px solid var(--chip);
+}
+/* проездной проходит турникет: карточка уходит вверх, затем поднимается крышка */
+.lid--metro.lid--open { transition-delay: .22s; }
+.lid--metro.lid--open .lid__face { transform: translateY(-36px); }
+
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .lid__flap { transition: none; }
+  .lid__flap, .lid--metro .lid__face { transition: none; }
 }
 </style>

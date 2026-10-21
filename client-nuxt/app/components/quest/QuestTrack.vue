@@ -8,6 +8,10 @@
         <path class="thread thread--twist" :d="threadPath" />
         <path class="thread thread--twist2" :d="threadPath" />
       </template>
+      <template v-else-if="decor === 'metro'">
+        <!-- Линия маршрута: прямые перегоны, как на схеме -->
+        <path class="metro-line" :d="linePath" />
+      </template>
       <template v-else-if="decor === 'letters'">
         <!-- Атласная лента: тень на подкладке, лента и блик на изгибах -->
         <path class="ribbon ribbon--shadow" :d="roadPath" />
@@ -42,6 +46,13 @@
             :class="{ 'is-fresh': cell.id === stampId }"
             :size="46" :no="cell.n" :seed="cell.n"
           />
+          <!-- На схеме пройденную станцию пробивает компостер -->
+          <span
+            v-else-if="decor === 'metro' && cell.state === 'done'"
+            class="cell__punch"
+            :class="{ 'is-fresh': cell.id === stampId }"
+            aria-hidden="true"
+          ><i></i><i></i><i></i></span>
           <QuestIcon v-else :name="cell.state === 'wrong' ? 'close' : 'check'" :size="22" />
         </button>
         <span
@@ -55,7 +66,7 @@
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
-        <span v-if="stampId != null && cell.id === stampId && decor !== 'letters'" class="cell__stamp" aria-hidden="true">
+        <span v-if="stampId != null && cell.id === stampId && decor !== 'letters' && decor !== 'metro'" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -116,6 +127,18 @@ const roadPath = computed(() => {
     d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
   }
   return d
+})
+
+// Схема метро: прямые перегоны между станциями, за краем — продолжение линии
+const linePath = computed(() => {
+  const pts = cells.value.map(c => [c.x, c.y])
+  if (!pts.length) return ''
+  const all = [
+    ...(props.hasPrev ? [[-4, pts[0][1]]] : []),
+    ...pts,
+    ...(props.hasNext ? [[104, pts[pts.length - 1][1]]] : []),
+  ]
+  return all.map((p, i) => `${i ? 'L' : 'M'}${p[0]} ${p[1]}`).join(' ')
 })
 
 // Нить дела: от кнопки к кнопке (верх заметки), провисает между ними
@@ -288,6 +311,82 @@ const chipStyle = computed(() => {
   border-width: 2px;
 }
 
+/* ── Обличье схемы метро: станции на зелёной линии ───────────── */
+.metro-line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke: var(--chip);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.track--metro .cell {
+  border-radius: 50%;
+  box-shadow: none;
+}
+/* Вы здесь: крупная станция с обводкой цвета линии */
+.track--metro .cell--active {
+  --size: 58px;
+  border: 7px solid var(--chip);
+  font-weight: 700;
+  font-size: 1.45rem;
+  box-shadow: 0 0 0 3px var(--field), 0 8px 12px -6px color-mix(in srgb, var(--rule) 45%, transparent);
+}
+/* Пройдена: сплошная станция, пробитая компостером */
+.track--metro .cell--done {
+  --size: 40px;
+  border: 3px solid var(--field);
+  box-shadow: 0 0 0 3px var(--chip);
+}
+.track--metro .cell--wrong { background: var(--field); color: var(--wrong); box-shadow: 0 0 0 3px var(--wrong); }
+/* Впереди: пустой кружок на линии, без номера */
+.track--metro .cell--back {
+  --size: 26px;
+  background: var(--back);
+  border: 4px solid var(--rule);
+}
+.cell__punch { display: flex; gap: 3px; }
+.cell__punch i {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--field);
+  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--rule) 45%, transparent);
+}
+.cell__punch i:nth-child(2) { transform: translateY(-4px); }
+.cell__punch.is-fresh i { animation: punch .22s cubic-bezier(.7, 0, .84, 0) both; }
+.cell__punch.is-fresh i:nth-child(2) { animation-delay: .06s; }
+.cell__punch.is-fresh i:nth-child(3) { animation-delay: .12s; }
+@keyframes punch {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+.cell__punch.is-fresh i:nth-child(2) { animation-name: punch-mid; }
+@keyframes punch-mid {
+  from { transform: translateY(-4px) scale(0); }
+  to   { transform: translateY(-4px) scale(1); }
+}
+/* компостер щёлкает: станция чуть проседает и возвращается */
+.track--metro .cell--done:has(.is-fresh) { animation: compost .36s cubic-bezier(.16, 1, .3, 1) .1s both; }
+@keyframes compost {
+  from { transform: scale(.82); }
+  to   { transform: scale(1); }
+}
+/* Фишка — вагончик над станцией */
+.track--metro .track__chip {
+  width: 34px; height: 18px;
+  margin: -46px 0 0 -17px;
+  border-radius: 9px 9px 4px 4px;
+  background: var(--rule);
+  border: none;
+  box-shadow: 0 6px 8px -4px color-mix(in srgb, var(--rule) 55%, transparent);
+}
+.track--metro .track__chip::before {
+  content: "";
+  position: absolute; left: 6px; right: 6px; top: 4px; height: 5px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, var(--field) 0 6px, transparent 6px 9px);
+}
+
 /* ── Обличье переписки: конверты на атласной ленте ──────────── */
 .ribbon { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .ribbon--shadow {
@@ -380,7 +479,7 @@ const chipStyle = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell__stamp, .cell__postmark.is-fresh { animation: none; }
+  .cell__stamp, .cell__postmark.is-fresh, .cell__punch.is-fresh i, .track--metro .cell--done:has(.is-fresh) { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>
