@@ -38,7 +38,7 @@
         <div class="block__board-inner">
           <div class="block__meta">
             <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
-            <span class="block__count">клетка <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
+            <span class="block__count">{{ theme.copy.cellForms?.[0] ?? 'клетка' }} <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
           </div>
           <h2 class="block__title">{{ block.title }}</h2>
           <p v-if="block.location" class="block__location">
@@ -87,11 +87,12 @@
       />
 
       <article v-else key="done" class="block__done">
+        <span v-if="theme.world?.decor === 'tarot'" class="block__frame" aria-hidden="true"></span>
         <p class="block__done-text">
-          {{ isLast ? 'Все клетки пройдены.' : 'Участок пройден. Фишка ждёт у выхода.' }}
+          {{ isLast ? (theme.copy.allDone ?? 'Все клетки пройдены.') : (theme.copy.blockDone ?? 'Участок пройден. Фишка ждёт у выхода.') }}
         </p>
         <button v-if="!isLast" class="task__action" @click="$emit('next')">
-          Идти дальше
+          {{ theme.copy.nextBtn ?? 'Идти дальше' }}
           <QuestIcon name="forward" :size="22" />
         </button>
         <button v-else class="task__action" @click="$emit('finish')">
@@ -242,7 +243,7 @@ const cssVars = computed(() => themeToCssVars(props.theme))
 const finishLabel = computed(() => ({
   detective: 'Закрыть дело',
   romantic:  'Завершить',
-  mystery:   'К финалу',
+  mystery:   'Открыть расклад',
   city:      'На конечную',
   treasure:  'Клад найден',
   proposal:  'Завершить',
@@ -381,6 +382,33 @@ const finishLabel = computed(() => ({
   margin-left: -6px;
 }
 
+/* Обличье колоды: карты в ряд на сукне, рубашки киноварью */
+.block--tarot .block__mini::before {
+  height: 0; margin-top: 0;
+  border-top: 1.5px dotted color-mix(in srgb, var(--field-ink) 40%, var(--field));
+  background: none;
+}
+.block--tarot .block__mini { gap: 7px; }
+.block--tarot .block__mini-cell {
+  width: 12px; height: 18px;
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 3px 4px -2px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block--tarot .block__mini-cell:not(.is-done):not(.is-active) {
+  background: var(--back);
+  box-shadow: inset 0 0 0 1.5px var(--back), inset 0 0 0 2.5px var(--paper), 0 3px 4px -2px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block--tarot .block__mini-cell.is-done { background: var(--done); }
+.block--tarot .block__mini-cell.is-active { width: 17px; height: 25px; background: var(--plate); }
+.block--tarot .block__mini-cell.is-active::after {
+  top: -11px; right: auto; left: 50%;
+  width: 8px; height: 8px; margin-left: -4px;
+  border-radius: 1px;
+  border: 1.5px solid var(--paper);
+  transform: rotate(45deg);
+}
+
 /* ── Доска: момент хода и обзор ───────────────────────────────── */
 .block__board {
   position: fixed;
@@ -450,6 +478,30 @@ const finishLabel = computed(() => ({
 }
 
 /* ── Участок пройден ──────────────────────────────────────────── */
+/* в колоде конец расклада — тоже карта: без контура, с гравированной рамкой */
+.block--tarot .block__done {
+  position: relative;
+  border: none;
+  border-radius: 8px;
+  padding: 28px 24px 24px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 50%, transparent),
+    0 2px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block__frame,
+.block__frame::after {
+  position: absolute;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.block__frame { inset: 8px; border: 1.5px solid color-mix(in srgb, var(--ink) 70%, var(--paper)); }
+.block__frame::after {
+  content: "";
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--paper));
+  border-radius: 2px;
+}
 .block__done {
   background: var(--paper);
   color: var(--ink);

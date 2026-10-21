@@ -8,9 +8,16 @@
 
       <p class="finish__facts">
         <span><b>{{ points }}</b> {{ pointsWord(theme, points) }}</span>
-        <span><b>{{ completedCount }}</b> {{ plural(completedCount, 'клетка пройдена', 'клетки пройдены', 'клеток пройдено') }}</span>
+        <span><b>{{ completedCount }}</b> {{ plural(completedCount, ...(theme.copy.cellsDone ?? ['клетка пройдена', 'клетки пройдены', 'клеток пройдено'])) }}</span>
         <span>за <b>{{ elapsed }}</b></span>
       </p>
+
+      <!-- Колода: расклад из открытых карт веером, у каждой свой знак -->
+      <div v-if="decor === 'tarot' && spread" class="finish__spread" :style="{ '--n': spread }" aria-hidden="true">
+        <span v-for="i in spread" :key="i" class="finish__spread-card" :style="{ '--i': i - 1 }">
+          <QuestArcana :no="i - 1" :size="38" />
+        </span>
+      </div>
 
       <!-- Послание автора — последняя карта игры -->
       <article v-if="questData.final_message" class="finish__message">
@@ -30,6 +37,7 @@
             <QuestPostmark :size="64" :no="deliveredOn" :seed="11" />
           </span>
         </template>
+        <span v-else-if="decor === 'tarot'" class="finish__frame" aria-hidden="true"></span>
         <h3 class="finish__message-label">{{ messageLabel }}</h3>
         <p class="finish__message-text">{{ questData.final_message }}</p>
       </article>
@@ -46,7 +54,7 @@
         </button>
         <p v-if="cardError" class="finish__card-error" role="alert">{{ cardError }}</p>
         <button class="task__action" :class="{ 'finish__secondary': selfieUrl }" @click="$emit('share')">
-          Поделиться результатом
+          {{ theme.copy.finishShare ?? 'Поделиться результатом' }}
         </button>
         <button class="finish__restart" @click="$emit('restart')">
           <QuestIcon name="restart" :size="18" />
@@ -64,6 +72,7 @@
 import { ref, computed, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestPostmark from './QuestPostmark.vue'
+import QuestArcana from './QuestArcana.vue'
 import { plural, pointsWord } from './themes.js'
 
 const props = defineProps({
@@ -87,13 +96,15 @@ const finishTitle = computed(() =>
   (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 const decor = computed(() => props.theme.world?.decor ?? null)
+// Карт в раскладе: по одной на пройденную клетку, веер не шире семи
+const spread = computed(() => Math.min(props.completedCount, 7))
 // Дата в штемпеле — день, когда письмо дошло до адресата
 const deliveredOn = ref('')
 onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) })
 
 const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
-  mystery: 'Последнее пророчество', city: 'Личное сообщение',
+  mystery: 'Последняя карта', city: 'Личное сообщение',
 }[props.theme.id] || 'Послание'))
 
 const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
@@ -344,6 +355,61 @@ const saveCard = async () => {
   box-shadow:
     inset 0 2px 2px color-mix(in srgb, var(--rule) 55%, transparent),
     0 0 0 1px color-mix(in srgb, var(--paper-edge) 80%, var(--ink));
+}
+
+/* Обличье колоды: веер открытых карт и последняя карта с рамкой */
+.finish--tarot .finish__title { font-weight: 700; }
+.finish__spread {
+  position: relative;
+  height: 170px;
+  margin: 8px 0 -4px;
+}
+.finish__spread-card {
+  --mid: calc((var(--n) - 1) / 2);
+  position: absolute; left: 50%; bottom: 0;
+  display: grid; place-items: center;
+  width: 74px; height: 111px;
+  margin-left: -37px;
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    inset 0 0 0 3px var(--paper),
+    inset 0 0 0 4px color-mix(in srgb, var(--ink) 55%, var(--paper)),
+    0 0 0 1px color-mix(in srgb, var(--rule) 60%, transparent),
+    0 10px 14px -8px color-mix(in srgb, var(--rule) 95%, transparent);
+  transform-origin: 50% 220%;
+  transform: translateX(calc((var(--i) - var(--mid)) * 26px)) rotate(calc((var(--i) - var(--mid)) * 8deg));
+  animation: spread-out .5s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: calc(var(--i) * 70ms + .15s);
+}
+@keyframes spread-out {
+  from { transform: none; opacity: 0; }
+}
+.finish--tarot .finish__message {
+  border: none;
+  border-radius: 8px;
+  padding: 28px 24px 24px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 50%, transparent),
+    0 2px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.finish__frame,
+.finish__frame::after {
+  position: absolute;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.finish__frame { inset: 8px; border: 1.5px solid color-mix(in srgb, var(--ink) 70%, var(--paper)); }
+.finish__frame::after {
+  content: "";
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--paper));
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .finish__spread-card { animation: none; }
 }
 
 /* Обличье переписки: последнее письмо, погашенное штемпелем «Доставлено» */

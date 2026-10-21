@@ -38,7 +38,7 @@
         <!-- Факты с коробки -->
         <p class="splash__facts">
           <span><b>{{ totalBlocks }}</b> {{ plural(totalBlocks, ...(theme.copy.blockForms ?? ['участок', 'участка', 'участков'])) }}</span>
-          <span><b>{{ totalTasks }}</b> {{ plural(totalTasks, 'клетка', 'клетки', 'клеток') }}</span>
+          <span><b>{{ totalTasks }}</b> {{ plural(totalTasks, ...(theme.copy.cellForms ?? ['клетка', 'клетки', 'клеток'])) }}</span>
           <span v-if="minutes">около <b>{{ minutes }}</b> мин</span>
         </p>
         <p v-if="difficultyLabel || placeLabel" class="splash__facts splash__facts--soft">
@@ -54,6 +54,7 @@
           </template>
           <span v-else-if="decor === 'letters'" class="splash__flap" aria-hidden="true"></span>
           <span v-else-if="decor === 'metro'" class="splash__perf" aria-hidden="true"></span>
+          <span v-else-if="decor === 'tarot'" class="splash__frame" aria-hidden="true"></span>
           <h2 id="brief-h" class="splash__h splash__h--ink">Перед стартом</h2>
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
@@ -240,6 +241,31 @@ const startLabel = computed(() =>
   border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
 }
 .splash--metro .splash__title { font-weight: 700; }
+
+/* Обличье колоды: «Перед стартом» — карта с гравированной рамкой */
+.splash--tarot .splash__brief {
+  border-radius: 8px;
+  padding: 26px 24px 24px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 50%, transparent),
+    0 2px 0 var(--paper-edge),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.splash__frame,
+.splash__frame::after {
+  position: absolute;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.splash__frame { inset: 8px; border: 1.5px solid color-mix(in srgb, var(--ink) 70%, var(--paper)); }
+.splash__frame::after {
+  content: "";
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--paper));
+  border-radius: 2px;
+}
+.splash--tarot .splash__title,
+.splash--tarot .splash__brief .splash__h { font-weight: 700; }
 
 /* ── Код доступа ──────────────────────────────────────────────── */
 .splash__code { display: flex; flex-direction: column; }

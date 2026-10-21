@@ -12,6 +12,10 @@
         <!-- Линия маршрута: прямые перегоны, как на схеме -->
         <path class="metro-line" :d="linePath" />
       </template>
+      <template v-else-if="decor === 'tarot'">
+        <!-- Расклад на сукне: тонкая меловая разметка от карты к карте -->
+        <path class="tarot-line" :d="linePath" />
+      </template>
       <template v-else-if="decor === 'letters'">
         <!-- Атласная лента: тень на подкладке, лента и блик на изгибах -->
         <path class="ribbon ribbon--shadow" :d="roadPath" />
@@ -53,20 +57,28 @@
             :class="{ 'is-fresh': cell.id === stampId }"
             aria-hidden="true"
           ><i></i><i></i><i></i></span>
+          <!-- В колоде пройденная карта перевёрнута лицом и показывает свой знак -->
+          <QuestArcana
+            v-else-if="decor === 'tarot' && cell.state === 'done'"
+            class="cell__arcana"
+            :class="{ 'is-fresh': cell.id === stampId }"
+            :no="cell.index" :size="34"
+          />
           <QuestIcon v-else :name="cell.state === 'wrong' ? 'close' : 'check'" :size="22" />
         </button>
         <span
           v-else-if="cell.state === 'active'"
           class="cell cell--active"
+          :class="{ 'is-reveal': cell.index > stampIndex }"
           aria-current="step"
           :aria-label="`Клетка ${cell.n}: сейчас здесь`"
-        >{{ cell.n }}</span>
+        >{{ decor === 'tarot' ? roman(cell.n) : cell.n }}</span>
         <span
           v-else
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
-        <span v-if="stampId != null && cell.id === stampId && decor !== 'letters' && decor !== 'metro'" class="cell__stamp" aria-hidden="true">
+        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot'].includes(decor)" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -81,6 +93,8 @@ import { computed, ref, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestSeal from './QuestSeal.vue'
 import QuestPostmark from './QuestPostmark.vue'
+import QuestArcana from './QuestArcana.vue'
+import { roman } from './themes.js'
 
 const props = defineProps({
   tasks:        { type: Array,   required: true },
@@ -93,6 +107,11 @@ const props = defineProps({
   stampId:      { type: [String, Number], default: null }, // клетка, на которую хлопает штамп
 })
 defineEmits(['open'])
+
+// Карта, которую только что прошли: следующая за ней открывается с переворотом
+const stampIndex = computed(() =>
+  props.stampId == null ? Infinity : props.tasks.findIndex(t => t.id === props.stampId)
+)
 
 // Змейка: клетки идут слева направо, качаясь вверх-вниз, как трасса на поле
 const WAVE = [64, 34, 60, 30, 62, 36, 58, 32]
@@ -129,7 +148,7 @@ const roadPath = computed(() => {
   return d
 })
 
-// Схема метро: прямые перегоны между станциями, за краем — продолжение линии
+// Схема метро и расклад карт: прямые перегоны между станциями, за краем — продолжение линии
 const linePath = computed(() => {
   const pts = cells.value.map(c => [c.x, c.y])
   if (!pts.length) return ''
@@ -463,6 +482,93 @@ const chipStyle = computed(() => {
   to   { opacity: 1; transform: scale(1) rotate(-8deg); }
 }
 
+/* ── Обличье колоды: карты на сукне ─────────────────────────── */
+.tarot-line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke: color-mix(in srgb, var(--field-ink) 34%, var(--field));
+  stroke-width: 1.5;
+  stroke-dasharray: 1 6;
+  stroke-linecap: round;
+}
+/* колода крупнее прочих досок: карта — главный предмет хода */
+.track--tarot { height: clamp(210px, 32svh, 290px); }
+.track--tarot .cell {
+  /* ширина карты по числу карт на столе, пропорции колоды 2:3 */
+  --w: clamp(34px, calc(300px / var(--n)), 56px);
+  --h: calc(var(--w) * 1.5);
+  position: relative;
+  width: var(--w); height: var(--h);
+  border: none;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 60%, transparent),
+    0 9px 12px -7px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+/* гравированная рамка лица: тонкая линия, отступившая от обреза */
+.track--tarot .cell--done::before,
+.track--tarot .cell--active::before {
+  content: "";
+  position: absolute; inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  border-radius: 2px;
+  pointer-events: none;
+}
+.track--tarot .track__slot:nth-child(odd)  { --tilt: -2deg; }
+.track--tarot .track__slot:nth-child(even) { --tilt: 2deg; }
+.track--tarot .cell { transform: rotate(var(--tilt)); }
+/* открыта сейчас: крупнее, римский номер */
+.track--tarot .cell--active {
+  --w: clamp(46px, calc(390px / var(--n)), 72px);
+  font-weight: 700;
+  font-size: 1.55rem;
+  letter-spacing: .02em;
+}
+.track--tarot .cell--done { color: var(--ink); }
+.track--tarot .cell--wrong { color: var(--wrong); }
+/* рубашка: киноварь с решёткой слоновой краски и рамкой по обрезу */
+.track--tarot .cell--back {
+  background:
+    repeating-linear-gradient(45deg,  transparent 0 5px, color-mix(in srgb, var(--paper) 38%, var(--back)) 5px 6px),
+    repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, var(--paper) 38%, var(--back)) 5px 6px),
+    var(--back);
+}
+.track--tarot .cell--back::after {
+  content: "";
+  position: absolute; inset: 3px;
+  border: 1.5px solid var(--paper);
+  border-radius: 2px;
+}
+/* ход: открытая карта переворачивается, на обороте проступает её знак */
+.track--tarot .cell--done:has(.is-fresh) { animation: card-flip .56s cubic-bezier(.45, 0, .2, 1) .08s both; }
+.cell__arcana.is-fresh { animation: arcana-in .56s steps(1, end) .08s both; }
+@keyframes card-flip {
+  from { transform: rotate(var(--tilt)) perspective(240px) rotateY(180deg); }
+  to   { transform: rotate(var(--tilt)) perspective(240px) rotateY(0); }
+}
+/* следующая карта открывается: рубашка уходит, проступает римский номер */
+.track--tarot .cell--active.is-reveal { animation: card-reveal .56s cubic-bezier(.45, 0, .2, 1) .15s both; }
+@keyframes card-reveal {
+  0%    { transform: rotate(var(--tilt)) perspective(300px) rotateY(180deg); background: var(--back); color: transparent; }
+  49.9% { background: var(--back); color: transparent; }
+  50%   { background: var(--plate); color: var(--plate-ink); }
+  100%  { transform: rotate(var(--tilt)) perspective(300px) rotateY(0); background: var(--plate); color: var(--plate-ink); }
+}
+@keyframes arcana-in {
+  0%  { opacity: 0; }
+  50% { opacity: 1; }
+}
+/* фишка: киноварный указатель-ромб над картой */
+.track--tarot .track__chip {
+  width: 16px; height: 16px;
+  /* над открытой картой: половина её высоты и зазор */
+  margin: calc(clamp(46px, calc(390px / var(--n)), 72px) * -.75 - 22px) 0 0 -8px;
+  border-radius: 2px;
+  border: 2px solid var(--paper);
+  transform: rotate(45deg);
+  box-shadow: 0 5px 7px -3px color-mix(in srgb, var(--rule) 80%, transparent);
+}
+
 /* Сургучная печать: ложится на пройденную клетку в момент хода */
 .cell__stamp {
   position: absolute; left: 50%; top: 50%;
@@ -479,7 +585,9 @@ const chipStyle = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell__stamp, .cell__postmark.is-fresh, .cell__punch.is-fresh i, .track--metro .cell--done:has(.is-fresh) { animation: none; }
+  .cell__stamp, .cell__postmark.is-fresh, .cell__punch.is-fresh i, .track--metro .cell--done:has(.is-fresh),
+  .track--tarot .cell--done:has(.is-fresh), .cell__arcana.is-fresh,
+  .track--tarot .cell--active.is-reveal { animation: none; }
   .track__chip, .cell--done { transition: none; }
 }
 </style>
