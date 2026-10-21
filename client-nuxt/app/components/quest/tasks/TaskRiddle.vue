@@ -26,7 +26,7 @@ const props = defineProps({
   task:  { type: Object, required: true },
   theme: { type: Object, required: true },
 })
-const emit = defineEmits(['complete', 'hint'])
+const emit = defineEmits(['complete', 'hint', 'wrong'])
 
 const answer = ref('')
 const error  = ref('')
@@ -36,6 +36,7 @@ const submit = () => {
   const correct = (props.task.answer || props.task.correct_answer || '').trim()
   if (correct && !isAnswerCorrect(answer.value, correct)) {
     error.value = props.theme.copy?.wrongAnswer || 'Неверно, попробуй ещё раз'
+    emit('wrong')
     return
   }
   error.value = ''

@@ -3,6 +3,7 @@
     class="task"
     :class="{
       'task--review':   mode === 'review',
+      'task--nudge':    nudge,
       'task--wrong':    mode === 'review' && earnedEntry?.wrong,
       'task--casefile': decor === 'casefile',
       'task--letters':  decor === 'letters',
@@ -27,6 +28,9 @@
     <!-- Шёлк подкладки: прострочка по краю -->
     <span v-else-if="decor === 'ringbox'" class="task__stitch" aria-hidden="true"></span>
     <span v-else-if="decor === 'potion'" class="task__rule" aria-hidden="true"></span>
+
+    <!-- Отметка мира: неверно / верно / отложено -->
+    <QuestMark v-if="mark" :key="mark.key" :decor="decor" :kind="mark.kind" />
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
@@ -68,18 +72,20 @@
         :is="taskComponent"
         :task="task"
         :theme="theme"
-        @complete="$emit('complete', $event)"
+        @complete="onComplete"
         @hint="$emit('hint', $event)"
         @answer-change="$emit('answer-change', $event)"
-        @skip-task="$emit('skip-task', $event)"
+        @skip-task="onSkip"
+        @wrong="onWrong"
       />
     </div>
   </article>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 import QuestIcon        from './QuestIcon.vue'
+import QuestMark        from './QuestMark.vue'
 import { pointsWord, roman } from './themes.js'
 import TaskSimple       from './tasks/TaskSimple.vue'
 import TaskRiddle       from './tasks/TaskRiddle.vue'
@@ -99,7 +105,7 @@ const props = defineProps({
   mode:        { type: String, default: 'active' }, // 'active' | 'review'
   earnedEntry: { type: Object, default: null },
 })
-defineEmits(['complete', 'hint', 'answer-change', 'skip-task'])
+const emit = defineEmits(['complete', 'hint', 'answer-change', 'skip-task'])
 
 const TYPE_MAP = {
   simple:        TaskSimple,
@@ -116,6 +122,30 @@ const TYPE_MAP = {
 
 const taskComponent = computed(() => TYPE_MAP[props.task.type] || null)
 const decor = computed(() => props.theme.world?.decor ?? null)
+
+// ─── Реакции карточки ───────────────────────────────────────
+// Отметка мира ложится на угол карточки. Верный ответ и пропуск сначала
+// отмечаются на карточке и лишь потом уходят наверх — ход на доске после отметки.
+const REACT_MS = 520
+const mark = ref(null)
+let markKey = 0
+let passTimer = null
+const reduced = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+const showMark = (kind) => { mark.value = { kind, key: ++markKey } }
+const pass = (event, payload, kind) => {
+  if (passTimer) return
+  showMark(kind)
+  passTimer = setTimeout(() => { passTimer = null; emit(event, payload) }, reduced() ? 120 : REACT_MS)
+}
+const onComplete = (payload) => pass('complete', payload, 'right')
+const onSkip     = (payload) => pass('skip-task', payload, 'skip')
+const nudge = ref(false)
+const onWrong = () => {
+  showMark('wrong')
+  nudge.value = false
+  requestAnimationFrame(() => { nudge.value = true })
+}
+onUnmounted(() => clearTimeout(passTimer))
 
 const descParagraphs = computed(() =>
   props.task.description?.split(/\n{2,}/).map(p => p.trim()).filter(Boolean) || []
@@ -158,6 +188,17 @@ const typeLabel = computed(() => ({
 </script>
 
 <style scoped>
+/* Неверный ответ: поле ответа один раз коротко отступает и возвращается — без тряски */
+.task--nudge :deep(.task__input) { animation: input-nudge .26s cubic-bezier(.2, .7, .2, 1) both; border-color: var(--wrong); }
+@keyframes input-nudge {
+  0%   { transform: translateX(0); }
+  35%  { transform: translateX(-7px); }
+  100% { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .task--nudge :deep(.task__input) { animation: none; }
+}
+
 /* ── Карточка: игровая бумага ─────────────────────────────────── */
 .task {
   position: relative;
@@ -561,6 +602,62 @@ const typeLabel = computed(() => ({
   font-family: var(--font-b);
   font-size: 1rem; line-height: 1.5;
   color: var(--ink);
+  /* подсказка раскрывается сверху вниз, как вынутая записка */
+  animation: hint-open .34s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes hint-open {
+  from { clip-path: inset(0 0 100% 0); opacity: .4; }
+  to   { clip-path: inset(0); opacity: 1; }
+}
+/* предмет мира, на котором написана подсказка */
+.task--casefile :deep(.task__hint) {
+  border-radius: 2px;
+  background: var(--paper-edge);
+  transform: rotate(-1deg);
+  box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent);
+}
+.task--letters :deep(.task__hint) {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--chip) 14%, var(--paper));
+  font-family: var(--font-h);
+  font-size: 1.15rem;
+}
+.task--metro :deep(.task__hint) {
+  border-radius: 6px;
+  background: var(--paper);
+  border: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
+}
+.task--tarot :deep(.task__hint) {
+  border-radius: 4px;
+  background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  outline: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  outline-offset: 2px;
+}
+.task--map :deep(.task__hint) {
+  border-radius: 0;
+  background: color-mix(in srgb, var(--paper-edge) 55%, var(--paper));
+  border-left: 3px solid var(--ink);
+}
+.task--ringbox :deep(.task__hint) {
+  border-radius: 10px;
+  background: var(--paper);
+  border: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper));
+}
+.task--potion :deep(.task__hint) {
+  border-radius: 0;
+  background: var(--paper);
+  border: 1.5px solid var(--rule);
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  animation: none;
+}
+.task--diecut :deep(.task__hint) {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--chip) 18%, var(--paper));
+  border: 1.5px solid var(--rule);
+}
+@media (prefers-reduced-motion: reduce) {
+  :deep(.task__hint) { animation: none; }
 }
 
 :deep(.task__action--location) { border-style: dashed; }
