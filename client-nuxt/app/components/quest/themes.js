@@ -301,42 +301,71 @@ export const THEMES = {
     id: 'city',
     label: 'Город',
 
-    accent:     '#00f5c4',
-    accentDim:  '#00826a',
-    bg:         '#060810',
-    bg2:        '#0d1117',
-    surface:    '#111822',
-    border:     'rgba(0,245,196,0.12)',
-    text:       '#c8d6ef',
-    dim:        '#2a4a42',
+    // Цвета — схема линий и талон: светлая бумага, чёрная краска, одна зелёная линия
+    accent:     '#1f8a4c',
+    accentDim:  '#1f8a4c',
+    bg:         '#e9eeea',   // бумага схемы
+    bg2:        '#dcd5c6',
+    surface:    '#f5e8c6',
+    border:     'rgba(31,36,34,0.22)',
+    text:       '#1f2422',
+    dim:        '#4c5450',
 
-    baseBg:     '#060810',
-    baseTone:   'dark',
+    baseBg:     '#e9eeea',
+    baseTone:   'light',
     showTimer:  false,
 
+    // Мир «Ходилки» в обличье схемы метро: клетки — станции на зелёной линии,
+    // карточка — талон с корешком, пройденную станцию пробивает компостер
+    world: {
+      decor:        'metro',
+      field:        '#e9eeea',
+      fieldInk:     '#1f2422',
+      fieldInkSoft: '#4c5450',
+      paper:        '#f5e8c6',   // талон
+      paperEdge:    '#d8c9a4',   // картон проездного, корешок
+      ink:          '#1f2422',
+      inkSoft:      '#545c58',
+      plate:        '#fbf9f3',   // станция «вы здесь»
+      plateInk:     '#1f2422',
+      done:         '#1f8a4c',   // станция пройдена, талон пробит
+      back:         '#fbf9f3',   // станция впереди: пустой кружок
+      chip:         '#1f8a4c',   // линия маршрута
+      rule:         '#1f2422',
+      wrong:        '#b8392a',
+      action:       '#1f2422',
+      actionInk:    '#f5e8c6',
+      focus:        '#1f2422',
+    },
+
+    // Моушн-ролик «Как это работает» (tools/reels/city.html → record.mjs)
+    reel: { src: '/reels/city.mp4', poster: '/reels/city.jpg' },
+
+    // Шрифты
     fonts: {
-      display: "'Orbitron', monospace",
-      body:    "'Rajdhani', sans-serif",
-      googleFonts: 'Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700'
+      display: "'Golos Text', 'PT Serif', Arial, sans-serif",
+      body:    "'PT Serif', Georgia, serif",
+      displayWeight: 700,
+      // свои файлы: assets/styles/fonts.css + public/fonts
+      selfHosted: true,
     },
 
     copy: {
-      eyebrow:       'ЗАДАНИЕ ПОЛУЧЕНО',
-      startBtn:      'НАЧАТЬ МИССИЮ',
-      taskDone:      'Выполнено',
+      eyebrow:       'Маршрут готов',
+      startBtn:      'Поехали',
+      taskDone:      'Станция пройдена',
       hintBtn:       'Подсказка · −10 очков',
       photoZone:     'Сфотографировать точку',
-      finishEyebrow: 'МИССИЯ ВЫПОЛНЕНА',
+      finishEyebrow: 'Конечная!',
       shareBtn:      'Поделиться результатом',
-      blockPrefix:   'Точка',
+      blockPrefix:   'Линия',
+      blockForms:    ['линия', 'линии', 'линий'],
       pointsLabel:   'очков',
       pointsForms:   ['очко', 'очка', 'очков'],
     },
 
-    bg_animation: 'grid',     // анимированная сетка (текущий стиль)
-
-
-    overlay: 'scanlines',     // CRT-эффект
+    bg_animation: null,
+    overlay: null,            // мир схемы — плоская печать, без сканлайнов
   },
 }
 
