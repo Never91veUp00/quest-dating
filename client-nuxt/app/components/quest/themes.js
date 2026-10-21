@@ -600,6 +600,9 @@ export const THEMES = {
       focus:        '#1c1714',
     },
 
+    // Моушн-ролик «Как это работает» (tools/reels/halloween.html → record.mjs)
+    reel: { src: '/reels/halloween.mp4', poster: '/reels/halloween.jpg' },
+
     // Шрифты
     fonts: {
       display: "'Yanone Kaffeesatz', 'PT Serif', Georgia, serif",
