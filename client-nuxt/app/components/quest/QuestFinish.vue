@@ -12,6 +12,11 @@
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
+      <!-- Футляр: открыт, на подушечке кольцо. Вопрос экран не задаёт — его задают вслух -->
+      <div v-if="decor === 'ringbox'" class="finish__box">
+        <QuestRingbox :size="150" ring fresh />
+      </div>
+
       <!-- Карта: пунктир через пройденные метки к большому красному кресту -->
       <svg v-if="decor === 'map'" class="finish__chart" viewBox="0 0 320 130" aria-hidden="true">
         <path class="finish__chart-route" d="M8 112 C30 112 36 104 50 104 S80 64 96 64 S128 84 140 80 S166 72 178 70" />
@@ -51,6 +56,7 @@
           </span>
         </template>
         <span v-else-if="decor === 'tarot'" class="finish__frame" aria-hidden="true"></span>
+        <span v-else-if="decor === 'ringbox'" class="finish__stitch" aria-hidden="true"></span>
         <h3 class="finish__message-label">{{ messageLabel }}</h3>
         <p class="finish__message-text">{{ questData.final_message }}</p>
       </article>
@@ -86,6 +92,7 @@ import { ref, computed, onMounted } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestPostmark from './QuestPostmark.vue'
 import QuestArcana from './QuestArcana.vue'
+import QuestRingbox from './QuestRingbox.vue'
 import { plural, pointsWord } from './themes.js'
 
 const props = defineProps({
@@ -121,7 +128,7 @@ onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { d
 const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
   mystery: 'Последняя карта', city: 'Личное сообщение',
-  treasure: 'Записка в сундуке',
+  treasure: 'Записка в сундуке', proposal: 'От меня',
 }[props.theme.id] || 'Послание'))
 
 const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
@@ -373,6 +380,31 @@ const saveCard = async () => {
     inset 0 2px 2px color-mix(in srgb, var(--rule) 55%, transparent),
     0 0 0 1px color-mix(in srgb, var(--paper-edge) 80%, var(--ink));
 }
+
+/* Обличье футляра: открытый футляр с кольцом и послание на шёлке */
+.finish--ringbox .finish__title { text-wrap: balance; }
+.finish__box {
+  /* крупный футляр — тоньше линии, как на гравюре ювелирного каталога */
+  --rb-line: .55;
+  display: grid; place-items: center;
+  margin: 6px 0 2px;
+  filter: drop-shadow(0 18px 18px color-mix(in srgb, var(--rule) 30%, transparent));
+}
+.finish--ringbox .finish__message {
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 14%, transparent),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+  padding: 26px 24px 24px;
+}
+.finish__stitch {
+  position: absolute;
+  pointer-events: none;
+}
+/* прострочка подкладки: пунктирный шов, отступивший от края */
+.finish__stitch { inset: 7px; border: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper)); border-radius: 7px; }
 
 /* Обличье карты: путь к кладу и записка на обрывке пергамента */
 .finish__chart { display: block; width: 100%; max-width: 380px; height: auto; margin: 4px auto -4px; overflow: visible; }

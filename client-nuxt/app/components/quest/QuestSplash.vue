@@ -55,6 +55,7 @@
           <span v-else-if="decor === 'letters'" class="splash__flap" aria-hidden="true"></span>
           <span v-else-if="decor === 'metro'" class="splash__perf" aria-hidden="true"></span>
           <span v-else-if="decor === 'tarot'" class="splash__frame" aria-hidden="true"></span>
+          <span v-else-if="decor === 'ringbox'" class="splash__stitch" aria-hidden="true"></span>
           <h2 id="brief-h" class="splash__h splash__h--ink">Перед стартом</h2>
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
@@ -241,6 +242,22 @@ const startLabel = computed(() =>
   border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
 }
 .splash--metro .splash__title { font-weight: 700; }
+
+/* Обличье футляра: «Перед стартом» — шёлковая карточка с прострочкой */
+.splash--ringbox .splash__brief {
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 14%, transparent),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+  padding: 24px 22px 22px;
+}
+.splash__stitch {
+  position: absolute;
+  pointer-events: none;
+}
+/* прострочка подкладки: пунктирный шов, отступивший от края */
+.splash__stitch { inset: 7px; border: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper)); border-radius: 7px; }
 
 /* Обличье карты: «Перед стартом» — обрывок пергамента */
 .splash--map .splash__brief { border-radius: 0; margin: 8px 0; }

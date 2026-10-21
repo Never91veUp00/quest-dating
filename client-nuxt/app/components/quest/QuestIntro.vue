@@ -19,7 +19,7 @@
         <QuestSeal class="lid__seal" :size="88" :seed="5" motto="★ ПИСЬМО ★" />
       </span>
       <!-- Колода: верхняя карта рубашкой вверх, поперёк — бумажная бандероль -->
-      <div :class="decor === 'tarot' ? 'lid__band' : 'lid__text'">
+      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : 'lid__text'">
         <h1 class="lid__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="lid__for">
           Кому: <b>{{ questData.client_name }}</b>
@@ -247,6 +247,44 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open { transition-delay: .22s; }
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
+/* ── Обличье футляра: коробка, перевязанная шёлковой лентой, бирка «Кому» ── */
+.lid--ringbox .lid__face {
+  display: grid; place-items: center;
+  max-width: 320px;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1.5px solid var(--rule);
+  border-radius: 18px;
+  /* лента крест-накрест: две полосы шёлка поверх бархата */
+  background:
+    linear-gradient(90deg, transparent calc(50% - 15px), var(--paper) calc(50% - 15px) calc(50% + 15px), transparent calc(50% + 15px)),
+    linear-gradient(transparent calc(50% - 15px), var(--paper) calc(50% - 15px) calc(50% + 15px), transparent calc(50% + 15px)),
+    var(--back);
+  box-shadow:
+    0 6px 0 color-mix(in srgb, var(--rule) 22%, var(--back)),
+    0 30px 36px -18px color-mix(in srgb, var(--rule) 65%, transparent);
+}
+.lid__tag {
+  position: relative;
+  width: 78%;
+  padding: 22px 18px 20px;
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    inset 0 0 0 6px var(--paper),
+    inset 0 0 0 7.5px color-mix(in srgb, var(--ink) 25%, var(--paper)),
+    0 10px 14px -8px color-mix(in srgb, var(--rule) 60%, transparent);
+  transform: rotate(-3deg);
+  transition: transform .4s cubic-bezier(.5, 0, .3, 1);
+}
+.lid--ringbox .lid__title { color: var(--ink); font-size: clamp(1.5rem, 9cqi, 2.3rem); }
+.lid--ringbox .lid__for { margin-top: 10px; color: var(--ink-soft); }
+.lid--ringbox .lid__for b { color: var(--ink); }
+/* бирка поворачивается, затем крышка коробки поднимается */
+.lid--ringbox.lid--open { transition-delay: .3s; }
+.lid--ringbox.lid--open .lid__tag { transform: rotate(6deg) translateY(-8px); }
+
 /* ── Обличье карты: свиток под сургучом на море ───────────────── */
 .lid--map {
   background:
@@ -337,6 +375,6 @@ onUnmounted(() => clearTimeout(timer))
 
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map { transition: none; }
+  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag { transition: none; }
 }
 </style>

@@ -89,6 +89,7 @@
 
       <article v-else key="done" class="block__done">
         <span v-if="theme.world?.decor === 'tarot'" class="block__frame" aria-hidden="true"></span>
+        <span v-else-if="theme.world?.decor === 'ringbox'" class="block__stitch" aria-hidden="true"></span>
         <p class="block__done-text">
           {{ isLast ? (theme.copy.allDone ?? 'Все клетки пройдены.') : (theme.copy.blockDone ?? 'Участок пройден. Фишка ждёт у выхода.') }}
         </p>
@@ -247,7 +248,7 @@ const finishLabel = computed(() => ({
   mystery:   'Открыть расклад',
   city:      'На конечную',
   treasure:  'К кладу',
-  proposal:  'Завершить',
+  proposal:  'К главному',
 }[props.theme.id] || 'Завершить'))
 </script>
 
@@ -441,6 +442,30 @@ const finishLabel = computed(() => ({
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
+/* Обличье футляра: маленькие футляры на нити, открытые — с камешком */
+.block--ringbox .block__mini::before {
+  height: 0; margin-top: 0;
+  border-top: 1.5px dashed color-mix(in srgb, var(--field-ink) 45%, var(--field));
+  background: none;
+}
+.block--ringbox .block__mini-cell {
+  width: 14px; height: 13px;
+  border: 1.2px solid var(--rule);
+  border-radius: 4px 4px 3px 3px;
+  background: var(--back);
+}
+.block--ringbox .block__mini-cell.is-done {
+  background: radial-gradient(circle at 50% 50%, var(--chip) 0 2.6px, transparent 3px), var(--paper);
+}
+.block--ringbox .block__mini-cell.is-done.is-wrong { background: var(--paper); }
+.block--ringbox .block__mini-cell.is-active { width: 20px; height: 18px; }
+.block--ringbox .block__mini-cell.is-active::after {
+  top: -12px; right: auto; left: 50%;
+  width: 10px; height: 10px; margin-left: -5px;
+  border: 1.2px solid var(--rule);
+  background: var(--paper);
+}
+
 /* ── Доска: момент хода и обзор ───────────────────────────────── */
 .block__board {
   position: fixed;
@@ -517,6 +542,22 @@ const finishLabel = computed(() => ({
 }
 
 /* ── Участок пройден ──────────────────────────────────────────── */
+/* в футляре конец момента — шёлковая карточка с прострочкой */
+.block--ringbox .block__done {
+  position: relative;
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 14%, transparent),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+  padding: 24px 22px 22px;
+}
+.block__stitch {
+  position: absolute;
+  pointer-events: none;
+}
+/* прострочка подкладки: пунктирный шов, отступивший от края */
+.block__stitch { inset: 7px; border: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper)); border-radius: 7px; }
 /* на карте конец острова — тоже обрывок пергамента с рваным краем */
 .block--map .block__done {
   position: relative;
