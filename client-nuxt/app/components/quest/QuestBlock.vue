@@ -436,7 +436,8 @@ const finishLabel = computed(() => ({
   top: -15px; right: -9px;
   width: 9px; height: 7px;
   border: none; border-radius: 0;
-  background: var(--chip);
+  /* вымпел над полосой лежит на море: меловой, чтобы читался */
+  background: var(--field-ink);
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 

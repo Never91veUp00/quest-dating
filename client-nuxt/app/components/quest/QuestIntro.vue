@@ -12,9 +12,9 @@
   >
     <div class="lid__face">
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
-      <!-- Конверт обратной стороной: клапан под сургучом открывается первым -->
       <!-- Свиток: скатанные концы сверху и снизу, внизу сургуч -->
       <QuestSeal v-if="decor === 'map'" class="lid__seal lid__seal--map" :size="84" :seed="9" motto="★ КАРТА ★" />
+      <!-- Конверт обратной стороной: клапан под сургучом открывается первым -->
       <span v-if="decor === 'letters'" class="lid__flap" aria-hidden="true">
         <QuestSeal class="lid__seal" :size="88" :seed="5" motto="★ ПИСЬМО ★" />
       </span>

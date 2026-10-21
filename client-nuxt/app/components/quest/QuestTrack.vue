@@ -16,7 +16,9 @@
         <!-- Пергаментный остров: береговая линия и второй контур мелководья, по суше — пунктир маршрута -->
         <path class="isle isle--shoal" :d="ISLE" transform="translate(50 50) scale(1.06 1.1) translate(-50 -50)" />
         <path class="isle isle--land" :d="ISLE" />
-        <path class="map-route" :d="roadPath" />
+        <!-- по суше маршрут идёт чернилами, к соседним островам по морю — мелом -->
+        <path class="map-route map-route--sea" :d="roadPath" />
+        <path class="map-route" :d="landRoute" />
       </template>
       <template v-else-if="decor === 'tarot'">
         <!-- Расклад на сукне: тонкая меловая разметка от карты к карте -->
@@ -163,6 +165,20 @@ const roadPath = computed(() => {
   for (let i = 1; i < all.length; i++) {
     const [x0, y0] = all[i - 1]
     const [x1, y1] = all[i]
+    const mx = (x0 + x1) / 2
+    d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
+  }
+  return d
+})
+
+// Маршрут по острову: те же кривые, но только между метками, без выхода в море
+const landRoute = computed(() => {
+  const pts = cells.value.map(c => [c.x, c.y])
+  if (!pts.length) return ''
+  let d = `M${pts[0][0]} ${pts[0][1]}`
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1]
+    const [x1, y1] = pts[i]
     const mx = (x0 + x1) / 2
     d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
   }
@@ -528,6 +544,7 @@ const chipStyle = computed(() => {
   stroke-dasharray: 6 6;
   stroke-linecap: round;
 }
+.map-route--sea { stroke: var(--field-ink); stroke-width: 1.6; opacity: .7; }
 .track--map .cell {
   border-radius: 50%;
   border: 2px solid var(--ink);
