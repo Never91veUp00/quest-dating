@@ -1,88 +1,44 @@
 <template>
   <div>
-    <!-- Текстовые пары -->
-    <template v-if="task.pairs_mode === 'text' || (!task.pairs_mode && task.pairs && task.pairs.length && (!task.game_images || !task.game_images.length))">
-      <div class="task__text-pairs">
-        <div class="task__text-pairs__cols">
-          <div class="task__text-pairs__col">
-            <button
-              v-for="(pair, pi) in task.pairs" :key="'l'+pi"
-              class="task__text-pairs__item"
-              :class="{ selected: leftSelected === pi, matched: matchedLeft.includes(pi) }"
-              :disabled="matchedLeft.includes(pi)"
-              @click="selectLeft(pi)"
-            >{{ pair.left }}</button>
-          </div>
-          <div class="task__text-pairs__col">
-            <button
-              v-for="(item, ri) in rightShuffled" :key="'r'+ri"
-              class="task__text-pairs__item task__text-pairs__item--right"
-              :class="{ selected: rightSelected === ri, matched: matchedRight.includes(ri) }"
-              :disabled="matchedRight.includes(ri)"
-              @click="selectRight(ri)"
-            >{{ item.value }}</button>
+    <!-- Фото-пары (текстовый режим убран; старые задания без фото — в TaskMiniGame) -->
+    <div class="task__pairs mg-board" :class="{ 'task__pairs--done': photoComplete }" :style="{ '--pairs-cols': task.pairs_grid_size || 4 }">
+      <QuestMark v-if="mark" :key="mark.key" :decor="decor" :kind="mark.kind" />
+      <button
+        v-for="(card, ci) in photoCards" :key="ci"
+        class="task__pairs__card"
+        :class="{
+          flipped:  photoFlipped.includes(ci) || photoMatched.includes(ci),
+          matched:  photoMatched.includes(ci),
+          selected: photoSelected.includes(ci),
+          miss:     photoMiss.includes(ci),
+        }"
+        :disabled="photoMatched.includes(ci) || photoFlipped.length === 2"
+        :aria-label="photoMatched.includes(ci) ? 'Пара найдена' : photoFlipped.includes(ci) ? 'Открытая карточка' : `Карточка ${ci + 1}`"
+        @click="flipCard(ci)"
+      >
+        <div class="task__pairs__card__inner">
+          <div class="task__pairs__card__back" aria-hidden="true"></div>
+          <div class="task__pairs__card__front">
+            <img v-if="isImage(card.value)" :src="card.value" alt="" class="task__pairs__card__img"
+                 @error="e => e.target.style.opacity = '0.25'" />
+            <span v-else>{{ card.value }}</span>
           </div>
         </div>
-      </div>
-      <div v-if="wrongText" class="task__quiz-result task__quiz-result--wrong">
-        Не совпадает, попробуй ещё раз
-      </div>
-      <button v-if="!textComplete" class="task__pairs__skip" @click="$emit('skip-task', task)">
-        Не получается? Пропустить
       </button>
-      <div v-if="textComplete" class="task__pairs-confetti" aria-hidden="true">
-        <span v-for="i in 16" :key="i" class="task__pairs-confetti__p" :style="`--i:${i}`"></span>
-      </div>
-      <div v-if="textComplete" class="task__quiz-result task__quiz-result--right">
-        Все пары найдены
-      </div>
-      <button v-if="textComplete" class="task__action" @click="$emit('complete', task)">
-        Идти дальше
-      </button>
-    </template>
-
-    <!-- Фото-пары -->
-    <template v-else>
-      <div class="task__pairs" :style="{ '--pairs-cols': task.pairs_grid_size || 4 }">
-        <button
-          v-for="(card, ci) in photoCards" :key="ci"
-          class="task__pairs__card"
-          :class="{
-            flipped:  photoFlipped.includes(ci) || photoMatched.includes(ci),
-            matched:  photoMatched.includes(ci),
-            selected: photoSelected.includes(ci),
-          }"
-          :disabled="photoMatched.includes(ci) || photoFlipped.length === 2"
-          @click="flipCard(ci)"
-        >
-          <div class="task__pairs__card__inner">
-            <div class="task__pairs__card__back">?</div>
-            <div class="task__pairs__card__front">
-              <img v-if="isImage(card.value)" :src="card.value" class="task__pairs__card__img"
-                   @error="e => e.target.style.opacity = '0.25'" />
-              <span v-else>{{ card.value }}</span>
-            </div>
-          </div>
-        </button>
-      </div>
-      <button v-if="!photoComplete" class="task__pairs__skip" @click="$emit('skip-task', task)">
-        Не получается? Пропустить
-      </button>
-      <div v-if="photoComplete" class="task__pairs-confetti" aria-hidden="true">
-        <span v-for="i in 16" :key="i" class="task__pairs-confetti__p" :style="`--i:${i}`"></span>
-      </div>
-      <div v-if="photoComplete" class="task__quiz-result task__quiz-result--right">
-        Все пары найдены
-      </div>
-      <button v-if="photoComplete" class="task__action" @click="$emit('complete', task)">
-        Идти дальше
-      </button>
-    </template>
+    </div>
+    <button v-if="!photoComplete" class="mg-skip" @click="$emit('skip-task', task)">
+      Не получается? Пропустить
+    </button>
+    <p v-if="photoComplete" class="mg-result" role="status">Все пары найдены</p>
+    <button v-if="photoComplete" class="task__action" @click="$emit('complete', task)">
+      Идти дальше
+    </button>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import QuestMark from '../../QuestMark.vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -90,53 +46,18 @@ const props = defineProps({
 })
 defineEmits(['complete', 'skip-task'])
 
-// ── Текстовые пары ───────────────────────────────────────────────
-const leftSelected  = ref(null)
-const rightSelected = ref(null)
-const matchedLeft   = ref([])
-const matchedRight  = ref([])
-const wrongText     = ref(false)
-
-const rightShuffled = computed(() => {
-  if (!props.task.pairs) return []
-  return props.task.pairs
-    .map((p, i) => ({ value: p.right, originalIdx: i }))
-    .sort(() => Math.random() - 0.5)
-})
-const textComplete = computed(() =>
-  props.task.pairs && matchedLeft.value.length === props.task.pairs.length
-)
-
-const selectLeft = (pi) => {
-  wrongText.value = false
-  leftSelected.value = pi
-  if (rightSelected.value !== null) checkPair()
-}
-const selectRight = (ri) => {
-  wrongText.value = false
-  rightSelected.value = ri
-  if (leftSelected.value !== null) checkPair()
-}
-const checkPair = () => {
-  const li = leftSelected.value
-  const ri = rightSelected.value
-  const rightItem = rightShuffled.value[ri]
-  if (rightItem.originalIdx === li) {
-    matchedLeft.value  = [...matchedLeft.value, li]
-    matchedRight.value = [...matchedRight.value, ri]
-  } else {
-    wrongText.value = true
-    setTimeout(() => { wrongText.value = false }, 1000)
-  }
-  leftSelected.value  = null
-  rightSelected.value = null
-}
+// Отметка мира на доске: собранная игра
+const decor = computed(() => props.theme.world?.decor ?? null)
+const mark = ref(null)
+let markKey = 0
+const showMark = (kind) => { mark.value = { kind, key: ++markKey } }
 
 // ── Фото-пары ────────────────────────────────────────────────────
 const photoCards    = ref([])
 const photoFlipped  = ref([])
 const photoMatched  = ref([])
 const photoSelected = ref([]) // карточки с акцентной рамкой (явный контроль)
+const photoMiss     = ref([]) // открытая пара не сошлась — до того, как карточки закроются
 let flipTimer = null
 
 const photoComplete = computed(() =>
@@ -156,6 +77,8 @@ onMounted(() => {
 
 onUnmounted(() => { if (flipTimer) clearTimeout(flipTimer) })
 
+watch(photoComplete, (done) => { if (done) showMark('right') })
+
 const isImage = (v) => v && (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/'))
 
 const flipCard = (ci) => {
@@ -169,8 +92,10 @@ const flipCard = (ci) => {
       photoMatched.value = [...photoMatched.value, a, b]
       photoFlipped.value = []
     } else {
+      photoMiss.value = [a, b]
       flipTimer = setTimeout(() => {
         photoFlipped.value = []
+        photoMiss.value = []
       }, 900)
     }
   }
@@ -178,21 +103,9 @@ const flipCard = (ci) => {
 </script>
 
 <style scoped>
-.task__text-pairs { margin: 16px 0 12px; display: flex; flex-direction: column; gap: 12px; }
-.task__text-pairs__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.task__text-pairs__col { display: flex; flex-direction: column; gap: 8px; }
-.task__text-pairs__item {
-  padding: 12px 14px; border-radius: 10px; font-size: .95rem; text-align: left;
-  background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border: 2px solid transparent;
-  color: inherit; cursor: pointer; transition: all .2s; line-height: 1.4;
-}
-.task__text-pairs__item:hover:not(:disabled) { border-color: var(--action); }
-.task__text-pairs__item.selected { border-color: var(--action); background: color-mix(in srgb, var(--action) 15%, var(--paper)); }
-.task__text-pairs__item.matched { border-color: var(--ink-soft); background: color-mix(in srgb, var(--done) 40%, var(--paper)); opacity: .7; cursor: default; }
-.task__text-pairs__item--right { text-align: center; }
-
 .task__pairs {
   display: grid; grid-template-columns: repeat(var(--pairs-cols, 4), 1fr); gap: 6px; margin-bottom: 12px;
+  width: 100%; max-width: min(440px, 62dvh); margin-inline: auto; /* на десктопе сетка влезает в экран без прокрутки */
   isolation: isolate;
   transform: translateZ(0); /* форсируем отдельный GPU-слой для всего грида */
 }
@@ -211,7 +124,6 @@ const flipCard = (ci) => {
 .task__pairs__card:disabled:not(.matched) { opacity: 1; }
 .task__pairs__card.selected { border-color: var(--action); }
 .task__pairs__card.matched  { border-color: var(--ink-soft); opacity: .6; cursor: default; }
-.task__pairs__card.matched { border-color: var(--ink-soft); opacity: .6; cursor: default; }
 .task__pairs__card__inner {
   width: 100%; height: 100%; position: relative;
   transform-style: preserve-3d; transition: transform .35s;
@@ -230,40 +142,22 @@ const flipCard = (ci) => {
   /* clip-path вместо overflow:hidden — не ломает 3D */
   clip-path: inset(0 round 7px);
 }
-.task__pairs__card__back { color: var(--action); font-size: 1.2rem; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); }
+/* рубашка по умолчанию: штриховка без знака вопроса; миры задают свою в MiniGameOverlay */
+.task__pairs__card__back {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in srgb, var(--ink) 14%, transparent) 6px 7px),
+    color-mix(in srgb, var(--paper-edge) 45%, var(--paper));
+}
 .task__pairs__card__front {
   transform: rotateY(180deg); color: var(--ink);
   background: color-mix(in srgb, var(--action) 8%, color-mix(in srgb, var(--paper) 86%, var(--ink)));
 }
 .task__pairs__card__img { width: 100%; height: 100%; object-fit: cover; }
-.task__quiz-result {
-  text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
-  margin-bottom: 12px;
-}
-.task__quiz-result--right { color: var(--ink); background: color-mix(in srgb, var(--done) 40%, var(--paper)); }
-.task__quiz-result--wrong { color: var(--wrong); background: color-mix(in srgb, var(--wrong) 10%, var(--paper)); }
+/* игра собрана: снимки снова в полную силу, а не выцветшая сетка */
+.task__pairs--done .task__pairs__card.matched { opacity: 1; transition: opacity .4s ease; }
 
-.task__pairs__skip {
-  display: block; margin: 8px auto 0; background: none; border: none;
-  color: var(--ink-soft); font-size: .72rem; cursor: pointer;
-  transition: color .2s; padding: 6px 12px;
-  text-decoration: underline; text-underline-offset: 3px;
-}
-.task__pairs__skip:hover { color: var(--ink-soft); }
+/* промах в фото-парах: открытая пара обведена краской ошибки, пока не закроется */
+.task__pairs__card.miss { border-color: var(--wrong); border-width: 3px; }
 
-.task__pairs-confetti {
-  position: relative; height: 36px; overflow: hidden; pointer-events: none; margin-top: 4px;
-}
-.task__pairs-confetti__p {
-  position: absolute;
-  left: calc(var(--i) * 6.25%);
-  top: 0; width: 7px; height: 10px; border-radius: 2px;
-  background: hsl(calc(var(--i) * 22deg), 80%, 65%);
-  animation: pairs-confetti-fall .9s calc(var(--i) * 55ms) ease-in both;
-}
-@keyframes pairs-confetti-fall {
-  from { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-  to   { transform: translateY(50px) rotate(540deg); opacity: 0; }
-}
-
+.mg-result { margin-top: 10px; margin-bottom: 16px; }
 </style>

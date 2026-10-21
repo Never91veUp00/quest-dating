@@ -27,29 +27,36 @@
         <div class="task__puzzle__progress-bar">
           <div class="task__puzzle__progress-fill" :style="{ width: progress + '%' }"></div>
         </div>
-        <span class="task__puzzle__progress-txt">{{ placed }}/{{ totalPieces }} собрано</span>
+        <span class="task__puzzle__progress-txt"><b>{{ placed }}</b> из {{ totalPieces }}</span>
       </div>
 
+      <div class="mg-board">
+      <QuestMark v-if="finale >= 3" :decor="theme.world?.decor ?? null" kind="right" />
+      <!-- Финал: куски расходятся и схлопываются (1), снимок становится цельным (2), ложится отпечатком в рамку мира (3) -->
       <div
         class="task__puzzle__board"
-        :class="{ 'task__puzzle__board--complete': complete }"
+        :class="{
+          'task__puzzle__board--fuse':   finale === 1,
+          'task__puzzle__board--whole':  finale >= 2,
+          'task__puzzle__board--framed': finale >= 3,
+        }"
         :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
       >
-        <div
-          v-for="slot in slots" :key="'s'+slot.i"
-          class="task__puzzle__slot"
-          :class="{
-            correct:  slot.pieceIdx === slot.i,
-            selected: selectedSlot === slot.i,
-          }"
-          :style="slotStyle(slot)"
-          @click="onTap(slot.i)"
-        ></div>
+        <template v-if="finale < 2">
+          <div
+            v-for="slot in slots" :key="'s'+slot.i"
+            class="task__puzzle__slot"
+            :class="{
+              correct:  slot.pieceIdx === slot.i,
+              selected: selectedSlot === slot.i,
+              landed:   landed.includes(slot.i),
+            }"
+            :style="{ ...slotStyle(slot), ...fuseStyle(slot) }"
+            @click="onTap(slot.i)"
+          ></div>
+        </template>
+        <img v-else :src="task.puzzle_image" class="task__puzzle__whole" alt="Собранная фотография" />
       </div>
-
-      <!-- CSS-конфетти при завершении -->
-      <div v-if="complete" class="task__puzzle__confetti" aria-hidden="true">
-        <span v-for="i in 16" :key="i" class="task__puzzle__confetti__p" :style="`--i:${i}`"></span>
       </div>
 
       <div v-if="!complete" class="task__puzzle__tip">
@@ -57,21 +64,24 @@
         <template v-else>Тапни куда поставить</template>
       </div>
 
-      <button v-if="!complete" class="task__puzzle__skip" @click="$emit('skip-task', task)">
+      <button v-if="!complete" class="mg-skip" @click="$emit('skip-task', task)">
         Не получается? Пропустить
       </button>
 
-      <div v-if="complete" class="task__quiz-result task__quiz-result--right">Пазл собран</div>
-      <button v-if="complete" class="task__action" @click="$emit('complete', task)">
-        Идти дальше
-      </button>
+      <template v-if="finale >= 3">
+        <p class="mg-result task__puzzle__after" role="status">Пазл собран</p>
+        <button class="task__action task__puzzle__after task__puzzle__after--late" @click="$emit('complete', task)">
+          Идти дальше
+        </button>
+      </template>
     </template>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import QuestMark from '../../QuestMark.vue'
 
 const props = defineProps({
   task:  { type: Object, required: true },
@@ -84,9 +94,18 @@ const previewCountdown = ref(4)
 const slots            = ref([])
 const selectedSlot     = ref(null)
 const imgNaturalRatio  = ref(null)
+const landed           = ref([]) // куски, только что вставшие на место: короткая вспышка рамки
 
 let previewTimer = null
 let shuffleTimer = null
+const landTimers = new Set()
+
+// Финал сборки — только показ, логика «собрано» не меняется.
+// 0 — игра, 1 — схлопывание, 2 — цельный снимок, 3 — отпечаток в рамке мира
+const finale = ref(0)
+const FUSE_MS  = 760   // разлёт и схлопывание с волной от краёв к центру
+const FRAME_MS = 920   // снимок поднимается и ложится в рамку
+const finaleTimers = []
 
 onMounted(() => {
   if (props.task.puzzle_image) {
@@ -100,6 +119,8 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(previewTimer)
   clearTimeout(shuffleTimer)
+  landTimers.forEach(clearTimeout)
+  finaleTimers.forEach(clearTimeout)
 })
 
 const startPreview = () => {
@@ -161,6 +182,28 @@ const complete = computed(() =>
   totalPieces.value > 0 && placed.value === totalPieces.value
 )
 
+watch(complete, (done) => {
+  if (!done || finale.value) return
+  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  if (reduced) { finale.value = 3; return }
+  finale.value = 1
+  finaleTimers.push(setTimeout(() => { finale.value = 2 }, FUSE_MS))
+  finaleTimers.push(setTimeout(() => { finale.value = 3 }, FRAME_MS))
+})
+
+// Направление и очередь куска при схлопывании: смещение от центра доски,
+// крайние куски начинают первыми — картинка стягивается к середине
+const fuseStyle = (slot) => {
+  if (finale.value !== 1) return {}
+  const c  = slot.i % cols.value
+  const r  = Math.floor(slot.i / cols.value)
+  const dx = c - (cols.value - 1) / 2
+  const dy = r - (rows.value - 1) / 2
+  const ring    = Math.max(Math.abs(dx), Math.abs(dy))
+  const maxRing = Math.max((cols.value - 1) / 2, (rows.value - 1) / 2)
+  return { '--dx': dx, '--dy': dy, '--fuse-delay': `${Math.round((maxRing - ring) * 55)}ms` }
+}
+
 const slotAspect = computed(() => {
   if (!imgNaturalRatio.value) return 1
   return imgNaturalRatio.value * rows.value / cols.value
@@ -197,64 +240,178 @@ const onTap = (slotIdx) => {
   if (a.pieceIdx === a.i && b.pieceIdx === b.i && 'vibrate' in navigator) {
     navigator.vibrate(40)
   }
+  const fresh = [a, b].filter(x => x.pieceIdx === x.i).map(x => x.i)
+  if (fresh.length) {
+    landed.value = [...landed.value, ...fresh]
+    const t = setTimeout(() => {
+      landTimers.delete(t)
+      landed.value = landed.value.filter(i => !fresh.includes(i))
+    }, 650)
+    landTimers.add(t)
+  }
   selectedSlot.value = null
 }
 </script>
 
 <style scoped>
-.task__puzzle { display: flex; flex-direction: column; gap: 8px; }
+.task__puzzle { display: flex; flex-direction: column; gap: 10px; }
 
-/* ── Preview ── */
-.task__puzzle__intro { display: flex; flex-direction: column; gap: 6px; }
-.task__puzzle__intro-img-wrap { position: relative; border-radius: 10px; overflow: hidden; }
+/* ── Предпросмотр ── */
+.task__puzzle__intro { display: flex; flex-direction: column; gap: 8px; }
+.task__puzzle__intro-img-wrap { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid var(--rule); }
 .task__puzzle__intro-img {
-  width: 100%; display: block; aspect-ratio: 16/9; max-height: 35vh; object-fit: cover;
+  width: 100%; display: block; aspect-ratio: 16/9; max-height: 40vh; object-fit: cover;
 }
 .task__puzzle__preview-timer {
-  position: absolute; top: 8px; right: 10px;
-  width: 26px; height: 26px; border-radius: 50%;
-  background: color-mix(in srgb, var(--rule) 60%, transparent); border: 1.5px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
-  display: flex; align-items: center; justify-content: center;
-  color: var(--paper); font-size: .8rem; font-weight: 700;
+  position: absolute; top: 10px; right: 10px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid var(--rule);
+  display: grid; place-items: center;
+  font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.1rem; line-height: 1;
 }
 .task__puzzle__preview-caption {
-  text-align: center; font-size: .78rem; font-weight: 600;
-  color: var(--ink-soft); letter-spacing: .04em;
+  text-align: center;
+  font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.05rem;
+  color: var(--ink);
 }
 
-/* ── Progress ── */
-.task__puzzle__progress { display: flex; align-items: center; gap: 8px; }
+/* ── Сколько собрано ── */
+.task__puzzle__progress { display: flex; align-items: center; gap: 10px; }
 .task__puzzle__progress-bar {
-  flex: 1; height: 3px; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border-radius: 3px; overflow: hidden;
+  flex: 1; height: 4px; border-radius: 2px; overflow: hidden;
+  background: color-mix(in srgb, var(--ink) 14%, var(--paper));
 }
 .task__puzzle__progress-fill {
-  height: 100%; background: var(--action); border-radius: 3px;
-  transition: width .3s ease;
+  height: 100%; background: var(--chip);
+  transition: width .3s cubic-bezier(.2, .7, .2, 1);
 }
-.task__puzzle__progress-txt { font-size: .68rem; color: var(--ink-soft); white-space: nowrap; }
+.task__puzzle__progress-txt { font-size: .85rem; color: var(--ink-soft); white-space: nowrap; }
+.task__puzzle__progress-txt b { font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.05rem; color: var(--ink); }
 
-/* ── Board ── */
+/* ── Доска ── */
+.mg-board { width: 100%; max-width: min(100%, 460px); margin-inline: auto; }
 .task__puzzle__board {
-  display: grid; gap: 2px; width: 100%; border-radius: 8px;
-  overflow: hidden; background: color-mix(in srgb, var(--paper) 86%, var(--ink)); touch-action: manipulation;
-  max-width: min(100%, 420px); margin: 0 auto;
+  position: relative;
+  display: grid; gap: 2px; width: 100%;
+  max-width: min(100%, 460px); margin: 0 auto;
   padding: 2px;
-  transition: gap .4s ease, box-shadow .4s ease;
+  border-radius: 4px;
+  background: var(--rule);
+  touch-action: manipulation;
+  transition:
+    gap .22s cubic-bezier(.5, 0, .75, 0) .38s,
+    padding .45s cubic-bezier(.2, .7, .2, 1),
+    background-color .3s ease,
+    box-shadow .45s ease;
 }
-.task__puzzle__board--complete {
-  gap: 0;
-  box-shadow: 0 0 0 2px var(--action), 0 0 28px color-mix(in srgb, var(--action) 40%, transparent);
-  animation: board-celebrate .6s ease;
+
+/* ── Финал сборки ── */
+/* 1. Куски на миг расходятся от центра и схлопываются обратно; швы закрываются к удару */
+.task__puzzle__board--fuse { gap: 0; padding: 0; background-color: transparent; }
+.task__puzzle__board--fuse .task__puzzle__slot.landed::after { display: none; }
+.task__puzzle__board--fuse .task__puzzle__slot {
+  pointer-events: none;
+  animation: piece-fuse .56s var(--fuse-delay, 0ms) both;
 }
-@keyframes board-celebrate {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.03); }
-  70%  { transform: scale(.99); }
-  100% { transform: scale(1); }
+@keyframes piece-fuse {
+  0%   { transform: none; box-shadow: none; animation-timing-function: cubic-bezier(.2, .7, .3, 1); }
+  42%  { transform: translate(calc(var(--dx) * 7px), calc(var(--dy) * 7px)) scale(.94); box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 80%, transparent); animation-timing-function: cubic-bezier(.6, 0, .9, .4); }
+  100% { transform: none; box-shadow: none; }
+}
+/* 2. Снимок цельный: один кадр вместо кусков, доска коротко «садится» от удара */
+.task__puzzle__board--whole { gap: 0; padding: 0; background-color: transparent; }
+.task__puzzle__whole {
+  grid-column: 1 / -1;
+  display: block; width: 100%; height: auto;
+  border-radius: 2px;
+}
+.task__puzzle__board--whole:not(.task__puzzle__board--framed) { animation: board-thud .16s ease-out both; }
+@keyframes board-thud {
+  0%   { transform: translateY(0); }
+  45%  { transform: translateY(2px) scale(.992); }
+  100% { transform: none; }
+}
+/* 3. Отпечаток: снимок поднимается и ложится в рамку — бумажное паспарту и тень */
+.task__puzzle__board--framed {
+  padding: 10px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, var(--paper)), 0 18px 26px -16px color-mix(in srgb, var(--rule) 75%, transparent);
+  animation: board-print .62s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes board-print {
+  0%   { transform: none; }
+  40%  { transform: translateY(-6px) scale(1.025); }
+  100% { transform: none; }
+}
+/* надпись и кнопка поднимаются, когда отпечаток лёг */
+.task__puzzle__after { animation: puzzle-after .4s cubic-bezier(.2, .7, .2, 1) .35s both; }
+.task__puzzle__after--late { animation-delay: .5s; }
+@keyframes puzzle-after { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Рамка отпечатка — предмет мира */
+.mgw--casefile .task__puzzle__board--framed { border-radius: 2px; }
+.mgw--casefile .task__puzzle__board--framed::before,
+.mgw--casefile .task__puzzle__board--framed::after {
+  content: ""; position: absolute; top: -9px;
+  width: 64px; height: 20px;
+  background: color-mix(in srgb, var(--paper-edge) 75%, transparent);
+  animation: tape-on .3s cubic-bezier(.2, .7, .2, 1) .45s both;
+}
+.mgw--casefile .task__puzzle__board--framed::before { left: -12px; transform: rotate(-32deg); }
+.mgw--casefile .task__puzzle__board--framed::after  { right: -12px; transform: rotate(32deg); }
+@keyframes tape-on { from { opacity: 0; } to { opacity: 1; } }
+
+.mgw--letters .task__puzzle__board--framed { padding: 12px; border-radius: 3px; outline: 1.5px dashed color-mix(in srgb, var(--chip) 75%, var(--paper)); outline-offset: -6px; }
+
+.mgw--metro .task__puzzle__board--framed {
+  padding: 18px 10px 10px; border-radius: 6px;
+  box-shadow: inset 0 8px 0 var(--chip), 0 18px 26px -16px color-mix(in srgb, var(--rule) 60%, transparent);
+}
+
+.mgw--tarot .task__puzzle__board--framed {
+  padding: 14px; border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 4px var(--paper), inset 0 0 0 5.5px var(--chip),
+    inset 0 0 0 8px var(--paper), inset 0 0 0 9px color-mix(in srgb, var(--ink) 40%, var(--paper)),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+
+.mgw--map .task__puzzle__board--framed {
+  border-radius: 3px 10px 4px 12px / 10px 4px 12px 3px;
+  background: color-mix(in srgb, var(--paper-edge) 55%, var(--paper));
+  animation-name: board-print-map;
+  transform: rotate(-.8deg);
+}
+@keyframes board-print-map {
+  0%   { transform: none; }
+  40%  { transform: translateY(-6px) scale(1.025); }
+  100% { transform: rotate(-.8deg); }
+}
+
+.mgw--ringbox .task__puzzle__board--framed { padding: 12px; border-radius: 14px; outline: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper)); outline-offset: -6px; }
+
+.mgw--potion .task__puzzle__board--framed {
+  box-shadow: none;
+  border-radius: 0;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  background: linear-gradient(var(--paper), var(--paper)) padding-box, var(--rule);
+  border: 3px solid transparent;
+}
+
+.mgw--diecut .task__puzzle__board--framed {
+  box-shadow: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 10px, var(--paper) 10.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 10px, var(--paper) 10.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 10px, var(--paper) 10.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 10px, var(--paper) 10.5px) bottom right / 51% 51% no-repeat;
+  filter: drop-shadow(0 12px 12px color-mix(in srgb, var(--rule) 80%, transparent));
 }
 
 .task__puzzle__board--shuffling .task__puzzle__slot {
-  animation: piece-shuffle 0.5s cubic-bezier(.16, 1, .3, 1) both;
+  animation: piece-shuffle .5s cubic-bezier(.16, 1, .3, 1) both;
   animation-delay: calc(var(--slot-i, 0) * 18ms);
 }
 @keyframes piece-shuffle {
@@ -263,74 +420,43 @@ const onTap = (slotIdx) => {
 }
 
 .task__puzzle__slot {
-  cursor: pointer; border-radius: 1px;
-  transition: transform .12s, box-shadow .12s;
+  position: relative;
+  cursor: pointer;
   background-color: var(--ink-soft);
   background-repeat: no-repeat;
   user-select: none; -webkit-user-select: none;
+  transition: transform .14s cubic-bezier(.2, .7, .2, 1);
 }
-.task__puzzle__slot:active { transform: scale(.94); }
-.task__puzzle__slot:not([style*="url"]) {
-  border: 1px dashed color-mix(in srgb, var(--ink) 30%, var(--paper));
-}
+.task__puzzle__slot:active { transform: scale(.95); }
+/* выбран: кусок приподнят и обведён краской мира — видно, что он «в руке» */
 .task__puzzle__slot.selected {
-  box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 12px color-mix(in srgb, var(--ink) 30%, var(--paper));
   z-index: 2;
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--mi-sel, var(--chip)), 0 10px 16px -6px color-mix(in srgb, var(--rule) 80%, transparent);
 }
-.task__puzzle__slot.correct {
-  box-shadow: inset 0 0 0 2px var(--ink);
-  cursor: default; pointer-events: none;
+.task__puzzle__slot.correct { cursor: default; pointer-events: none; }
+/* только что встал на место: короткая рамка тает */
+.task__puzzle__slot.landed::after {
+  content: ""; position: absolute; inset: 0;
+  box-shadow: inset 0 0 0 3px var(--paper);
+  animation: piece-landed .65s ease-out both;
 }
-.task__puzzle__board--complete .task__puzzle__slot {
-  box-shadow: none; cursor: default; pointer-events: none;
-}
+@keyframes piece-landed { from { opacity: 1; } to { opacity: 0; } }
 
-/* ── CSS Confetti ── */
-.task__puzzle__confetti {
-  position: relative; height: 40px; overflow: hidden; pointer-events: none;
-}
-.task__puzzle__confetti__p {
-  position: absolute;
-  left: calc(var(--i) * 6.25%);
-  top: 0;
-  width: 7px; height: 10px;
-  border-radius: 2px;
-  background: hsl(calc(var(--i) * 22deg), 80%, 65%);
-  animation: confetti-fall .9s calc(var(--i) * 55ms) ease-in both;
-}
-@keyframes confetti-fall {
-  from { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-  to   { transform: translateY(50px) rotate(540deg); opacity: 0; }
-}
-
-/* ── Tip / skip / result ── */
+/* ── Подсказка / итог ── */
 .task__puzzle__tip {
-  text-align: center; font-size: .75rem;
-  color: var(--ink-soft); padding: 2px; min-height: 1.3em;
+  text-align: center; font-size: .85rem;
+  color: var(--ink-soft); min-height: 1.4em;
 }
-.task__puzzle__skip {
-  display: block; margin: 2px auto 0; background: none; border: none;
-  color: var(--ink-soft); font-size: .7rem; cursor: pointer;
-  transition: color .2s; padding: 4px 12px;
-  text-decoration: underline; text-underline-offset: 3px;
-}
-.task__puzzle__skip:hover { color: var(--ink-soft); }
-.task__quiz-result {
-  text-align: center; font-size: .88rem; padding: 6px; border-radius: 8px; font-weight: 600;
-}
-.task__quiz-result--right { color: var(--ink); background: color-mix(in srgb, var(--done) 40%, var(--paper)); }
 
-.task__action {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; min-height: 48px;
-  background: transparent; border: 1.5px solid var(--action);
-  border-radius: 14px; color: var(--action);
-  font-size: .92rem; font-weight: 700; cursor: pointer;
-  text-shadow: 0 0 6px color-mix(in srgb, var(--action) 50%, transparent);
-  transition: all .2s ease;
+@media (prefers-reduced-motion: reduce) {
+  .task__puzzle__slot.selected,
+  .task__puzzle__slot:active { transform: none; }
+  .task__puzzle__slot.landed::after { animation: none; opacity: 0; }
+  .task__puzzle__board--shuffling .task__puzzle__slot { animation: none; }
+  .task__puzzle__board--framed,
+  .task__puzzle__board--whole,
+  .task__puzzle__after { animation: none; }
+  .mgw--map .task__puzzle__board--framed { transform: rotate(-.8deg); }
 }
-.task__action:hover {
-  background: var(--action); color: var(--action-ink); text-shadow: none;
-}
-@media (max-width: 480px) { .task__puzzle__board { gap: 1px; } }
 </style>

@@ -348,21 +348,6 @@
   background: rgba(102,126,234,.18); border-color: #667eea; color: #667eea;
 }
 
-/* ── Text pairs editor ─────────────────────────────────────────── */
-.qe-text-pairs { display: flex; flex-direction: column; gap: 8px; }
-.qe-text-pairs__header {
-  display: grid; grid-template-columns: 1fr 1fr 28px;
-  gap: 8px; font-size: .7rem; color: rgba(255,255,255,.4);
-  text-transform: uppercase; letter-spacing: .06em; padding: 0 2px;
-}
-.qe-text-pairs__row { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 8px; align-items: center; }
-.qe-text-pairs__rm {
-  width: 28px; height: 28px; border-radius: 6px;
-  background: rgba(229,62,62,.15); border: 1px solid rgba(229,62,62,.3);
-  color: #e53e3e; font-size: .75rem; cursor: pointer; flex-shrink: 0;
-}
-.qe-text-pairs__rm:hover { background: rgba(229,62,62,.3); }
-
 /* ── Media upload ─────────────────────────────────────────────── */
 .qe-media-drop {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
