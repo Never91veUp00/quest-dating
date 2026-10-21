@@ -579,7 +579,7 @@ const chipStyle = computed(() => {
   background: var(--paper);
   box-shadow:
     inset -3px -3px 0 color-mix(in srgb, var(--paper-edge) 90%, var(--rule)),
-    inset 3px 3px 0 #fffdf8,
+    inset 3px 3px 0 color-mix(in srgb, var(--paper) 40%, white),
     0 5px 6px -3px color-mix(in srgb, var(--rule) 60%, transparent);
 }
 

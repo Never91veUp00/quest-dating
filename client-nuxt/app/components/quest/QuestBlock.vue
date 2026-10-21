@@ -668,6 +668,8 @@ const finishLabel = computed(() => ({
   cursor: pointer;
 }
 .block__sheet-close:focus-visible { outline: 3px solid var(--plate); outline-offset: 2px; }
+/* в футляре крышка светлая, как поле: фокус — чернилами */
+.block--ringbox .block__sheet-close:focus-visible { outline-color: var(--focus); }
 
 /* ── Движение ─────────────────────────────────────────────────── */
 .card-enter-active { transition: transform .45s cubic-bezier(.16, 1, .3, 1), opacity .25s ease-out; }
