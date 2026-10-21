@@ -135,11 +135,13 @@
 
     <!-- Достижение-тост -->
     <transition name="pop">
-      <div v-if="badge" class="qp-badge">
-        <span class="qp-badge__ico" aria-hidden="true"><QuestIcon name="check" :size="20" /></span>
-        <div>
-          <div class="qp-badge__title">{{ badge.title }}</div>
-          <div class="qp-badge__sub">{{ badge.sub }}</div>
+      <div v-if="badge" class="qp-badge" role="status">
+        <div class="qp-badge__row">
+          <span class="qp-badge__ico" aria-hidden="true"><QuestIcon name="check" :size="18" /></span>
+          <div class="qp-badge__text">
+            <div class="qp-badge__title">{{ badge.title }}</div>
+            <div v-if="badge.sub" class="qp-badge__sub">{{ badge.sub }}</div>
+          </div>
         </div>
       </div>
     </transition>
@@ -611,10 +613,14 @@ onUnmounted(() => {
 .qp-hud__dropdown-item:hover { background: color-mix(in srgb, var(--paper-edge) 35%, var(--paper)); }
 /* Запас снизу: прилипшая кнопка-глагол не закрывает конец карточки */
 .qp-main { flex: 1; padding: 16px 16px calc(88px + var(--kb, 0px)); max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
-.qp-badge { position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 300; background: var(--paper); color: var(--ink); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; min-width: 210px; max-width: 320px; box-shadow: 0 16px 24px -12px color-mix(in srgb, var(--rule) 75%, transparent); }
-.qp-badge__ico { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: var(--action); color: var(--action-ink); }
-.qp-badge__title { font-family: var(--font-d); font-size: 1rem; color: var(--ink); }
-.qp-badge__sub { font-family: var(--font-b); font-size: .9rem; color: var(--ink-soft); margin-top: 2px; }
+/* Тост ложится поверх шапки и не опускается ниже неё: полоса участка и доска в момент хода остаются видны */
+.qp-badge { position: fixed; top: 0; left: 0; right: 0; height: 62px; z-index: 300; pointer-events: none; background: var(--paper); color: var(--ink); border-bottom: 2px solid var(--paper-edge); box-shadow: 0 10px 18px -12px color-mix(in srgb, var(--rule) 75%, transparent); }
+.qp-badge__row { display: flex; align-items: center; gap: 12px; height: 100%; max-width: 600px; margin: 0 auto; padding: 0 16px; }
+.qp-badge__ico { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: var(--action); color: var(--action-ink); }
+.qp-badge__text { min-width: 0; }
+.qp-badge__title, .qp-badge__sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qp-badge__title { font-family: var(--font-d); font-size: 1rem; line-height: 1.25; color: var(--ink); }
+.qp-badge__sub { font-family: var(--font-b); font-size: .875rem; line-height: 1.3; color: var(--ink-soft); }
 .qp-confirm-overlay { position: fixed; inset: 0; z-index: 500; background: color-mix(in srgb, var(--rule) 60%, transparent); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .qp-confirm { background: var(--paper); color: var(--ink); border-radius: 12px; padding: 26px 22px 22px; max-width: 340px; width: 100%; box-shadow: 0 20px 30px -16px color-mix(in srgb, var(--rule) 80%, transparent); }
 .qp-confirm__title { font-family: var(--font-d); font-size: 1.35rem; color: var(--ink); margin-bottom: 8px; }
@@ -643,7 +649,8 @@ onUnmounted(() => {
 .fade-leave-to { opacity: 0; }
 .pop-enter-active { transition: opacity .28s ease, transform .28s ease; }
 .pop-leave-active { transition: opacity .2s ease; }
-.pop-enter-from { opacity: 0; transform: translateY(-10px); }
+.pop-enter-from { opacity: 0; transform: translateY(-100%); }
+@media (prefers-reduced-motion: reduce) { .pop-enter-from { transform: none; } }
 .pop-leave-to { opacity: 0; }
 .qp-menu-sheet { display: none; }
 @media (max-width: 480px) {
