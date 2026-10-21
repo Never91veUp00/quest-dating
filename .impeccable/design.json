@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-21T00:00:00.000Z",
+  "generatedAt": "2026-10-21T12:00:00.000Z",
   "title": "Design System: Quest Dating",
   "extensions": {
-    "scope": "Плеер квеста /quest/[slug]. Свой мир у трёх тем: detective (decor: casefile), romantic (decor: letters, «Переписка») и city (decor: metro, «Схема метро с талоном»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город». Остальные три темы (mystery, treasure, proposal) идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
+    "scope": "Плеер квеста /quest/[slug]. Свой мир у четырёх тем: detective (decor: casefile), romantic (decor: letters, «Переписка»), city (decor: metro, «Схема метро с талоном») и mystery (decor: tarot, «Колода»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город», с префиксом mystery- — «Мистика». Остальные две темы (treasure, proposal) идут на основе через worldVars() со старыми цветами и системой не являются. Публичные страницы не переведены, токенов для них нет.",
     "tokenSource": {
       "file": "client-nuxt/app/components/quest/themes.js",
-      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Если у темы нет блока world, worldVars() выводит цвета из bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b."
+      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Если у темы нет блока world, worldVars() выводит цвета из bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b. Язык темы — theme.copy: blockPrefix, blockForms, pointsForms и необязательные cellForms (формы «клетка» для 1/2/5), cellsDone (факт финала), blockDone и allDone (конец участка и всех участков), nextBtn (кнопка конца участка), finishShare (кнопка «Поделиться» финала); без них компоненты берут нейтральные слова основы. roman(n) даёт римский номер карты для decor: tarot."
     },
     "colorMeta": {
       "field": {
@@ -620,6 +620,176 @@
           "#feb3a6",
           "#ffe9e5"
         ]
+      },
+      "mystery-field": {
+        "role": "neutral",
+        "displayName": "Сукно",
+        "canonical": "#18231d",
+        "cssVar": "--field",
+        "oklch": "oklch(24.3% 0.019 160.7)",
+        "tonalRamp": [
+          "#050e08",
+          "#1d2822",
+          "#39453f",
+          "#58655e",
+          "#79867e",
+          "#9ba9a1",
+          "#bfcdc5",
+          "#e4f3ea"
+        ]
+      },
+      "mystery-field-ink": {
+        "role": "neutral",
+        "displayName": "Мел",
+        "canonical": "#ece3cf",
+        "cssVar": "--field-ink",
+        "oklch": "oklch(91.8% 0.028 86.6)",
+        "tonalRamp": [
+          "#100a01",
+          "#2b2415",
+          "#494131",
+          "#68604f",
+          "#8a826f",
+          "#ada491",
+          "#d1c8b5",
+          "#f7eeda"
+        ]
+      },
+      "mystery-field-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённый мел",
+        "canonical": "#b3ae9c",
+        "cssVar": "--field-ink-soft",
+        "oklch": "oklch(75.0% 0.026 94.1)",
+        "tonalRamp": [
+          "#0f0b01",
+          "#292516",
+          "#464232",
+          "#666151",
+          "#878271",
+          "#aaa593",
+          "#cec9b7",
+          "#f4efdc"
+        ]
+      },
+      "mystery-paper": {
+        "role": "neutral",
+        "displayName": "Слоновая бумага",
+        "canonical": "#f2ead8",
+        "cssVar": "--paper",
+        "oklch": "oklch(93.9% 0.025 86.9)",
+        "tonalRamp": [
+          "#100a01",
+          "#2a2417",
+          "#484133",
+          "#676151",
+          "#898271",
+          "#aca493",
+          "#d0c8b7",
+          "#f6eedc"
+        ]
+      },
+      "mystery-paper-edge": {
+        "role": "neutral",
+        "displayName": "Срез колоды",
+        "canonical": "#d8ccb0",
+        "cssVar": "--paper-edge",
+        "oklch": "oklch(84.8% 0.040 87.6)",
+        "tonalRamp": [
+          "#110a00",
+          "#2d240c",
+          "#4b4129",
+          "#6b6047",
+          "#8c8167",
+          "#b0a489",
+          "#d4c8ac",
+          "#faeed1"
+        ]
+      },
+      "mystery-ink": {
+        "role": "neutral",
+        "displayName": "Чернила гравюры",
+        "canonical": "#221d18",
+        "cssVar": "--ink",
+        "oklch": "oklch(23.5% 0.012 67.2)",
+        "tonalRamp": [
+          "#0f0a06",
+          "#29241f",
+          "#47413b",
+          "#66605a",
+          "#87817b",
+          "#aaa49d",
+          "#cfc8c1",
+          "#f4ede6"
+        ]
+      },
+      "mystery-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённые чернила",
+        "canonical": "#5a5147",
+        "cssVar": "--ink-soft",
+        "oklch": "oklch(44.1% 0.020 70.2)",
+        "tonalRamp": [
+          "#110a03",
+          "#2b231b",
+          "#494037",
+          "#695f55",
+          "#8a8176",
+          "#ada398",
+          "#d2c7bc",
+          "#f7ede1"
+        ]
+      },
+      "mystery-chip": {
+        "role": "primary",
+        "displayName": "Киноварь",
+        "canonical": "#a8321f",
+        "cssVar": "--chip",
+        "oklch": "oklch(49.3% 0.157 31.8)",
+        "tonalRamp": [
+          "#1d0100",
+          "#4a0600",
+          "#7d1100",
+          "#a8321f",
+          "#cf5742",
+          "#f77b64",
+          "#ffb4a4",
+          "#ffe9e4"
+        ]
+      },
+      "mystery-wrong": {
+        "role": "secondary",
+        "displayName": "Тёмная киноварь ошибки",
+        "canonical": "#9b2f1f",
+        "cssVar": "--wrong",
+        "oklch": "oklch(46.7% 0.146 31.3)",
+        "tonalRamp": [
+          "#1e0100",
+          "#4b0500",
+          "#7c1203",
+          "#a43727",
+          "#cb5b48",
+          "#f27f6a",
+          "#feb4a5",
+          "#ffe9e4"
+        ]
+      },
+      "mystery-rule": {
+        "role": "neutral",
+        "displayName": "Тень сукна",
+        "canonical": "#0d1410",
+        "cssVar": "--rule",
+        "oklch": "oklch(18.2% 0.013 159.7)",
+        "tonalRamp": [
+          "#070d09",
+          "#202723",
+          "#3c443f",
+          "#5b645e",
+          "#7c857f",
+          "#9ea8a2",
+          "#c2ccc6",
+          "#e7f1eb"
+        ]
       }
     },
     "typographyMeta": {
@@ -686,11 +856,31 @@
       "city-body": {
         "displayName": "Город: Body",
         "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи."
+      },
+      "mystery-display": {
+        "displayName": "Мистика: Display",
+        "purpose": "Old Standard TT 700: название квеста на сводке, на бандероли (clamp(1.4rem, 9cqi, 2.3rem)) и заголовок финала «Ваш расклад»."
+      },
+      "mystery-headline": {
+        "displayName": "Мистика: Headline",
+        "purpose": "Old Standard TT 400: название участка на развёрнутой доске."
+      },
+      "mystery-title": {
+        "displayName": "Мистика: Title",
+        "purpose": "Old Standard TT 700: название задания на карте, заголовок «Перед стартом», кнопки-глаголы, очки в шапке и счётчик полосы (через --font-d-wt: 700)."
+      },
+      "mystery-numeral": {
+        "displayName": "Мистика: Numeral",
+        "purpose": "Old Standard TT 700: римский номер карты — на карте задания (1.35rem, 0.03em) и на открытой карте трассы (1.55rem, 0.02em). Прочие числа арабские."
+      },
+      "mystery-body": {
+        "displayName": "Мистика: Body",
+        "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи, «Кому:»."
       }
     },
     "fontLoading": {
-      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у detective, romantic и city.",
-      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница).",
+      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у detective, romantic, city и mystery.",
+      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница); Old Standard TT 400 и 700 (кириллица, расширенная кириллица, латиница).",
       "status": "Темы без своего мира по-прежнему грузят свои шрифты с Google Fonts (theme.fonts.googleFonts)."
     },
     "shadows": [
@@ -763,6 +953,31 @@
         "name": "punch-hole",
         "value": "inset 0 1px 1px color-mix(in srgb, var(--rule) 45%, transparent)",
         "purpose": "Дырочка компостера в станции; на талоне финала — inset 0 2px 2px 55% и ободок 0 0 0 1px (--paper-edge 80% с --ink)."
+      },
+      {
+        "name": "tarot-card",
+        "value": "0 0 0 1px color-mix(in srgb, var(--rule) 50%, transparent), 0 2px 0 var(--paper-edge), 0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent)",
+        "purpose": "Карта задания, конец расклада, последняя карта финала (колода); «Перед стартом» — 0 16px 24px -16px."
+      },
+      {
+        "name": "tarot-cell",
+        "value": "0 0 0 1px color-mix(in srgb, var(--rule) 60%, transparent), 0 9px 12px -7px color-mix(in srgb, var(--rule) 90%, transparent)",
+        "purpose": "Карта на столе (клетка в колоде); в веере финала — 0 10px 14px -8px 95% с внутренней рамкой."
+      },
+      {
+        "name": "deck",
+        "value": "inset 0 0 0 9px var(--back), inset 0 0 0 11px var(--paper), 0 3px 0 var(--paper-edge), 0 6px 0 var(--paper), 0 9px 0 var(--paper-edge), 0 12px 0 var(--paper), 0 30px 36px -18px color-mix(in srgb, var(--rule) 95%, transparent)",
+        "purpose": "Колода-крышка: полосы снизу — срез колоды (слои карт), inset — рамка по обрезу рубашки."
+      },
+      {
+        "name": "band",
+        "value": "0 6px 10px -6px color-mix(in srgb, var(--rule) 80%, transparent)",
+        "purpose": "Бумажная бандероль поперёк колоды; плюс inset-линии 1px чернил 45% в 5px от кромок."
+      },
+      {
+        "name": "tarot-chip",
+        "value": "0 5px 7px -3px color-mix(in srgb, var(--rule) 80%, transparent)",
+        "purpose": "Киноварный ромб-фишка над открытой картой."
       }
     ],
     "motion": [
@@ -820,6 +1035,26 @@
         "name": "turnstile",
         "value": "translateY(-36px) .3s cubic-bezier(.7, 0, .84, 0); крышка уезжает с задержкой .22s",
         "purpose": "Открытие крышки на схеме: проездной проходит турникет, потом поднимается крышка."
+      },
+      {
+        "name": "card-flip",
+        "value": "perspective(240px) rotateY(180deg) → 0 .56s cubic-bezier(.45, 0, .2, 1) .08s; знак проступает на середине (steps)",
+        "purpose": "Момент хода в колоде: пройденная карта переворачивается лицом со знаком."
+      },
+      {
+        "name": "card-reveal",
+        "value": "perspective(300px) rotateY(180deg) → 0 .56s cubic-bezier(.45, 0, .2, 1) .15s; на 50% рубашка сменяется лицом",
+        "purpose": "Следующая карта открывается с рубашки, проступает римский номер."
+      },
+      {
+        "name": "band-off",
+        "value": "translateX(115%) rotate(4deg), opacity 0 .38s cubic-bezier(.5, 0, .3, 1); крышка поднимается с задержкой .36s",
+        "purpose": "Открытие крышки в колоде: снимается бандероль."
+      },
+      {
+        "name": "spread-out",
+        "value": ".5s cubic-bezier(.16, 1, .3, 1), задержка 70ms × i + .15s",
+        "purpose": "Веер «Ваш расклад» на финале разлетается из стопки."
       }
     ],
     "breakpoints": [
@@ -953,11 +1188,35 @@
       "description": "Крышка «Города»: проездной с полосой линии слева, названием и «Кому:» по левому краю и маршрутом из пяти станций вдоль низа.",
       "html": "<div class=\"ds-m-lid\"><div class=\"ds-pass\"><h3 class=\"ds-pass__title\">Наш город</h3><p class=\"ds-pass__for\">Кому: <b>Аня</b></p><span class=\"ds-pass__route\"><i></i><i></i><i></i><i></i><i></i></span></div></div>",
       "css": ".ds-m-lid { --field:#e9eeea; --field-ink:#1f2422; --paper:#f5e8c6; --paper-edge:#d8c9a4; --ink:#1f2422; --ink-soft:#545c58; --plate:#fbf9f3; --chip:#1f8a4c; --rule:#1f2422; background:var(--field); padding:28px 16px; container-type:inline-size; } .ds-pass { position:relative; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; aspect-ratio:85.6/54; padding:22px 22px 58px 52px; border-radius:14px; background:var(--paper); color:var(--ink); box-shadow:inset 30px 0 0 var(--chip), 0 1px 0 var(--paper-edge), 0 22px 30px -18px color-mix(in srgb, var(--rule) 60%, transparent); } .ds-pass__title { margin:0; font-family:'Golos Text','PT Serif',Arial,sans-serif; font-weight:700; font-size:clamp(1.4rem, 8cqi, 2.4rem); line-height:1.04; } .ds-pass__for { margin:10px 0 0; font-family:'PT Serif',Georgia,serif; font-size:1.05rem; } .ds-pass__route { position:absolute; left:52px; right:26px; bottom:24px; display:flex; justify-content:space-between; align-items:center; height:16px; } .ds-pass__route::before { content:''; position:absolute; left:4px; right:4px; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--chip); } .ds-pass__route i { position:relative; box-sizing:border-box; width:16px; height:16px; border-radius:50%; background:var(--plate); border:4px solid var(--chip); }"
+    },
+    {
+      "name": "Карта задания (колода)",
+      "kind": "card",
+      "refersTo": "mystery-card",
+      "description": "Карточка задания в «Мистике»: вытянутая карта слоновой бумаги с двойной гравированной рамкой и римским номером.",
+      "html": "<div class=\"ds-t-wrap\"><article class=\"ds-tcard\"><span class=\"ds-frame\"></span><div class=\"ds-tcard__head\"><span class=\"ds-tcard__no\">II</span><h3 class=\"ds-tcard__title\">Где мы встретились</h3></div><p class=\"ds-tcard__text\">Вспомни улицу, где всё началось. Как она называется?</p><button class=\"ds-tbtn\">Проверить</button></article></div>",
+      "css": ".ds-t-wrap { --field:#18231d; --field-ink:#ece3cf; --paper:#f2ead8; --paper-edge:#d8ccb0; --ink:#221d18; --ink-soft:#5a5147; --plate:#f2ead8; --done:#f2ead8; --back:#a8321f; --chip:#a8321f; --rule:#0d1410; background:var(--field); padding:20px 16px; } .ds-tcard { position:relative; background:var(--paper); color:var(--ink); border-radius:8px; padding:28px 24px 24px; display:flex; flex-direction:column; gap:14px; box-shadow:0 0 0 1px color-mix(in srgb, var(--rule) 50%, transparent), 0 2px 0 var(--paper-edge), 0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent); } .ds-frame, .ds-frame::after { position:absolute; border-radius:4px; pointer-events:none; } .ds-frame { inset:8px; border:1.5px solid color-mix(in srgb, var(--ink) 70%, var(--paper)); } .ds-frame::after { content:''; inset:3px; border:1px solid color-mix(in srgb, var(--ink) 40%, var(--paper)); border-radius:2px; } .ds-tcard__head { display:flex; gap:12px; align-items:baseline; } .ds-tcard__no { font-family:'Old Standard TT','PT Serif',Georgia,serif; font-weight:700; font-size:1.35rem; letter-spacing:.03em; line-height:1; } .ds-tcard__title { margin:0; font-family:'Old Standard TT','PT Serif',Georgia,serif; font-weight:700; font-size:1.45rem; line-height:1.1; } .ds-tcard__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; } .ds-tbtn { position:relative; height:56px; border:none; border-radius:12px; background:var(--chip); color:var(--paper); font-family:'Old Standard TT','PT Serif',Georgia,serif; font-weight:700; font-size:1.05rem; cursor:pointer; transition:transform .15s; } .ds-tbtn:active { transform:translateY(2px); } .ds-tbtn:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }"
+    },
+    {
+      "name": "Расклад карт (колода)",
+      "kind": "track",
+      "refersTo": "mystery-card-active",
+      "description": "Трасса «Мистики»: пройденные карты перевёрнуты лицом со знаком, открытая — с римским номером и ромбом-фишкой, будущие — киноварной рубашкой.",
+      "html": "<div class=\"ds-t-track\"><span class=\"ds-t-line\"></span><span class=\"ds-tc ds-tc--done\"><svg class=\"ds-arc\" width=\"34\" height=\"34\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><circle cx=\"20\" cy=\"20\" r=\"6.5\"/><path d=\"M30.00 20.00 L36.50 20.00\"/><path d=\"M28.66 25.00 L31.69 26.75\"/><path d=\"M25.00 28.66 L28.25 34.29\"/><path d=\"M20.00 30.00 L20.00 33.50\"/><path d=\"M15.00 28.66 L11.75 34.29\"/><path d=\"M11.34 25.00 L8.31 26.75\"/><path d=\"M10.00 20.00 L3.50 20.00\"/><path d=\"M11.34 15.00 L8.31 13.25\"/><path d=\"M15.00 11.34 L11.75 5.71\"/><path d=\"M20.00 10.00 L20.00 6.50\"/><path d=\"M25.00 11.34 L28.25 5.71\"/><path d=\"M28.66 15.00 L31.69 13.25\"/></svg></span><span class=\"ds-tc ds-tc--done\"><svg class=\"ds-arc\" width=\"34\" height=\"34\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><path d=\"M25 6.5 A14 14 0 1 0 25 33.5 A11 11 0 1 1 25 6.5 Z\"/></svg></span><span class=\"ds-tc ds-tc--active\"><span class=\"ds-t-chip\"></span>III</span><span class=\"ds-tc ds-tc--back\"></span><span class=\"ds-tc ds-tc--back\"></span></div>",
+      "css": ".ds-t-track { --field:#18231d; --field-ink:#ece3cf; --paper:#f2ead8; --paper-edge:#d8ccb0; --ink:#221d18; --ink-soft:#5a5147; --plate:#f2ead8; --done:#f2ead8; --back:#a8321f; --chip:#a8321f; --rule:#0d1410; position:relative; display:flex; align-items:center; justify-content:space-between; background:var(--field); padding:64px 18px 30px; } .ds-t-line { position:absolute; left:0; right:0; top:calc(50% + 17px); border-top:1.5px dotted color-mix(in srgb, var(--field-ink) 34%, var(--field)); } .ds-tc { position:relative; display:grid; place-items:center; width:46px; height:69px; border-radius:4px; background:var(--paper); color:var(--ink); box-shadow:0 0 0 1px color-mix(in srgb, var(--rule) 60%, transparent), 0 9px 12px -7px color-mix(in srgb, var(--rule) 90%, transparent); } .ds-tc:nth-child(odd) { transform:rotate(-2deg); } .ds-tc:nth-child(even) { transform:rotate(2deg); } .ds-tc--done::before, .ds-tc--active::before { content:''; position:absolute; inset:3px; border:1px solid color-mix(in srgb, var(--ink) 55%, var(--paper)); border-radius:2px; } .ds-tc--active { width:60px; height:90px; font-family:'Old Standard TT','PT Serif',Georgia,serif; font-weight:700; font-size:1.55rem; letter-spacing:.02em; } .ds-tc--back { background:repeating-linear-gradient(45deg, transparent 0 5px, color-mix(in srgb, var(--paper) 38%, var(--back)) 5px 6px), repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, var(--paper) 38%, var(--back)) 5px 6px), var(--back); } .ds-tc--back::after { content:''; position:absolute; inset:3px; border:1.5px solid var(--paper); border-radius:2px; } .ds-t-chip { position:absolute; left:50%; top:-30px; width:16px; height:16px; margin-left:-8px; box-sizing:border-box; border-radius:2px; background:var(--chip); border:2px solid var(--paper); transform:rotate(45deg); box-shadow:0 5px 7px -3px color-mix(in srgb, var(--rule) 80%, transparent); } .ds-arc { display:block; overflow:visible; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; } "
+    },
+    {
+      "name": "Колода в бандероли (колода)",
+      "kind": "lid",
+      "refersTo": "mystery-lid-deck",
+      "description": "Крышка «Мистики»: новая колода рубашкой вверх со срезом снизу, поперёк — бумажная бандероль с названием и «Кому:».",
+      "html": "<div class=\"ds-t-lid\"><div class=\"ds-deck\"><div class=\"ds-band\"><h3 class=\"ds-band__title\">Наш расклад</h3><p class=\"ds-band__for\">Кому: <b>Аня</b></p></div></div></div>",
+      "css": ".ds-t-lid { --field:#18231d; --field-ink:#ece3cf; --paper:#f2ead8; --paper-edge:#d8ccb0; --ink:#221d18; --ink-soft:#5a5147; --plate:#f2ead8; --done:#f2ead8; --back:#a8321f; --chip:#a8321f; --rule:#0d1410; background:var(--field); padding:28px 40px 40px; container-type:inline-size; } .ds-deck { display:flex; flex-direction:column; justify-content:center; max-width:300px; margin:0 auto; aspect-ratio:5/7.4; border-radius:12px; background:repeating-linear-gradient(45deg, transparent 0 11px, color-mix(in srgb, var(--paper) 34%, var(--back)) 11px 12.5px), repeating-linear-gradient(-45deg, transparent 0 11px, color-mix(in srgb, var(--paper) 34%, var(--back)) 11px 12.5px), var(--back); box-shadow:inset 0 0 0 9px var(--back), inset 0 0 0 11px var(--paper), 0 3px 0 var(--paper-edge), 0 6px 0 var(--paper), 0 9px 0 var(--paper-edge), 0 12px 0 var(--paper), 0 30px 36px -18px color-mix(in srgb, var(--rule) 95%, transparent); } .ds-band { margin:0 -10px; padding:22px 22px 20px; text-align:center; background:var(--paper); color:var(--ink); box-shadow:inset 0 5px 0 var(--paper), inset 0 6px 0 color-mix(in srgb, var(--ink) 45%, var(--paper)), inset 0 -5px 0 var(--paper), inset 0 -6px 0 color-mix(in srgb, var(--ink) 45%, var(--paper)), 0 6px 10px -6px color-mix(in srgb, var(--rule) 80%, transparent); transition:transform .38s cubic-bezier(.5, 0, .3, 1), opacity .38s; } .ds-deck:hover .ds-band { transform:translateX(115%) rotate(4deg); opacity:0; } .ds-band__title { margin:0; font-family:'Old Standard TT','PT Serif',Georgia,serif; font-weight:700; font-size:clamp(1.4rem, 9cqi, 2.3rem); line-height:1.04; } .ds-band__for { margin:10px 0 0; font-family:'PT Serif',Georgia,serif; color:var(--ink-soft); } .ds-band__for b { color:var(--ink); }"
     }
   ],
   "narrative": {
     "northStar": "Ходилка, напечатанная для одной пары",
-    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда: свой мир сейчас у трёх тем: detective (`casefile`), romantic (`letters`) и city (`metro`). Остальные три темы (mystery, treasure, proposal) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих трёх тем системой не являются: каждая получит свой мир в своём PR. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный). Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
+    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nЧетвёртая тема «Мистика» надевает на ходилку обличье колоды на столе гадалки (`decor: 'tarot'`). Поле — зелёно-чёрное сукно, карты — слоновая бумага с гравюрой одной чёрной краской, единственная яркая краска — киноварь. Трасса — расклад: карты лежат на сукне в ряд, связанные меловым пунктиром. Будущая карта лежит рубашкой вверх (киноварная решётка), текущая открыта и несёт римский номер, пройденная перевёрнута лицом и показывает свой знак — авторскую гравюру из набора `QuestArcana` (солнце, луна, звезда, ключ, чаша, око, колесо, сердце, роза, два кольца). Момент хода — карта переворачивается. Фишка — киноварный ромб над открытой картой. Карточка задания — вытянутая карта с двойной гравированной рамкой и римским номером. Крышка — новая колода рубашкой вверх в бумажной бандероли «Кому:», бандероль снимается; финал «Ваш расклад» — веер открытых карт, по одной на пройденную клетку. В «Найди пары» рубашка карточки — та же киноварная решётка. Участок называется «Расклад», клетка — «карта». Ни звёздного неба, ни тумана, ни свечения, ни фиолета: у темы `overlay: null` и `bg_animation: null`, а колода своя, не копия Райдера — Уэйта.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. У темы с блоком `world` токены берутся оттуда: свой мир сейчас у четырёх тем: detective (`casefile`), romantic (`letters`), city (`metro`) и mystery (`tarot`). Остальные две темы (treasure, proposal) пока без своего мира, и `worldVars()` выводит те же переменные из их старых цветов (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`). Поэтому все темы идут через одну основу, а палитры этих двух тем системой не являются: каждая получит свой мир в своём PR. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный). Язык темы живёт в `copy`: кроме `blockPrefix`, `blockForms` и `pointsForms` тема может задать необязательные ключи `cellForms` (формы слова «клетка» для 1/2/5: счётчик полосы «карта N из M» и факт сводки), `cellsDone` (формы факта финала «N клеток пройдено»), `blockDone` и `allDone` (строка конца участка и конца всех участков), `nextBtn` (кнопка конца участка) и `finishShare` (кнопка «Поделиться» на финале). Без них компоненты берут нейтральные слова основы: «клетка», «клетка пройдена», «Участок пройден. Фишка ждёт у выхода.», «Все клетки пройдены.», «Идти дальше», «Поделиться результатом». Сейчас эти ключи задаёт только «Мистика». Римский номер карты даёт `roman()` из `themes.js`. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
     "keyCharacteristics": [
       "Поле — сплошная краска, без фоновых градиентов и подсветки.",
       "Одна открытая карточка на экран; будущие клетки лежат рубашкой вверх.",
@@ -966,7 +1225,8 @@
       "Иконки — авторский SVG-набор одной толщины (2.25), без эмодзи.",
       "Кнопка называется глаголом и всегда у низа экрана.",
       "В «Переписке» глубина та же, бумажная: конверты, письма и клапаны без контура; ход отмечает штемпель, а не сургуч.",
-      "На «Схеме» поле светлое, а насыщенная краска одна — зелёная линия; ход отмечает компостер, а не печать."
+      "На «Схеме» поле светлое, а насыщенная краска одна — зелёная линия; ход отмечает компостер, а не печать.",
+      "В «Колоде» поле — тёмное сукно, насыщенная краска одна — киноварь рубашек, ромба и кнопки; ход отмечает переворот карты, а не печать."
     ],
     "rules": [
       {
@@ -1043,6 +1303,26 @@
         "name": "The Generic Line Rule",
         "body": "Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального транспорта. Одна линия — одна зелёная краска.",
         "section": "colors"
+      },
+      {
+        "name": "The One Vermilion Rule",
+        "body": "Киноварь — единственная насыщенная краска стола и метит только рубашки, фишку-ромб и кнопку-глагол. Текст киноварью не набирается; ошибка — отдельная `--wrong`, фокус — чернила `--ink`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Flip Not Stamp Rule",
+        "body": "Ход в колоде отмечает переворот карты: пройденная карта поворачивается лицом и показывает свой знак, следующая открывается с рубашки, и на ней проступает римский номер. Сургучной печати, штампов, штемпеля и компостера в колоде нет нигде.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Night Sky Rule",
+        "body": "Мистика — это стол, а не небо: ни звёздного фона, ни тумана, ни свечения, ни фиолета. Звезда допустима только как гравированный знак на лице карты.",
+        "section": "colors"
+      },
+      {
+        "name": "The Roman Numeral Rule",
+        "body": "Номер карты — римский (`roman()` из `themes.js`: I, II … XXI): на открытой карте трассы и на карте задания. Всё, что игра считает помимо номера карты (очки, «Расклад N из M», «карта N из M», факты), — арабскими цифрами.",
+        "section": "typography"
       }
     ],
     "dos": [
@@ -1059,7 +1339,10 @@
       "**Do** на схеме отмечать ход компостером (три дырочки цвета поля в пройденной станции), а финал — талоном, пробитым по разу на станцию.",
       "**Do** держать зелёную линию за путём (линия, станции, полосы талона и проездного), а текст и фокус на схеме набирать чернилами.",
       "**Do** брать вес дисплейного шрифта в кнопках-глаголах, очках шапки и счётчике полосы из `--font-d-wt`, а у кнопок и полей наследовать `font-feature-settings` и `font-size-adjust` темы.",
-      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия»."
+      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия», в «Мистике» — «Расклад».",
+      "**Do** слова клетки, конца участка и кнопок финала брать из необязательных ключей `copy` (`cellForms`, `cellsDone`, `blockDone`, `allDone`, `nextBtn`, `finishShare`) с нейтральным словом основы по умолчанию, а не вписывать слово темы в компонент.",
+      "**Do** в колоде отмечать ход переворотом карты: пройденная показывает свой знак `QuestArcana`, открытая — римский номер, будущие лежат киноварной рубашкой.",
+      "**Do** набирать на киновари только слоновую бумагу, а карту-рубашку и ромб на сукне обводить бумагой."
     ],
     "donts": [
       "**Don't** писать hex в стилях компонентов плеера; новая краска появляется только как токен в `themes.js`.",
@@ -1069,14 +1352,18 @@
       "**Don't** показывать будущие клетки открытыми или подсказывать их содержание.",
       "**Don't** держать полную доску постоянно над заданием: она уводит тело задания вниз.",
       "**Don't** ставить надписи-капсом над заголовками; капс живёт только в штампе и поле кода.",
-      "**Don't** документировать или копировать палитры трёх тем без своего мира (mystery, treasure, proposal): это временная основа, а не система.",
+      "**Don't** документировать или копировать палитры двух тем без своего мира (treasure, proposal): это временная основа, а не система.",
       "**Don't** ставить сургучную печать на трассу, письма или финал переписки.",
       "**Don't** набирать рукописным Bad Script текст задания, вопрос, ответ, подсказку, кнопки или числа.",
       "**Don't** красить лентой ошибку или фоны: ошибка — `--wrong`, лента — только трасса, фишка, марка, подкладка и фокус.",
       "**Don't** набирать текст зелёной линией и красить ею фоны и кнопки: 3.6–3.7:1 мало для текста.",
       "**Don't** ставить на схему логотип, букву «М» или фирменные цвета линий реального транспорта.",
       "**Don't** переносить на светлую схему плотные тени тёмных полей (70–90% `--rule`): на схеме тени 45–60%.",
-      "**Don't** ставить на схему сургучную печать или штампы: ход отмечает только компостер."
+      "**Don't** ставить на схему сургучную печать или штампы: ход отмечает только компостер.",
+      "**Don't** ставить в колоду сургучную печать, штампы, штемпель или компостер: ход отмечает только переворот карты.",
+      "**Don't** класть на сукно звёздное небо, туман, свечение или фиолет; звезда живёт только гравированным знаком на карте.",
+      "**Don't** рисовать знаки карт эмодзи, символами шрифта или копией Райдера — Уэйта: только авторская гравюра `QuestArcana`.",
+      "**Don't** набирать текст киноварью и ставить ошибку на сукно: 2.2–2.4:1 мало, ошибка живёт на бумаге карт."
     ]
   }
 }
