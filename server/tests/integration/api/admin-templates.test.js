@@ -46,7 +46,7 @@ async function templatesCount() {
 }
 
 describe('POST /api/admin/templates/create — default_theme', () => {
-  it.each(['treasure', 'proposal'])('создаёт шаблон с темой %s', async (theme) => {
+  it.each(['treasure', 'proposal', 'potion'])('создаёт шаблон с темой %s', async (theme) => {
     const res = await auth(request(ctx.app).post('/api/admin/templates/create'))
       .send(templateBody({ default_theme: theme }))
 
