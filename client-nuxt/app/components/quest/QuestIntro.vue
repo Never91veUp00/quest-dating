@@ -274,7 +274,7 @@ onUnmounted(() => clearTimeout(timer))
   position: absolute; left: 50%; top: 2px;
   width: 50px; height: 22px; margin-left: -25px;
   border-radius: 40% 45% 50% 50% / 50% 50% 60% 60%;
-  background: color-mix(in srgb, var(--chip) 35%, #6e2618);
+  background: var(--wax);
   box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--rule) 30%, transparent);
   transition: transform .35s cubic-bezier(.3, 0, .2, 1), opacity .35s;
 }
@@ -440,6 +440,7 @@ onUnmounted(() => clearTimeout(timer))
 
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax { transition: none; }
+  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax,
+  .lid__flask :deep(.fl__cork) { transition: none; }
 }
 </style>

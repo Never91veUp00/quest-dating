@@ -85,6 +85,11 @@
             v-else-if="decor === 'potion' && cell.state === 'done'"
             :size="58" :level=".72" :fresh="cell.id === stampId"
           />
+          <!-- Пропущенный флакон: пустой, на шаре — чернильный крестик -->
+          <span v-else-if="decor === 'potion' && cell.state === 'wrong'" class="cell__skipflask">
+            <QuestFlask :size="44" />
+            <QuestIcon class="cell__skipx" name="close" :size="16" />
+          </span>
           <!-- Пройденный шаг — открытый футляр с камешком; свежий открывается на ходу -->
           <QuestRingbox
             v-else-if="decor === 'ringbox' && cell.state === 'done'"
@@ -557,13 +562,11 @@ const chipStyle = computed(() => {
   box-shadow: none;
   filter: drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 70%, transparent));
 }
-.track--potion .cell--wrong {
-  --size: 30px;
-  width: var(--size); height: var(--size);
-  border-radius: 50%;
-  border: 1.5px solid var(--rule);
-  background: var(--back);
-  color: var(--field-ink-soft);
+.cell__skipflask { position: relative; display: block; }
+.cell__skipx {
+  position: absolute; left: 50%; top: 66%;
+  transform: translate(-50%, -50%);
+  color: var(--field-ink);
 }
 /* фишка — капля зелья над текущим флаконом */
 .track--potion .track__chip {

@@ -516,6 +516,7 @@ export const THEMES = {
       actionInk:    '#fff6e8',
       actionHover:  '#86410f',
       focus:        '#1f2328',
+      wax:          '#6e3a1e',   // сургуч на пробке флакона-крышки
     },
 
     // Моушн-ролик «Как это работает» (tools/reels/potion.html → record.mjs)
@@ -630,5 +631,7 @@ const worldVars = (theme) => {
     // сургуч: без своего цвета QuestSeal берёт запасной красный
     ...(w.sealWax  && { '--seal-wax':  w.sealWax }),
     ...(w.sealDeep && { '--seal-deep': w.sealDeep }),
+    // сургуч на пробке (тема «Зельеварня»)
+    ...(w.wax && { '--wax': w.wax }),
   }
 }

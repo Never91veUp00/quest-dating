@@ -21,7 +21,11 @@
             'is-wrong':  earnedMap?.[t.id]?.wrong,
             'is-active': ti === activeIdx,
           }"
-        ></span>
+        ><QuestFlask
+          v-if="theme.world?.decor === 'potion'"
+          :size="ti === activeIdx ? 18 : 13"
+          :level="completedIds.includes(t.id) && !earnedMap?.[t.id]?.wrong ? .72 : 0"
+        /></span>
       </span>
     </button>
 
@@ -145,6 +149,7 @@ import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import QuestTask from './QuestTask.vue'
 import QuestTrack from './QuestTrack.vue'
 import QuestIcon from './QuestIcon.vue'
+import QuestFlask from './QuestFlask.vue'
 import { themeToCssVars } from './themes.js'
 
 const props = defineProps({
@@ -451,17 +456,18 @@ const finishLabel = computed(() => ({
   background: color-mix(in srgb, var(--chip) 45%, var(--paper-edge));
   box-shadow: 0 0 0 1.2px var(--rule);
 }
-.block--potion .block__mini-cell {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  border: 1.2px solid var(--rule);
-  background: color-mix(in srgb, var(--field-ink) 10%, var(--field));
+/* флакончик рисует себя сам: у клетки полосы нет плашки */
+.block--potion .block__mini-cell,
+.block--potion .block__mini-cell.is-done,
+.block--potion .block__mini-cell.is-active {
+  width: auto; height: auto;
+  border: none;
+  border-radius: 0;
+  background: none;
+  --fl-line: 1.8;
 }
-.block--potion .block__mini-cell.is-done { background: var(--chip); }
-.block--potion .block__mini-cell.is-done.is-wrong { background: color-mix(in srgb, var(--field-ink) 10%, var(--field)); }
-.block--potion .block__mini-cell.is-active { width: 20px; height: 20px; background: var(--paper); }
 .block--potion .block__mini-cell.is-active::after {
-  top: -13px; right: auto; left: 50%;
+  top: -14px; right: auto; left: 50%;
   width: 9px; height: 9px; margin-left: -4.5px;
   border: 1.2px solid var(--rule);
   border-radius: 50% 0 50% 50%;

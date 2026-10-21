@@ -245,14 +245,25 @@ const typeLabel = computed(() => ({
   pointer-events: none;
 }
 .task--potion .task__no {
+  --cut: 6px;
+  position: relative;
+  isolation: isolate;
   display: grid; place-items: center;
-  min-width: 40px; height: 30px;
-  padding: 0 6px;
-  border: 1.5px solid var(--rule);
-  border-radius: 4px;
-  background: var(--paper);
+  min-width: 42px; height: 30px;
+  padding: 0 7px;
+  background: var(--rule);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  transform: rotate(-2deg);
   font-size: 1.15rem;
   font-weight: 700;
+}
+/* бумага ярлыка — внутренний слой той же формы, контур остаётся по всем граням, включая срезы */
+.task--potion .task__no::before {
+  content: "";
+  position: absolute; inset: 1.5px;
+  z-index: -1;
+  background: var(--paper);
+  clip-path: polygon(calc(var(--cut) - .6px) 0, calc(100% - var(--cut) + .6px) 0, 100% calc(var(--cut) - .6px), 100% calc(100% - var(--cut) + .6px), calc(100% - var(--cut) + .6px) 100%, calc(var(--cut) - .6px) 100%, 0 calc(100% - var(--cut) + .6px), 0 calc(var(--cut) - .6px));
 }
 .task--potion .task__title { font-weight: 700; }
 
