@@ -75,6 +75,20 @@
 
 /* круглый штемпель «Переписки» на доске игры меньше и выше — не закрывает счёт над пазлом */
 .mgw .mg-board > .mark--letters { top: -34px; scale: .8; transform-origin: top right; }
+/* у досок со строками сверху (слово, хронология) круглому штемпелю нужен запас, иначе он ложится на первую строку */
+.mgw--letters .word__slots,
+.mgw--letters .tl__list { padding-top: 40px; }
+
+/* вопрос или условие над доской игры */
+.mgw .mg-prompt {
+  margin: 2px 0 0;
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: 1.12rem;
+  line-height: 1.35;
+  color: var(--ink);
+  text-wrap: balance;
+}
 
 /* итог игры — строка, а не цветная плашка */
 .mgw .mg-result {

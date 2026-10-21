@@ -13,7 +13,7 @@
   <!-- Старое задание «текстовые пары»: режим убран, задание не застревает — только переход дальше -->
   <button v-else-if="legacyTextPairs" class="task__action" @click="$emit('complete', task)">Идти дальше</button>
 
-  <!-- Pairs и Puzzle — кнопка запуска + полноэкранный оверлей -->
+  <!-- Остальные игры — кнопка запуска + полноэкранный оверлей -->
   <template v-else>
     <div class="mg-launch mgw" :class="worldClass">
       <button class="mg-launch__btn mg-item" @click="open = true">
@@ -43,6 +43,10 @@ import MiniGameOverlay from './mini-games/MiniGameOverlay.vue'
 import MiniGameQuiz    from './mini-games/MiniGameQuiz.vue'
 import MiniGamePairs   from './mini-games/MiniGamePairs.vue'
 import MiniGamePuzzle  from './mini-games/MiniGamePuzzle.vue'
+import MiniGameWord     from './mini-games/MiniGameWord.vue'
+import MiniGameTimeline from './mini-games/MiniGameTimeline.vue'
+import MiniGameScratch  from './mini-games/MiniGameScratch.vue'
+import MiniGameCipher   from './mini-games/MiniGameCipher.vue'
 import QuestIcon from '../QuestIcon.vue'
 import './mini-games/mg-worlds.css'
 
@@ -54,7 +58,10 @@ const emit = defineEmits(['complete', 'skip-task', 'wrong'])
 
 const open = ref(false)
 
-const GAME_MAP = { quiz: MiniGameQuiz, pairs: MiniGamePairs, puzzle: MiniGamePuzzle }
+const GAME_MAP = {
+  quiz: MiniGameQuiz, pairs: MiniGamePairs, puzzle: MiniGamePuzzle,
+  word: MiniGameWord, timeline: MiniGameTimeline, scratch: MiniGameScratch, cipher: MiniGameCipher,
+}
 const gameComponent = computed(() => GAME_MAP[props.task.game_type] || null)
 const legacyTextPairs = computed(() => props.task.game_type === 'pairs' && !(props.task.game_images || []).length)
 
@@ -65,6 +72,10 @@ const GAME_META = {
   quiz:   { label: 'Пройти угадайку' },
   pairs:  { label: 'Найти все пары' },
   puzzle: { label: 'Собрать пазл' },
+  word:     { label: 'Собрать слово' },
+  timeline: { label: 'Расставить по порядку' },
+  scratch:  { label: 'Стереть слой' },
+  cipher:   { label: 'Расшифровать' },
 }
 const gameLabel = computed(() => GAME_META[props.task.game_type]?.label ?? 'Начать игру')
 
