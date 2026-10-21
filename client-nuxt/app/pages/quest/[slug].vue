@@ -85,6 +85,8 @@
                 :completedIds="completedIds"
                 :earnedMap="earnedMap"
                 :isLast="isLast"
+                :blocks="blocks"
+                :arrived="arrived"
                 @complete-task="onTaskComplete"
                 @use-hint="onHint"
                 @prev="prev"
@@ -479,7 +481,10 @@ const onSkipTask = (task) => {
 const next = () => {
   doNext()
 }
+// участок открыт ходом с доски: новый участок не показывает доску второй раз
+const arrived = ref(false)
 const doNext = () => {
+  arrived.value = true
   blockIdx.value++
   window.scrollTo({ top: 0, behavior: 'smooth' })
   saveProgress()
@@ -487,6 +492,7 @@ const doNext = () => {
 
 const prev = () => {
   if (blockIdx.value > 0) {
+    arrived.value = true
     blockIdx.value--
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -519,6 +525,7 @@ const doRestart = async () => {
   }
 
   blockIdx.value     = 0
+  arrived.value      = false
   completedIds.value = []
   points.value       = 0
   hintsUsed.value    = 0

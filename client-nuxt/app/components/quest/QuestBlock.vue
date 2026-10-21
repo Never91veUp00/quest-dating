@@ -4,6 +4,7 @@
     <button
       type="button"
       class="block__strip"
+      :class="{ 'block__strip--long': route.length > 5 }"
       :aria-label="`${theme.copy.blockPrefix} ${index + 1} из ${total}: ${block.title}. Открыть доску`"
       @click="openBoard(false)"
     >
@@ -13,22 +14,22 @@
       </span>
       <span class="block__mini" aria-hidden="true">
         <span
-          v-for="(t, ti) in tasks"
-          :key="t.id"
+          v-for="(r, ri) in route"
+          :key="r.id"
           class="block__mini-cell"
           :class="{
-            'is-done':   completedIds.includes(t.id),
-            'is-wrong':  earnedMap?.[t.id]?.wrong,
-            'is-active': ti === activeIdx,
+            'is-done':   routeDoneIds(completedIds).includes(r.id),
+            'is-wrong':  routeEarned[r.id]?.wrong,
+            'is-active': ri === index,
           }"
         ><QuestPumpkin
           v-if="theme.world?.decor === 'diecut'"
-          :size="ti === activeIdx ? 20 : 15"
-          :state="ti === activeIdx ? 'active' : completedIds.includes(t.id) && !earnedMap?.[t.id]?.wrong ? 'done' : 'back'"
+          :size="ri === index ? 20 : 15"
+          :state="ri === index ? 'active' : routeDoneIds(completedIds).includes(r.id) && !routeEarned[r.id]?.wrong ? 'done' : 'back'"
         /><QuestFlask
           v-else-if="theme.world?.decor === 'potion'"
-          :size="ti === activeIdx ? 18 : 13"
-          :level="completedIds.includes(t.id) && !earnedMap?.[t.id]?.wrong ? .72 : 0"
+          :size="ri === index ? 18 : 13"
+          :level="routeDoneIds(completedIds).includes(r.id) && !routeEarned[r.id]?.wrong ? .72 : 0"
         /></span>
       </span>
     </button>
@@ -53,7 +54,7 @@
         <div class="block__board-inner">
           <div class="block__meta">
             <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
-            <span class="block__count">{{ theme.copy.cellForms?.[0] ?? 'клетка' }} <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
+            <span v-if="tasks.length > 1" class="block__count">{{ theme.copy.cellForms?.[0] ?? 'клетка' }} <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
           </div>
           <h2 class="block__title">{{ block.title }}</h2>
           <p v-if="block.location" class="block__location">
@@ -62,16 +63,17 @@
           </p>
           <p v-if="block.description" class="block__desc">{{ block.description }}</p>
 
+          <!-- Трасса всего квеста: клетка — участок, задания участка — точки под текущей -->
           <QuestTrack
             class="block__board-track"
-            :tasks="tasks"
-            :completedIds="boardCompleted"
-            :earnedMap="earnedMap"
-            :hasPrev="index > 0"
-            :hasNext="!isLast"
+            :tasks="route"
+            :completedIds="routeDoneIds(boardCompleted)"
+            :earnedMap="routeEarned"
             :decor="theme.world?.decor"
             :enter="entering"
             :stampId="stampId"
+            :itemWord="theme.copy.blockPrefix"
+            :progress="routeProgress"
             @open="reviewIdx = $event"
           />
 
@@ -81,7 +83,7 @@
           </button>
 
           <button ref="boardClose" class="task__action block__board-close" @click="closeBoard">
-            {{ activeTask ? 'К заданию' : 'Закрыть доску' }}
+            {{ advancing ? (theme.copy.nextBtn ?? 'Идти дальше') : activeTask ? 'К заданию' : 'Закрыть доску' }}
           </button>
         </div>
       </section>
@@ -94,7 +96,7 @@
         :key="activeTask.id"
         :task="activeTask"
         :theme="theme"
-        :index="activeIdx"
+        :index="taskOffset + activeIdx"
         mode="active"
         @complete="$emit('complete-task', $event)"
         @hint="$emit('use-hint', $event)"
@@ -127,21 +129,23 @@
     <teleport to="body">
       <transition name="sheet">
         <div
-          v-if="reviewTask"
+          v-if="reviewBlock"
           class="block__sheet"
           :style="cssVars"
           role="dialog"
           aria-modal="true"
-          :aria-label="`Клетка ${reviewIdx + 1}: ${reviewTask.title}`"
+          :aria-label="`${theme.copy.blockPrefix} ${reviewIdx + 1}: ${reviewBlock.title}`"
           @click.self="reviewIdx = null"
           @keydown.esc="reviewIdx = null"
         >
           <div class="block__sheet-panel">
             <QuestTask
-              :task="reviewTask"
+              v-for="(rt, rti) in reviewTasks"
+              :key="rt.id"
+              :task="rt"
               :theme="theme"
-              :index="reviewIdx"
-              :earnedEntry="earnedMap?.[reviewTask.id]"
+              :index="route.slice(0, reviewIdx).reduce((n, r) => n + r.tasks.length, 0) + reviewBlock.tasks.indexOf(rt)"
+              :earnedEntry="earnedMap?.[rt.id]"
               mode="review"
             />
             <button ref="closeBtn" class="block__sheet-close" @click="reviewIdx = null">
@@ -171,9 +175,11 @@ const props = defineProps({
   completedIds: { type: Array,  default: () => [] },
   earnedMap:    { type: Object, default: () => ({}) },
   isLast:       { type: Boolean, default: false },
+  blocks:       { type: Array,   default: () => [] },  // весь квест: трасса доски и полосы
+  arrived:      { type: Boolean, default: false },     // пришли ходом с прошлого участка — доска уже показана
 })
 
-defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint', 'skip-task'])
+const emit = defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint', 'skip-task'])
 
 const tasks = computed(() => props.block.tasks ?? [])
 
@@ -182,25 +188,46 @@ const activeIdx  = computed(() => tasks.value.findIndex(t => !props.completedIds
 const activeTask = computed(() => activeIdx.value >= 0 ? tasks.value[activeIdx.value] : null)
 const cellNo = computed(() => activeIdx.value >= 0 ? activeIdx.value + 1 : tasks.value.length)
 
-const reviewIdx  = ref(null)
-const reviewTask = computed(() => reviewIdx.value === null ? null : tasks.value[reviewIdx.value])
-const closeBtn   = ref(null)
-watch(reviewTask, async (t) => {
+// ─── Трасса квеста: клетка доски — участок ──────────────────────
+const route = computed(() => (props.blocks.length ? props.blocks : [props.block])
+  .map((b, i) => ({ id: `blk-${i}`, title: b.title, tasks: b.tasks ?? [] })))
+// номер задания на карточке — сквозной по квесту, а не внутри участка
+const taskOffset = computed(() => route.value.slice(0, props.index).reduce((n, r) => n + r.tasks.length, 0))
+// участок пройден, когда пройдены все его задания
+const routeDoneIds = (ids) => route.value
+  .filter(r => r.tasks.length && r.tasks.every(t => ids.includes(t.id)))
+  .map(r => r.id)
+// участок «пропущен», только если пропущены все его задания
+const routeEarned = computed(() => Object.fromEntries(route.value.map(r => [r.id, {
+  wrong: r.tasks.length > 0 && r.tasks.every(t => props.earnedMap?.[t.id]?.wrong),
+}])))
+const routeProgress = computed(() => ({
+  [`blk-${props.index}`]: { done: tasks.value.filter(t => props.completedIds.includes(t.id)).length, total: tasks.value.length },
+}))
+
+// Перечитать пройденный участок: все его выполненные задания
+const reviewIdx   = ref(null)
+const reviewBlock = computed(() => reviewIdx.value === null ? null : route.value[reviewIdx.value])
+const reviewTasks = computed(() => (reviewBlock.value?.tasks ?? []).filter(t => props.completedIds.includes(t.id)))
+const closeBtn    = ref(null)
+watch(reviewBlock, async (t) => {
   if (!t) return
   await nextTick()
   closeBtn.value?.focus()
 })
 
 // ─── Доска: момент хода ───────────────────────────────────────
-// После выполнения задания доска разворачивается, фишка делает ход,
-// и через мгновение доска сворачивается в полосу. Тап по доске её удерживает.
-// Штамп хлопает на пройденную клетку, пауза — и только потом фишка ходит
+// Участок пройден — доска всего квеста разворачивается, штамп хлопает на участок,
+// фишка переходит к следующему, и плеер сам открывает его первое задание.
+// Задания внутри участка идут без доски: их видно точками под текущей клеткой.
+// Тап по доске её удерживает, тогда дальше — по кнопке.
 const MOMENT_MS = 2000
 const HOP_DELAY = 700
 const boardOpen      = ref(false)
 const boardCompleted = ref([...props.completedIds])
 const stampId        = ref(null)
 const boardClose     = ref(null)
+const advancing      = ref(false)   // доска закроется ходом на следующий участок
 let autoClose = null
 let hopTimer  = null
 
@@ -220,6 +247,7 @@ const closeBoard = () => {
   entering.value = false
   boardCompleted.value = [...props.completedIds]
   stampId.value = null
+  if (advancing.value) { advancing.value = false; emit('next') }
 }
 const holdBoard = () => { clearTimeout(autoClose) }
 
@@ -227,9 +255,11 @@ const holdBoard = () => { clearTimeout(autoClose) }
 watch(() => [...props.completedIds], (now, before = []) => {
   const fresh = now.filter(id => !before.includes(id))
   const inBlock = fresh.some(id => tasks.value.some(t => t.id === id))
-  if (!inBlock) { boardCompleted.value = [...now]; return }
-  stampId.value = fresh.find(id => tasks.value.some(t => t.id === id))
-  // Доска открывается в прежнем состоянии, затем фишка переходит
+  const blockDone = tasks.value.length && tasks.value.every(t => now.includes(t.id))
+  if (!inBlock || !blockDone) { boardCompleted.value = [...now]; return }
+  stampId.value = `blk-${props.index}`
+  advancing.value = !props.isLast
+  // Доска открывается в прежнем состоянии, затем штамп и ход фишки
   openBoard(true)
   hopTimer = setTimeout(() => { boardCompleted.value = [...now] }, HOP_DELAY)
 })
@@ -243,8 +273,9 @@ const setKeyboardInset = () => {
 }
 
 onMounted(() => {
-  // Свежий участок: показываем доску, фишка заезжает на первую клетку
-  if (!tasks.value.some(t => props.completedIds.includes(t.id))) {
+  // Старт или возврат в квест: доска всего маршрута, фишка заезжает на клетку.
+  // Если пришли ходом с прошлого участка, доска только что была — сразу задание
+  if (!props.arrived && !tasks.value.some(t => props.completedIds.includes(t.id))) {
     entering.value = true
     openBoard(true, ENTER_MS)
   }
@@ -300,6 +331,10 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
 
 /* Мини-трасса: клетки на нитке, как на доске */
 .block__mini { position: relative; display: flex; align-items: center; gap: 9px; flex-shrink: 0; padding: 0 2px; }
+/* длинный маршрут — полоса во всю ширину под названием участка */
+.block__strip--long { flex-wrap: wrap; row-gap: 10px; }
+.block__strip--long .block__strip-text { flex-basis: 100%; }
+.block__strip--long .block__mini { flex: 1; justify-content: space-between; min-width: 0; }
 .block__mini::before {
   content: "";
   position: absolute; left: 0; right: 0; top: 50%;

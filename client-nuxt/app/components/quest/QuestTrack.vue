@@ -1,5 +1,5 @@
 <template>
-  <div class="track" :class="decor && `track--${decor}`" :style="{ '--n': cells.length }">
+  <div class="track" :class="decor && `track--${decor}`" :style="{ '--n': cells.length, '--rows': rows }">
     <svg class="track__road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <template v-if="decor === 'casefile'">
         <!-- Настоящая нить: тень на сукне, основа и скрутка, провисает между кнопками -->
@@ -61,7 +61,7 @@
           type="button"
           class="cell cell--done"
           :class="{ 'cell--wrong': cell.state === 'wrong' }"
-          :aria-label="`Клетка ${cell.n}: ${cell.title}. ${cell.state === 'wrong' ? 'Пропущено' : 'Выполнено'}. Открыть`"
+          :aria-label="`${itemWord} ${cell.n}: ${cell.title}. ${cell.state === 'wrong' ? 'Пропущено' : 'Выполнено'}. Открыть`"
           @click="$emit('open', cell.index)"
         >
           <!-- В переписке пройденный конверт погашен штемпелем, свежий — с ударом -->
@@ -127,7 +127,7 @@
           class="cell cell--active"
           :class="{ 'is-reveal': cell.index > stampIndex }"
           aria-current="step"
-          :aria-label="`Клетка ${cell.n}: сейчас здесь`"
+          :aria-label="`${itemWord} ${cell.n}: ${cell.title}, сейчас здесь${progress?.[cell.id] ? `, ${progress[cell.id].done} из ${progress[cell.id].total}` : ''}`"
         >
           <QuestFlask v-if="decor === 'potion'" :size="76" :label="cell.n" />
           <QuestPumpkin v-else-if="decor === 'diecut'" :size="68" state="active" :label="cell.n" />
@@ -136,8 +136,12 @@
         <span
           v-else
           class="cell cell--back"
-          :aria-label="`Клетка ${cell.n}: закрыта`"
+          :aria-label="`${itemWord} ${cell.n}: закрыто`"
         ><QuestFlask v-if="decor === 'potion'" :size="44" /><QuestPumpkin v-else-if="decor === 'diecut'" :size="42" state="back" /></span>
+        <span
+          v-if="cell.state === 'active' && progress?.[cell.id]?.total > 1"
+          class="cell__steps" aria-hidden="true"
+        ><i v-for="k in progress[cell.id].total" :key="k" :class="{ 'is-done': k <= progress[cell.id].done }"></i></span>
         <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map', 'ringbox', 'potion', 'diecut'].includes(decor)" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
@@ -168,6 +172,8 @@ const props = defineProps({
   decor:        { type: String,  default: null },
   enter:        { type: Boolean, default: false }, // фишка заезжает с края поля
   stampId:      { type: [String, Number], default: null }, // клетка, на которую хлопает штамп
+  itemWord:     { type: String,  default: 'Клетка' },        // слово темы для подписи клетки
+  progress:     { type: Object,  default: () => ({}) },      // id → { done, total }: задания внутри клетки
 })
 defineEmits(['open'])
 
@@ -179,25 +185,48 @@ const stampIndex = computed(() =>
   props.stampId == null ? Infinity : props.tasks.findIndex(t => t.id === props.stampId)
 )
 
-// Змейка: клетки идут слева направо, качаясь вверх-вниз, как трасса на поле
+// Змейка: клетки идут слева направо, качаясь вверх-вниз, как трасса на поле.
+// Больше пяти клеток — трасса складывается рядами: второй ряд идёт обратно (как на настольной доске)
 const WAVE = [64, 34, 60, 30, 62, 36, 58, 32]
+const PER_ROW = 5
+
+const cols = computed(() => {
+  const n = props.tasks.length
+  return n <= PER_ROW ? n : Math.ceil(n / Math.ceil(n / PER_ROW))
+})
+const rows = computed(() => Math.max(1, Math.ceil(props.tasks.length / Math.max(1, cols.value))))
 
 const cells = computed(() => {
   const n = props.tasks.length
   const firstOpen = props.tasks.findIndex(t => !props.completedIds.includes(t.id))
+  // на карте метки держатся на суше, дальше от берега
+  const pad = props.decor === 'map' ? 20 : 14
   return props.tasks.map((t, i) => {
     const done = props.completedIds.includes(t.id)
     const state = done
       ? (props.earnedMap?.[t.id]?.wrong ? 'wrong' : 'done')
       : i === firstOpen ? 'active' : 'back'
-    return {
-      id: t.id, index: i, n: i + 1, title: t.title || 'Задание', state,
-      // на карте метки держатся на суше, дальше от берега
-      x: n === 1 ? 50 : props.decor === 'map' ? 20 + (60 * i) / (n - 1) : 14 + (72 * i) / (n - 1),
-      y: n === 1 ? 48 : WAVE[i % WAVE.length],
-    }
+    const r = Math.floor(i / cols.value)
+    const c0 = i % cols.value
+    const c = r % 2 ? cols.value - 1 - c0 : c0
+    const span = cols.value - 1 || 1
+    const x = n === 1 ? 50 : pad + ((100 - 2 * pad) * c) / span
+    const y = rows.value === 1
+      ? (n === 1 ? 48 : WAVE[i % WAVE.length])
+      : ((r + .5) / rows.value) * 100 + (c % 2 ? -1 : 1) * (7 / rows.value)
+    return { id: t.id, index: i, n: i + 1, title: t.title || 'Задание', state, x, y }
   })
 })
+
+// Кривая между соседними клетками: в ряду — плавная волна, на развороте ряда — дуга наружу
+const curveTo = ([x0, y0], [x1, y1]) => {
+  if (Math.abs(x1 - x0) < 1) {
+    const out = x0 > 50 ? 11 : -11
+    return ` C${x0 + out} ${y0} ${x1 + out} ${y1} ${x1} ${y1}`
+  }
+  const mx = (x0 + x1) / 2
+  return ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
+}
 
 const roadPath = computed(() => {
   const pts = cells.value.map(c => [c.x, c.y])
@@ -206,12 +235,7 @@ const roadPath = computed(() => {
   const end   = props.hasNext ? [104, pts[pts.length - 1][1]] : pts[pts.length - 1]
   const all = [start, ...pts, end]
   let d = `M${all[0][0]} ${all[0][1]}`
-  for (let i = 1; i < all.length; i++) {
-    const [x0, y0] = all[i - 1]
-    const [x1, y1] = all[i]
-    const mx = (x0 + x1) / 2
-    d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
-  }
+  for (let i = 1; i < all.length; i++) d += curveTo(all[i - 1], all[i])
   return d
 })
 
@@ -220,12 +244,7 @@ const landRoute = computed(() => {
   const pts = cells.value.map(c => [c.x, c.y])
   if (!pts.length) return ''
   let d = `M${pts[0][0]} ${pts[0][1]}`
-  for (let i = 1; i < pts.length; i++) {
-    const [x0, y0] = pts[i - 1]
-    const [x1, y1] = pts[i]
-    const mx = (x0 + x1) / 2
-    d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`
-  }
+  for (let i = 1; i < pts.length; i++) d += curveTo(pts[i - 1], pts[i])
   return d
 })
 
@@ -244,7 +263,7 @@ const linePath = computed(() => {
 // Нить дела: от кнопки к кнопке (верх заметки), провисает между ними
 const PIN = 14 // кнопка над центром клетки, в % высоты трассы
 const threadPath = computed(() => {
-  const pins = cells.value.map(c => [c.x, c.y - PIN])
+  const pins = cells.value.map(c => [c.x, c.y - PIN / rows.value])
   if (!pins.length) return ''
   const all = [
     ...(props.hasPrev ? [[-4, pins[0][1] + 6]] : []),
@@ -255,7 +274,8 @@ const threadPath = computed(() => {
   for (let i = 1; i < all.length; i++) {
     const [x0, y0] = all[i - 1]
     const [x1, y1] = all[i]
-    const sag = 6 + Math.abs(x1 - x0) * 0.08
+    if (Math.abs(x1 - x0) < 1) { d += curveTo(all[i - 1], all[i]); continue }
+    const sag = (6 + Math.abs(x1 - x0) * 0.08) / rows.value
     d += ` Q${(x0 + x1) / 2} ${Math.max(y0, y1) + sag} ${x1} ${y1}`
   }
   return d
@@ -282,7 +302,7 @@ const chipStyle = computed(() => {
 <style scoped>
 .track {
   position: relative;
-  height: clamp(140px, 21svh, 200px);
+  height: calc(clamp(140px, 21svh, 200px) * var(--rows, 1));
   margin: 0 -4px;
 }
 
@@ -371,6 +391,19 @@ const chipStyle = computed(() => {
     top  .55s cubic-bezier(.16, 1, .3, 1);
   pointer-events: none;
 }
+
+/* задания внутри текущего участка: точки под клеткой */
+.cell__steps {
+  position: absolute; left: 50%; top: calc(100% + 8px);
+  display: flex; gap: 4px;
+  transform: translateX(-50%);
+}
+.cell__steps i {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--field-ink);
+}
+.cell__steps i.is-done { background: var(--field-ink); }
 
 /* ── Обличье дела: заметки на кнопках, красная нить ─────────── */
 .thread { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
@@ -564,7 +597,7 @@ const chipStyle = computed(() => {
 }
 
 /* ── Обличье вырубки: тыквы на нити гирлянды ─────────────────── */
-.track--diecut { height: clamp(190px, 30svh, 280px); }
+.track--diecut { height: calc(clamp(190px, 30svh, 280px) * var(--rows, 1)); }
 .garland {
   fill: none;
   vector-effect: non-scaling-stroke;
@@ -604,7 +637,7 @@ const chipStyle = computed(() => {
 .track--diecut .track__chip::after  { inset: 0; background: var(--rule); }
 
 /* ── Обличье зельеварни: флаконы на медной трубке ───────────── */
-.track--potion { height: clamp(190px, 30svh, 280px); }
+.track--potion { height: calc(clamp(190px, 30svh, 280px) * var(--rows, 1)); }
 .tube { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .tube--outer { stroke: var(--rule); stroke-width: 7; }
 .tube--inner { stroke: color-mix(in srgb, var(--chip) 45%, var(--paper-edge)); stroke-width: 3; }
@@ -635,7 +668,7 @@ const chipStyle = computed(() => {
 }
 
 /* ── Обличье футляра: маленькие футляры на шёлковой нити ─────── */
-.track--ringbox { height: clamp(180px, 28svh, 260px); }
+.track--ringbox { height: calc(clamp(180px, 28svh, 260px) * var(--rows, 1)); }
 .ring-thread {
   fill: none;
   vector-effect: non-scaling-stroke;
