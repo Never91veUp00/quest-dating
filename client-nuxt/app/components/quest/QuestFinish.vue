@@ -13,15 +13,15 @@
       </p>
 
       <!-- Карта: пунктир через пройденные метки к большому красному кресту -->
-      <svg v-if="decor === 'map'" class="finish__chart" viewBox="0 0 340 120" aria-hidden="true">
-        <path class="finish__chart-route" d="M14 96 C60 96 70 40 118 52 S190 104 232 70 S244 52 254 50" />
+      <svg v-if="decor === 'map'" class="finish__chart" viewBox="0 0 320 130" aria-hidden="true">
+        <path class="finish__chart-route" d="M8 112 C30 112 36 104 50 104 S80 64 96 64 S128 84 140 80 S166 72 178 70" />
         <g class="finish__chart-marks">
           <circle v-for="(m, i) in chartMarks" :key="i" :cx="m[0]" :cy="m[1]" r="7" />
         </g>
         <!-- островок клада: крест ставится на суше, а не в море -->
-        <path class="finish__chart-isle" d="M252 44 C246 18 272 4 296 9 C320 4 340 24 335 44 C340 66 316 80 295 73 C272 82 250 68 252 44 Z" />
-        <g class="finish__chart-x" transform="translate(294 42)">
-          <path d="M-15 -15 L15 15" /><path d="M15 -15 L-15 15" />
+        <path class="finish__chart-isle" d="M299.0 58.8 Q298.9 64.0 297.6 69.0 Q296.4 74.0 295.9 79.3 Q295.3 84.6 290.4 88.4 Q285.5 92.1 281.7 96.2 Q277.9 100.4 270.5 100.6 Q263.2 100.8 257.2 100.6 Q251.1 100.4 246.7 105.5 Q242.3 110.6 236.0 110.9 Q229.7 111.2 223.0 111.2 Q216.4 111.2 210.9 108.3 Q205.4 105.4 200.2 102.5 Q194.9 99.6 189.8 96.4 Q184.6 93.2 180.1 89.1 Q175.6 85.0 175.7 79.5 Q175.8 74.0 174.8 69.0 Q173.8 64.0 173.2 58.7 Q172.6 53.5 173.7 48.1 Q174.9 42.7 178.4 38.0 Q181.9 33.3 184.8 27.7 Q187.7 22.1 194.2 19.1 Q200.6 16.1 208.9 17.3 Q217.1 18.5 223.1 15.5 Q229.1 12.5 235.8 13.9 Q242.5 15.3 248.8 16.7 Q255.1 18.1 260.9 20.2 Q266.8 22.4 272.4 25.0 Q278.0 27.6 283.7 30.6 Q289.4 33.7 291.0 39.0 Q292.6 44.3 295.9 48.9 Q299.1 53.5 299.0 58.8 Z" />
+        <g class="finish__chart-x" transform="translate(236 62)">
+          <path d="M-28 -28 L28 28" /><path d="M28 -28 L-28 28" />
         </g>
       </svg>
 
@@ -109,9 +109,9 @@ const finishTitle = computed(() =>
   (props.theme.copy?.finishEyebrow || 'Квест пройден').replace(/\p{Extended_Pictographic}/gu, '').trim()
 )
 const decor = computed(() => props.theme.world?.decor ?? null)
-// Метки на пунктире к кладу: по одной на пройденную, не больше четырёх
-const CHART_PTS = [[60, 84], [118, 52], [176, 82], [232, 70]]
-const chartMarks = computed(() => CHART_PTS.slice(0, Math.min(props.completedCount, 4)))
+// Метки на пунктире к кладу: по одной на пройденную, не больше трёх
+const CHART_PTS = [[50, 104], [96, 64], [140, 80]]
+const chartMarks = computed(() => CHART_PTS.slice(0, Math.min(props.completedCount, 3)))
 // Карт в раскладе: по одной на пройденную клетку, веер не шире семи
 const spread = computed(() => Math.min(props.completedCount, 7))
 // Дата в штемпеле — день, когда письмо дошло до адресата
@@ -375,7 +375,7 @@ const saveCard = async () => {
 }
 
 /* Обличье карты: путь к кладу и записка на обрывке пергамента */
-.finish__chart { display: block; width: 100%; max-width: 420px; height: auto; margin: 4px auto -4px; overflow: visible; }
+.finish__chart { display: block; width: 100%; max-width: 380px; height: auto; margin: 4px auto -4px; overflow: visible; }
 .finish__chart-route {
   fill: none;
   stroke: var(--field-ink);
@@ -388,13 +388,13 @@ const saveCard = async () => {
 .finish__chart-x path {
   fill: none;
   stroke: var(--chip);
-  stroke-width: 7;
+  stroke-width: 9;
   stroke-linecap: round;
-  stroke-dasharray: 50;
+  stroke-dasharray: 80;
   animation: chart-x .3s cubic-bezier(.6, 0, .4, 1) .3s both;
 }
 .finish__chart-x path + path { animation-delay: .7s; }
-@keyframes chart-x { from { stroke-dashoffset: 50; } to { stroke-dashoffset: 0; } }
+@keyframes chart-x { from { stroke-dashoffset: 80; } to { stroke-dashoffset: 0; } }
 .finish--map .finish__message { border: none; border-radius: 0; margin: 8px 0; }
 .finish--map .finish__message::before,
 .finish--map .finish__message::after {

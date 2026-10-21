@@ -18,6 +18,7 @@
           class="block__mini-cell"
           :class="{
             'is-done':   completedIds.includes(t.id),
+            'is-wrong':  earnedMap?.[t.id]?.wrong,
             'is-active': ti === activeIdx,
           }"
         ></span>
@@ -427,6 +428,9 @@ const finishLabel = computed(() => ({
     linear-gradient(-45deg, transparent calc(50% - 1.2px), var(--chip) calc(50% - 1.2px) calc(50% + 1.2px), transparent calc(50% + 1.2px)),
     var(--paper);
 }
+.block--map .block__mini-cell.is-done.is-wrong {
+  background: linear-gradient(transparent calc(50% - 1px), var(--ink-soft) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) center / 60% 100% no-repeat, var(--paper);
+}
 .block--map .block__mini-cell.is-active { width: 20px; height: 20px; }
 .block--map .block__mini-cell.is-active::after {
   top: -15px; right: -9px;
@@ -447,7 +451,9 @@ const finishLabel = computed(() => ({
   padding: 76px 16px max(24px, env(safe-area-inset-bottom));
 }
 .block--map .block__board {
+  /* роза ветров в море под островом — меловой контур, как на старых картах */
   background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%23ecdfc0' stroke-opacity='.5' stroke-width='.7' stroke-linejoin='round'%3E%3Ccircle cx='20' cy='20' r='13'/%3E%3Ccircle cx='20' cy='20' r='16.5'/%3E%3Cpath d='M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z M20 8 L21.6 18.4 L32 20 L21.6 21.6 L20 32 L18.4 21.6 L8 20 L18.4 18.4 Z' transform='rotate(45 20 20)'/%3E%3Cpath d='M20 1 L23 17 L39 20 L23 23 L20 39 L17 23 L1 20 L17 17 Z'/%3E%3C/g%3E%3Cpath d='M20 1 L23 17 L20 20 Z M39 20 L23 23 L20 20 Z M20 39 L17 23 L20 20 Z M1 20 L17 17 L20 20 Z' fill='%23ecdfc0' fill-opacity='.45'/%3E%3C/svg%3E") right 18% bottom 130px / 132px no-repeat,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='40'%3E%3Cpath d='M4 12 q4 -4 8 0 t8 0 M36 32 q4 -4 8 0 t8 0' fill='none' stroke='%23ecdfc0' stroke-opacity='.22' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0 / 64px 40px,
     var(--field);
 }
