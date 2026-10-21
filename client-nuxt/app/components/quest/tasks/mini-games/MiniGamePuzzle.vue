@@ -31,23 +31,31 @@
       </div>
 
       <div class="mg-board">
-      <QuestMark v-if="complete" :decor="theme.world?.decor ?? null" kind="right" />
+      <QuestMark v-if="finale >= 3" :decor="theme.world?.decor ?? null" kind="right" />
+      <!-- Финал: куски расходятся и схлопываются (1), снимок становится цельным (2), ложится отпечатком в рамку мира (3) -->
       <div
         class="task__puzzle__board"
-        :class="{ 'task__puzzle__board--complete': complete }"
+        :class="{
+          'task__puzzle__board--fuse':   finale === 1,
+          'task__puzzle__board--whole':  finale >= 2,
+          'task__puzzle__board--framed': finale >= 3,
+        }"
         :style="{ gridTemplateColumns: `repeat(${cols}, 1fr)` }"
       >
-        <div
-          v-for="slot in slots" :key="'s'+slot.i"
-          class="task__puzzle__slot"
-          :class="{
-            correct:  slot.pieceIdx === slot.i,
-            selected: selectedSlot === slot.i,
-            landed:   landed.includes(slot.i),
-          }"
-          :style="slotStyle(slot)"
-          @click="onTap(slot.i)"
-        ></div>
+        <template v-if="finale < 2">
+          <div
+            v-for="slot in slots" :key="'s'+slot.i"
+            class="task__puzzle__slot"
+            :class="{
+              correct:  slot.pieceIdx === slot.i,
+              selected: selectedSlot === slot.i,
+              landed:   landed.includes(slot.i),
+            }"
+            :style="{ ...slotStyle(slot), ...fuseStyle(slot) }"
+            @click="onTap(slot.i)"
+          ></div>
+        </template>
+        <img v-else :src="task.puzzle_image" class="task__puzzle__whole" alt="Собранная фотография" />
       </div>
       </div>
 
@@ -60,17 +68,19 @@
         Не получается? Пропустить
       </button>
 
-      <p v-if="complete" class="mg-result" role="status">Пазл собран</p>
-      <button v-if="complete" class="task__action" @click="$emit('complete', task)">
-        Идти дальше
-      </button>
+      <template v-if="finale >= 3">
+        <p class="mg-result task__puzzle__after" role="status">Пазл собран</p>
+        <button class="task__action task__puzzle__after task__puzzle__after--late" @click="$emit('complete', task)">
+          Идти дальше
+        </button>
+      </template>
     </template>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import QuestMark from '../../QuestMark.vue'
 
 const props = defineProps({
@@ -90,6 +100,13 @@ let previewTimer = null
 let shuffleTimer = null
 const landTimers = new Set()
 
+// Финал сборки — только показ, логика «собрано» не меняется.
+// 0 — игра, 1 — схлопывание, 2 — цельный снимок, 3 — отпечаток в рамке мира
+const finale = ref(0)
+const FUSE_MS  = 760   // разлёт и схлопывание с волной от краёв к центру
+const FRAME_MS = 920   // снимок поднимается и ложится в рамку
+const finaleTimers = []
+
 onMounted(() => {
   if (props.task.puzzle_image) {
     const img = new Image()
@@ -103,6 +120,7 @@ onUnmounted(() => {
   clearInterval(previewTimer)
   clearTimeout(shuffleTimer)
   landTimers.forEach(clearTimeout)
+  finaleTimers.forEach(clearTimeout)
 })
 
 const startPreview = () => {
@@ -163,6 +181,28 @@ const progress    = computed(() =>
 const complete = computed(() =>
   totalPieces.value > 0 && placed.value === totalPieces.value
 )
+
+watch(complete, (done) => {
+  if (!done || finale.value) return
+  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  if (reduced) { finale.value = 3; return }
+  finale.value = 1
+  finaleTimers.push(setTimeout(() => { finale.value = 2 }, FUSE_MS))
+  finaleTimers.push(setTimeout(() => { finale.value = 3 }, FRAME_MS))
+})
+
+// Направление и очередь куска при схлопывании: смещение от центра доски,
+// крайние куски начинают первыми — картинка стягивается к середине
+const fuseStyle = (slot) => {
+  if (finale.value !== 1) return {}
+  const c  = slot.i % cols.value
+  const r  = Math.floor(slot.i / cols.value)
+  const dx = c - (cols.value - 1) / 2
+  const dy = r - (rows.value - 1) / 2
+  const ring    = Math.max(Math.abs(dx), Math.abs(dy))
+  const maxRing = Math.max((cols.value - 1) / 2, (rows.value - 1) / 2)
+  return { '--dx': dx, '--dy': dy, '--fuse-delay': `${Math.round((maxRing - ring) * 55)}ms` }
+}
 
 const slotAspect = computed(() => {
   if (!imgNaturalRatio.value) return 1
@@ -252,16 +292,123 @@ const onTap = (slotIdx) => {
 /* ── Доска ── */
 .mg-board { width: 100%; max-width: min(100%, 460px); margin-inline: auto; }
 .task__puzzle__board {
+  position: relative;
   display: grid; gap: 2px; width: 100%;
   max-width: min(100%, 460px); margin: 0 auto;
   padding: 2px;
   border-radius: 4px;
   background: var(--rule);
   touch-action: manipulation;
-  transition: gap .45s cubic-bezier(.2, .7, .2, 1), padding .45s cubic-bezier(.2, .7, .2, 1);
+  transition:
+    gap .22s cubic-bezier(.5, 0, .75, 0) .38s,
+    padding .45s cubic-bezier(.2, .7, .2, 1),
+    background-color .3s ease,
+    box-shadow .45s ease;
 }
-/* собран: швы сходятся, снимок становится целым */
-.task__puzzle__board--complete { gap: 0; padding: 0; }
+
+/* ── Финал сборки ── */
+/* 1. Куски на миг расходятся от центра и схлопываются обратно; швы закрываются к удару */
+.task__puzzle__board--fuse { gap: 0; padding: 0; background-color: transparent; }
+.task__puzzle__board--fuse .task__puzzle__slot.landed::after { display: none; }
+.task__puzzle__board--fuse .task__puzzle__slot {
+  pointer-events: none;
+  animation: piece-fuse .56s var(--fuse-delay, 0ms) both;
+}
+@keyframes piece-fuse {
+  0%   { transform: none; box-shadow: none; animation-timing-function: cubic-bezier(.2, .7, .3, 1); }
+  42%  { transform: translate(calc(var(--dx) * 7px), calc(var(--dy) * 7px)) scale(.94); box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 80%, transparent); animation-timing-function: cubic-bezier(.6, 0, .9, .4); }
+  100% { transform: none; box-shadow: none; }
+}
+/* 2. Снимок цельный: один кадр вместо кусков, доска коротко «садится» от удара */
+.task__puzzle__board--whole { gap: 0; padding: 0; background-color: transparent; }
+.task__puzzle__whole {
+  grid-column: 1 / -1;
+  display: block; width: 100%; height: auto;
+  border-radius: 2px;
+}
+.task__puzzle__board--whole:not(.task__puzzle__board--framed) { animation: board-thud .16s ease-out both; }
+@keyframes board-thud {
+  0%   { transform: translateY(0); }
+  45%  { transform: translateY(2px) scale(.992); }
+  100% { transform: none; }
+}
+/* 3. Отпечаток: снимок поднимается и ложится в рамку — бумажное паспарту и тень */
+.task__puzzle__board--framed {
+  padding: 10px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, var(--paper)), 0 18px 26px -16px color-mix(in srgb, var(--rule) 75%, transparent);
+  animation: board-print .62s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes board-print {
+  0%   { transform: none; }
+  40%  { transform: translateY(-6px) scale(1.025); }
+  100% { transform: none; }
+}
+/* надпись и кнопка поднимаются, когда отпечаток лёг */
+.task__puzzle__after { animation: puzzle-after .4s cubic-bezier(.2, .7, .2, 1) .35s both; }
+.task__puzzle__after--late { animation-delay: .5s; }
+@keyframes puzzle-after { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Рамка отпечатка — предмет мира */
+.mgw--casefile .task__puzzle__board--framed { border-radius: 2px; }
+.mgw--casefile .task__puzzle__board--framed::before,
+.mgw--casefile .task__puzzle__board--framed::after {
+  content: ""; position: absolute; top: -9px;
+  width: 64px; height: 20px;
+  background: color-mix(in srgb, var(--paper-edge) 75%, transparent);
+  animation: tape-on .3s cubic-bezier(.2, .7, .2, 1) .45s both;
+}
+.mgw--casefile .task__puzzle__board--framed::before { left: -12px; transform: rotate(-32deg); }
+.mgw--casefile .task__puzzle__board--framed::after  { right: -12px; transform: rotate(32deg); }
+@keyframes tape-on { from { opacity: 0; } to { opacity: 1; } }
+
+.mgw--letters .task__puzzle__board--framed { padding: 12px; border-radius: 3px; outline: 1.5px dashed color-mix(in srgb, var(--chip) 75%, var(--paper)); outline-offset: -6px; }
+
+.mgw--metro .task__puzzle__board--framed {
+  padding: 18px 10px 10px; border-radius: 6px;
+  box-shadow: inset 0 8px 0 var(--chip), 0 18px 26px -16px color-mix(in srgb, var(--rule) 60%, transparent);
+}
+
+.mgw--tarot .task__puzzle__board--framed {
+  padding: 14px; border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 4px var(--paper), inset 0 0 0 5.5px var(--chip),
+    inset 0 0 0 8px var(--paper), inset 0 0 0 9px color-mix(in srgb, var(--ink) 40%, var(--paper)),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+
+.mgw--map .task__puzzle__board--framed {
+  border-radius: 3px 10px 4px 12px / 10px 4px 12px 3px;
+  background: color-mix(in srgb, var(--paper-edge) 55%, var(--paper));
+  animation-name: board-print-map;
+  transform: rotate(-.8deg);
+}
+@keyframes board-print-map {
+  0%   { transform: none; }
+  40%  { transform: translateY(-6px) scale(1.025); }
+  100% { transform: rotate(-.8deg); }
+}
+
+.mgw--ringbox .task__puzzle__board--framed { padding: 12px; border-radius: 14px; outline: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper)); outline-offset: -6px; }
+
+.mgw--potion .task__puzzle__board--framed {
+  box-shadow: none;
+  border-radius: 0;
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  background: linear-gradient(var(--paper), var(--paper)) padding-box, var(--rule);
+  border: 3px solid transparent;
+}
+
+.mgw--diecut .task__puzzle__board--framed {
+  box-shadow: none;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0 0,       transparent 10px, var(--paper) 10.5px) top left     / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0,    transparent 10px, var(--paper) 10.5px) top right    / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%,    transparent 10px, var(--paper) 10.5px) bottom left  / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 10px, var(--paper) 10.5px) bottom right / 51% 51% no-repeat;
+  filter: drop-shadow(0 12px 12px color-mix(in srgb, var(--rule) 80%, transparent));
+}
 
 .task__puzzle__board--shuffling .task__puzzle__slot {
   animation: piece-shuffle .5s cubic-bezier(.16, 1, .3, 1) both;
@@ -295,7 +442,6 @@ const onTap = (slotIdx) => {
   animation: piece-landed .65s ease-out both;
 }
 @keyframes piece-landed { from { opacity: 1; } to { opacity: 0; } }
-.task__puzzle__board--complete .task__puzzle__slot { cursor: default; pointer-events: none; }
 
 /* ── Подсказка / итог ── */
 .task__puzzle__tip {
@@ -308,5 +454,9 @@ const onTap = (slotIdx) => {
   .task__puzzle__slot:active { transform: none; }
   .task__puzzle__slot.landed::after { animation: none; opacity: 0; }
   .task__puzzle__board--shuffling .task__puzzle__slot { animation: none; }
+  .task__puzzle__board--framed,
+  .task__puzzle__board--whole,
+  .task__puzzle__after { animation: none; }
+  .mgw--map .task__puzzle__board--framed { transform: rotate(-.8deg); }
 }
 </style>
