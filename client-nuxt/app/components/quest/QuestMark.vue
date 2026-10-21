@@ -75,14 +75,14 @@ const word = computed(() => (WORDS[props.decor] ?? WORDS.base)[props.kind])
 /* Переписка: круглый почтовый штемпель */
 .mark--letters {
   display: grid; place-items: center;
-  top: -50px; right: 8px;
-  width: 82px; height: 82px; padding: 5px;
+  top: -40px; right: 8px;
+  width: 86px; height: 86px; padding: 5px;
   border-radius: 50%;
   border-width: 3px; border-style: double;
-  font-size: .56rem;
+  font-size: .5rem;
   text-align: center;
   white-space: normal;
-  letter-spacing: .08em;
+  letter-spacing: .03em;
 }
 .mark--letters.mark--right { color: var(--chip); }
 
@@ -134,7 +134,6 @@ const word = computed(() => (WORDS[props.decor] ?? WORDS.base)[props.kind])
   padding: 4px 14px;
   text-transform: none;
   letter-spacing: 0;
-  transform: rotate(-4deg);
 }
 .mark--ringbox.mark--wrong { color: var(--ink-soft); }
 .mark--ringbox.mark--right { color: var(--chip); }
@@ -164,7 +163,8 @@ const word = computed(() => (WORDS[props.decor] ?? WORDS.base)[props.kind])
 
 @media (prefers-reduced-motion: reduce) {
   .mark { animation-duration: .01s; animation-delay: 0s; }
-  .mark--wrong, .mark--skip { animation: mark-fade 1.5s linear both; }
+  .mark--wrong, .mark--skip,
+  .mark--tarot.mark--wrong { animation: mark-fade 1.5s linear both; }
   @keyframes mark-fade { 0%, 70% { opacity: .92; } 100% { opacity: 0; } }
 }
 </style>

@@ -564,7 +564,14 @@ watch(isComplete, (done) => { if (done) badge.value = null })
 watch(points, (now, before) => {
   // восстановление прогресса при загрузке не показываем
   if (!pointsDeltaReady) return
-  if (now !== before) pointsDelta.value = { n: now - before, key: ++pointsDeltaKey }
+  if (now === before) return
+  const n = now - before
+  // тост закрывает шапку — изменение очков пишем в его подпись, а не под счёт
+  if (badge.value) {
+    badge.value = { ...badge.value, sub: `${n > 0 ? '+' : '−'}${Math.abs(n)} ${pointsWord(themeObj.value, Math.abs(n))}` }
+    return
+  }
+  pointsDelta.value = { n, key: ++pointsDeltaKey }
 })
 
 watch([blockIdx, completedIds, points], () => {
@@ -638,7 +645,10 @@ onUnmounted(() => {
   75%  { opacity: 1; }
   100% { opacity: 0; transform: translateY(4px); }
 }
-@media (prefers-reduced-motion: reduce) { .qp-hud__delta { animation-duration: .01s; animation-delay: 1.2s; } }
+@media (prefers-reduced-motion: reduce) {
+  .qp-hud__delta { animation: delta-fade 1.4s linear both; }
+  @keyframes delta-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+}
 .qp-hud__pts-l { margin-left: 4px; font-family: var(--font-b); font-size: .9rem; color: var(--field-ink-soft); }
 .qp-hud__name { flex: 1; font-family: var(--font-b); font-size: .95rem; color: var(--field-ink-soft); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-hud__time { font-family: var(--font-d); font-size: .9rem; color: var(--field-ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }

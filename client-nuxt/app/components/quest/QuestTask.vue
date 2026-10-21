@@ -637,7 +637,8 @@ const typeLabel = computed(() => ({
 .task--map :deep(.task__hint) {
   border-radius: 0;
   background: color-mix(in srgb, var(--paper-edge) 55%, var(--paper));
-  border-left: 3px solid var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 45%, var(--paper));
+  transform: rotate(-.6deg);
 }
 .task--ringbox :deep(.task__hint) {
   border-radius: 10px;
