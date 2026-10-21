@@ -242,7 +242,7 @@ const cssVars = computed(() => themeToCssVars(props.theme))
 const finishLabel = computed(() => ({
   detective: 'Закрыть дело',
   romantic:  'Завершить',
-  mystery:   'К финалу',
+  mystery:   'Открыть расклад',
   city:      'На конечную',
   treasure:  'Клад найден',
   proposal:  'Завершить',
@@ -379,6 +379,33 @@ const finishLabel = computed(() => ({
 .block--letters .block__mini-cell.is-active::after {
   top: -10px; right: auto; left: 50%;
   margin-left: -6px;
+}
+
+/* Обличье колоды: карты в ряд на сукне, рубашки киноварью */
+.block--tarot .block__mini::before {
+  height: 0; margin-top: 0;
+  border-top: 1.5px dotted color-mix(in srgb, var(--field-ink) 40%, var(--field));
+  background: none;
+}
+.block--tarot .block__mini { gap: 7px; }
+.block--tarot .block__mini-cell {
+  width: 12px; height: 18px;
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 3px 4px -2px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block--tarot .block__mini-cell:not(.is-done):not(.is-active) {
+  background: var(--back);
+  box-shadow: inset 0 0 0 1.5px var(--back), inset 0 0 0 2.5px var(--paper), 0 3px 4px -2px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.block--tarot .block__mini-cell.is-done { background: var(--done); }
+.block--tarot .block__mini-cell.is-active { width: 17px; height: 25px; background: var(--plate); }
+.block--tarot .block__mini-cell.is-active::after {
+  top: -11px; right: auto; left: 50%;
+  width: 8px; height: 8px; margin-left: -4px;
+  border-radius: 1px;
+  border: 1.5px solid var(--paper);
+  transform: rotate(45deg);
 }
 
 /* ── Доска: момент хода и обзор ───────────────────────────────── */

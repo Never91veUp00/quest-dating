@@ -168,42 +168,71 @@ export const THEMES = {
     id: 'mystery',
     label: 'Мистика',
 
-    accent:     '#a78bfa',
-    accentDim:  '#5b21b6',
-    bg:         '#060412',
-    bg2:        '#0c0820',
-    surface:    '#130d2a',
-    border:     'rgba(167,139,250,0.15)',
-    text:       '#d4c8f0',
-    dim:        '#4c3d7a',
+    // Цвета — стол гадалки: зелёно-чёрное сукно, карты слоновой бумаги, одна киноварь
+    accent:     '#a8321f',
+    accentDim:  '#a8321f',
+    bg:         '#18231d',   // сукно
+    bg2:        '#22302a',
+    surface:    '#f2ead8',
+    border:     'rgba(13,20,16,0.4)',
+    text:       '#ece3cf',
+    dim:        '#b3ae9c',
 
-    baseBg:     '#060412',
+    baseBg:     '#18231d',
     baseTone:   'dark',
     showTimer:  false,
 
+    // Мир «Ходилки» в обличье колоды: клетки — карты, будущие лежат рубашкой вверх,
+    // пройденная переворачивается и показывает свой знак
+    world: {
+      decor:        'tarot',
+      field:        '#18231d',
+      fieldInk:     '#ece3cf',
+      fieldInkSoft: '#b3ae9c',
+      paper:        '#f2ead8',   // карта
+      paperEdge:    '#d8ccb0',   // срез колоды
+      ink:          '#221d18',   // гравюра
+      inkSoft:      '#5a5147',
+      plate:        '#f2ead8',   // открытая карта «сейчас»
+      plateInk:     '#221d18',
+      done:         '#f2ead8',   // перевёрнутая карта со знаком
+      back:         '#a8321f',   // рубашка: киноварь
+      chip:         '#a8321f',
+      rule:         '#0d1410',
+      wrong:        '#9b2f1f',
+      action:       '#a8321f',
+      actionInk:    '#f2ead8',
+      focus:        '#221d18',
+    },
+
+    // Моушн-ролик «Как это работает» (tools/reels/mystery.html → record.mjs)
+    reel: { src: '/reels/mystery.mp4', poster: '/reels/mystery.jpg' },
+
+    // Шрифты
     fonts: {
-      display: "'Cinzel', serif",
-      body:    "'Cinzel', serif",
-      googleFonts: 'Cinzel:wght@400;700;900'
+      display: "'Old Standard TT', 'PT Serif', Georgia, serif",
+      body:    "'PT Serif', Georgia, serif",
+      displayWeight: 700,
+      // свои файлы: assets/styles/fonts.css + public/fonts
+      selfHosted: true,
     },
 
     copy: {
-      eyebrow:       'ПРОРОЧЕСТВО',
-      startBtn:      'Войти в круг',
-      taskDone:      'Тайна раскрыта',
-      hintBtn:       'Знак свыше · −10 очков',
-      photoZone:     'Запечатлеть знамение',
-      finishEyebrow: 'ПРОРОЧЕСТВО ИСПОЛНЕНО',
-      shareBtn:      'Поведать миру',
-      blockPrefix:   'Тайна',
-      pointsLabel:   'силы',
-      pointsForms:   ['очко силы', 'очка силы', 'очков силы'],
+      eyebrow:       'Колода разложена',
+      startBtn:      'Тяни карту',
+      taskDone:      'Карта открыта',
+      hintBtn:       'Подсказка · −10 очков',
+      photoZone:     'Сфотографировать знак',
+      finishEyebrow: 'Ваш расклад',
+      shareBtn:      'Поделиться раскладом',
+      blockPrefix:   'Расклад',
+      blockForms:    ['расклад', 'расклада', 'раскладов'],
+      pointsLabel:   'очков',
+      pointsForms:   ['очко', 'очка', 'очков'],
     },
 
-    bg_animation: 'stars',    // плывущие звёзды и туман
-
-
-    overlay: 'fog',           // туман
+    bg_animation: null,
+    overlay: null,            // гравюра на сукне — без звёзд и тумана
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -377,6 +406,14 @@ export const plural = (n, one, few, many) => {
   if (m10 === 1 && m100 !== 11) return one
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
   return many
+}
+
+// Римский номер карты: I, II, … XXI
+export const roman = (n) => {
+  const R = [[50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]
+  let out = ''
+  for (const [v, r] of R) while (n >= v) { out += r; n -= v }
+  return out
 }
 
 // Очки темы, согласованные с числом

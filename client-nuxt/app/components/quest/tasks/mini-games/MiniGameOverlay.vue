@@ -88,6 +88,20 @@ defineEmits(['update:modelValue'])
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
 .mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
 
+/* Колода, «Найди пары»: рубашка — киноварная решётка с рамкой, как у карт расклада */
+.mg-overlay--tarot :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background:
+    repeating-linear-gradient(45deg,  transparent 0 7px, color-mix(in srgb, var(--paper) 38%, var(--back)) 7px 8px),
+    repeating-linear-gradient(-45deg, transparent 0 7px, color-mix(in srgb, var(--paper) 38%, var(--back)) 7px 8px),
+    var(--back);
+  box-shadow: inset 0 0 0 4px var(--back), inset 0 0 0 5.5px var(--paper);
+}
+.mg-overlay--tarot :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
+.mg-overlay--tarot :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+.mg-overlay--tarot :deep(.task__pairs__card__back),
+.mg-overlay--tarot :deep(.task__pairs__card__front) { border-radius: 4px; clip-path: inset(0 round 4px); }
+
 /* ── Header ── */
 .mg-overlay__head {
   display: flex;

@@ -7,6 +7,7 @@
       'task--casefile': decor === 'casefile',
       'task--letters':  decor === 'letters',
       'task--metro':    decor === 'metro',
+      'task--tarot':    decor === 'tarot',
       [`task--${task.type}`]: true,
     }"
   >
@@ -17,11 +18,13 @@
     <!-- Письмо вынуто из конверта: над листом стоит открытый клапан -->
     <span v-else-if="decor === 'letters'" class="task__flap" aria-hidden="true"></span>
     <span v-else-if="decor === 'metro'" class="task__perf" aria-hidden="true"></span>
+    <!-- Вытянутая карта: двойная гравированная рамка по обрезу -->
+    <span v-else-if="decor === 'tarot'" class="task__frame" aria-hidden="true"></span>
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
       <span class="task__corner">
-        <span class="task__no">{{ index + 1 }}</span>
+        <span class="task__no">{{ decor === 'tarot' ? roman(index + 1) : index + 1 }}</span>
         <QuestIcon :name="typeIcon" :size="20" />
         <span class="sr-only">{{ typeLabel }}</span>
       </span>
@@ -70,7 +73,7 @@
 <script setup>
 import { computed } from 'vue'
 import QuestIcon        from './QuestIcon.vue'
-import { pointsWord }   from './themes.js'
+import { pointsWord, roman } from './themes.js'
 import TaskSimple       from './tasks/TaskSimple.vue'
 import TaskRiddle       from './tasks/TaskRiddle.vue'
 import TaskCodePhysical from './tasks/TaskCodePhysical.vue'
@@ -217,6 +220,32 @@ const typeLabel = computed(() => ({
   font-weight: 700;
 }
 .task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Обличье колоды: вытянутая карта слоновой бумаги, рамка гравюрой */
+.task--tarot {
+  border: none;
+  border-radius: 8px;
+  padding: 28px 24px 24px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 50%, transparent),
+    0 2px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+}
+.task__frame,
+.task__frame::after {
+  position: absolute;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.task__frame { inset: 8px; border: 1.5px solid color-mix(in srgb, var(--ink) 70%, var(--paper)); }
+.task__frame::after {
+  content: "";
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, var(--ink) 40%, var(--paper));
+  border-radius: 2px;
+}
+.task--tarot .task__no { font-weight: 700; font-size: 1.35rem; letter-spacing: .03em; }
+.task--tarot .task__title { font-weight: 700; line-height: 1.1; }
 
 /* Обличье переписки: лист письма над открытым конвертом, номер — на марке */
 .task--letters {

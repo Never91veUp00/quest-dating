@@ -16,10 +16,13 @@
       <span v-if="decor === 'letters'" class="lid__flap" aria-hidden="true">
         <QuestSeal class="lid__seal" :size="88" :seed="5" motto="★ ПИСЬМО ★" />
       </span>
-      <h1 class="lid__title">{{ questData.title }}</h1>
-      <p v-if="questData.client_name" class="lid__for">
-        Кому: <b>{{ questData.client_name }}</b>
-      </p>
+      <!-- Колода: верхняя карта рубашкой вверх, поперёк — бумажная бандероль -->
+      <div :class="decor === 'tarot' ? 'lid__band' : 'lid__text'">
+        <h1 class="lid__title">{{ questData.title }}</h1>
+        <p v-if="questData.client_name" class="lid__for">
+          Кому: <b>{{ questData.client_name }}</b>
+        </p>
+      </div>
       <span v-if="decor === 'casefile'" class="lid__stamp" aria-hidden="true">Секретно</span>
       <!-- Проездной: линия маршрута со станциями вдоль нижнего края -->
       <span v-if="decor === 'metro'" class="lid__route" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
@@ -83,6 +86,7 @@ onUnmounted(() => clearTimeout(timer))
   border-radius: 14px;
   text-align: center;
 }
+.lid__text { display: contents; }
 .lid__title {
   margin: 0;
   font-family: var(--font-d);
@@ -241,8 +245,49 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open { transition-delay: .22s; }
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
+/* ── Обличье колоды: новая колода в бандероли ───────────────── */
+.lid--tarot .lid__face {
+  display: flex; flex-direction: column; justify-content: center;
+  width: 100%; max-width: 300px;
+  aspect-ratio: 5 / 7.4;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(45deg,  transparent 0 11px, color-mix(in srgb, var(--paper) 34%, var(--back)) 11px 12.5px),
+    repeating-linear-gradient(-45deg, transparent 0 11px, color-mix(in srgb, var(--paper) 34%, var(--back)) 11px 12.5px),
+    var(--back);
+  /* срез колоды: слои карт под верхней */
+  box-shadow:
+    inset 0 0 0 9px var(--back),
+    inset 0 0 0 11px var(--paper),
+    0 3px 0 var(--paper-edge),
+    0 6px 0 var(--paper),
+    0 9px 0 var(--paper-edge),
+    0 12px 0 var(--paper),
+    0 30px 36px -18px color-mix(in srgb, var(--rule) 95%, transparent);
+}
+.lid__band {
+  position: relative;
+  margin: 0 -10px;
+  padding: 22px 22px 20px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    inset 0 5px 0 var(--paper), inset 0 6px 0 color-mix(in srgb, var(--ink) 45%, var(--paper)),
+    inset 0 -5px 0 var(--paper), inset 0 -6px 0 color-mix(in srgb, var(--ink) 45%, var(--paper)),
+    0 6px 10px -6px color-mix(in srgb, var(--rule) 80%, transparent);
+  transition: transform .38s cubic-bezier(.5, 0, .3, 1), opacity .38s;
+}
+.lid--tarot .lid__title { color: var(--ink); font-weight: 700; font-size: clamp(1.4rem, 9cqi, 2.3rem); }
+.lid--tarot .lid__for { margin-top: 10px; color: var(--ink-soft); }
+.lid--tarot .lid__for b { color: var(--ink); }
+/* сначала снимается бандероль, потом поднимается крышка */
+.lid--tarot.lid--open { transition-delay: .36s; }
+.lid--tarot.lid--open .lid__band { transform: translateX(115%) rotate(4deg); opacity: 0; }
+
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .lid__flap, .lid--metro .lid__face { transition: none; }
+  .lid__flap, .lid--metro .lid__face, .lid__band { transition: none; }
 }
 </style>
