@@ -5,26 +5,26 @@
       <button
         v-for="(opt, oi) in task.game_options"
         :key="oi"
-        class="task__quiz-opt"
+        class="task__quiz-opt mg-item"
         :class="{
-          correct: answered && oi === task.game_correct,
-          wrong:   answered && picked === oi && oi !== task.game_correct,
+          'is-right': answered && oi === task.game_correct,
+          'is-wrong': answered && picked === oi && oi !== task.game_correct,
+          'is-dim':   answered && oi !== task.game_correct && picked !== oi,
         }"
         :disabled="answered"
         @click="pick(oi)"
       >
-        <span class="task__quiz-opt__letter">{{ 'АБВГ'[oi] }}</span>
-        {{ opt }}
+        <span class="mg-item__key" aria-hidden="true">{{ 'АБВГ'[oi] }}</span>
+        <span class="task__quiz-opt__txt">{{ opt }}</span>
       </button>
     </div>
-    <div v-if="answered && picked === task.game_correct"
-      class="task__quiz-result task__quiz-result--right">
+    <p v-if="answered && picked === task.game_correct" class="mg-result" role="status">
       {{ theme.gender === 'm' ? 'Угадал' : 'Угадала' }}
-    </div>
-    <div v-if="answered && picked !== task.game_correct"
-      class="task__quiz-result task__quiz-result--wrong">
+    </p>
+    <p v-if="answered && picked !== task.game_correct" class="mg-result mg-result--wrong" role="status">
       {{ theme.gender === 'm' ? 'Не угадал' : 'Не угадала' }}
-    </div>
+      <span class="mg-result__sub">Верный ответ: {{ task.game_options?.[task.game_correct] }}</span>
+    </p>
     <button v-if="answered" class="task__action" @click="$emit('complete', {
       ...task,
       points: picked === task.game_correct ? (task.points ?? 10) : 0,
@@ -38,11 +38,11 @@
 <script setup>
 import { ref } from 'vue'
 
-defineProps({
+const props = defineProps({
   task:  { type: Object, required: true },
   theme: { type: Object, required: true },
 })
-defineEmits(['complete'])
+const emit = defineEmits(['complete', 'wrong'])
 
 const answered = ref(false)
 const picked   = ref(null)
@@ -51,37 +51,24 @@ const pick = (idx) => {
   if (answered.value) return
   picked.value   = idx
   answered.value = true
+  // неверный выбор — отметка мира на карточке, как у загадки
+  if (idx !== props.task.game_correct) emit('wrong')
 }
 </script>
 
 <style scoped>
 .quiz-wrap { display: flex; flex-direction: column; gap: 12px; }
 .task__quiz-question {
-  font-size: .95rem; font-weight: 600; color: var(--ink); line-height: 1.5;
-  background: color-mix(in srgb, var(--paper-edge) 28%, var(--paper)); padding: 12px 14px; border-radius: 10px;
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: 1.12rem;
+  line-height: 1.35;
+  color: var(--ink);
+  margin: 2px 0 4px;
 }
-.task__quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.task__quiz-opt {
-  background: color-mix(in srgb, var(--paper) 86%, var(--ink)); border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper)); border-radius: 9px;
-  padding: 11px 12px; color: var(--ink); font-size: .85rem; cursor: pointer;
-  text-align: left; display: flex; align-items: center; gap: 8px; transition: all .2s;
-}
-.task__quiz-opt:hover:not(:disabled) { border-color: var(--action); }
-.task__quiz-opt.correct { border-color: var(--ink); background: color-mix(in srgb, var(--done) 40%, var(--paper)); color: var(--ink); }
-.task__quiz-opt.wrong   { border-color: var(--wrong); background: color-mix(in srgb, var(--wrong) 10%, var(--paper)); color: var(--wrong); }
-.task__quiz-opt:disabled { cursor: default; }
-.task__quiz-opt__letter {
-  width: 20px; height: 20px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
-  display: flex; align-items: center; justify-content: center;
-  font-size: .7rem; font-weight: 700; flex-shrink: 0;
-}
-.task__quiz-result {
-  text-align: center; font-size: .9rem; padding: 8px; border-radius: 8px; font-weight: 600;
-}
-.task__quiz-result--right { color: var(--ink); background: color-mix(in srgb, var(--done) 40%, var(--paper)); }
-.task__quiz-result--wrong { color: var(--wrong); background: color-mix(in srgb, var(--wrong) 10%, var(--paper)); }
+.task__quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.task__quiz-opt__txt { flex: 1; }
 @media (max-width: 480px) {
-  .task__quiz-options { grid-template-columns: 1fr; gap: 8px; }
-  .task__quiz-opt { padding: 14px; min-height: 48px; }
+  .task__quiz-options { grid-template-columns: 1fr; }
 }
 </style>

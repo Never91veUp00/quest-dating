@@ -1,0 +1,293 @@
+/* Мини-игры в языке миров: общий предмет игры (.mg-item) и его состояния.
+   Обёртка .mgw.mgw--{decor} стоит и на карточке задания (угадайка, кнопка запуска),
+   и на оверлее (пары, пазл), поэтому стили глобальные, а не scoped.
+   Мир задаёт предмет через --mi-* и пару своих деталей; состояния общие. */
+
+.mgw {
+  --mi-bg:      color-mix(in srgb, var(--paper-edge) 30%, var(--paper));
+  --mi-ink:     var(--ink);
+  --mi-border:  color-mix(in srgb, var(--ink) 28%, var(--paper));
+  --mi-radius:  10px;
+  --mi-shadow:  0 1px 0 color-mix(in srgb, var(--rule) 25%, transparent);
+  --mi-font:    inherit;
+  --mi-sel:     var(--action);
+  --mi-done-bg: color-mix(in srgb, var(--done) 38%, var(--paper));
+  --mi-done-ink: var(--ink);
+}
+
+/* ── Предмет игры ── */
+.mgw .mg-item {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px;
+  padding: 11px 14px;
+  background: var(--mi-bg);
+  color: var(--mi-ink);
+  border: 2px solid var(--mi-border);
+  border-radius: var(--mi-radius);
+  box-shadow: var(--mi-shadow);
+  font-family: var(--mi-font);
+  font-size: .95rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .16s cubic-bezier(.2, .7, .2, 1), border-color .16s, background-color .2s, color .2s;
+}
+@media (hover: hover) {
+  .mgw .mg-item:hover:not(:disabled):not(.is-matched) { border-color: var(--mi-sel); }
+}
+.mgw .mg-item:focus-visible { outline: 3px solid var(--focus, var(--mi-sel)); outline-offset: 2px; }
+/* глобальное button:disabled гасит до .5 — отработанный предмет должен читаться */
+.mgw .mg-item:disabled { cursor: default; opacity: 1; }
+
+/* выбран: поднят над столом и обведён краской мира */
+.mgw .mg-item.is-selected {
+  border-color: var(--mi-sel);
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1.5px var(--mi-sel), 0 10px 14px -10px color-mix(in srgb, var(--rule) 80%, transparent);
+}
+/* промах: краска ошибки, без тряски, сама уходит */
+.mgw .mg-item.is-miss {
+  border-color: var(--wrong);
+  color: var(--wrong);
+  background: color-mix(in srgb, var(--wrong) 9%, var(--mi-bg));
+}
+/* совпало / угадано: предмет «отработан» в материале мира */
+.mgw .mg-item.is-matched,
+.mgw .mg-item.is-right {
+  background: var(--mi-done-bg);
+  color: var(--mi-done-ink);
+  border-color: color-mix(in srgb, var(--mi-done-ink) 40%, var(--mi-done-bg));
+  box-shadow: none;
+  cursor: default;
+}
+.mgw .mg-item.is-wrong {
+  border-color: var(--wrong);
+  color: var(--wrong);
+  background: color-mix(in srgb, var(--wrong) 9%, var(--mi-bg));
+}
+.mgw .mg-item.is-dim { opacity: .62; }
+
+/* номер найденной пары: одинаковый кружок на обеих половинах */
+.mgw .mg-item__seal {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 22px; height: 22px;
+  margin-left: auto;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: .78rem;
+  line-height: 1;
+  animation: mg-seal-in .3s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes mg-seal-in { from { opacity: 0; transform: scale(1.6); } to { opacity: 1; transform: scale(1); } }
+
+/* буква варианта в угадайке */
+.mgw .mg-item__key {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: .8rem;
+  line-height: 1;
+}
+
+/* доска игры — якорь для отметки мира */
+.mgw .mg-board { position: relative; margin-top: 30px; }
+
+/* круглый штемпель «Переписки» на доске игры меньше и выше — не закрывает счёт над пазлом */
+.mgw .mg-board > .mark--letters { top: -34px; scale: .8; transform-origin: top right; }
+
+/* итог игры — строка, а не цветная плашка */
+.mgw .mg-result {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-d);
+  font-weight: var(--font-d-wt, 400);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.mgw .mg-result--wrong { color: var(--wrong); }
+.mgw .mg-result__sub { display: block; margin-top: 2px; font-family: inherit; font-size: .85rem; color: var(--ink-soft); }
+
+/* «Не получается? Пропустить» */
+.mgw .mg-skip {
+  display: block; margin: 4px auto 0; padding: 8px 12px;
+  background: none; border: none;
+  color: var(--ink-soft); font-size: .8rem;
+  text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer;
+}
+.mgw .mg-skip:hover { color: var(--ink); }
+
+/* ── Миры ─────────────────────────────────────────────────────── */
+
+/* Дело: крафтовая карточка картотеки, уголки прямые; отработанная — подшита */
+.mgw--casefile {
+  --mi-bg:      color-mix(in srgb, var(--paper-edge) 55%, var(--paper));
+  --mi-border:  transparent;
+  --mi-radius:  2px;
+  --mi-shadow:  0 1px 0 color-mix(in srgb, var(--rule) 45%, transparent), 0 6px 8px -7px color-mix(in srgb, var(--rule) 60%, transparent);
+  --mi-sel:     var(--chip);
+  --mi-done-bg: var(--paper);
+  --mi-done-ink: var(--ink-soft);
+}
+.mgw--casefile .mg-item.is-matched,
+.mgw--casefile .mg-item.is-right { border: 2px dashed color-mix(in srgb, var(--ink) 30%, var(--paper)); }
+.mgw--casefile .mg-item.is-matched .mg-item__seal,
+.mgw--casefile .mg-item.is-right .mg-item__key { color: var(--chip); }
+
+/* Переписка: открытка с перфорацией марки по краю */
+.mgw--letters {
+  --mi-bg:      var(--paper);
+  --mi-border:  color-mix(in srgb, var(--ink) 22%, var(--paper));
+  --mi-radius:  3px;
+  --mi-font:    var(--font-d);
+  --mi-shadow:  0 6px 10px -8px color-mix(in srgb, var(--rule) 70%, transparent);
+  --mi-sel:     var(--ink);
+  --mi-done-bg: color-mix(in srgb, var(--done) 55%, var(--paper));
+}
+.mgw--letters .mg-item { font-size: 1rem; }
+.mgw--letters .mg-item::after {
+  content: ""; position: absolute; inset: 4px;
+  border: 1.5px dashed color-mix(in srgb, var(--chip) 70%, var(--paper));
+  border-radius: 2px;
+  pointer-events: none;
+}
+.mgw--letters .mg-item.is-selected::after { border-color: var(--ink); }
+
+/* Схема: талон с линией маршрута сверху; пробитый — зелёный корешок */
+.mgw--metro {
+  --mi-bg:      var(--paper);
+  --mi-border:  transparent;
+  --mi-radius:  4px;
+  --mi-shadow:  inset 0 5px 0 var(--chip), 0 6px 8px -7px color-mix(in srgb, var(--rule) 55%, transparent);
+  --mi-sel:     var(--ink);
+  --mi-done-bg: color-mix(in srgb, var(--chip) 18%, var(--paper));
+}
+.mgw--metro .mg-item { padding-top: 15px; font-weight: 500; }
+.mgw--metro .mg-item.is-selected { box-shadow: inset 0 5px 0 var(--chip), 0 0 0 1.5px var(--ink), 0 10px 14px -10px color-mix(in srgb, var(--rule) 80%, transparent); }
+.mgw--metro .mg-item.is-matched,
+.mgw--metro .mg-item.is-right { box-shadow: inset 0 5px 0 var(--chip); border-color: transparent; }
+.mgw--metro .mg-item.is-matched .mg-item__seal,
+.mgw--metro .mg-item.is-right .mg-item__key { background: var(--chip); border-color: var(--chip); color: var(--paper); }
+
+/* Колода: маленькая карта в двойной рамке; разыгранная — рубашкой киновари по краю */
+.mgw--tarot {
+  --mi-bg:      var(--paper);
+  --mi-border:  color-mix(in srgb, var(--ink) 55%, var(--paper));
+  --mi-radius:  6px;
+  --mi-font:    var(--font-d);
+  --mi-shadow:  inset 0 0 0 3px var(--paper), inset 0 0 0 4px color-mix(in srgb, var(--ink) 30%, var(--paper)), 0 6px 10px -8px color-mix(in srgb, var(--rule) 80%, transparent);
+  --mi-sel:     var(--chip);
+  --mi-done-bg: var(--paper);
+}
+.mgw--tarot .mg-item { padding: 13px 16px; font-size: 1rem; }
+.mgw--tarot .mg-item.is-matched,
+.mgw--tarot .mg-item.is-right {
+  border-color: var(--chip);
+  box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 4px var(--chip);
+}
+.mgw--tarot .mg-item.is-matched .mg-item__seal,
+.mgw--tarot .mg-item.is-right .mg-item__key { color: var(--chip); }
+
+/* Карта: клочок пергамента, края неровные, лежат вразнобой */
+.mgw--map {
+  --mi-bg:      color-mix(in srgb, var(--paper-edge) 50%, var(--paper));
+  --mi-border:  color-mix(in srgb, var(--ink) 35%, var(--paper));
+  --mi-radius:  3px 9px 4px 11px / 9px 4px 10px 3px;
+  --mi-font:    var(--font-d);
+  --mi-shadow:  0 6px 8px -7px color-mix(in srgb, var(--rule) 70%, transparent);
+  --mi-sel:     var(--chip);
+  --mi-done-bg: var(--paper);
+}
+.mgw--map .mg-item { font-size: 1rem; }
+.mgw--map .mg-item:nth-child(odd)  { rotate: -.5deg; }
+.mgw--map .mg-item:nth-child(even) { rotate: .6deg; }
+.mgw--map .mg-item.is-matched .mg-item__seal,
+.mgw--map .mg-item.is-right .mg-item__key { color: var(--chip); border-style: dashed; }
+
+/* Футляр: шёлковый ярлычок на ленте; без красного на промахе */
+.mgw--ringbox {
+  --mi-bg:      var(--paper);
+  --mi-border:  color-mix(in srgb, var(--ink) 20%, var(--paper));
+  --mi-radius:  999px;
+  --mi-font:    var(--font-d);
+  --mi-shadow:  0 6px 10px -8px color-mix(in srgb, var(--rule) 60%, transparent);
+  --mi-sel:     var(--chip);
+  --mi-done-bg: var(--paper-edge);
+}
+.mgw--ringbox .mg-item { padding: 11px 18px; font-size: 1rem; }
+.mgw--ringbox .mg-item.is-miss,
+.mgw--ringbox .mg-item.is-wrong { border-color: var(--ink-soft); color: var(--ink-soft); background: var(--paper); }
+.mgw--ringbox .mg-item.is-matched .mg-item__seal,
+.mgw--ringbox .mg-item.is-right .mg-item__key { color: var(--chip); }
+
+/* Зельеварня: аптечный ярлык со срезанными углами (форма — на подложке, кольцо фокуса не режется) */
+.mgw--potion {
+  --mi-bg:      transparent;
+  --mi-border:  transparent;
+  --mi-radius:  0;
+  --mi-shadow:  none;
+  --mi-sel:     var(--action);
+  --mi-done-bg: transparent;
+}
+.mgw--potion .mg-item { isolation: isolate; font-weight: 500; }
+.mgw--potion .mg-item::before {
+  content: ""; position: absolute; inset: -2px; z-index: -1;
+  background: var(--rule);
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  transition: background-color .16s;
+}
+.mgw--potion .mg-item::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: color-mix(in srgb, var(--paper-edge) 40%, var(--paper));
+  clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+  transition: background-color .2s;
+}
+.mgw--potion .mg-item.is-selected { box-shadow: none; }
+.mgw--potion .mg-item.is-selected::before { background: var(--action); }
+.mgw--potion .mg-item.is-selected::after { inset: 2px; }
+.mgw--potion .mg-item.is-miss,
+.mgw--potion .mg-item.is-wrong { background: transparent; }
+.mgw--potion .mg-item.is-miss::before,
+.mgw--potion .mg-item.is-wrong::before { background: var(--wrong); }
+.mgw--potion .mg-item.is-matched::after,
+.mgw--potion .mg-item.is-right::after { background: color-mix(in srgb, var(--chip) 30%, var(--paper)); }
+.mgw--potion .mg-item.is-matched::before,
+.mgw--potion .mg-item.is-right::before { background: color-mix(in srgb, var(--chip) 70%, var(--rule)); }
+@media (hover: hover) {
+  .mgw--potion .mg-item:hover:not(:disabled):not(.is-matched)::before { background: var(--action); }
+}
+
+/* Вырубка: тёмный картон; найденная пара «вырезана» — проступает кремовая бумага */
+.mgw--diecut {
+  --mi-bg:      var(--back);
+  --mi-ink:     var(--paper);
+  --mi-border:  var(--rule);
+  --mi-radius:  6px;
+  --mi-font:    var(--font-d);
+  --mi-shadow:  0 8px 12px -9px color-mix(in srgb, var(--rule) 90%, transparent);
+  --mi-sel:     var(--chip);
+  --mi-done-bg: var(--paper);
+  --mi-done-ink: var(--ink);
+}
+.mgw--diecut .mg-item { font-size: 1.05rem; letter-spacing: .01em; }
+.mgw--diecut .mg-item.is-matched,
+.mgw--diecut .mg-item.is-right { border: 2px dashed var(--rule); }
+.mgw--diecut .mg-item.is-miss,
+.mgw--diecut .mg-item.is-wrong { background: var(--back); color: var(--paper); border-color: var(--wrong); box-shadow: 0 0 0 1.5px var(--wrong); }
+.mgw--diecut .mg-item.is-matched .mg-item__seal,
+.mgw--diecut .mg-item.is-right .mg-item__key { background: var(--chip); border-color: var(--chip); color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mgw .mg-item { transition: border-color .16s, background-color .2s, color .2s; }
+  .mgw .mg-item.is-selected { transform: none; }
+  .mgw .mg-item__seal { animation: none; }
+}

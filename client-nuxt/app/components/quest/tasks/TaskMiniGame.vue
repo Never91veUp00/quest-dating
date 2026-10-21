@@ -1,18 +1,19 @@
 <template>
   <!-- Quiz рендерится инлайн без оверлея -->
-  <component
-    v-if="task.game_type === 'quiz'"
-    :is="MiniGameQuiz"
-    :task="task"
-    :theme="theme"
-    @complete="$emit('complete', $event)"
-    @skip-task="$emit('skip-task', $event)"
-  />
+  <div v-if="task.game_type === 'quiz'" class="mgw" :class="worldClass">
+    <MiniGameQuiz
+      :task="task"
+      :theme="theme"
+      @complete="$emit('complete', $event)"
+      @skip-task="$emit('skip-task', $event)"
+      @wrong="$emit('wrong')"
+    />
+  </div>
 
   <!-- Pairs и Puzzle — кнопка запуска + полноэкранный оверлей -->
   <template v-else>
-    <div class="mg-launch">
-      <button class="mg-launch__btn" @click="open = true">
+    <div class="mg-launch mgw" :class="worldClass">
+      <button class="mg-launch__btn mg-item" @click="open = true">
         <QuestIcon class="mg-launch__ico" name="game" :size="26" />
         <span class="mg-launch__txt">{{ gameLabel }}</span>
         <QuestIcon class="mg-launch__arrow" name="forward" :size="22" />
@@ -40,12 +41,13 @@ import MiniGameQuiz    from './mini-games/MiniGameQuiz.vue'
 import MiniGamePairs   from './mini-games/MiniGamePairs.vue'
 import MiniGamePuzzle  from './mini-games/MiniGamePuzzle.vue'
 import QuestIcon from '../QuestIcon.vue'
+import './mini-games/mg-worlds.css'
 
 const props = defineProps({
   task:  { type: Object, required: true },
   theme: { type: Object, required: true },
 })
-const emit = defineEmits(['complete', 'skip-task'])
+const emit = defineEmits(['complete', 'skip-task', 'wrong'])
 
 const open = ref(false)
 
@@ -53,6 +55,7 @@ const GAME_MAP = { quiz: MiniGameQuiz, pairs: MiniGamePairs, puzzle: MiniGamePuz
 const gameComponent = computed(() => GAME_MAP[props.task.game_type] || null)
 
 const cssVars = computed(() => themeToCssVars(props.theme))
+const worldClass = computed(() => props.theme.world?.decor ? `mgw--${props.theme.world.decor}` : null)
 
 const GAME_META = {
   quiz:   { label: 'Пройти угадайку' },
@@ -74,35 +77,18 @@ const onSkip = (task) => {
 </script>
 
 <style scoped>
-.mg-launch { display: flex; flex-direction: column; gap: 0; }
-
-.mg-launch__btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* кнопка запуска — тот же предмет мира, что и в самой игре, только крупнее */
+.mg-launch__btn.mg-item {
   width: 100%;
-  min-height: 56px;
+  min-height: 60px;
   padding: 14px 16px;
-  background: color-mix(in srgb, var(--action) 8%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--action) 30%, transparent);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background .18s, border-color .18s, transform .12s;
-  text-align: left;
+  gap: 12px;
 }
-
-.mg-launch__btn:hover {
-  background: color-mix(in srgb, var(--action) 14%, transparent);
-  border-color: var(--action);
+.mg-launch__ico   { flex-shrink: 0; }
+.mg-launch__txt   { flex: 1; font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.05rem; }
+.mg-launch__arrow { flex-shrink: 0; color: var(--mi-sel); transition: transform .16s cubic-bezier(.2, .7, .2, 1); }
+@media (hover: hover) {
+  .mg-launch__btn:hover .mg-launch__arrow { transform: translateX(3px); }
 }
-.mg-launch__btn:active { transform: scale(.98); }
-
-.mg-launch__ico  { font-size: 1.3rem; flex-shrink: 0; }
-.mg-launch__txt  { flex: 1; font-size: .95rem; font-weight: 700; color: var(--ink); }
-.mg-launch__arrow {
-  font-size: .75rem;
-  color: var(--action);
-  opacity: .7;
-  flex-shrink: 0;
-}
+.mg-launch__btn:active { transform: translateY(2px); }
 </style>

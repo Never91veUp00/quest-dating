@@ -1,7 +1,7 @@
 <template>
   <teleport to="body">
     <transition name="mg-overlay">
-      <div v-if="modelValue" class="mg-overlay" :class="decor && `mg-overlay--${decor}`" :style="cssVars">
+      <div v-if="modelValue" class="mg-overlay mgw" :class="decor && [`mg-overlay--${decor}`, `mgw--${decor}`]" :style="cssVars">
 
         <!-- Header -->
         <div class="mg-overlay__head">
@@ -53,6 +53,18 @@ defineEmits(['update:modelValue'])
 .mg-overlay :deep(:focus-visible) { outline-color: var(--focus); }
 .mg-overlay :deep(::selection) { background: var(--focus); color: var(--paper); }
 
+/* Дело, «Найди пары»: рубашка — крафтовая папка с полоской скотча */
+.mg-overlay--casefile :deep(.task__pairs__card__back) {
+  background:
+    linear-gradient(color-mix(in srgb, var(--paper) 55%, transparent), color-mix(in srgb, var(--paper) 55%, transparent)) center 22% / 62% 14% no-repeat,
+    linear-gradient(transparent 0 18%, color-mix(in srgb, var(--rule) 22%, transparent) 18% calc(18% + 1px), transparent 0),
+    var(--paper-edge);
+}
+.mg-overlay--casefile :deep(.task__pairs__card) { border-width: 3px; border-radius: 3px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
+.mg-overlay--casefile :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: transparent; }
+.mg-overlay--casefile :deep(.task__pairs__card__back),
+.mg-overlay--casefile :deep(.task__pairs__card__front) { border-radius: 2px; clip-path: inset(0 round 2px); }
+
 /* Переписка, «Найди пары»: рубашка — конверт обратной стороной, клапан закрыт, знака вопроса нет */
 .mg-overlay--letters :deep(.task__pairs__card__back) {
   font-size: 0;
@@ -68,7 +80,7 @@ defineEmits(['update:modelValue'])
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 .mg-overlay--letters :deep(.task__pairs__card) { border-width: 3px; border-radius: 4px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
-.mg-overlay--letters :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+.mg-overlay--letters :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: transparent; }
 .mg-overlay--letters :deep(.task__pairs__card__back),
 .mg-overlay--letters :deep(.task__pairs__card__front) { border-radius: 3px; clip-path: inset(0 round 3px); }
 
@@ -86,7 +98,7 @@ defineEmits(['update:modelValue'])
   border-top: 2px dashed color-mix(in srgb, var(--ink) 30%, var(--paper));
 }
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
-.mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+.mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: transparent; }
 
 /* Хеллоуин, «Найди пары»: рубашка — тёмный картон с невырезанной тыквой (форма QuestPumpkin) */
 .mg-overlay--diecut :deep(.task__pairs__card__back) {
@@ -96,7 +108,7 @@ defineEmits(['update:modelValue'])
     var(--back);
 }
 .mg-overlay--diecut :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }
-.mg-overlay--diecut :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: var(--rule); }
+.mg-overlay--diecut :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: var(--rule); }
 
 /* Зельеварня, «Найди пары»: рубашка — камень подвала с пустым флаконом мелом */
 .mg-overlay--potion :deep(.task__pairs__card__back) {
@@ -106,7 +118,7 @@ defineEmits(['update:modelValue'])
     var(--back);
 }
 .mg-overlay--potion :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }
-.mg-overlay--potion :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: var(--rule); }
+.mg-overlay--potion :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: var(--rule); }
 
 /* Футляр, «Найди пары»: фон — бархат, рубашка — закрытый футляр со швом крышки */
 .mg-overlay--ringbox { background: var(--field); color: var(--field-ink); }
@@ -117,7 +129,7 @@ defineEmits(['update:modelValue'])
     var(--back);
 }
 .mg-overlay--ringbox :deep(.task__pairs__card) { border-width: 2px; border-radius: 10px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 70%, transparent); }
-.mg-overlay--ringbox :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: var(--rule); }
+.mg-overlay--ringbox :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: var(--rule); }
 .mg-overlay--ringbox :deep(.task__pairs__card__back),
 .mg-overlay--ringbox :deep(.task__pairs__card__front) { border-radius: 8px; clip-path: inset(0 round 8px); }
 
@@ -129,7 +141,7 @@ defineEmits(['update:modelValue'])
     var(--paper-edge);
 }
 .mg-overlay--map :deep(.task__pairs__card) { border-width: 3px; border-radius: 4px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
-.mg-overlay--map :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+.mg-overlay--map :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: transparent; }
 
 /* Колода, «Найди пары»: рубашка — киноварная решётка с рамкой, как у карт расклада */
 .mg-overlay--tarot :deep(.task__pairs__card__back) {
@@ -141,7 +153,7 @@ defineEmits(['update:modelValue'])
   box-shadow: inset 0 0 0 4px var(--back), inset 0 0 0 5.5px var(--paper);
 }
 .mg-overlay--tarot :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent); }
-.mg-overlay--tarot :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
+.mg-overlay--tarot :deep(.task__pairs__card:not(.selected):not(.matched):not(.miss):not(:hover)) { border-color: transparent; }
 .mg-overlay--tarot :deep(.task__pairs__card__back),
 .mg-overlay--tarot :deep(.task__pairs__card__front) { border-radius: 4px; clip-path: inset(0 round 4px); }
 
@@ -195,6 +207,9 @@ defineEmits(['update:modelValue'])
   display: flex;
   flex-direction: column;
 }
+
+/* на десктопе игра — колонка по центру, а не полоса во весь экран */
+.mg-overlay__body > :deep(*) { width: 100%; max-width: 560px; margin-inline: auto; }
 
 /* ── Transition ── */
 .mg-overlay-enter-active,

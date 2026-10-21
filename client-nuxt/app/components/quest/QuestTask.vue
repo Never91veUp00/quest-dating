@@ -137,7 +137,8 @@ const pass = (event, payload, kind) => {
   showMark(kind)
   passTimer = setTimeout(() => { passTimer = null; emit(event, payload) }, reduced() ? 120 : REACT_MS)
 }
-const onComplete = (payload) => pass('complete', payload, 'right')
+// угадайка с неверным выбором идёт дальше без очков — отметка честная: «неверно»
+const onComplete = (payload) => pass('complete', payload, payload?._quizWrong ? 'wrong' : 'right')
 const onSkip     = (payload) => pass('skip-task', payload, 'skip')
 const nudge = ref(false)
 const onWrong = () => {
