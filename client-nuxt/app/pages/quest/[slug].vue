@@ -57,6 +57,7 @@
             <div class="qp-hud__row">
               <span class="qp-hud__pts">
                 {{ points }}<span class="qp-hud__pts-l"> {{ pointsWord(themeObj, points) }}</span>
+                <span v-if="pointsDelta" :key="pointsDelta.key" class="qp-hud__delta" :class="{ 'is-loss': pointsDelta.n < 0 }" aria-hidden="true">{{ pointsDelta.n > 0 ? '+' : '−' }}{{ Math.abs(pointsDelta.n) }}</span>
               </span>
               <span class="qp-hud__name">{{ questData.title }}</span>
               <span v-if="themeObj.showTimer" class="qp-hud__time">{{ elapsedStr }}</span>
@@ -164,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars, pointsWord } from '~/components/quest/themes.js'
 import QuestIcon from '../../components/quest/QuestIcon.vue'
 
@@ -238,6 +239,10 @@ const blockIdx            = ref(0)
 const completedIds        = ref([])
 const earnedMap           = ref({})
 const points              = ref(0)
+// Всплывающее изменение очков в шапке (+ за задание, − за подсказку и пропуск)
+const pointsDelta         = ref(null)
+let pointsDeltaKey = 0
+let pointsDeltaReady = false
 const hintsUsed           = ref(0)
 const badge               = ref(null)
 const showMenu            = ref(false)
@@ -409,6 +414,8 @@ const loadQuest = async () => {
     fatalError.value = err?.message || 'Квест не найден'
   } finally {
     loading.value = false
+    // после того как отработает наблюдатель за восстановленными очками
+    nextTick(() => { pointsDeltaReady = true })
   }
 }
 
@@ -551,6 +558,12 @@ const share = () => {
 }
 
 // ─── Watchers ─────────────────────────────────────────────────
+watch(points, (now, before) => {
+  // восстановление прогресса при загрузке не показываем
+  if (!pointsDeltaReady) return
+  if (now !== before) pointsDelta.value = { n: now - before, key: ++pointsDeltaKey }
+})
+
 watch([blockIdx, completedIds, points], () => {
   if (started.value) persistState()
 }, { deep: true })
@@ -602,6 +615,27 @@ onUnmounted(() => {
 .qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--field); border-bottom: 2px solid color-mix(in srgb, var(--field-ink) 18%, var(--field)); }
 .qp-hud__row { display: flex; align-items: center; padding: 8px 12px 8px 16px; gap: 10px; max-width: 600px; margin: 0 auto; }
 .qp-hud__pts { font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.15rem; color: var(--field-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qp-hud__pts { position: relative; }
+/* изменение очков всплывает над счётом и тает */
+.qp-hud__delta {
+  position: absolute; left: 0; top: 100%;
+  margin-top: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: .85rem;
+  animation: delta-life 1.4s cubic-bezier(.2, .7, .2, 1) both;
+  pointer-events: none;
+}
+.qp-hud__delta.is-loss { color: var(--wrong); }
+@keyframes delta-life {
+  0%   { opacity: 0; transform: translateY(-4px); }
+  15%  { opacity: 1; transform: none; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) { .qp-hud__delta { animation-duration: .01s; animation-delay: 1.2s; } }
 .qp-hud__pts-l { margin-left: 4px; font-family: var(--font-b); font-size: .9rem; color: var(--field-ink-soft); }
 .qp-hud__name { flex: 1; font-family: var(--font-b); font-size: .95rem; color: var(--field-ink-soft); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-hud__time { font-family: var(--font-d); font-size: .9rem; color: var(--field-ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
