@@ -65,8 +65,7 @@
 </template>
 
 <script setup>
-const auth = useAuthStore()
-if (!auth.isAuthenticated) await navigateTo('/admin/login')
+definePageMeta({ middleware: ['admin'] })
 
 const {
   form, saving, errors, openBlocks, templates, selectedTemplate, toast, origin,
