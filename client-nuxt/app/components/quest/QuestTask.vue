@@ -415,7 +415,7 @@ const typeLabel = computed(() => ({
   cursor: pointer;
   transition: background .2s;
 }
-:deep(.task__ok:hover:not(:disabled)) { background: color-mix(in srgb, var(--action) 80%, var(--chip)); }
+:deep(.task__ok:hover:not(:disabled)) { background: var(--action-hover, color-mix(in srgb, var(--action) 80%, var(--chip))); }
 :deep(.task__ok:disabled) { cursor: default; background: var(--paper); color: var(--ink); border: 2px dashed var(--ink); }
 :deep(.task__wrong) { margin: 0; font-family: var(--font-b); font-size: 1rem; color: var(--wrong); }
 

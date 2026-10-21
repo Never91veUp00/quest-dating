@@ -420,7 +420,7 @@ pre code {
   transition: background .2s ease, transform .15s ease;
 }
 .task__action:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--action, var(--accent)) 80%, var(--chip, #000));
+  background: var(--action-hover, color-mix(in srgb, var(--action, var(--accent)) 80%, var(--chip, #000)));
 }
 .task__action:active:not(:disabled) { transform: translateY(2px); }
 .task__action:focus-visible {

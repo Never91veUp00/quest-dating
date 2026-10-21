@@ -202,6 +202,7 @@ export const THEMES = {
       wrong:        '#9b2f1f',
       action:       '#a8321f',
       actionInk:    '#f2ead8',
+      actionHover:  '#8a2818',   // кнопка и фишка одной киноварью: наведение — глубже
       focus:        '#221d18',
     },
 
@@ -473,6 +474,7 @@ const worldVars = (theme) => {
     '--wrong':          w.wrong        ?? '#e5534b',
     '--action':         w.action       ?? theme.accent,
     '--action-ink':     w.actionInk    ?? theme.bg,
+    ...(w.actionHover && { '--action-hover': w.actionHover }),
     // фокус и выделение на бумаге: по умолчанию краска фишки
     '--focus':          w.focus        ?? w.chip ?? theme.accent,
     // сургуч: без своего цвета QuestSeal берёт запасной красный
