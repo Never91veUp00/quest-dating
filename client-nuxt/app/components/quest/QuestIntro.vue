@@ -284,10 +284,18 @@ onUnmounted(() => clearTimeout(timer))
   width: 78%;
   transform: translate(-50%, -50%) rotate(-2deg);
   padding: 18px 16px 16px;
-  background: var(--paper);
+  isolation: isolate;
+  /* контур — сам ярлык, бумага — внутренний слой той же формы: линия идёт и по срезам углов */
+  background: var(--rule);
   color: var(--ink);
-  border: 1.5px solid var(--rule);
   clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+}
+.lid__label::before {
+  content: "";
+  position: absolute; inset: 1.5px;
+  z-index: -1;
+  background: var(--paper);
+  clip-path: polygon(11.4px 0, calc(100% - 11.4px) 0, 100% 11.4px, 100% calc(100% - 11.4px), calc(100% - 11.4px) 100%, 11.4px 100%, 0 calc(100% - 11.4px), 0 11.4px);
 }
 .lid--potion .lid__title { color: var(--ink); font-weight: 700; font-size: clamp(1.4rem, 8cqi, 2.1rem); }
 .lid--potion .lid__for { margin-top: 8px; color: var(--ink-soft); }
