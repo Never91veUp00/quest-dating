@@ -40,7 +40,7 @@ defineProps({
 .pk__body { stroke: var(--rule); stroke-width: var(--pk-line, 1.5); }
 .pk__rib  { fill: none; stroke: var(--rule); stroke-width: calc(var(--pk-line, 1.5) * .8); }
 .pk__stem { fill: color-mix(in srgb, var(--chip) 30%, var(--rule)); stroke: var(--rule); stroke-width: calc(var(--pk-line, 1.5) * .6); stroke-linejoin: round; }
-.pk--back .pk__body { fill: var(--back); }
+.pk--back .pk__body { fill: var(--back); stroke: color-mix(in srgb, var(--field-ink) 45%, var(--back)); }
 .pk--back .pk__rib  { stroke: color-mix(in srgb, var(--field-ink) 22%, var(--back)); }
 .pk--active .pk__body, .pk--done .pk__body { fill: var(--chip); }
 .pk__cut { fill: var(--paper); stroke: var(--rule); stroke-width: calc(var(--pk-line, 1.5) * .6); stroke-linejoin: round; }

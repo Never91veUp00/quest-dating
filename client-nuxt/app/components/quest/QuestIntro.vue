@@ -269,22 +269,12 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
 /* ── Обличье вырубки: приглашение на вечеринку ──────────────────── */
+/* вырубка углов маской: вогнутые углы режут и шапку-сцену; тень маска срезала бы, поэтому без неё */
 .lid--diecut .lid__face {
   border: none;
   border-radius: 0;
-  background:
-    radial-gradient(circle at 0 0,       transparent 11px, var(--paper) 11.5px) top left     / 51% 51% no-repeat,
-    radial-gradient(circle at 100% 0,    transparent 11px, var(--paper) 11.5px) top right    / 51% 51% no-repeat,
-    radial-gradient(circle at 0 100%,    transparent 11px, var(--paper) 11.5px) bottom left  / 51% 51% no-repeat,
-    radial-gradient(circle at 100% 100%, transparent 11px, var(--paper) 11.5px) bottom right / 51% 51% no-repeat;
-  box-shadow: none;
-  filter: drop-shadow(0 14px 14px color-mix(in srgb, var(--rule) 80%, transparent));
   padding: 0 0 26px;
-}
-/* вырубка углов маской: вогнутые углы режут и шапку-сцену; тень маска срезала бы, поэтому без неё */
-.lid--diecut .lid__face {
   background: var(--paper);
-  filter: none;
   -webkit-mask:
     radial-gradient(circle at 0 0,       transparent 11px, #000 11.5px) top left     / 51% 51% no-repeat,
     radial-gradient(circle at 100% 0,    transparent 11px, #000 11.5px) top right    / 51% 51% no-repeat,
