@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-21T21:00:00.000Z",
+  "generatedAt": "2026-10-21T23:00:00.000Z",
   "title": "Design System: Quest Dating",
   "extensions": {
-    "scope": "Плеер квеста /quest/[slug]. Свой мир у всех шести тем: detective (decor: casefile), romantic (decor: letters, «Переписка»), city (decor: metro, «Схема метро с талоном»), mystery (decor: tarot, «Колода»), treasure (decor: map, «Пиратская карта») и proposal (decor: ringbox, «Футляр с кольцом»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город», с префиксом mystery- — «Мистика», с префиксом treasure- — «Искатель клада», с префиксом proposal- — «Предложение». Публичные страницы не переведены, токенов для них нет.",
+    "scope": "Плеер квеста /quest/[slug]. Свой мир у всех семи тем: detective (decor: casefile), romantic (decor: letters, «Переписка»), city (decor: metro, «Схема метро с талоном»), mystery (decor: tarot, «Колода»), treasure (decor: map, «Пиратская карта»), proposal (decor: ringbox, «Футляр с кольцом») и potion (decor: potion, «Кабинет зелий»); ключи токенов с префиксом romantic- — «Романтик», с префиксом city- — «Город», с префиксом mystery- — «Мистика», с префиксом treasure- — «Искатель клада», с префиксом proposal- — «Предложение», с префиксом potion- — «Зельеварня». Публичные страницы не переведены, токенов для них нет.",
     "tokenSource": {
       "file": "client-nuxt/app/components/quest/themes.js",
-      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный) и --action-hover (world.actionHover, наведение на кнопку-глагол; без него --action смешивается с --chip). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Запасной путь worldVars() из старых полей темы (bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b) в коде остался, но ни одна тема им не пользуется: все шесть задают полный набор цветовых ключей world; единственное срабатывающее умолчание — --focus у detective (берёт world.chip). Язык темы — theme.copy: blockPrefix, blockForms, pointsForms и необязательные cellForms (формы «клетка» для 1/2/5), cellsDone (факт финала), blockDone и allDone (конец участка и всех участков), nextBtn (кнопка конца участка), finishShare (кнопка «Поделиться» финала); без них компоненты берут нейтральные слова основы. roman(n) даёт римский номер карты для decor: tarot."
+      "mechanism": "themeToCssVars(theme) ставит --field, --field-ink, --field-ink-soft, --paper, --paper-edge, --ink, --ink-soft, --plate, --plate-ink, --done, --back, --chip, --rule, --wrong, --action, --action-ink, --font-d, --font-b, --font-h (рукописный, по умолчанию = --font-b), --font-feat (font-feature-settings, по умолчанию normal), --font-adjust (font-size-adjust, по умолчанию none), --font-d-wt (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400) на корень плеера; мир может добавить --seal-wax и --seal-deep (без них QuestSeal берёт запасной красный) и --action-hover (world.actionHover, наведение на кнопку-глагол; без него --action смешивается с --chip), а также --wax (world.wax, сургуч на пробке флакона-крышки; сейчас только у potion). Корень .qp применяет --font-feat и --font-adjust, а button, input, textarea, select наследуют font-feature-settings и font-size-adjust явно (шорткат font их сбрасывает). Запасной путь worldVars() из старых полей темы (bg/bg2/surface/text/accent/accentDim/border; приглушённый текст — color-mix 72% текста с фоном; --wrong по умолчанию #e5534b) в коде остался, но ни одна тема им не пользуется: все семь задают полный набор цветовых ключей world; единственное срабатывающее умолчание — --focus у detective (берёт world.chip). Язык темы — theme.copy: blockPrefix, blockForms, pointsForms и необязательные cellForms (формы «клетка» для 1/2/5), cellsDone (факт финала), blockDone и allDone (конец участка и всех участков), nextBtn (кнопка конца участка), finishShare (кнопка «Поделиться» финала); без них компоненты берут нейтральные слова основы. Id темы, кроме themes.js, стоит в QUEST_THEMES (server/src/routes/admin.js), в CHECK created_quests_theme_check (миграция, для potion — database/migrations/011_add_potion_theme.sql, и database/dump.sql) и в списках EditorMeta.vue и AdminTemplateModal.vue. roman(n) даёт римский номер карты для decor: tarot."
     },
     "colorMeta": {
       "field": {
@@ -1232,6 +1232,261 @@
           "#e6bdc2",
           "#fee8eb"
         ]
+      },
+      "potion-field": {
+        "role": "neutral",
+        "displayName": "Камень подвала",
+        "canonical": "#2b3540",
+        "cssVar": "--field",
+        "oklch": "oklch(32.4% 0.024 251.0)",
+        "tonalRamp": [
+          "#040c15",
+          "#1c2630",
+          "#39434f",
+          "#57626f",
+          "#788491",
+          "#9aa6b4",
+          "#becbd9",
+          "#e3f0ff"
+        ]
+      },
+      "potion-field-ink": {
+        "role": "neutral",
+        "displayName": "Мел",
+        "canonical": "#e6e1d6",
+        "cssVar": "--field-ink",
+        "oklch": "oklch(91.1% 0.016 86.4)",
+        "tonalRamp": [
+          "#0e0b05",
+          "#28251c",
+          "#464239",
+          "#656157",
+          "#868278",
+          "#a9a59a",
+          "#cec9be",
+          "#f3eee3"
+        ]
+      },
+      "potion-field-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённый мел",
+        "canonical": "#a9b0b6",
+        "cssVar": "--field-ink-soft",
+        "oklch": "oklch(75.3% 0.012 243.7)",
+        "tonalRamp": [
+          "#070c10",
+          "#20262a",
+          "#3d4348",
+          "#5c6267",
+          "#7d8389",
+          "#9fa6ac",
+          "#c3cad0",
+          "#e8f0f6"
+        ]
+      },
+      "potion-paper": {
+        "role": "neutral",
+        "displayName": "Бумага рецептов",
+        "canonical": "#efe7d6",
+        "cssVar": "--paper",
+        "oklch": "oklch(93.0% 0.024 85.8)",
+        "tonalRamp": [
+          "#100a02",
+          "#2a2417",
+          "#484133",
+          "#676052",
+          "#898272",
+          "#aca494",
+          "#d0c8b8",
+          "#f6eedd"
+        ]
+      },
+      "potion-paper-edge": {
+        "role": "neutral",
+        "displayName": "Срез бумаги",
+        "canonical": "#d6c9ae",
+        "cssVar": "--paper-edge",
+        "oklch": "oklch(83.9% 0.039 85.3)",
+        "tonalRamp": [
+          "#110a00",
+          "#2e240d",
+          "#4b4129",
+          "#6b6048",
+          "#8d8168",
+          "#b0a48a",
+          "#d5c8ad",
+          "#fbedd1"
+        ]
+      },
+      "potion-ink": {
+        "role": "neutral",
+        "displayName": "Чернила рецепта",
+        "canonical": "#1f2328",
+        "cssVar": "--ink",
+        "oklch": "oklch(25.4% 0.011 254.0)",
+        "tonalRamp": [
+          "#080b10",
+          "#21252a",
+          "#3e4248",
+          "#5d6268",
+          "#7e8389",
+          "#a0a6ac",
+          "#c4cad0",
+          "#e9eff6"
+        ]
+      },
+      "potion-ink-soft": {
+        "role": "neutral",
+        "displayName": "Приглушённые чернила",
+        "canonical": "#545a60",
+        "cssVar": "--ink-soft",
+        "oklch": "oklch(46.4% 0.012 248.1)",
+        "tonalRamp": [
+          "#070c10",
+          "#20262b",
+          "#3d4348",
+          "#5c6268",
+          "#7d838a",
+          "#9fa6ad",
+          "#c3cad1",
+          "#e8eff7"
+        ]
+      },
+      "potion-back": {
+        "role": "neutral",
+        "displayName": "Тёмный камень",
+        "canonical": "#35414d",
+        "cssVar": "--back",
+        "oklch": "oklch(36.9% 0.026 248.5)",
+        "tonalRamp": [
+          "#040c16",
+          "#1b2631",
+          "#37434f",
+          "#566370",
+          "#778492",
+          "#99a7b5",
+          "#bdcbda",
+          "#e2f0ff"
+        ]
+      },
+      "potion-chip": {
+        "role": "primary",
+        "displayName": "Янтарное зелье",
+        "canonical": "#e0892b",
+        "cssVar": "--chip",
+        "oklch": "oklch(70.7% 0.147 62.4)",
+        "tonalRamp": [
+          "#150800",
+          "#391e02",
+          "#613605",
+          "#8c510d",
+          "#b96d15",
+          "#e58d31",
+          "#feb879",
+          "#ffeada"
+        ]
+      },
+      "potion-action": {
+        "role": "primary",
+        "displayName": "Варёный янтарь",
+        "canonical": "#a5531a",
+        "cssVar": "--action",
+        "oklch": "oklch(53.4% 0.127 50.4)",
+        "tonalRamp": [
+          "#180600",
+          "#3e1901",
+          "#692f02",
+          "#984706",
+          "#bd6934",
+          "#e48c58",
+          "#fdb78f",
+          "#ffeadf"
+        ]
+      },
+      "potion-action-ink": {
+        "role": "neutral",
+        "displayName": "Текст кнопки",
+        "canonical": "#fff6e8",
+        "cssVar": "--action-ink",
+        "oklch": "oklch(97.6% 0.021 79.1)",
+        "tonalRamp": [
+          "#100a03",
+          "#2b241a",
+          "#484136",
+          "#686054",
+          "#898175",
+          "#aca497",
+          "#d1c8ba",
+          "#f6eddf"
+        ]
+      },
+      "potion-action-hover": {
+        "role": "primary",
+        "displayName": "Пригоревший янтарь",
+        "canonical": "#86410f",
+        "cssVar": "--action-hover",
+        "oklch": "oklch(45.6% 0.111 50.6)",
+        "tonalRamp": [
+          "#170600",
+          "#3e1902",
+          "#683005",
+          "#924c1d",
+          "#b76d41",
+          "#dd9063",
+          "#feb68d",
+          "#ffeade"
+        ]
+      },
+      "potion-wrong": {
+        "role": "secondary",
+        "displayName": "Ржавая ошибка",
+        "canonical": "#a0442a",
+        "cssVar": "--wrong",
+        "oklch": "oklch(50.4% 0.129 36.6)",
+        "tonalRamp": [
+          "#1b0300",
+          "#461002",
+          "#752105",
+          "#9c4127",
+          "#c26348",
+          "#e9866a",
+          "#fdb5a0",
+          "#ffe9e2"
+        ]
+      },
+      "potion-rule": {
+        "role": "neutral",
+        "displayName": "Тень подвала",
+        "canonical": "#141a20",
+        "cssVar": "--rule",
+        "oklch": "oklch(21.4% 0.015 248.5)",
+        "tonalRamp": [
+          "#070c11",
+          "#20262c",
+          "#3c434a",
+          "#5b626a",
+          "#7c838b",
+          "#9ea6ae",
+          "#c2cad3",
+          "#e7f0f8"
+        ]
+      },
+      "potion-wax": {
+        "role": "secondary",
+        "displayName": "Сургуч пробки",
+        "canonical": "#6e3a1e",
+        "cssVar": "--wax",
+        "oklch": "oklch(40.8% 0.084 47.4)",
+        "tonalRamp": [
+          "#180500",
+          "#401700",
+          "#653215",
+          "#885135",
+          "#ac7356",
+          "#d19577",
+          "#f7b99a",
+          "#ffeadf"
+        ]
       }
     },
     "typographyMeta": {
@@ -1358,11 +1613,31 @@
       "proposal-body": {
         "displayName": "Предложение: Body",
         "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи, «Кому:»."
+      },
+      "potion-display": {
+        "displayName": "Зельеварня: Display",
+        "purpose": "Philosopher 700: название квеста на сводке, на ярлыке крышки (clamp(1.4rem, 8cqi, 2.1rem)) и заголовок финала «Зелье готово!»."
+      },
+      "potion-headline": {
+        "displayName": "Зельеварня: Headline",
+        "purpose": "Philosopher 400: название участка на развёрнутой доске."
+      },
+      "potion-title": {
+        "displayName": "Зельеварня: Title",
+        "purpose": "Philosopher 700: название задания на странице рецепта, заголовки «Перед стартом» и «К зелью прилагается», кнопки-глаголы, очки в шапке и счётчик полосы (--font-d-wt: 700)."
+      },
+      "potion-numeral": {
+        "displayName": "Зельеварня: Numeral",
+        "purpose": "Philosopher 700: номер на ярлыке задания (1.15rem), номер на ярлыке текущего флакона (9 единиц сетки 40), факты сводки и финала; «на двоих» на финальном флаконе — 400."
+      },
+      "potion-body": {
+        "displayName": "Зельеварня: Body",
+        "purpose": "PT Serif 400: текст задания, ответы, подсказки, подписи, «Кому:»."
       }
     },
     "fontLoading": {
-      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у всех шести тем.",
-      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница); Old Standard TT 400 и 700 (кириллица, расширенная кириллица, латиница); Kurale 400 (кириллица, расширенная кириллица, латиница); Prata 400 (кириллица, расширенная кириллица, латиница) и 'Prata Digits' — PT Serif 400 latin, ограниченный U+0030-0039, потому что «1» Prata читается как «l».",
+      "source": "Свой сервер: client-nuxt/app/assets/styles/fonts.css + client-nuxt/public/fonts (woff2, OFL, кириллица и латиница, font-display: swap); theme.fonts.selfHosted: true у всех семи тем.",
+      "families": "Dela Gothic One 400; PT Serif 400, 400 italic, 700; Cormorant Garamond переменный 600–700; Bad Script 400; Golos Text переменный 500–700 (кириллица, расширенная кириллица, латиница); Old Standard TT 400 и 700 (кириллица, расширенная кириллица, латиница); Kurale 400 (кириллица, расширенная кириллица, латиница); Prata 400 (кириллица, расширенная кириллица, латиница) и 'Prata Digits' — PT Serif 400 latin, ограниченный U+0030-0039, потому что «1» Prata читается как «l». Philosopher 400 и 700 (кириллица, расширенная кириллица, латиница).",
       "status": "Ни одна тема не задаёт theme.fonts.googleFonts; подключение Google Fonts в pages/quest/[slug].vue осталось, но не срабатывает."
     },
     "shadows": [
@@ -1520,6 +1795,31 @@
         "name": "pearl",
         "value": "inset -3px -3px 0 color-mix(in srgb, var(--paper-edge) 90%, var(--rule)), inset 3px 3px 0 <светлый блик>, 0 5px 6px -3px color-mix(in srgb, var(--rule) 60%, transparent)",
         "purpose": "Жемчужина-фишка: объём шарика внутренними тенями."
+      },
+      {
+        "name": "recipe-page",
+        "value": "0 1px 0 var(--paper-edge), 0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent)",
+        "purpose": "Страница рецепта: задание, «Перед стартом», конец рецепта, послание финала; без контура."
+      },
+      {
+        "name": "flask-on-tube",
+        "value": "drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 70%, transparent))",
+        "purpose": "filter флаконов трассы (SVG QuestFlask); у клетки нет плашки."
+      },
+      {
+        "name": "flask-lid",
+        "value": "drop-shadow(0 26px 22px color-mix(in srgb, var(--rule) 80%, transparent))",
+        "purpose": "filter большого флакона крышки; флакон финала — drop-shadow(0 18px 18px …70%)."
+      },
+      {
+        "name": "cork-wax",
+        "value": "inset 0 -4px 0 color-mix(in srgb, var(--rule) 30%, transparent)",
+        "purpose": "Нижний наплыв сургуча на пробке флакона-крышки."
+      },
+      {
+        "name": "potion-pairs-back",
+        "value": "0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent)",
+        "purpose": "Карточка «Найди пары» в зельеварне (рубашка — камень с флаконом мелом)."
       }
     ],
     "motion": [
@@ -1627,6 +1927,16 @@
         "name": "tag-turn",
         "value": "rotate(-3deg) → rotate(6deg) translateY(-8px) .4s cubic-bezier(.5, 0, .3, 1); крышка поднимается с задержкой .3s",
         "purpose": "Открытие коробки: бирка поворачивается, потом крышка уходит вверх."
+      },
+      {
+        "name": "fill-up",
+        "value": "translateY(44 единицы) → none .7s cubic-bezier(.3, 0, .2, 1) .1s",
+        "purpose": "Момент хода в зельеварне: зелье и мениск поднимаются от дна свежего флакона; то же у флакона финала."
+      },
+      {
+        "name": "cork-pop",
+        "value": "translateY(-34px) rotate(-18deg), opacity 0 .35s cubic-bezier(.3, 0, .2, 1); крышка поднимается с задержкой .32s",
+        "purpose": "Открытие флакона-крышки: пробка с сургучом выскакивает, потом крышка уходит вверх."
       }
     ],
     "breakpoints": [
@@ -1832,11 +2142,35 @@
       "description": "Крышка «Предложения»: бархатная коробка, гранатовая лента крест-накрест с бантом, шёлковая бирка с названием и «Кому:»; при наведении бирка поворачивается, как перед открытием.",
       "html": "<div class=\"ds-p-lid\"><div class=\"ds-box\"><svg class=\"ds-box__bow\" viewBox=\"0 0 80 50\" aria-hidden=\"true\"><path d=\"M40 25 C30 6 8 4 8 20 C8 34 28 32 40 25 Z\"/><path d=\"M40 25 C50 6 72 4 72 20 C72 34 52 32 40 25 Z\"/><path d=\"M37 27 L28 48 L34 46 L38 49 Z M43 27 L52 48 L46 46 L42 49 Z\"/><rect x=\"34\" y=\"19\" width=\"12\" height=\"12\" rx=\"3\"/></svg><div class=\"ds-box__tag\"><h3 class=\"ds-box__title\">Вечер для двоих</h3><p class=\"ds-box__for\">Кому: <b>Катя</b></p></div></div></div>",
       "css": "@font-face { font-family:'Prata Digits'; src:url('/fonts/pt-serif-400-latin.woff2') format('woff2'); unicode-range:U+0030-0039; } .ds-p-lid { --field:#e8cdc4; --field-ink:#3b1d22; --field-ink-soft:#6e4a4c; --paper:#fbf4ec; --paper-edge:#ead6c8; --ink:#2e1a1c; --ink-soft:#6a5052; --done:#fbf4ec; --back:#c99c91; --chip:#8e1f2f; --rule:#3b1d22; --action:#8e1f2f; --action-ink:#fbf4ec; --action-hover:#6f1624; background:var(--field); padding:32px 20px; container-type:inline-size; } .ds-box { --ribbon:var(--chip); --ribbon-edge:color-mix(in srgb, var(--chip) 70%, var(--rule)); position:relative; display:grid; place-items:center; align-content:end; max-width:320px; aspect-ratio:1; margin:0 auto; padding-bottom:26px; box-sizing:border-box; border:1.5px solid var(--rule); border-radius:18px; background:linear-gradient(90deg, transparent calc(50% - 15px), var(--ribbon-edge) calc(50% - 15px) calc(50% - 14px), var(--ribbon) calc(50% - 14px) calc(50% + 14px), var(--ribbon-edge) calc(50% + 14px) calc(50% + 15px), transparent calc(50% + 15px)), linear-gradient(transparent calc(30% - 15px), var(--ribbon-edge) calc(30% - 15px) calc(30% - 14px), var(--ribbon) calc(30% - 14px) calc(30% + 14px), var(--ribbon-edge) calc(30% + 14px) calc(30% + 15px), transparent calc(30% + 15px)), var(--back); box-shadow:0 6px 0 color-mix(in srgb, var(--rule) 22%, var(--back)), 0 30px 36px -18px color-mix(in srgb, var(--rule) 65%, transparent); } .ds-box__bow { position:absolute; left:50%; top:30%; width:96px; height:60px; margin:-30px 0 0 -48px; fill:var(--chip); stroke:var(--ribbon-edge); stroke-width:1.2; stroke-linejoin:round; filter:drop-shadow(0 4px 4px color-mix(in srgb, var(--rule) 35%, transparent)); } .ds-box__tag { position:relative; width:78%; box-sizing:border-box; padding:22px 18px 20px; border-radius:10px; text-align:center; background:var(--paper); color:var(--ink); box-shadow:inset 0 0 0 6px var(--paper), inset 0 0 0 7.5px color-mix(in srgb, var(--ink) 25%, var(--paper)), 0 10px 14px -8px color-mix(in srgb, var(--rule) 60%, transparent); transform:rotate(-3deg); transition:transform .4s cubic-bezier(.5, 0, .3, 1); } .ds-box:hover .ds-box__tag { transform:rotate(6deg) translateY(-8px); } .ds-box__title { margin:0; font-family:'Prata Digits','Prata','PT Serif',Georgia,serif; font-weight:400; font-size:clamp(1.5rem, 9cqi, 2.3rem); line-height:1.04; } .ds-box__for { margin:10px 0 0; font-family:'PT Serif',Georgia,serif; color:var(--ink-soft); } .ds-box__for b { color:var(--ink); } @media (prefers-reduced-motion: reduce) { .ds-box__tag { transition:none; } }"
+    },
+    {
+      "name": "Страница рецепта (зельеварня)",
+      "kind": "card",
+      "refersTo": "potion-recipe-page",
+      "description": "Карточка задания в «Зельеварне»: тёплая бумага рецепта с двойной линейкой сверху, номер на ярлыке с подрезанными углами, кнопка-глагол варёным янтарём.",
+      "html": "<div class=\"ds-z-wrap\"><article class=\"ds-zcard\"><span class=\"ds-zcard__rule\"></span><div class=\"ds-zcard__head\"><span class=\"ds-zcard__no\">1</span><h3 class=\"ds-zcard__title\">Записка у фонтана</h3></div><p class=\"ds-zcard__text\">Я танцую, но ног не имею. Живу у воды, но не тону. Где ты меня найдёшь?</p><button class=\"ds-zbtn\">Проверить</button></article></div>",
+      "css": ".ds-z-wrap { --field:#2b3540; --field-ink:#e6e1d6; --field-ink-soft:#a9b0b6; --paper:#efe7d6; --paper-edge:#d6c9ae; --ink:#1f2328; --ink-soft:#545a60; --plate:#efe7d6; --done:#e0892b; --back:#35414d; --chip:#e0892b; --rule:#141a20; --wrong:#a0442a; --action:#a5531a; --action-ink:#fff6e8; --action-hover:#86410f; --wax:#6e3a1e; background:var(--field); padding:26px 16px; } .ds-zcard { position:relative; background:var(--paper); color:var(--ink); border-radius:6px; padding:26px 20px 22px; display:flex; flex-direction:column; gap:14px; box-shadow:0 1px 0 var(--paper-edge), 0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent); } .ds-zcard__rule { position:absolute; left:18px; right:18px; top:10px; height:4px; border-top:1.5px solid color-mix(in srgb, var(--ink) 55%, var(--paper)); border-bottom:1px solid color-mix(in srgb, var(--ink) 30%, var(--paper)); pointer-events:none; } .ds-zcard__head { display:flex; align-items:center; gap:12px; } .ds-zcard__no { --cut:6px; position:relative; isolation:isolate; display:grid; place-items:center; min-width:42px; height:30px; padding:0 7px; background:var(--rule); clip-path:polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)); transform:rotate(-2deg); font-family:'Philosopher','PT Serif',Georgia,serif; font-size:1.15rem; font-weight:700; } .ds-zcard__no::before { content:\"\"; position:absolute; inset:1.5px; z-index:-1; background:var(--paper); clip-path:polygon(calc(var(--cut) - .6px) 0, calc(100% - var(--cut) + .6px) 0, 100% calc(var(--cut) - .6px), 100% calc(100% - var(--cut) + .6px), calc(100% - var(--cut) + .6px) 100%, calc(var(--cut) - .6px) 100%, 0 calc(100% - var(--cut) + .6px), 0 calc(var(--cut) - .6px)); } .ds-zcard__title { margin:0; font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:1.3rem; line-height:1.15; } .ds-zcard__text { margin:0; font-family:'PT Serif',Georgia,serif; font-size:1.08rem; line-height:1.55; } .ds-zbtn { min-height:56px; border:0; border-radius:12px; background:var(--action); color:var(--action-ink); font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:1.05rem; cursor:pointer; transition:background .2s, transform .1s; } .ds-zbtn:hover { background:var(--action-hover); } .ds-zbtn:active { transform:translateY(2px); } .ds-zbtn:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }"
+    },
+    {
+      "name": "Флаконы на медной трубке (зельеварня)",
+      "kind": "track",
+      "refersTo": "potion-flask-active",
+      "description": "Трасса «Зельеварни»: медная трубка, пройденный флакон наполнен янтарным зельем (уровень поднимается от дна), текущий — крупнее, с ярлыком-номером под каплей, впереди — пустой флакон.",
+      "html": "<div class=\"ds-z-track\"><svg class=\"ds-z-tube\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path class=\"ds-z-tube__o\" d=\"M18 64 C32 64 38 44 50 44 S68 62 82 60\"/><path class=\"ds-z-tube__i\" d=\"M18 64 C32 64 38 44 50 44 S68 62 82 60\"/></svg><span class=\"ds-zc\" style=\"left:18%;top:64%;width:58px\"><svg class=\"ds-fl  is-fresh\" viewBox=\"0 0 40 48\" aria-hidden=\"true\"><path class=\"ds-fl__glass\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><clipPath id=\"ds-zf1\"><path d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/></clipPath><g clip-path=\"url(#ds-zf1)\"><rect class=\"ds-fl__potion\" x=\"0\" y=\"16.32\" width=\"40\" height=\"48\"/><path class=\"ds-fl__men\" d=\"M4 16.32 H36\"/></g><path class=\"ds-fl__line\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><rect class=\"ds-fl__cork\" x=\"15\" y=\"0.8\" width=\"10\" height=\"4.4\" rx=\"1.2\"/></svg></span><span class=\"ds-zc\" style=\"left:50%;top:44%;width:76px\"><span class=\"ds-z-drop\"></span><svg class=\"ds-fl \" viewBox=\"0 0 40 48\" aria-hidden=\"true\"><path class=\"ds-fl__glass\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><path class=\"ds-fl__line\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><rect class=\"ds-fl__cork\" x=\"15\" y=\"0.8\" width=\"10\" height=\"4.4\" rx=\"1.2\"/><rect class=\"ds-fl__label\" x=\"10.5\" y=\"25\" width=\"19\" height=\"11\" rx=\"1.5\"/><text class=\"ds-fl__no\" x=\"20\" y=\"33.6\" text-anchor=\"middle\">2</text></svg></span><span class=\"ds-zc\" style=\"left:82%;top:60%;width:44px\"><svg class=\"ds-fl \" viewBox=\"0 0 40 48\" aria-hidden=\"true\"><path class=\"ds-fl__glass\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><path class=\"ds-fl__line\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><rect class=\"ds-fl__cork\" x=\"15\" y=\"0.8\" width=\"10\" height=\"4.4\" rx=\"1.2\"/></svg></span></div>",
+      "css": ".ds-z-track { --field:#2b3540; --field-ink:#e6e1d6; --field-ink-soft:#a9b0b6; --paper:#efe7d6; --paper-edge:#d6c9ae; --ink:#1f2328; --ink-soft:#545a60; --plate:#efe7d6; --done:#e0892b; --back:#35414d; --chip:#e0892b; --rule:#141a20; --wrong:#a0442a; --action:#a5531a; --action-ink:#fff6e8; --action-hover:#86410f; --wax:#6e3a1e; position:relative; height:240px; background:var(--field); } .ds-z-tube { position:absolute; inset:0; width:100%; height:100%; overflow:visible; } .ds-z-tube path { fill:none; vector-effect:non-scaling-stroke; stroke-linecap:round; } .ds-z-tube__o { stroke:var(--rule); stroke-width:7; } .ds-z-tube__i { stroke:color-mix(in srgb, var(--chip) 45%, var(--paper-edge)); stroke-width:3; } .ds-zc { position:absolute; transform:translate(-50%, -66%); filter:drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 70%, transparent)); } .ds-zc .ds-fl { width:100%; height:auto; } .ds-z-drop { position:absolute; left:50%; top:-24px; width:16px; height:16px; margin-left:-8px; border:1.5px solid var(--rule); border-radius:50% 0 50% 50%; background:var(--chip); transform:rotate(-45deg); } .ds-fl { display:block; overflow:visible; } .ds-fl__glass { fill:color-mix(in srgb, var(--field-ink) 10%, var(--field)); } .ds-fl__line { fill:none; stroke:var(--rule); stroke-width:var(--fl-line, 1.5); stroke-linejoin:round; } .ds-fl__potion { fill:var(--chip); } .ds-fl__men { stroke:color-mix(in srgb, var(--chip) 55%, var(--paper)); stroke-width:1.2; } .ds-fl__cork { fill:var(--paper-edge); stroke:var(--rule); stroke-width:calc(var(--fl-line, 1.5) * .8); } .ds-fl__label { fill:var(--paper); stroke:var(--rule); stroke-width:calc(var(--fl-line, 1.5) * .6); } .ds-fl__no { fill:var(--ink); font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:9px; } .ds-fl.is-fresh .ds-fl__potion, .ds-fl.is-fresh .ds-fl__men { animation:ds-fill-up .7s cubic-bezier(.3, 0, .2, 1) .1s both; } @keyframes ds-fill-up { from { transform:translateY(44px); } to { transform:none; } } @media (prefers-reduced-motion: reduce) { .ds-fl.is-fresh .ds-fl__potion, .ds-fl.is-fresh .ds-fl__men { animation:none; } }"
+    },
+    {
+      "name": "Флакон с ярлыком «Кому» (зельеварня)",
+      "kind": "lid",
+      "refersTo": "potion-lid-flask",
+      "description": "Крышка «Зельеварни»: большой флакон на камне, на треть налитый зельем, сургуч на пробке, поверх шара — бумажный ярлык с подрезанными углами, названием и «Кому:»; при наведении пробка выскакивает.",
+      "html": "<div class=\"ds-z-lid\"><div class=\"ds-zlid\"><svg class=\"ds-fl ds-zlid__flask\" viewBox=\"0 0 40 48\" aria-hidden=\"true\"><path class=\"ds-fl__glass\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><clipPath id=\"ds-zf4\"><path d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/></clipPath><g clip-path=\"url(#ds-zf4)\"><rect class=\"ds-fl__potion\" x=\"0\" y=\"31.28\" width=\"40\" height=\"48\"/><path class=\"ds-fl__men\" d=\"M4 31.28 H36\"/></g><path class=\"ds-fl__line\" d=\"M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z\"/><rect class=\"ds-fl__cork\" x=\"15\" y=\"0.8\" width=\"10\" height=\"4.4\" rx=\"1.2\"/></svg><span class=\"ds-zlid__wax\"></span><div class=\"ds-zlid__label\"><h3 class=\"ds-zlid__title\">Детектив в парке</h3><p class=\"ds-zlid__for\">Кому: <b>Екатерина</b></p></div></div></div>",
+      "css": ".ds-z-lid { --field:#2b3540; --field-ink:#e6e1d6; --field-ink-soft:#a9b0b6; --paper:#efe7d6; --paper-edge:#d6c9ae; --ink:#1f2328; --ink-soft:#545a60; --plate:#efe7d6; --done:#e0892b; --back:#35414d; --chip:#e0892b; --rule:#141a20; --wrong:#a0442a; --action:#a5531a; --action-ink:#fff6e8; --action-hover:#86410f; --wax:#6e3a1e; background:var(--field); padding:32px 20px; container-type:inline-size; } .ds-zlid { --fl-line:.8; position:relative; display:grid; place-items:center; max-width:300px; margin:0 auto; } .ds-zlid__flask { width:260px; height:auto; filter:drop-shadow(0 26px 22px color-mix(in srgb, var(--rule) 80%, transparent)); } .ds-zlid__flask .ds-fl__cork, .ds-zlid__wax { transition:transform .35s cubic-bezier(.3, 0, .2, 1), opacity .35s; transform-box:fill-box; } .ds-zlid__wax { position:absolute; left:50%; top:2px; width:50px; height:22px; margin-left:-25px; border-radius:40% 45% 50% 50% / 50% 50% 60% 60%; background:var(--wax); box-shadow:inset 0 -4px 0 color-mix(in srgb, var(--rule) 30%, transparent); } .ds-zlid__label { position:absolute; left:50%; top:62%; width:78%; transform:translate(-50%, -50%) rotate(-2deg); padding:18px 16px 16px; background:var(--paper); color:var(--ink); border:1.5px solid var(--rule); text-align:center; clip-path:polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px); } .ds-zlid__title { margin:0; font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:clamp(1.4rem, 8cqi, 2.1rem); line-height:1.04; } .ds-zlid__for { margin:8px 0 0; font-family:'PT Serif',Georgia,serif; color:var(--ink-soft); } .ds-zlid__for b { color:var(--ink); } .ds-zlid:hover .ds-zlid__wax, .ds-zlid:hover .ds-fl__cork { transform:translateY(-34px) rotate(-18deg); opacity:0; } @media (prefers-reduced-motion: reduce) { .ds-zlid__wax, .ds-zlid__flask .ds-fl__cork { transition:none; } } .ds-fl { display:block; overflow:visible; } .ds-fl__glass { fill:color-mix(in srgb, var(--field-ink) 10%, var(--field)); } .ds-fl__line { fill:none; stroke:var(--rule); stroke-width:var(--fl-line, 1.5); stroke-linejoin:round; } .ds-fl__potion { fill:var(--chip); } .ds-fl__men { stroke:color-mix(in srgb, var(--chip) 55%, var(--paper)); stroke-width:1.2; } .ds-fl__cork { fill:var(--paper-edge); stroke:var(--rule); stroke-width:calc(var(--fl-line, 1.5) * .8); } .ds-fl__label { fill:var(--paper); stroke:var(--rule); stroke-width:calc(var(--fl-line, 1.5) * .6); } .ds-fl__no { fill:var(--ink); font-family:'Philosopher','PT Serif',Georgia,serif; font-weight:700; font-size:9px; } .ds-fl.is-fresh .ds-fl__potion, .ds-fl.is-fresh .ds-fl__men { animation:ds-fill-up .7s cubic-bezier(.3, 0, .2, 1) .1s both; } @keyframes ds-fill-up { from { transform:translateY(44px); } to { transform:none; } } @media (prefers-reduced-motion: reduce) { .ds-fl.is-fresh .ds-fl__potion, .ds-fl.is-fresh .ds-fl__men { animation:none; } }"
     }
   ],
   "narrative": {
     "northStar": "Ходилка, напечатанная для одной пары",
-    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nЧетвёртая тема «Мистика» надевает на ходилку обличье колоды на столе гадалки (`decor: 'tarot'`). Поле — зелёно-чёрное сукно, карты — слоновая бумага с гравюрой одной чёрной краской, единственная яркая краска — киноварь. Трасса — расклад: карты лежат на сукне в ряд, связанные меловым пунктиром. Будущая карта лежит рубашкой вверх (киноварная решётка), текущая открыта и несёт римский номер, пройденная перевёрнута лицом и показывает свой знак — авторскую гравюру из набора `QuestArcana` (солнце, луна, звезда, ключ, чаша, око, колесо, сердце, роза, два кольца). Момент хода — карта переворачивается. Фишка — киноварный ромб над открытой картой. Карточка задания — вытянутая карта с двойной гравированной рамкой и римским номером. Крышка — новая колода рубашкой вверх в бумажной бандероли «Кому:», бандероль снимается; финал «Ваш расклад» — веер открытых карт, по одной на пройденную клетку. В «Найди пары» рубашка карточки — та же киноварная решётка. Участок называется «Расклад», клетка — «карта». Ни звёздного неба, ни тумана, ни свечения, ни фиолета: у темы `overlay: null` и `bg_animation: null`, а колода своя, не копия Райдера — Уэйта.\n\nПятая тема «Искатель клада» надевает на ходилку обличье пиратской карты (`decor: 'map'`). Поле — глубокое сине-зелёное море старой карты со штрихами волн, трасса лежит на пергаментном острове с чернильной береговой линией и вторым пунктирным контуром мелководья и идёт по суше чернильным пунктиром. Клетки — метки на карте: впереди пустой кружок точечным пером, «сейчас здесь» — номер в кружке с двойным контуром, пройденная перечёркнута красным крестом, который в момент хода рисуется пером в два штриха. Пропущенная метка гасится одним чернильным штрихом, а не крестом клада. Фишка — флажок на древке с красным вымпелом. Карточка задания — обрывок пергамента с рваным краем сверху и снизу, номер клетки — в чернильном кружке. Крышка — свиток со скатанными концами под сургучом «★ КАРТА ★», адресованный «Кому:»; финал «Клад найден!» — пунктир через пройденные метки к островку с большим красным крестом и «Записка в сундуке» на обрывке пергамента. В «Найди пары» рубашка карточки — старый пергамент с чернильной розой ветров. Участок называется «Остров», клетка — «метка», очки — дублоны. Ни золотых частиц, ни зерна, ни черепов, ни «дублонового» блеска: у темы `overlay: null` и `bg_animation: null`.\n\nШестая тема «Предложение» надевает на ходилку обличье футляра с кольцом (`decor: 'ringbox'`). Поле — пудровый бархат, второй светлый мир после «Города»; карточки — слоновый шёлк подкладки с прострочкой по краю, чернила — тёмный гранатово-коричневый, единственная яркая краска — гранат. Трасса — шёлковая нить пунктиром стёжков, клетки — маленькие бархатные футляры: будущий закрыт и без номера, текущий крупнее и несёт номер на крышке, пройденный открыт и показывает на подушечке гранатовый камешек (`QuestRingbox`). Момент хода — крышка откидывается и проступает камень. Фишка — жемчужина. Карточка задания — шёлковая карточка с пунктирным швом, номер клетки — на бархатной крышке. Крышка экрана — бархатная коробка, перевязанная гранатовой лентой крест-накрест с бантом, с шёлковой биркой «Кому:»; финал не печатает вопрос: открытый футляр с кольцом, заголовок «А теперь — главный вопрос» и послание автора под заголовком «От меня» — вопрос звучит вслух, кто бы кому ни делал предложение. В «Найди пары» рубашка карточки — тот же закрытый футляр. Участок называется «Момент», клетка — «шаг», очки обычные. Ни золота на чёрном, ни бликов, ни колец-частиц, ни свечения: у темы `overlay: null` и `bg_animation: null`.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. Токены берутся из блока `world` темы: свой мир теперь у всех шести тем: detective (`casefile`), romantic (`letters`), city (`metro`), mystery (`tarot`), treasure (`map`) и proposal (`ringbox`). `worldVars()` переводит `world` в переменные основы. Запасной путь из старых цветов темы (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`) в коде остался, но ни одна тема им больше не пользуется: все шесть задают полный набор цветовых ключей мира. Единственное умолчание, которое ещё срабатывает, — `--focus`: у «Детектива» нет `world.focus`, и фокус берёт `world.chip`. Старые поля темы (`bg`, `surface`, `accent` и т.д.) по-прежнему ставят `--bg`, `--surf` и прочие переменные для кода вне плеера, но палитрой мира не являются. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный) и `--action-hover` (`world.actionHover`, наведение на кнопку-глагол; без него `--action` смешивается с `--chip`). Язык темы живёт в `copy`: кроме `blockPrefix`, `blockForms` и `pointsForms` тема может задать необязательные ключи `cellForms` (формы слова «клетка» для 1/2/5: счётчик полосы «карта N из M» и факт сводки), `cellsDone` (формы факта финала «N клеток пройдено»), `blockDone` и `allDone` (строка конца участка и конца всех участков), `nextBtn` (кнопка конца участка) и `finishShare` (кнопка «Поделиться» на финале). Без них компоненты берут нейтральные слова основы: «клетка», «клетка пройдена», «Участок пройден. Фишка ждёт у выхода.», «Все клетки пройдены.», «Идти дальше», «Поделиться результатом». Сейчас эти ключи задают «Мистика», «Искатель клада» и «Предложение» (без `finishShare`). Римский номер карты даёт `roman()` из `themes.js`. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
+    "overview": "Квест — настольная игра с трассой: каждое задание — клетка, игрок — фишка, текст задания — вытянутая карточка. Мир собран из картона и офсетной печати плашечными красками: поле — сплошная краска темы, клетки — плашки, фишка — крашеное дерево, карточки — плотная бумага. Пилотная тема «Детектив» надевает на ходилку обличье дела (`decor: 'casefile'`): сукно доски улик цвета сепии, клетки — заметки на канцелярских кнопках, связанные красной нитью, карточка задания — лист на скотче, крышка — крафтовая папка с язычком и штампом «Секретно», финал — последний лист со штампом «Раскрыто».\n\nВторая тема «Романтик» надевает на ту же ходилку обличье переписки (`decor: 'letters'`): поле — винная подкладка шкатулки с письмами, трасса — атласная лента пыльно-розового цвета, клетки — конверты на ленте (будущие лежат обратной стороной с закрытым клапаном), пройденный конверт гасит почтовый штемпель. Карточка задания — письмо из хлопковой бумаги над открытым конвертом, номер клетки — на почтовой марке с перфорацией. Крышка — конверт обратной стороной под сургучной печатью, адресованный «Кому:» от руки; финал — последнее письмо со штемпелем «ДОСТАВЛЕНО» и датой дня прохождения. В мини-игре «Найди пары» рубашка карточки — тот же конверт обратной стороной. Участок называется «Глава». Во всех темах имя получателя пишется в именительном падеже после «Кому:», а очки согласуются с числом (`copy.pointsForms`, `pointsWord()`).\n\nТретья тема «Город» надевает на ходилку обличье схемы метро с талоном (`decor: 'metro'`). Это единственный мир на светлом поле: городской квест проходят на улице, часто на солнце, и холодная бумага схемы читается там, где тёмное поле слепнет бликами. Трасса — одна зелёная линия прямыми перегонами, клетки — станции на ней: впереди пустой кружок без номера, «вы здесь» — крупная станция с номером в зелёной обводке, пройденная — сплошная зелёная станция, которую пробивает компостер (три дырочки — это и есть момент хода). Фишка — вагончик над станцией. Карточка задания — талон из буфной бумаги с зелёной полосой сверху, вырубками по краям и пунктирной линией отрыва; номер клетки стоит в кружке станции. Крышка — проездной с линией маршрута вдоль нижнего края; финал — талон, пробитый по разу на каждую пройденную станцию. В «Найди пары» рубашка карточки — тот же талон. Участок называется «Линия». Схема ничья: ни логотипа, ни буквы «М», ни фирменных цветов линий реального метро.\n\nЧетвёртая тема «Мистика» надевает на ходилку обличье колоды на столе гадалки (`decor: 'tarot'`). Поле — зелёно-чёрное сукно, карты — слоновая бумага с гравюрой одной чёрной краской, единственная яркая краска — киноварь. Трасса — расклад: карты лежат на сукне в ряд, связанные меловым пунктиром. Будущая карта лежит рубашкой вверх (киноварная решётка), текущая открыта и несёт римский номер, пройденная перевёрнута лицом и показывает свой знак — авторскую гравюру из набора `QuestArcana` (солнце, луна, звезда, ключ, чаша, око, колесо, сердце, роза, два кольца). Момент хода — карта переворачивается. Фишка — киноварный ромб над открытой картой. Карточка задания — вытянутая карта с двойной гравированной рамкой и римским номером. Крышка — новая колода рубашкой вверх в бумажной бандероли «Кому:», бандероль снимается; финал «Ваш расклад» — веер открытых карт, по одной на пройденную клетку. В «Найди пары» рубашка карточки — та же киноварная решётка. Участок называется «Расклад», клетка — «карта». Ни звёздного неба, ни тумана, ни свечения, ни фиолета: у темы `overlay: null` и `bg_animation: null`, а колода своя, не копия Райдера — Уэйта.\n\nПятая тема «Искатель клада» надевает на ходилку обличье пиратской карты (`decor: 'map'`). Поле — глубокое сине-зелёное море старой карты со штрихами волн, трасса лежит на пергаментном острове с чернильной береговой линией и вторым пунктирным контуром мелководья и идёт по суше чернильным пунктиром. Клетки — метки на карте: впереди пустой кружок точечным пером, «сейчас здесь» — номер в кружке с двойным контуром, пройденная перечёркнута красным крестом, который в момент хода рисуется пером в два штриха. Пропущенная метка гасится одним чернильным штрихом, а не крестом клада. Фишка — флажок на древке с красным вымпелом. Карточка задания — обрывок пергамента с рваным краем сверху и снизу, номер клетки — в чернильном кружке. Крышка — свиток со скатанными концами под сургучом «★ КАРТА ★», адресованный «Кому:»; финал «Клад найден!» — пунктир через пройденные метки к островку с большим красным крестом и «Записка в сундуке» на обрывке пергамента. В «Найди пары» рубашка карточки — старый пергамент с чернильной розой ветров. Участок называется «Остров», клетка — «метка», очки — дублоны. Ни золотых частиц, ни зерна, ни черепов, ни «дублонового» блеска: у темы `overlay: null` и `bg_animation: null`.\n\nШестая тема «Предложение» надевает на ходилку обличье футляра с кольцом (`decor: 'ringbox'`). Поле — пудровый бархат, второй светлый мир после «Города»; карточки — слоновый шёлк подкладки с прострочкой по краю, чернила — тёмный гранатово-коричневый, единственная яркая краска — гранат. Трасса — шёлковая нить пунктиром стёжков, клетки — маленькие бархатные футляры: будущий закрыт и без номера, текущий крупнее и несёт номер на крышке, пройденный открыт и показывает на подушечке гранатовый камешек (`QuestRingbox`). Момент хода — крышка откидывается и проступает камень. Фишка — жемчужина. Карточка задания — шёлковая карточка с пунктирным швом, номер клетки — на бархатной крышке. Крышка экрана — бархатная коробка, перевязанная гранатовой лентой крест-накрест с бантом, с шёлковой биркой «Кому:»; финал не печатает вопрос: открытый футляр с кольцом, заголовок «А теперь — главный вопрос» и послание автора под заголовком «От меня» — вопрос звучит вслух, кто бы кому ни делал предложение. В «Найди пары» рубашка карточки — тот же закрытый футляр. Участок называется «Момент», клетка — «шаг», очки обычные. Ни золота на чёрном, ни бликов, ни колец-частиц, ни свечения: у темы `overlay: null` и `bg_animation: null`.\n\nСедьмая тема «Зельеварня» надевает на ходилку обличье кабинета зелий в каменном подвале своей школы волшебства (`decor: 'potion'`). Школа своя, в духе книжной фэнтези-школы, но без имён, мест, гербов, надписей и словечек чужой франшизы. Поле — холодный сине-серый камень, бумага рецептов — тёплая, чернила почти чёрные, единственная яркая краска — янтарное зелье. Трасса — медная трубка перегонного куба, клетки — круглодонные флаконы на ней (`QuestFlask`): будущий — пустое стекло, текущий крупнее и несёт бумажный ярлык с номером, пройденный наполнен янтарным зельем. Момент хода — уровень зелья поднимается от дна. Фишка — капля зелья. Карточка задания — страница рецепта с двойной линейкой сверху, номер клетки — на ярлыке с подрезанными углами. Крышка — большой флакон с сургучом на пробке и бумажным ярлыком «Кому:», пробка выскакивает; финал «Зелье готово!» — полный флакон с ярлыком «на двоих» и послание под заголовком «К зелью прилагается». В «Найди пары» рубашка карточки — камень с пустым флаконом мелом. Участок называется «Рецепт», клетка — «флакон», очки — капли. Ни пара, ни свечения, ни бликов на стекле: у темы `overlay: null` и `bg_animation: null`.\n\nПлотность низкая и строгая: на экране одна открытая карточка, над ней компактная полоса участка, кнопка-глагол у большого пальца. Глубина берётся только из картона и бумаги: толстая нижняя кромка и тень со смещением и мягким размытием. Отвергнуто прямо: лента карточек с прогресс-баром и свечением на тёмном фоне, фиолетово-синие градиенты, стекло, свечение, эмодзи вместо иконок.\n\nСистема живёт в CSS-переменных, которые `themeToCssVars()` из `app/components/quest/themes.js` ставит на корень плеера. Токены берутся из блока `world` темы: свой мир теперь у всех семи тем: detective (`casefile`), romantic (`letters`), city (`metro`), mystery (`tarot`), treasure (`map`), proposal (`ringbox`) и potion (`potion`). Тема живёт не только в `themes.js`: её id стоит ещё в `QUEST_THEMES` (`server/src/routes/admin.js`), в CHECK `created_quests_theme_check` (своя миграция — для «Зельеварни» `database/migrations/011_add_potion_theme.sql` — и `database/dump.sql`) и в списках тем админки (`EditorMeta.vue`, `AdminTemplateModal.vue`); без них квест с новой темой не сохранится. `worldVars()` переводит `world` в переменные основы. Запасной путь из старых цветов темы (`--field` ← `bg`, `--paper` ← `surface`, `--plate`/`--chip`/`--action` ← `accent`, `--done` ← `accentDim`, `--back`/`--paper-edge` ← `bg2`, `--rule` ← `border`, приглушённый текст — `color-mix` 72% текста с фоном, `--wrong` по умолчанию `#e5534b`) в коде остался, но ни одна тема им больше не пользуется: все семь задают полный набор цветовых ключей мира. Единственное умолчание, которое ещё срабатывает, — `--focus`: у «Детектива» нет `world.focus`, и фокус берёт `world.chip`. Старые поля темы (`bg`, `surface`, `accent` и т.д.) по-прежнему ставят `--bg`, `--surf` и прочие переменные для кода вне плеера, но палитрой мира не являются. Кроме цветов, `themeToCssVars()` ставит шрифтовые токены темы: `--font-d` и `--font-b` (дисплейный и текстовый), `--font-h` (рукописный, по умолчанию — текстовый), `--font-feat` (`font-feature-settings`, по умолчанию `normal`), `--font-adjust` (`font-size-adjust`, по умолчанию `none`), `--font-d-wt` (вес дисплейного в кнопках-глаголах и числах, по умолчанию 400); мир может добавить `--seal-wax` и `--seal-deep` (цвет сургуча; без них печать берёт запасной красный) и `--action-hover` (`world.actionHover`, наведение на кнопку-глагол; без него `--action` смешивается с `--chip`), а также `--wax` (`world.wax`, сургуч на пробке флакона-крышки; сейчас только у «Зельеварни»). Язык темы живёт в `copy`: кроме `blockPrefix`, `blockForms` и `pointsForms` тема может задать необязательные ключи `cellForms` (формы слова «клетка» для 1/2/5: счётчик полосы «карта N из M» и факт сводки), `cellsDone` (формы факта финала «N клеток пройдено»), `blockDone` и `allDone` (строка конца участка и конца всех участков), `nextBtn` (кнопка конца участка) и `finishShare` (кнопка «Поделиться» на финале). Без них компоненты берут нейтральные слова основы: «клетка», «клетка пройдена», «Участок пройден. Фишка ждёт у выхода.», «Все клетки пройдены.», «Идти дальше», «Поделиться результатом». Сейчас эти ключи задают «Мистика», «Искатель клада», «Предложение» (без `finishShare`) и «Зельеварня» (все шесть). Римский номер карты даёт `roman()` из `themes.js`. Публичные страницы (лендинг, каталог) ещё не переведены и живут в старом тёмно-золотом виде; токенов для них здесь нет.",
     "keyCharacteristics": [
       "Поле — сплошная краска, без фоновых градиентов и подсветки.",
       "Одна открытая карточка на экран; будущие клетки лежат рубашкой вверх.",
@@ -1848,7 +2182,8 @@
       "На «Схеме» поле светлое, а насыщенная краска одна — зелёная линия; ход отмечает компостер, а не печать.",
       "В «Колоде» поле — тёмное сукно, насыщенная краска одна — киноварь рубашек, ромба и кнопки; ход отмечает переворот карты, а не печать.",
       "На «Карте» поле — тёмное море, насыщенная краска одна — красная: крест, вымпел флажка и кнопка; ход отмечает крест, проведённый пером, а не печать.",
-      "В «Футляре» поле — светлый пудровый бархат, насыщенная краска одна — гранат: камень, лента с бантом на крышке и кнопка; ход отмечает открывшийся футляр, а не печать."
+      "В «Футляре» поле — светлый пудровый бархат, насыщенная краска одна — гранат: камень, лента с бантом на крышке и кнопка; ход отмечает открывшийся футляр, а не печать.",
+      "В «Зельеварне» поле — тёмный камень, насыщенная краска одна — янтарное зелье: зелье во флаконах, капля-фишка и медная жила трубки; кнопка — его варёный тон; ход отмечает наполнившийся флакон, а не печать."
     ],
     "rules": [
       {
@@ -1990,6 +2325,26 @@
         "name": "The Single Cut Rule",
         "body": "У Prata одно начертание 400, и тема не задаёт `displayWeight`. Дисплейный шрифт футляра нигде не получает 700: браузер дорисует ложный полужирный. Акцент — размер и чернила, а не вес.",
         "section": "typography"
+      },
+      {
+        "name": "The One Potion Rule",
+        "body": "Янтарное зелье — единственная яркая краска подвала и метит только зелье во флаконах, каплю-фишку и медную жилу трубки; кнопка-глагол — его варёный тон `--action`, наведение — `--action-hover`. Текст зельем не набирается, и на бумагу рецепта зелье не кладётся (2.2:1); ошибка — отдельная ржавчина `--wrong`, фокус — чернила `--ink`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fill Not Stamp Rule",
+        "body": "Ход в зельеварне отмечает наполнившийся флакон: уровень зелья поднимается от дна. Печати `QuestSeal`, штампов, штемпеля, компостера, креста, переворота и открытия футляра здесь нет; сургуч `--wax` живёт только на пробке флакона-крышки. Пропущенный флакон остаётся пустым.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cold Cellar Rule",
+        "body": "Подвал — плоская печать на камне и стекле: ни пара, ни свечения, ни бликов на стекле, ни искр; у темы `overlay: null` и `bg_animation: null`. Зелье — плоская краска с одной линией мениска, а не сияние.",
+        "section": "colors"
+      },
+      {
+        "name": "The Own School Rule",
+        "body": "Школа волшебства своя: ни имён, ни мест, ни гербов, ни факультетских цветов, ни надписей, ни шрифтов, ни словечек чужой франшизы. Язык темы — рецепт, флакон, капля, котёл.",
+        "section": "colors"
       }
     ],
     "dos": [
@@ -2006,7 +2361,7 @@
       "**Do** на схеме отмечать ход компостером (три дырочки цвета поля в пройденной станции), а финал — талоном, пробитым по разу на станцию.",
       "**Do** держать зелёную линию за путём (линия, станции, полосы талона и проездного), а текст и фокус на схеме набирать чернилами.",
       "**Do** брать вес дисплейного шрифта в кнопках-глаголах, очках шапки и счётчике полосы из `--font-d-wt`, а у кнопок и полей наследовать `font-feature-settings` и `font-size-adjust` темы.",
-      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия», в «Мистике» — «Расклад», в «Искателе клада» — «Остров», в «Предложении» — «Момент».",
+      "**Do** называть участок словом темы (`copy.blockPrefix`, формы — `copy.blockForms`): в «Детективе» — «Улика», в «Романтике» — «Глава», в «Городе» — «Линия», в «Мистике» — «Расклад», в «Искателе клада» — «Остров», в «Предложении» — «Момент», в «Зельеварне» — «Рецепт».",
       "**Do** слова клетки, конца участка и кнопок финала брать из необязательных ключей `copy` (`cellForms`, `cellsDone`, `blockDone`, `allDone`, `nextBtn`, `finishShare`) с нейтральным словом основы по умолчанию, а не вписывать слово темы в компонент.",
       "**Do** в колоде отмечать ход переворотом карты: пройденная показывает свой знак `QuestArcana`, открытая — римский номер, будущие лежат киноварной рубашкой.",
       "**Do** набирать на киновари только слоновую бумагу, а карту-рубашку и ромб на сукне обводить бумагой.",
@@ -2016,7 +2371,11 @@
       "**Do** в футляре отмечать ход открытием футляра: крышка откидывается, на подушечке проступает гранатовый камень; будущие футляры закрыты и без номера.",
       "**Do** набирать цифры Prata через стек `--font-d` с `'Prata Digits'` первым: «1» Prata читается как «l».",
       "**Do** обводить каждый бархатный футляр на бархатном поле контуром `--rule`: бархат к полю — только 1.6:1.",
-      "**Do** давать шёлковым карточкам прострочку — пунктир 1.5px в 7px от края — и тонкий контур 14% вместо кромки."
+      "**Do** давать шёлковым карточкам прострочку — пунктир 1.5px в 7px от края — и тонкий контур 14% вместо кромки.",
+      "**Do** в зельеварне отмечать ход наполнением флакона: зелье поднимается от дна; будущие и пропущенные флаконы пустые, номер — только на ярлыке текущего.",
+      "**Do** держать янтарное зелье в стекле и на камне, а кнопку-глагол красить его варёным тоном `--action`: светлый текст на светлом зелье не читается.",
+      "**Do** давать странице рецепта двойную линейку сверху и кромку среза бумаги вместо контура.",
+      "**Do** заводить новую тему сразу во всех списках тем: `themes.js`, `QUEST_THEMES` в `server/src/routes/admin.js`, CHECK `created_quests_theme_check` (новая миграция и `database/dump.sql`), `EditorMeta.vue` и `AdminTemplateModal.vue`."
     ],
     "donts": [
       "**Don't** писать hex в стилях компонентов плеера; новая краска появляется только как токен в `themes.js`.",
@@ -2026,7 +2385,7 @@
       "**Don't** показывать будущие клетки открытыми или подсказывать их содержание.",
       "**Don't** держать полную доску постоянно над заданием: она уводит тело задания вниз.",
       "**Don't** ставить надписи-капсом над заголовками; капс живёт только в штампе и поле кода.",
-      "**Don't** брать палитру мира из старых полей темы (`bg`, `surface`, `accent`) через запасной путь `worldVars()`: у всех шести тем свой `world`, и новая тема приходит с ним же.",
+      "**Don't** брать палитру мира из старых полей темы (`bg`, `surface`, `accent`) через запасной путь `worldVars()`: у всех семи тем свой `world`, и новая тема приходит с ним же.",
       "**Don't** ставить сургучную печать на трассу, письма или финал переписки.",
       "**Don't** набирать рукописным Bad Script текст задания, вопрос, ответ, подсказку, кнопки или числа.",
       "**Don't** красить лентой ошибку или фоны: ошибка — `--wrong`, лента — только трасса, фишка, марка, подкладка и фокус.",
@@ -2045,7 +2404,11 @@
       "**Don't** печатать на финале «Предложения» сам вопрос или кнопки «Да / Нет»: вопрос звучит вслух.",
       "**Don't** класть в футляр золото на чёрном, блики, кольца-частицы или свечение; кольцо — линия чернил.",
       "**Don't** ставить в футляр сургуч, штампы, штемпель, компостер или крест: ход отмечает только открывшийся футляр.",
-      "**Don't** набирать текст гранатом: гранат — камень, лента и кнопка."
+      "**Don't** набирать текст гранатом: гранат — камень, лента и кнопка.",
+      "**Don't** брать в «Зельеварню» имена, места, гербы, факультетские цвета, надписи, шрифты или словечки чужой франшизы: школа волшебства своя.",
+      "**Don't** класть в подвал пар, свечение, блики на стекле или искры; зелье — плоская краска с линией мениска.",
+      "**Don't** ставить в зельеварню печать `QuestSeal`, штампы, штемпель, компостер или крест: ход отмечает только наполнившийся флакон, сургуч `--wax` — только на пробке крышки.",
+      "**Don't** набирать текст зельем и класть зелье на бумагу рецепта: на бумаге 2.2:1."
     ]
   }
 }

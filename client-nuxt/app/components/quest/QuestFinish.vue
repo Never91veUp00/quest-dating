@@ -12,6 +12,11 @@
         <span>за <b>{{ elapsed }}</b></span>
       </p>
 
+      <!-- Зельеварня: полный флакон зелья для двоих -->
+      <div v-if="decor === 'potion'" class="finish__flask">
+        <QuestFlask :size="150" :level=".8" label="на двоих" fresh />
+      </div>
+
       <!-- Футляр: открыт, на подушечке кольцо. Вопрос экран не задаёт — его задают вслух -->
       <div v-if="decor === 'ringbox'" class="finish__box">
         <QuestRingbox :size="190" ring fresh />
@@ -57,6 +62,7 @@
         </template>
         <span v-else-if="decor === 'tarot'" class="finish__frame" aria-hidden="true"></span>
         <span v-else-if="decor === 'ringbox'" class="finish__stitch" aria-hidden="true"></span>
+        <span v-else-if="decor === 'potion'" class="finish__rule" aria-hidden="true"></span>
         <h3 class="finish__message-label">{{ messageLabel }}</h3>
         <p class="finish__message-text">{{ questData.final_message }}</p>
       </article>
@@ -93,6 +99,7 @@ import QuestIcon from './QuestIcon.vue'
 import QuestPostmark from './QuestPostmark.vue'
 import QuestArcana from './QuestArcana.vue'
 import QuestRingbox from './QuestRingbox.vue'
+import QuestFlask from './QuestFlask.vue'
 import { plural, pointsWord } from './themes.js'
 
 const props = defineProps({
@@ -128,7 +135,7 @@ onMounted(() => { deliveredOn.value = new Date().toLocaleDateString('ru-RU', { d
 const messageLabel = computed(() => ({
   detective: 'Личное послание', romantic: 'Слова для тебя',
   mystery: 'Последняя карта', city: 'Личное сообщение',
-  treasure: 'Записка в сундуке', proposal: 'От меня',
+  treasure: 'Записка в сундуке', proposal: 'От меня', potion: 'К зелью прилагается',
 }[props.theme.id] || 'Послание'))
 
 const ratio      = computed(() => props.maxPoints > 0 ? props.points / props.maxPoints : 0)
@@ -379,6 +386,33 @@ const saveCard = async () => {
   box-shadow:
     inset 0 2px 2px color-mix(in srgb, var(--rule) 55%, transparent),
     0 0 0 1px color-mix(in srgb, var(--paper-edge) 80%, var(--ink));
+}
+
+/* Обличье зельеварни: полный флакон и записка на странице рецепта */
+.finish--potion .finish__title { font-weight: 700; }
+.finish__flask {
+  --fl-line: .9;
+  display: grid; place-items: center;
+  margin: 4px 0 0;
+  filter: drop-shadow(0 18px 18px color-mix(in srgb, var(--rule) 70%, transparent));
+}
+.finish__flask :deep(.fl__no) { font-size: 4.6px; font-weight: 400; }
+.finish--potion .finish__message {
+  position: relative;
+  border: none;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+  padding-top: 28px;
+}
+/* шапка страницы рецепта: двойная линейка под заголовком, как в старой книге */
+.finish__rule {
+  position: absolute; left: 18px; right: 18px; top: 10px;
+  height: 4px;
+  border-top: 1.5px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  pointer-events: none;
 }
 
 /* Обличье футляра: открытый футляр с кольцом и послание на шёлке */

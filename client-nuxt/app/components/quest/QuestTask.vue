@@ -10,6 +10,7 @@
       'task--tarot':    decor === 'tarot',
       'task--map':      decor === 'map',
       'task--ringbox':  decor === 'ringbox',
+      'task--potion':   decor === 'potion',
       [`task--${task.type}`]: true,
     }"
   >
@@ -24,6 +25,7 @@
     <span v-else-if="decor === 'tarot'" class="task__frame" aria-hidden="true"></span>
     <!-- Шёлк подкладки: прострочка по краю -->
     <span v-else-if="decor === 'ringbox'" class="task__stitch" aria-hidden="true"></span>
+    <span v-else-if="decor === 'potion'" class="task__rule" aria-hidden="true"></span>
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
@@ -224,6 +226,46 @@ const typeLabel = computed(() => ({
   font-weight: 700;
 }
 .task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Обличье зельеварни: страница рецепта, номер — на ярлыке флакона с подрезанными углами */
+.task--potion {
+  border: none;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+  padding: 26px 20px 22px;
+}
+/* шапка страницы рецепта: двойная линейка под заголовком, как в старой книге */
+.task__rule {
+  position: absolute; left: 18px; right: 18px; top: 10px;
+  height: 4px;
+  border-top: 1.5px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  pointer-events: none;
+}
+.task--potion .task__no {
+  --cut: 6px;
+  position: relative;
+  isolation: isolate;
+  display: grid; place-items: center;
+  min-width: 42px; height: 30px;
+  padding: 0 7px;
+  background: var(--rule);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  transform: rotate(-2deg);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+/* бумага ярлыка — внутренний слой той же формы, контур остаётся по всем граням, включая срезы */
+.task--potion .task__no::before {
+  content: "";
+  position: absolute; inset: 1.5px;
+  z-index: -1;
+  background: var(--paper);
+  clip-path: polygon(calc(var(--cut) - .6px) 0, calc(100% - var(--cut) + .6px) 0, 100% calc(var(--cut) - .6px), 100% calc(100% - var(--cut) + .6px), calc(100% - var(--cut) + .6px) 100%, calc(var(--cut) - .6px) 100%, 0 calc(100% - var(--cut) + .6px), 0 calc(var(--cut) - .6px));
+}
+.task--potion .task__title { font-weight: 700; }
 
 /* Обличье футляра: шёлковая карточка подкладки с прострочкой, номер — на бархатной крышке */
 .task--ringbox {

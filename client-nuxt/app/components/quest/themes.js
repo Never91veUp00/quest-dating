@@ -472,6 +472,88 @@ export const THEMES = {
     bg_animation: null,
     overlay: null,            // мир схемы — плоская печать, без сканлайнов
   },
+
+  // ══════════════════════════════════════════════════════════════
+  // ЗЕЛЬЕВАРНЯ — школа волшебства, кабинет зелий в каменном подвале
+  // ══════════════════════════════════════════════════════════════
+  potion: {
+    id: 'potion',
+    label: 'Зельеварня',
+
+    // Цвета — каменный подвал, тёплая бумага рецептов, одно янтарное зелье
+    accent:     '#a5531a',
+    accentDim:  '#e0892b',
+    bg:         '#2b3540',   // камень
+    bg2:        '#35414d',
+    surface:    '#efe7d6',
+    border:     'rgba(20,26,32,0.45)',
+    text:       '#e6e1d6',
+    dim:        '#a9b0b6',
+
+    baseBg:     '#2b3540',
+    baseTone:   'dark',
+    showTimer:  false,
+
+    // Мир «Ходилки» в обличье зельеварни: клетки — флаконы на медной трубке,
+    // пройденный наполняется зельем, фишка — капля
+    world: {
+      decor:        'potion',
+      field:        '#2b3540',
+      fieldInk:     '#e6e1d6',
+      fieldInkSoft: '#a9b0b6',
+      paper:        '#efe7d6',   // страница рецепта, ярлык
+      paperEdge:    '#d6c9ae',   // пробка, срез бумаги
+      ink:          '#1f2328',
+      inkSoft:      '#545a60',
+      plate:        '#efe7d6',
+      plateInk:     '#1f2328',
+      done:         '#e0892b',
+      back:         '#35414d',
+      chip:         '#e0892b',   // зелье, капля
+      rule:         '#141a20',
+      wrong:        '#a0442a',
+      action:       '#a5531a',
+      actionInk:    '#fff6e8',
+      actionHover:  '#86410f',
+      focus:        '#1f2328',
+      wax:          '#6e3a1e',   // сургуч на пробке флакона-крышки
+    },
+
+    // Моушн-ролик «Как это работает» (tools/reels/potion.html → record.mjs)
+    reel: { src: '/reels/potion.mp4', poster: '/reels/potion.jpg' },
+
+    // Шрифты
+    fonts: {
+      display: "'Philosopher', 'PT Serif', Georgia, serif",
+      body:    "'PT Serif', Georgia, serif",
+      displayWeight: 700,
+      // свои файлы: assets/styles/fonts.css + public/fonts
+      selfHosted: true,
+    },
+
+    copy: {
+      eyebrow:       'Котёл разогрет',
+      startBtn:      'Начать варку',
+      taskDone:      'Флакон наполнен',
+      hintBtn:       'Подсказка · −10 капель',
+      photoZone:     'Сфотографировать ингредиент',
+      finishEyebrow: 'Зелье готово!',
+      shareBtn:      'Поделиться зельем',
+      blockPrefix:   'Рецепт',
+      blockForms:    ['рецепт', 'рецепта', 'рецептов'],
+      cellForms:     ['флакон', 'флакона', 'флаконов'],
+      cellsDone:     ['флакон наполнен', 'флакона наполнено', 'флаконов наполнено'],
+      blockDone:     'Рецепт сварен. На полке ждёт следующий.',
+      allDone:       'Все флаконы наполнены.',
+      nextBtn:       'Следующий рецепт',
+      finishShare:   'Поделиться зельем',
+      pointsLabel:   'капель',
+      pointsForms:   ['капля', 'капли', 'капель'],
+    },
+
+    bg_animation: null,
+    overlay: null,            // камень и стекло — без пара, свечения и бликов
+  },
 }
 
 export const getTheme = (id) => THEMES[id] || THEMES.city
@@ -549,5 +631,7 @@ const worldVars = (theme) => {
     // сургуч: без своего цвета QuestSeal берёт запасной красный
     ...(w.sealWax  && { '--seal-wax':  w.sealWax }),
     ...(w.sealDeep && { '--seal-deep': w.sealDeep }),
+    // сургуч на пробке (тема «Зельеварня»)
+    ...(w.wax && { '--wax': w.wax }),
   }
 }

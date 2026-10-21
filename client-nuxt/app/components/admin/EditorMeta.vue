@@ -145,6 +145,7 @@ const THEMES = [
   { id: 'mystery',   icon: '🔮',  label: 'Мистика' },
   { id: 'treasure',  icon: '🗺️', label: 'Искатель клада' },
   { id: 'proposal',  icon: '💍',  label: 'Предложение' },
+  { id: 'potion',    icon: '🧪',  label: 'Зельеварня' },
 ]
 const INTRO_META = {
   detective: { icon: '🌧️', desc: 'Дождь + секретное досье' },
@@ -153,6 +154,7 @@ const INTRO_META = {
   city:      { icon: '💻', desc: 'Матрица + загрузка системы' },
   treasure:  { icon: '💰', desc: 'Золотые частицы + карта' },
   proposal:  { icon: '💍', desc: 'Золотые кольца + искры' },
+  potion:    { icon: '🧪', desc: 'Флакон с ярлыком, пробка выскакивает' },
 }
 const introMeta = computed(() => INTRO_META[props.form.theme] || { icon: '✨', desc: 'Анимированная заставка' })
 </script>

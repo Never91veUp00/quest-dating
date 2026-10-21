@@ -20,6 +20,11 @@
         <path class="map-route map-route--sea" :d="roadPath" />
         <path class="map-route" :d="landRoute" />
       </template>
+      <template v-else-if="decor === 'potion'">
+        <!-- Медная трубка перегонного куба: тёмный контур и медная жила -->
+        <path class="tube tube--outer" :d="roadPath" />
+        <path class="tube tube--inner" :d="roadPath" />
+      </template>
       <template v-else-if="decor === 'ringbox'">
         <!-- Шёлковая нить: пунктир стёжками от футляра к футляру -->
         <path class="ring-thread" :d="roadPath" />
@@ -75,6 +80,16 @@
             class="cell__x" :class="{ 'is-fresh': cell.id === stampId }"
             viewBox="0 0 24 24" aria-hidden="true"
           ><path d="M5 5.5 L19 18.5" /><path d="M18.5 5 L5.5 19" /></svg>
+          <!-- Пройденный флакон наполнен зельем; свежий наполняется на ходу -->
+          <QuestFlask
+            v-else-if="decor === 'potion' && cell.state === 'done'"
+            :size="58" :level=".72" :fresh="cell.id === stampId"
+          />
+          <!-- Пропущенный флакон: пустой, на шаре — чернильный крестик -->
+          <span v-else-if="decor === 'potion' && cell.state === 'wrong'" class="cell__skipflask">
+            <QuestFlask :size="44" />
+            <QuestIcon class="cell__skipx" name="close" :size="16" />
+          </span>
           <!-- Пройденный шаг — открытый футляр с камешком; свежий открывается на ходу -->
           <QuestRingbox
             v-else-if="decor === 'ringbox' && cell.state === 'done'"
@@ -100,13 +115,16 @@
           :class="{ 'is-reveal': cell.index > stampIndex }"
           aria-current="step"
           :aria-label="`Клетка ${cell.n}: сейчас здесь`"
-        >{{ decor === 'tarot' ? roman(cell.n) : cell.n }}</span>
+        >
+          <QuestFlask v-if="decor === 'potion'" :size="76" :label="cell.n" />
+          <template v-else>{{ decor === 'tarot' ? roman(cell.n) : cell.n }}</template>
+        </span>
         <span
           v-else
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
-        ></span>
-        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map', 'ringbox'].includes(decor)" class="cell__stamp" aria-hidden="true">
+        ><QuestFlask v-if="decor === 'potion'" :size="44" /></span>
+        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map', 'ringbox', 'potion'].includes(decor)" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -123,6 +141,7 @@ import QuestSeal from './QuestSeal.vue'
 import QuestPostmark from './QuestPostmark.vue'
 import QuestArcana from './QuestArcana.vue'
 import QuestRingbox from './QuestRingbox.vue'
+import QuestFlask from './QuestFlask.vue'
 import { roman } from './themes.js'
 
 const props = defineProps({
@@ -527,6 +546,37 @@ const chipStyle = computed(() => {
   from { opacity: 0; transform: scale(1.7) rotate(-18deg); }
   70%  { opacity: 1; transform: scale(.95) rotate(-7deg); }
   to   { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
+
+/* ── Обличье зельеварни: флаконы на медной трубке ───────────── */
+.track--potion { height: clamp(190px, 30svh, 280px); }
+.tube { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.tube--outer { stroke: var(--rule); stroke-width: 7; }
+.tube--inner { stroke: color-mix(in srgb, var(--chip) 45%, var(--paper-edge)); stroke-width: 3; }
+/* флакон рисует себя сам: у клетки нет плашки и контура */
+.track--potion .cell {
+  width: auto; height: auto;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 7px 6px color-mix(in srgb, var(--rule) 70%, transparent));
+}
+.cell__skipflask { position: relative; display: block; }
+.cell__skipx {
+  position: absolute; left: 50%; top: 66%;
+  transform: translate(-50%, -50%);
+  color: var(--field-ink);
+}
+/* фишка — капля зелья над текущим флаконом */
+.track--potion .track__chip {
+  width: 16px; height: 16px;
+  margin: -88px 0 0 -8px;
+  border: 1.5px solid var(--rule);
+  border-radius: 50% 0 50% 50%;
+  background: var(--chip);
+  transform: rotate(-45deg);
+  box-shadow: none;
 }
 
 /* ── Обличье футляра: маленькие футляры на шёлковой нити ─────── */

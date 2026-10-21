@@ -20,7 +20,7 @@ const toBriefing = (value) =>
 
 // Темы плеера: синхронно с CHECK created_quests_theme_check (database/dump.sql)
 // и client-nuxt/app/components/quest/themes.js
-const QUEST_THEMES = ['detective', 'romantic', 'city', 'mystery', 'treasure', 'proposal']
+const QUEST_THEMES = ['detective', 'romantic', 'city', 'mystery', 'treasure', 'proposal', 'potion']
 // field: theme у created_quests, default_theme у quest_templates (там CHECK нет,
 // поэтому список держит только этот валидатор). Пустая тема → 'detective' в роуте.
 const themeValidator = (field = 'theme') =>

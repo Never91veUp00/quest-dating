@@ -21,7 +21,11 @@
             'is-wrong':  earnedMap?.[t.id]?.wrong,
             'is-active': ti === activeIdx,
           }"
-        ></span>
+        ><QuestFlask
+          v-if="theme.world?.decor === 'potion'"
+          :size="ti === activeIdx ? 18 : 13"
+          :level="completedIds.includes(t.id) && !earnedMap?.[t.id]?.wrong ? .72 : 0"
+        /></span>
       </span>
     </button>
 
@@ -90,6 +94,7 @@
       <article v-else key="done" class="block__done">
         <span v-if="theme.world?.decor === 'tarot'" class="block__frame" aria-hidden="true"></span>
         <span v-else-if="theme.world?.decor === 'ringbox'" class="block__stitch" aria-hidden="true"></span>
+        <span v-else-if="theme.world?.decor === 'potion'" class="block__rule" aria-hidden="true"></span>
         <p class="block__done-text">
           {{ isLast ? (theme.copy.allDone ?? 'Все клетки пройдены.') : (theme.copy.blockDone ?? 'Участок пройден. Фишка ждёт у выхода.') }}
         </p>
@@ -144,6 +149,7 @@ import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import QuestTask from './QuestTask.vue'
 import QuestTrack from './QuestTrack.vue'
 import QuestIcon from './QuestIcon.vue'
+import QuestFlask from './QuestFlask.vue'
 import { themeToCssVars } from './themes.js'
 
 const props = defineProps({
@@ -249,6 +255,7 @@ const finishLabel = computed(() => ({
   city:      'На конечную',
   treasure:  'К кладу',
   proposal:  'К главному',
+  potion:    'Снять с огня',
 }[props.theme.id] || 'Завершить'))
 </script>
 
@@ -442,6 +449,31 @@ const finishLabel = computed(() => ({
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
+/* Обличье зельеварни: флакончики на трубке, наполненные — янтарные */
+.block--potion .block__mini::before {
+  height: 4px; margin-top: -2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--chip) 45%, var(--paper-edge));
+  box-shadow: 0 0 0 1.2px var(--rule);
+}
+/* флакончик рисует себя сам: у клетки полосы нет плашки */
+.block--potion .block__mini-cell,
+.block--potion .block__mini-cell.is-done,
+.block--potion .block__mini-cell.is-active {
+  width: auto; height: auto;
+  border: none;
+  border-radius: 0;
+  background: none;
+  --fl-line: 1.8;
+}
+.block--potion .block__mini-cell.is-active::after {
+  top: -14px; right: auto; left: 50%;
+  width: 9px; height: 9px; margin-left: -4.5px;
+  border: 1.2px solid var(--rule);
+  border-radius: 50% 0 50% 50%;
+  transform: rotate(-45deg);
+}
+
 /* Обличье футляра: маленькие футляры на нити, открытые — с камешком */
 .block--ringbox .block__mini::before {
   height: 0; margin-top: 0;
@@ -553,6 +585,24 @@ const finishLabel = computed(() => ({
 }
 
 /* ── Участок пройден ──────────────────────────────────────────── */
+/* в зельеварне конец рецепта — тоже страница рецепта */
+.block--potion .block__done {
+  position: relative;
+  border: none;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+  padding: 26px 20px 20px;
+}
+/* шапка страницы рецепта: двойная линейка под заголовком, как в старой книге */
+.block__rule {
+  position: absolute; left: 18px; right: 18px; top: 10px;
+  height: 4px;
+  border-top: 1.5px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  pointer-events: none;
+}
 /* в футляре конец момента — шёлковая карточка с прострочкой */
 .block--ringbox .block__done {
   position: relative;
