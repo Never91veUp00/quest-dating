@@ -157,10 +157,14 @@
   <template v-else-if="task.type === 'mini_game'">
     <div class="qe-field">
       <label>Тип игры</label>
-      <select v-model="task.game_type" class="qe-select qe-select--sm">
+      <select v-model="task.game_type" class="qe-select qe-select--sm" @change="onGameType(task)">
         <option value="quiz">❓ Угадайка (4 варианта)</option>
         <option value="pairs">🃏 Найди пары</option>
         <option value="puzzle">🧩 Пазл из фото</option>
+        <option value="word">🔤 Слово из букв</option>
+        <option value="timeline">🗓️ Хронология пары</option>
+        <option value="scratch">🪙 Скретч-карта</option>
+        <option value="cipher">🔐 Шифр-колесо</option>
       </select>
     </div>
 
@@ -287,14 +291,137 @@
         ✓ Фото загружено. Пазл будет собираться методом тап→выбрать→тап→поставить
       </div>
     </template>
+
+    <!-- Слово из букв -->
+    <template v-else-if="task.game_type === 'word'">
+      <div class="qe-field">
+        <label>Вопрос или подсказка</label>
+        <input v-model="task.game_question" placeholder="Где мы впервые поцеловались?" />
+      </div>
+      <div class="qe-field">
+        <label>Слово-ответ <span class="req">*</span></label>
+        <input v-model="task.word_answer" placeholder="Старый мост" maxlength="24" />
+      </div>
+      <div class="qe-field">
+        <label>Лишние буквы</label>
+        <select v-model.number="task.word_decoys" class="qe-select qe-select--sm">
+          <option :value="0">Без лишних</option>
+          <option :value="2">2 лишние — средне</option>
+          <option :value="4">4 лишние — сложно</option>
+        </select>
+      </div>
+      <div class="qe-hint">Буквы перемешаются фишками, игрок соберёт слово по клеткам. Регистр, пробелы и Ё/Е не важны; до 24 знаков.</div>
+    </template>
+
+    <!-- Хронология пары -->
+    <template v-else-if="task.game_type === 'timeline'">
+      <div class="qe-field">
+        <label>Вопрос или подсказка</label>
+        <input v-model="task.game_question" placeholder="Расставь по порядку: что было раньше — выше" />
+      </div>
+      <div class="qe-field">
+        <label>События в правильном порядке <span class="req">*</span></label>
+        <div class="qe-timeline">
+          <div v-for="(item, i) in task.timeline_items || []" :key="i" class="qe-timeline__row">
+            <span class="qe-timeline__num">{{ i + 1 }}</span>
+            <button type="button" class="qe-timeline__photo" title="Фото события (необязательно)"
+              @click="$emit('image-upload', url => { item.image = url })">
+              <img v-if="item.image" :src="item.image" alt="" />
+              <span v-else>+ фото</span>
+            </button>
+            <div class="qe-timeline__fields">
+              <input v-model="item.text" placeholder="Первое свидание в парке" />
+              <input v-model="item.caption" placeholder="Подпись после решения: апрель 2021" />
+            </div>
+            <div class="qe-timeline__tools">
+              <button type="button" :disabled="i === 0" title="Выше" @click="moveItem(task, i, -1)">↑</button>
+              <button type="button" :disabled="i === task.timeline_items.length - 1" title="Ниже" @click="moveItem(task, i, 1)">↓</button>
+              <button v-if="item.image" type="button" title="Убрать фото" @click="item.image = null">без фото</button>
+              <button type="button" title="Удалить событие" @click="task.timeline_items.splice(i, 1)">✕</button>
+            </div>
+          </div>
+        </div>
+        <button v-if="(task.timeline_items || []).length < 6" type="button" class="qe-btn qe-btn--ghost qe-timeline__add"
+          @click="task.timeline_items = [...(task.timeline_items || []), { text: '', caption: '', image: null }]">
+          + Добавить событие
+        </button>
+      </div>
+      <div v-if="(task.timeline_items || []).length < 3" class="qe-hint qe-hint--warn">
+        Нужно от 3 до 6 событий (сейчас {{ (task.timeline_items || []).length }})
+      </div>
+      <div v-else class="qe-hint qe-hint--ok">В квесте события перемешаются, игрок расставит их по порядку</div>
+    </template>
+
+    <!-- Скретч-карта -->
+    <template v-else-if="task.game_type === 'scratch'">
+      <div class="qe-field">
+        <label>Вопрос или подсказка</label>
+        <input v-model="task.game_question" placeholder="Сотри — и узнаешь, что дальше" />
+      </div>
+      <div class="qe-field">
+        <label>Фото под слоем</label>
+        <div v-if="!task.scratch_image" class="qe-photo-drop" @click="$emit('image-upload', url => { task.scratch_image = url })">
+          <div class="qe-photo-drop__icon">🖼️</div>
+          <div>Нажми чтобы выбрать фото</div>
+          <div class="qe-hint">Необязательно, если есть текст</div>
+        </div>
+        <div v-else class="qe-puzzle-preview">
+          <img :src="task.scratch_image" class="qe-puzzle-preview__img" />
+          <button class="qe-puzzle-preview__rm" @click="task.scratch_image = null">✕ Удалить</button>
+        </div>
+      </div>
+      <div class="qe-field">
+        <label>Текст под слоем</label>
+        <textarea v-model="task.scratch_text" rows="2" placeholder="Билеты на субботу — в верхнем ящике комода"></textarea>
+      </div>
+      <div v-if="!task.scratch_image && !task.scratch_text?.trim()" class="qe-hint qe-hint--warn">Добавь фото или текст — иначе под слоем пусто</div>
+      <div v-else class="qe-hint qe-hint--ok">Слой растворится, когда стёрто больше половины</div>
+    </template>
+
+    <!-- Шифр-колесо -->
+    <template v-else-if="task.game_type === 'cipher'">
+      <div class="qe-field">
+        <label>Вопрос или подсказка</label>
+        <input v-model="task.game_question" placeholder="Расшифруй записку" />
+      </div>
+      <div class="qe-field">
+        <label>Фраза <span class="req">*</span></label>
+        <input v-model="task.cipher_phrase" placeholder="Ищи под подушкой" maxlength="80" />
+      </div>
+      <div class="qe-field">
+        <label>Ключ</label>
+        <div class="qe-cipher-key">
+          <span>А → {{ RU_ALPHABET[task.cipher_shift || 3] }}</span>
+          <button type="button" class="qe-btn qe-btn--ghost" @click="task.cipher_shift = randomShift()">Другой ключ</button>
+        </div>
+      </div>
+      <div v-if="task.cipher_phrase?.trim()" class="qe-hint">
+        Игрок увидит: <b>{{ caesar(task.cipher_phrase, task.cipher_shift || 3) }}</b>
+      </div>
+      <div class="qe-hint">Шифр строится сам. Игрок крутит колесо, пока под А не встанет буква ключа.</div>
+    </template>
   </template>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { RU_ALPHABET, caesar, randomShift } from '~/utils/miniGames'
 
 defineProps({ task: { type: Object, required: true } })
-defineEmits(['generate-qr', 'add-pair-image', 'remove-pair-image', 'puzzle-upload', 'pair-image-upload', 'media-upload', 'media-clear'])
+defineEmits(['generate-qr', 'add-pair-image', 'remove-pair-image', 'puzzle-upload', 'pair-image-upload', 'media-upload', 'media-clear', 'image-upload'])
+
+// новая игра получает свои стартовые поля, чтобы редактор и плеер не гадали
+const onGameType = (task) => {
+  if (task.game_type === 'cipher' && !task.cipher_shift) task.cipher_shift = randomShift()
+  if (task.game_type === 'timeline' && !task.timeline_items?.length) {
+    task.timeline_items = [1, 2, 3].map(() => ({ text: '', caption: '', image: null }))
+  }
+  if (task.game_type === 'word' && task.word_decoys === undefined) task.word_decoys = 2
+}
+const moveItem = (task, i, dir) => {
+  const arr = task.timeline_items, to = i + dir
+  ;[arr[i], arr[to]] = [arr[to], arr[i]]
+}
 
 const previewMedia = ref(false)
 
