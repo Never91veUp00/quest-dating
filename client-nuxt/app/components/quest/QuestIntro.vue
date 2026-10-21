@@ -19,6 +19,13 @@
         <QuestSeal class="lid__seal" :size="88" :seed="5" motto="★ ПИСЬМО ★" />
       </span>
       <!-- Колода: верхняя карта рубашкой вверх, поперёк — бумажная бандероль -->
+      <!-- Бант на перекрестье ленты -->
+      <svg v-if="decor === 'ringbox'" class="lid__bow" viewBox="0 0 80 50" aria-hidden="true">
+        <path d="M40 25 C30 6 8 4 8 20 C8 34 28 32 40 25 Z" />
+        <path d="M40 25 C50 6 72 4 72 20 C72 34 52 32 40 25 Z" />
+        <path d="M37 27 L28 48 L34 46 L38 49 Z M43 27 L52 48 L46 46 L42 49 Z" />
+        <rect x="34" y="19" width="12" height="12" rx="3" />
+      </svg>
       <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : 'lid__text'">
         <h1 class="lid__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="lid__for">
@@ -255,14 +262,29 @@ onUnmounted(() => clearTimeout(timer))
   padding: 0;
   border: 1.5px solid var(--rule);
   border-radius: 18px;
-  /* лента крест-накрест: две полосы шёлка поверх бархата */
+  /* гранатовая лента крест-накрест поверх бархата, кромка ленты темнее */
+  --ribbon: var(--chip);
+  --ribbon-edge: color-mix(in srgb, var(--chip) 70%, var(--rule));
   background:
-    linear-gradient(90deg, transparent calc(50% - 15px), var(--paper) calc(50% - 15px) calc(50% + 15px), transparent calc(50% + 15px)),
-    linear-gradient(transparent calc(50% - 15px), var(--paper) calc(50% - 15px) calc(50% + 15px), transparent calc(50% + 15px)),
+    linear-gradient(90deg, transparent calc(50% - 15px), var(--ribbon-edge) calc(50% - 15px) calc(50% - 14px), var(--ribbon) calc(50% - 14px) calc(50% + 14px), var(--ribbon-edge) calc(50% + 14px) calc(50% + 15px), transparent calc(50% + 15px)),
+    linear-gradient(transparent calc(30% - 15px), var(--ribbon-edge) calc(30% - 15px) calc(30% - 14px), var(--ribbon) calc(30% - 14px) calc(30% + 14px), var(--ribbon-edge) calc(30% + 14px) calc(30% + 15px), transparent calc(30% + 15px)),
     var(--back);
+  align-content: end;
+  padding-bottom: 26px;
   box-shadow:
     0 6px 0 color-mix(in srgb, var(--rule) 22%, var(--back)),
     0 30px 36px -18px color-mix(in srgb, var(--rule) 65%, transparent);
+}
+/* бант стоит на перекрестье ленты: 30% высоты коробки */
+.lid__bow {
+  position: absolute; left: 50%; top: 30%;
+  width: 96px; height: 60px;
+  margin: -30px 0 0 -48px;
+  fill: var(--chip);
+  stroke: var(--ribbon-edge);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 4px 4px color-mix(in srgb, var(--rule) 35%, transparent));
 }
 .lid__tag {
   position: relative;

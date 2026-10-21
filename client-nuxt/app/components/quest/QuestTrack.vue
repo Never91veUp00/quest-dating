@@ -530,6 +530,7 @@ const chipStyle = computed(() => {
 }
 
 /* ── Обличье футляра: маленькие футляры на шёлковой нити ─────── */
+.track--ringbox { height: clamp(180px, 28svh, 260px); }
 .ring-thread {
   fill: none;
   vector-effect: non-scaling-stroke;

@@ -13,18 +13,21 @@
     <!-- Корпус: бархат, сверху подушечка шёлка с прорезью -->
     <rect class="rb__velvet" x="3.5" y="17.5" width="33" height="19" rx="4" />
     <rect class="rb__silk" x="6.5" y="17.5" width="27" height="8.5" rx="2" />
-    <path class="rb__slit" d="M20 19 V25" />
-    <!-- Кольцо: тонкий обод, держится в прорези -->
-    <ellipse v-if="ring" class="rb__ring" cx="20" cy="17.2" rx="6.2" ry="4.6" />
+    <!-- Кольцо стоит в прорези: обод вертикальный, нижняя часть скрыта в подушечке -->
+    <clipPath v-if="ring" :id="clipId"><rect x="0" y="0" width="40" height="21.6" /></clipPath>
+    <ellipse v-if="ring" class="rb__ring" cx="20" cy="17.4" rx="4.2" ry="5.6" :clip-path="`url(#${clipId})`" />
+    <path class="rb__slit" :d="ring ? 'M20 21.8 V25.5' : 'M20 19 V25'" />
     <!-- Камень: гранёный, одна краска, грани — шёлком -->
     <g class="rb__stone">
-      <path class="rb__gem" :d="ring ? 'M20 8.6 L23.4 11.6 L20 15.4 L16.6 11.6 Z' : 'M20 12.4 L23.4 15.6 L20 19.4 L16.6 15.6 Z'" />
-      <path class="rb__facet" :d="ring ? 'M16.6 11.6 H23.4 M20 8.6 V15.4' : 'M16.6 15.6 H23.4 M20 12.4 V19.4'" />
+      <path class="rb__gem" :d="ring ? 'M20 6.4 L23 9.2 L20 12.4 L17 9.2 Z' : 'M20 12.4 L23.4 15.6 L20 19.4 L16.6 15.6 Z'" />
+      <path class="rb__facet" :d="ring ? 'M17 9.2 H23 M20 6.4 V12.4' : 'M16.6 15.6 H23.4 M20 12.4 V19.4'" />
     </g>
   </svg>
 </template>
 
 <script setup>
+import { useId } from 'vue'
+
 // Открытый футляр (тема «Предложение»): на клетке пройденного шага — камешек,
 // в финале — кольцо с камнем. Свежий футляр открывается: крышка откидывается.
 defineProps({
@@ -32,6 +35,7 @@ defineProps({
   ring:  { type: Boolean, default: false },
   fresh: { type: Boolean, default: false },
 })
+const clipId = `rb-clip-${useId()}`
 </script>
 
 <style scoped>

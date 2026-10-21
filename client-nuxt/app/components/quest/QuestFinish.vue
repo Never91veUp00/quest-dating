@@ -14,7 +14,7 @@
 
       <!-- Футляр: открыт, на подушечке кольцо. Вопрос экран не задаёт — его задают вслух -->
       <div v-if="decor === 'ringbox'" class="finish__box">
-        <QuestRingbox :size="150" ring fresh />
+        <QuestRingbox :size="190" ring fresh />
       </div>
 
       <!-- Карта: пунктир через пройденные метки к большому красному кресту -->
@@ -385,7 +385,7 @@ const saveCard = async () => {
 .finish--ringbox .finish__title { text-wrap: balance; }
 .finish__box {
   /* крупный футляр — тоньше линии, как на гравюре ювелирного каталога */
-  --rb-line: .55;
+  --rb-line: .9;
   display: grid; place-items: center;
   margin: 6px 0 2px;
   filter: drop-shadow(0 18px 18px color-mix(in srgb, var(--rule) 30%, transparent));

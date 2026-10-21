@@ -455,9 +455,20 @@ const finishLabel = computed(() => ({
   background: var(--back);
 }
 .block--ringbox .block__mini-cell.is-done {
-  background: radial-gradient(circle at 50% 50%, var(--chip) 0 2.6px, transparent 3px), var(--paper);
+  background:
+    radial-gradient(circle at 50% 38%, var(--chip) 0 2.2px, transparent 2.6px),
+    linear-gradient(var(--paper) 0 50%, var(--back) 50%);
 }
-.block--ringbox .block__mini-cell.is-done.is-wrong { background: var(--paper); }
+/* откинутая крышка — бархатная ступенька над открытым футляром */
+.block--ringbox .block__mini-cell.is-done::before {
+  content: "";
+  position: absolute; left: 1px; right: 1px; bottom: calc(100% + 1px);
+  height: 4px;
+  border: 1.2px solid var(--rule);
+  border-radius: 3px 3px 0 0;
+  background: var(--back);
+}
+.block--ringbox .block__mini-cell.is-done.is-wrong { background: linear-gradient(var(--paper) 0 50%, var(--back) 50%); }
 .block--ringbox .block__mini-cell.is-active { width: 20px; height: 18px; }
 .block--ringbox .block__mini-cell.is-active::after {
   top: -12px; right: auto; left: 50%;
