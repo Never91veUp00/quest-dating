@@ -558,6 +558,9 @@ const share = () => {
 }
 
 // ─── Watchers ─────────────────────────────────────────────────
+// На финале тост не перекрывает заголовок: финал сам себе событие
+watch(isComplete, (done) => { if (done) badge.value = null })
+
 watch(points, (now, before) => {
   // восстановление прогресса при загрузке не показываем
   if (!pointsDeltaReady) return

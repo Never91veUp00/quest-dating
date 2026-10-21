@@ -32,9 +32,9 @@ const word = computed(() => (WORDS[props.decor] ?? WORDS.base)[props.kind])
 </script>
 
 <style scoped>
-/* База: штамп с двойной рамкой, ложится с лёгким поворотом и бледнеет */
+/* База: штамп с двойной рамкой ложится на верхний край карточки — заголовок под ним свободен */
 .mark {
-  position: absolute; top: 12px; right: 12px;
+  position: absolute; top: -16px; right: 14px;
   z-index: 3;
   padding: 5px 12px 4px;
   border: 3px double currentColor;
@@ -47,6 +47,9 @@ const word = computed(() => (WORDS[props.decor] ?? WORDS.base)[props.kind])
   text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
+  /* штамп на бумажной подложке: читается и над карточкой, и над полем */
+  background: var(--paper);
+  box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 70%, transparent);
   transform: rotate(-8deg);
   animation: mark-life 1.5s cubic-bezier(.2, .7, .2, 1) both;
 }
@@ -72,10 +75,11 @@ const word = computed(() => (WORDS[props.decor] ?? WORDS.base)[props.kind])
 /* Переписка: круглый почтовый штемпель */
 .mark--letters {
   display: grid; place-items: center;
-  width: 100px; height: 100px; padding: 6px;
+  top: -50px; right: 8px;
+  width: 82px; height: 82px; padding: 5px;
   border-radius: 50%;
   border-width: 3px; border-style: double;
-  font-size: .64rem;
+  font-size: .56rem;
   text-align: center;
   white-space: normal;
   letter-spacing: .08em;
