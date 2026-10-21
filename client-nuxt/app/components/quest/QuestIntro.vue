@@ -1,17 +1,45 @@
 <template>
   <div
     class="lid"
-    :class="[{ 'lid--open': opening }, decor && `lid--${decor}`]"
+    :class="[{ 'lid--open': opening }, decor && `lid--${decor}`, stage && `lid--s${stage}`]"
     role="button"
     tabindex="0"
-    aria-label="Открыть коробку с квестом"
+    :aria-label="hint"
     @click="open"
     @keydown.enter.prevent="open"
     @keydown.space.prevent="open"
     @transitionend.self="onLifted"
   >
-    <div class="lid__face">
-      <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
+    <!-- Дело: крафтовая папка на красной нити. Нить сматывается с пуговицы, обложка
+         раскрывается, лист дела выходит из папки — и под ним уже экран старта -->
+    <div v-if="decor === 'casefile'" class="case">
+      <p class="case__tab">Дело № {{ caseNo }}</p>
+      <div class="case__inside" aria-hidden="true"></div>
+      <div class="case__sheet" aria-hidden="true">
+        <p class="case__sheet-head">Дело № {{ caseNo }}</p>
+        <dl class="case__sheet-rows">
+          <div><dt>Объект</dt><dd>{{ questData.client_name || 'не указан' }}</dd></div>
+          <div><dt>Дело</dt><dd>{{ questData.title }}</dd></div>
+          <div><dt>Статус</dt><dd>открыто</dd></div>
+        </dl>
+        <span class="case__sheet-stamp">Принято в работу</span>
+      </div>
+      <div class="case__cover">
+        <div class="case__label">
+          <h1 class="lid__title">{{ questData.title }}</h1>
+          <p v-if="questData.client_name" class="lid__for">Кому: <b>{{ questData.client_name }}</b></p>
+        </div>
+        <span class="lid__stamp" aria-hidden="true">Секретно</span>
+      </div>
+      <!-- завязка: две пуговицы и красная нить восьмёркой между ними -->
+      <svg class="case__tie" viewBox="0 0 60 120" aria-hidden="true">
+        <path class="case__thread" pathLength="100" d="M30 28 C52 40 52 70 30 92 C8 70 8 40 30 28 C46 22 50 12 42 6" />
+        <circle class="case__button" cx="30" cy="28" r="9" />
+        <circle class="case__button" cx="30" cy="92" r="9" />
+      </svg>
+    </div>
+
+    <div v-else class="lid__face">
       <!-- Хеллоуин: приглашение на вечеринку — шапка-вырубка с луной, котом и летучими мышами -->
       <svg v-if="decor === 'diecut'" class="lid__scene" viewBox="0 0 280 96" aria-hidden="true">
         <rect class="lid__scene-sky" width="280" height="96" />
@@ -45,11 +73,10 @@
           Кому: <b>{{ questData.client_name }}</b>
         </p>
       </div>
-      <span v-if="decor === 'casefile'" class="lid__stamp" aria-hidden="true">Секретно</span>
       <!-- Проездной: линия маршрута со станциями вдоль нижнего края -->
       <span v-if="decor === 'metro'" class="lid__route" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
     </div>
-    <p class="lid__hint">Нажми, чтобы открыть</p>
+    <p class="lid__hint">{{ hint }}</p>
   </div>
 </template>
 
@@ -69,8 +96,16 @@ const emit = defineEmits(['done'])
 
 const decor   = computed(() => props.theme.world?.decor ?? null)
 const caseNo  = computed(() => 1000 + (Number(props.questData.id) || 0))
+const hint    = computed(() => props.theme.copy?.introHint ?? 'Нажми, чтобы открыть')
 const opening = ref(false)
 let timer = null
+
+// Церемония открытия по стадиям (мс от тапа); последняя — крышка растворяется,
+// под ней уже экран старта. Мир без церемонии поднимает крышку целиком, как раньше.
+// Дело: 1 — нить сматывается, 2 — обложка раскрывается, 3 — лист выходит, 4 — растворение
+const CEREMONY = { casefile: [0, 420, 1050, 1500] }
+const stage = ref(0)
+const stageTimers = []
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -78,12 +113,14 @@ const open = () => {
   if (opening.value) return
   clearTimeout(timer)
   opening.value = true
-  if (reduced()) emit('done')
+  if (reduced()) { emit('done'); return }
+  const steps = CEREMONY[decor.value]
+  if (steps) steps.forEach((ms, i) => stageTimers.push(setTimeout(() => { stage.value = i + 1 }, ms)))
 }
 const onLifted = () => { if (opening.value) emit('done') }
 
 onMounted(() => { timer = setTimeout(open, props.duration) })
-onUnmounted(() => clearTimeout(timer))
+onUnmounted(() => { clearTimeout(timer); stageTimers.forEach(clearTimeout) })
 </script>
 
 <style scoped>
@@ -129,8 +166,29 @@ onUnmounted(() => clearTimeout(timer))
   color: var(--field-ink-soft);
 }
 .lid__for b { color: var(--field-ink); font-weight: 700; }
-/* Номер дела — на язычке папки */
-.lid__case {
+.lid__hint {
+  margin: 28px 0 0;
+  font-family: var(--font-b);
+  font-size: 1rem;
+  color: var(--field-ink-soft);
+}
+
+/* ── Обличье дела: папка из крафта на красной нити ───────────────── */
+.lid--casefile { background: var(--field); transition: opacity .32s ease .08s; }
+/* крышка не уезжает: папка раскрывается на месте, затем слой растворяется */
+.lid--casefile.lid--open { transform: none; }
+.lid--casefile.lid--s4 { opacity: 0; pointer-events: none; }
+
+.case {
+  container-type: inline-size;
+  position: relative;
+  width: min(88vw, 420px);
+  aspect-ratio: 5 / 6.4;
+  margin-top: 26px;
+  perspective: 1400px;
+}
+/* язычок папки с номером дела */
+.case__tab {
   position: absolute; left: 0; bottom: 100%;
   margin: 0;
   padding: 8px 18px 6px;
@@ -141,39 +199,137 @@ onUnmounted(() => clearTimeout(timer))
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
-.lid__hint {
-  margin: 28px 0 0;
-  font-family: var(--font-b);
-  font-size: 1rem;
-  color: var(--field-ink-soft);
+/* задняя половина папки: внутренняя сторона крафта */
+.case__inside {
+  position: absolute; inset: 0;
+  background: color-mix(in srgb, var(--rule) 10%, var(--paper-edge));
+  border-radius: 0 18px 4px 4px;
+  box-shadow: 0 26px 34px -20px color-mix(in srgb, var(--rule) 95%, transparent);
 }
-
-/* ── Обличье дела: папка из крафта со штампом ─────────────────── */
-.lid--casefile { background: var(--field); }
-.lid--casefile .lid__face {
-  background: var(--paper-edge);
+/* лист дела внутри: печатный бланк на белой бумаге */
+.case__sheet {
+  position: absolute; inset: 7% 6% 6%;
+  padding: 9cqi 7cqi;
+  background: var(--paper);
   color: var(--ink);
-  border: none;
-  border-radius: 4px 18px 4px 4px;
-  padding: 56px 24px 64px;
-  box-shadow: 0 22px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--rule) 20%, transparent), 0 12px 18px -12px color-mix(in srgb, var(--rule) 70%, transparent);
+  text-align: left;
+  transition: transform .5s cubic-bezier(.2, .7, .2, 1);
 }
-.lid--casefile .lid__title { color: var(--ink); }
-.lid--casefile .lid__for { color: var(--ink-soft); }
-.lid--casefile .lid__for b { color: var(--ink); }
-.lid__stamp {
-  position: absolute; right: 18px; bottom: 16px;
-  padding: 6px 12px;
+.case__sheet-head {
+  margin: 0 0 7cqi;
+  padding-bottom: 3cqi;
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-d);
+  font-size: 7cqi;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+}
+.case__sheet-rows { margin: 0; display: grid; gap: 4cqi; }
+.case__sheet-rows div { display: grid; grid-template-columns: 30% 1fr; gap: 3cqi; align-items: baseline; }
+.case__sheet-rows dt { font-family: var(--font-b); font-size: 3.6cqi; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.case__sheet-rows dd { margin: 0; font-family: var(--font-b); font-size: 5cqi; border-bottom: 1px dotted color-mix(in srgb, var(--ink) 45%, var(--paper)); }
+
+/* штамп ложится на лист, когда тот выходит из папки */
+.case__sheet-stamp {
+  position: absolute; right: 7cqi; bottom: 10cqi;
+  padding: 2cqi 4cqi;
   border: 3px double var(--chip);
   border-radius: 6px;
   color: var(--chip);
   font-family: var(--font-d);
-  font-size: 1.15rem;
+  font-size: 4.4cqi;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: rotate(-7deg) scale(1.6);
+}
+.lid--s3 .case__sheet-stamp, .lid--s4 .case__sheet-stamp { animation: case-stamp .3s cubic-bezier(.2, .7, .2, 1) .12s forwards; }
+@keyframes case-stamp {
+  to { opacity: .92; transform: rotate(-7deg) scale(1); }
+}
+
+/* обложка: открывается вокруг левого корешка */
+.case__cover {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 8cqi;
+  background: var(--paper-edge);
+  border-radius: 0 18px 4px 4px;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform .62s cubic-bezier(.55, 0, .25, 1);
+  box-shadow: 0 26px 34px -20px color-mix(in srgb, var(--rule) 95%, transparent);
+}
+/* изнанка обложки, видна в развороте */
+.case__cover::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--rule) 14%, var(--paper-edge));
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+}
+.case__label { backface-visibility: hidden; }
+/* ярлык с названием дела, наклеенный на крафт */
+.case__label {
+  padding: 7cqi 6cqi 6cqi;
+  background: var(--paper);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--rule) 25%, transparent);
+  text-align: center;
+}
+.lid--casefile .lid__title { color: var(--ink); font-size: clamp(1.6rem, 10cqi, 3rem); }
+.lid--casefile .lid__for { margin-top: 4cqi; color: var(--ink-soft); }
+.lid--casefile .lid__for b { color: var(--ink); }
+.lid__stamp {
+  position: absolute; right: 7cqi; bottom: 9cqi;
+  padding: 6px 14px;
+  border: 3px double var(--chip);
+  border-radius: 6px;
+  color: var(--chip);
+  font-family: var(--font-d);
+  font-size: clamp(1.1rem, 6.4cqi, 1.6rem);
   letter-spacing: .06em;
   text-transform: uppercase;
   transform: rotate(-9deg);
-  opacity: .88;
+  opacity: .9;
+  backface-visibility: hidden;
 }
+
+/* завязка на правом краю: пуговицы и красная нить */
+.case__tie {
+  position: absolute; right: -3cqi; top: 50%;
+  width: 15cqi; height: 30cqi;
+  margin-top: -15cqi;
+  overflow: visible;
+  transition: opacity .2s .25s;
+}
+.case__button { fill: color-mix(in srgb, var(--rule) 30%, var(--paper-edge)); stroke: var(--rule); stroke-width: 2; }
+.case__thread {
+  fill: none;
+  stroke: var(--chip);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  filter: drop-shadow(0 1.5px 0 color-mix(in srgb, var(--rule) 45%, transparent));
+  transition: stroke-dashoffset .42s cubic-bezier(.5, 0, .7, .4);
+}
+
+/* 1 — нить сматывается с пуговиц */
+.lid--s1 .case__thread, .lid--s2 .case__thread, .lid--s3 .case__thread, .lid--s4 .case__thread { stroke-dashoffset: -100; }
+.lid--s2 .case__tie, .lid--s3 .case__tie, .lid--s4 .case__tie { opacity: 0; }
+/* 2 — обложка раскрывается */
+.lid--s2 .case__cover, .lid--s3 .case__cover, .lid--s4 .case__cover { transform: rotateY(-158deg); }
+/* 3 — лист дела выходит из папки навстречу */
+.lid--s3 .case__sheet { transform: translateY(-6%) scale(1.06); }
+/* 4 — лист уходит вверх, к заголовку экрана старта, и растворяется вместе со слоем */
+.lid--s4 .case__sheet { transform: translateY(-16%) scale(1.1); opacity: 0; transition: transform .4s cubic-bezier(.2, .7, .2, 1), opacity .25s ease; }
+.lid--casefile.lid--s1 .lid__hint, .lid--casefile.lid--s2 .lid__hint,
+.lid--casefile.lid--s3 .lid__hint, .lid--casefile.lid--s4 .lid__hint { opacity: 0; transition: opacity .2s; }
 
 /* ── Обличье переписки: конверт под сургучом ─────────────────── */
 .lid--letters .lid__face {
@@ -493,6 +649,8 @@ onUnmounted(() => clearTimeout(timer))
 
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
+  .case__cover, .case__sheet, .case__thread, .case__tie { transition: none; }
+  .case__sheet-stamp { animation: none; }
   .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax,
   .lid__flask :deep(.fl__cork), .lid--diecut .lid__face { transition: none; }
 }

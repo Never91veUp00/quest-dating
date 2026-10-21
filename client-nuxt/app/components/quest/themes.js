@@ -61,6 +61,7 @@ export const THEMES = {
     // Язык UI
     copy: {
       eyebrow:       'СЕКРЕТНОЕ ДЕЛО',
+      introHint:     'Сними нить — и дело твоё',
       startBtn:      'ОТКРЫТЬ ДЕЛО',
       taskDone:      'Задокументировано',
       hintBtn:       'Запросить справку · −10 очков',
