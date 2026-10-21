@@ -88,6 +88,19 @@ defineEmits(['update:modelValue'])
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
 .mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
 
+/* Футляр, «Найди пары»: фон — бархат, рубашка — закрытый футляр со швом крышки */
+.mg-overlay--ringbox { background: var(--field); color: var(--field-ink); }
+.mg-overlay--ringbox :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background:
+    linear-gradient(transparent calc(34% - 1px), color-mix(in srgb, var(--rule) 55%, var(--back)) calc(34% - 1px) calc(34% + 1px), transparent calc(34% + 1px)),
+    var(--back);
+}
+.mg-overlay--ringbox :deep(.task__pairs__card) { border-width: 2px; border-radius: 10px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 70%, transparent); }
+.mg-overlay--ringbox :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: var(--rule); }
+.mg-overlay--ringbox :deep(.task__pairs__card__back),
+.mg-overlay--ringbox :deep(.task__pairs__card__front) { border-radius: 8px; clip-path: inset(0 round 8px); }
+
 /* Карта, «Найди пары»: рубашка — пергамент с чернильной розой ветров */
 .mg-overlay--map :deep(.task__pairs__card__back) {
   font-size: 0;

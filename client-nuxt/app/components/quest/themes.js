@@ -331,42 +331,76 @@ export const THEMES = {
     id: 'proposal',
     label: 'Предложение',
 
-    accent:     '#d4af37',   // золото
-    accentDim:  '#8b6914',
-    bg:         '#080508',
-    bg2:        '#100d14',
-    surface:    '#18121e',
-    border:     'rgba(212,175,55,0.2)',
-    text:       '#f0e6d3',
-    dim:        '#5a4020',
+    // Цвета — футляр с кольцом: пудровый бархат, слоновый шёлк, одна гранатовая краска
+    accent:     '#8e1f2f',
+    accentDim:  '#8e1f2f',
+    bg:         '#e8cdc4',   // бархат
+    bg2:        '#d9b6ab',
+    surface:    '#fbf4ec',
+    border:     'rgba(59,29,34,0.22)',
+    text:       '#3b1d22',
+    dim:        '#6e4a4c',
 
-    baseBg:     '#080508',
-    baseTone:   'dark',
+    baseBg:     '#e8cdc4',
+    baseTone:   'light',
     showTimer:  false,
 
+    // Мир «Ходилки» в обличье футляра: клетки — маленькие футляры, пройденный
+    // открыт и показывает камешек, фишка — жемчужина
+    world: {
+      decor:        'ringbox',
+      field:        '#e8cdc4',
+      fieldInk:     '#3b1d22',
+      fieldInkSoft: '#6e4a4c',
+      paper:        '#fbf4ec',   // шёлк подкладки
+      paperEdge:    '#ead6c8',
+      ink:          '#2e1a1c',
+      inkSoft:      '#6a5052',
+      plate:        '#f6e6dc',   // крышка футляра «сейчас»
+      plateInk:     '#2e1a1c',
+      done:         '#fbf4ec',   // открытый футляр: подушечка
+      back:         '#c99c91',   // закрытый футляр, бархат глубже поля
+      chip:         '#8e1f2f',   // камень и лента
+      rule:         '#3b1d22',
+      wrong:        '#7a3b2e',
+      action:       '#8e1f2f',
+      actionInk:    '#fbf4ec',
+      actionHover:  '#6f1624',
+      focus:        '#2e1a1c',
+    },
+
+    // Моушн-ролик «Как это работает» (tools/reels/proposal.html → record.mjs)
+    reel: { src: '/reels/proposal.mp4', poster: '/reels/proposal.jpg' },
+
+    // Шрифты
     fonts: {
-      display: "'Cormorant Garamond', serif",
-      body:    "'Lato', sans-serif",
-      googleFonts: 'Cormorant+Garamond:wght@300;400;600;700&family=Lato:wght@300;400'
+      display: "'Prata Digits', 'Prata', 'PT Serif', Georgia, serif",
+      body:    "'PT Serif', Georgia, serif",
+      // свои файлы: assets/styles/fonts.css + public/fonts
+      selfHosted: true,
     },
 
     copy: {
       eyebrow:       'Особый вечер',
-      startBtn:      'Начать',
+      startBtn:      'Открыть',
       taskDone:      'Шаг сделан',
       hintBtn:       'Подсказка · −10 очков',
       photoZone:     'Сохранить момент',
-      finishEyebrow: 'Этот момент — навсегда',
+      finishEyebrow: 'А теперь — главный вопрос',
       shareBtn:      'Поделиться',
       blockPrefix:   'Момент',
-      pointsLabel:   'искр',
-      pointsForms:   ['искра', 'искры', 'искр'],
+      blockForms:    ['момент', 'момента', 'моментов'],
+      cellForms:     ['шаг', 'шага', 'шагов'],
+      cellsDone:     ['шаг пройден', 'шага пройдено', 'шагов пройдено'],
+      blockDone:     'Момент позади. Впереди — следующий.',
+      allDone:       'Все шаги пройдены.',
+      nextBtn:       'Дальше',
+      pointsLabel:   'очков',
+      pointsForms:   ['очко', 'очка', 'очков'],
     },
 
-    bg_animation: 'rings',   // кольца + блики
-
-
-    overlay: 'soft_glow',
+    bg_animation: null,
+    overlay: null,            // бархат и шёлк — без колец, бликов и свечения
   },
   city: {
     id: 'city',

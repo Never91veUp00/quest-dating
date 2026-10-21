@@ -9,6 +9,7 @@
       'task--metro':    decor === 'metro',
       'task--tarot':    decor === 'tarot',
       'task--map':      decor === 'map',
+      'task--ringbox':  decor === 'ringbox',
       [`task--${task.type}`]: true,
     }"
   >
@@ -21,6 +22,8 @@
     <span v-else-if="decor === 'metro'" class="task__perf" aria-hidden="true"></span>
     <!-- Вытянутая карта: двойная гравированная рамка по обрезу -->
     <span v-else-if="decor === 'tarot'" class="task__frame" aria-hidden="true"></span>
+    <!-- Шёлк подкладки: прострочка по краю -->
+    <span v-else-if="decor === 'ringbox'" class="task__stitch" aria-hidden="true"></span>
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
@@ -221,6 +224,30 @@ const typeLabel = computed(() => ({
   font-weight: 700;
 }
 .task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Обличье футляра: шёлковая карточка подкладки с прострочкой, номер — на бархатной крышке */
+.task--ringbox {
+  border: none;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rule) 14%, transparent),
+    0 16px 24px -16px color-mix(in srgb, var(--rule) 55%, transparent);
+  padding: 24px 22px 22px;
+}
+.task__stitch {
+  position: absolute;
+  pointer-events: none;
+}
+/* прострочка подкладки: пунктирный шов, отступивший от края */
+.task__stitch { inset: 7px; border: 1.5px dashed color-mix(in srgb, var(--ink) 28%, var(--paper)); border-radius: 7px; }
+.task--ringbox .task__no {
+  display: grid; place-items: center;
+  width: 42px; height: 42px;
+  border: 1.5px solid var(--rule);
+  border-radius: 9px 9px 7px 7px;
+  background: var(--back);
+  font-size: 1.3rem;
+}
 
 /* Обличье карты: обрывок пергамента, рваный край сверху и снизу, номер — метка в кружке */
 .task--map {

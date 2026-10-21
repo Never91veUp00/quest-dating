@@ -20,6 +20,10 @@
         <path class="map-route map-route--sea" :d="roadPath" />
         <path class="map-route" :d="landRoute" />
       </template>
+      <template v-else-if="decor === 'ringbox'">
+        <!-- Шёлковая нить: пунктир стёжками от футляра к футляру -->
+        <path class="ring-thread" :d="roadPath" />
+      </template>
       <template v-else-if="decor === 'tarot'">
         <!-- Расклад на сукне: тонкая меловая разметка от карты к карте -->
         <path class="tarot-line" :d="linePath" />
@@ -71,6 +75,11 @@
             class="cell__x" :class="{ 'is-fresh': cell.id === stampId }"
             viewBox="0 0 24 24" aria-hidden="true"
           ><path d="M5 5.5 L19 18.5" /><path d="M18.5 5 L5.5 19" /></svg>
+          <!-- Пройденный шаг — открытый футляр с камешком; свежий открывается на ходу -->
+          <QuestRingbox
+            v-else-if="decor === 'ringbox' && cell.state === 'done'"
+            class="cell__ringbox" :size="46" :fresh="cell.id === stampId"
+          />
           <!-- Пропущенная метка: перечёркнута одним чернильным штрихом, не крестом клада -->
           <svg
             v-else-if="decor === 'map' && cell.state === 'wrong'"
@@ -97,7 +106,7 @@
           class="cell cell--back"
           :aria-label="`Клетка ${cell.n}: закрыта`"
         ></span>
-        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map'].includes(decor)" class="cell__stamp" aria-hidden="true">
+        <span v-if="stampId != null && cell.id === stampId && !['letters', 'metro', 'tarot', 'map', 'ringbox'].includes(decor)" class="cell__stamp" aria-hidden="true">
           <QuestSeal :size="92" />
         </span>
       </li>
@@ -113,6 +122,7 @@ import QuestIcon from './QuestIcon.vue'
 import QuestSeal from './QuestSeal.vue'
 import QuestPostmark from './QuestPostmark.vue'
 import QuestArcana from './QuestArcana.vue'
+import QuestRingbox from './QuestRingbox.vue'
 import { roman } from './themes.js'
 
 const props = defineProps({
@@ -517,6 +527,60 @@ const chipStyle = computed(() => {
   from { opacity: 0; transform: scale(1.7) rotate(-18deg); }
   70%  { opacity: 1; transform: scale(.95) rotate(-7deg); }
   to   { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
+
+/* ── Обличье футляра: маленькие футляры на шёлковой нити ─────── */
+.track--ringbox { height: clamp(180px, 28svh, 260px); }
+.ring-thread {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke: color-mix(in srgb, var(--field-ink) 42%, var(--field));
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+}
+/* футляр закрыт: бархат глубже поля, шов крышки на трети высоты */
+.track--ringbox .cell {
+  border: 1.5px solid var(--rule);
+  border-radius: 9px 9px 7px 7px;
+  box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 70%, transparent);
+}
+.track--ringbox .cell--back {
+  --size: 30px;
+  background:
+    linear-gradient(transparent calc(36% - .75px), color-mix(in srgb, var(--rule) 55%, var(--back)) calc(36% - .75px) calc(36% + .75px), transparent calc(36% + .75px)),
+    var(--back);
+}
+/* сейчас: футляр крупнее, номер на крышке, шов ниже номера */
+.track--ringbox .cell--active {
+  --size: 56px;
+  font-size: 1.5rem;
+  background:
+    linear-gradient(transparent calc(72% - .75px), color-mix(in srgb, var(--rule) 45%, var(--back)) calc(72% - .75px) calc(72% + .75px), transparent calc(72% + .75px)),
+    var(--back);
+  color: var(--ink);
+  place-items: start center;
+  padding-top: 9px;
+}
+/* пройден: открытый футляр рисует себя сам */
+.track--ringbox .cell--done {
+  --size: 48px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 6px color-mix(in srgb, var(--rule) 35%, transparent));
+}
+.track--ringbox .cell--wrong { background: var(--back); border: 1.5px solid var(--rule); color: var(--ink-soft); filter: none; }
+/* фишка — жемчужина: слоновый шарик с бликом */
+.track--ringbox .track__chip {
+  width: 20px; height: 20px;
+  margin: -52px 0 0 -10px;
+  border: 1.5px solid var(--rule);
+  background: var(--paper);
+  box-shadow:
+    inset -3px -3px 0 color-mix(in srgb, var(--paper-edge) 90%, var(--rule)),
+    inset 3px 3px 0 color-mix(in srgb, var(--paper) 40%, white),
+    0 5px 6px -3px color-mix(in srgb, var(--rule) 60%, transparent);
 }
 
 /* ── Обличье пиратской карты: метки на пергаментном острове ──── */

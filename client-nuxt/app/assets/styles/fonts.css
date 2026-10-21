@@ -1,6 +1,7 @@
 /* Шрифты плеера на своём сервере (OFL): Dela Gothic One, PT Serif;
    тема «Романтик» — Cormorant Garamond (переменный, 600–700) и Bad Script;
-   тема «Город» — Golos Text (переменный, 500–700).
+   тема «Город» — Golos Text (переменный, 500–700); «Мистика» — Old Standard TT;
+   «Искатель клада» — Kurale; «Предложение» — Prata (цифры — из PT Serif).
    Только кириллица и латиница. Источник: Google Fonts, скачано 2026-10-20. */
 
 @font-face {
@@ -253,4 +254,41 @@
   font-display: swap;
   src: url('/fonts/kurale-400-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Prata';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/prata-400-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+
+@font-face {
+  font-family: 'Prata';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/prata-400-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'Prata';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/prata-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Цифры для Prata: в ней «1» читается как «l», поэтому цифры берём из PT Serif */
+@font-face {
+  font-family: 'Prata Digits';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/pt-serif-400-latin.woff2') format('woff2');
+  unicode-range: U+0030-0039;
 }
