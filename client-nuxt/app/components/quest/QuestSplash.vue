@@ -56,6 +56,7 @@
           <span v-else-if="decor === 'metro'" class="splash__perf" aria-hidden="true"></span>
           <span v-else-if="decor === 'tarot'" class="splash__frame" aria-hidden="true"></span>
           <span v-else-if="decor === 'ringbox'" class="splash__stitch" aria-hidden="true"></span>
+          <span v-else-if="decor === 'potion'" class="splash__rule" aria-hidden="true"></span>
           <h2 id="brief-h" class="splash__h splash__h--ink">Перед стартом</h2>
           <p class="splash__brief-text">{{ questData.briefing }}</p>
         </section>
@@ -242,6 +243,25 @@ const startLabel = computed(() =>
   border-top: 2px dashed color-mix(in srgb, var(--ink) 35%, var(--paper));
 }
 .splash--metro .splash__title { font-weight: 700; }
+
+/* Обличье зельеварни: «Перед стартом» — страница рецепта */
+.splash--potion .splash__brief {
+  border: none;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+  padding-top: 26px;
+}
+/* шапка страницы рецепта: двойная линейка под заголовком, как в старой книге */
+.splash__rule {
+  position: absolute; left: 18px; right: 18px; top: 10px;
+  height: 4px;
+  border-top: 1.5px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  pointer-events: none;
+}
+.splash--potion .splash__title { font-weight: 700; }
 
 /* Обличье футляра: «Перед стартом» — шёлковая карточка с прострочкой */
 .splash--ringbox .splash__brief {

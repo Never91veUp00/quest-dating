@@ -88,6 +88,16 @@ defineEmits(['update:modelValue'])
 .mg-overlay--metro :deep(.task__pairs__card) { border-width: 3px; border-radius: 6px; box-shadow: 0 6px 10px -6px color-mix(in srgb, var(--rule) 50%, transparent); }
 .mg-overlay--metro :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: transparent; }
 
+/* Зельеварня, «Найди пары»: рубашка — камень подвала с пустым флаконом мелом */
+.mg-overlay--potion :deep(.task__pairs__card__back) {
+  font-size: 0;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'%3E%3Cpath d='M16 5 H24 V17 Q34 20.5 34 31.5 A14 14 0 1 1 6 31.5 Q6 20.5 16 17 Z' fill='none' stroke='%23e6e1d6' stroke-opacity='.75' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center / 46% no-repeat,
+    var(--back);
+}
+.mg-overlay--potion :deep(.task__pairs__card) { border-width: 2px; border-radius: 6px; box-shadow: 0 8px 12px -8px color-mix(in srgb, var(--rule) 90%, transparent); }
+.mg-overlay--potion :deep(.task__pairs__card:not(.selected):not(.matched):not(:hover)) { border-color: var(--rule); }
+
 /* Футляр, «Найди пары»: фон — бархат, рубашка — закрытый футляр со швом крышки */
 .mg-overlay--ringbox { background: var(--field); color: var(--field-ink); }
 .mg-overlay--ringbox :deep(.task__pairs__card__back) {

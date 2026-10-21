@@ -12,6 +12,9 @@
   >
     <div class="lid__face">
       <p v-if="decor === 'casefile'" class="lid__case">Дело № {{ caseNo }}</p>
+      <!-- Зельеварня: большой флакон, пробка под сургучом, ярлык с именем — поверх колбы -->
+      <QuestFlask v-if="decor === 'potion'" class="lid__flask" :size="260" :level=".38" />
+      <span v-if="decor === 'potion'" class="lid__wax" aria-hidden="true"></span>
       <!-- Свиток: скатанные концы сверху и снизу, внизу сургуч -->
       <QuestSeal v-if="decor === 'map'" class="lid__seal lid__seal--map" :size="84" :seed="9" motto="★ КАРТА ★" />
       <!-- Конверт обратной стороной: клапан под сургучом открывается первым -->
@@ -26,7 +29,7 @@
         <path d="M37 27 L28 48 L34 46 L38 49 Z M43 27 L52 48 L46 46 L42 49 Z" />
         <rect x="34" y="19" width="12" height="12" rx="3" />
       </svg>
-      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : 'lid__text'">
+      <div :class="decor === 'tarot' ? 'lid__band' : decor === 'ringbox' ? 'lid__tag' : decor === 'potion' ? 'lid__label' : 'lid__text'">
         <h1 class="lid__title">{{ questData.title }}</h1>
         <p v-if="questData.client_name" class="lid__for">
           Кому: <b>{{ questData.client_name }}</b>
@@ -43,6 +46,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import QuestSeal from './QuestSeal.vue'
+import QuestFlask from './QuestFlask.vue'
 
 // Крышка коробки с игрой: название и имя игрока. Поднимается сама
 // через пару секунд или по тапу и открывает правила (QuestSplash).
@@ -254,6 +258,45 @@ onUnmounted(() => clearTimeout(timer))
 .lid--metro.lid--open { transition-delay: .22s; }
 .lid--metro.lid--open .lid__face { transform: translateY(-36px); }
 
+/* ── Обличье зельеварни: флакон с ярлыком, пробка выскакивает ─── */
+.lid--potion .lid__face {
+  display: grid; place-items: center;
+  max-width: 300px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  --fl-line: .8;
+}
+.lid__flask { filter: drop-shadow(0 26px 22px color-mix(in srgb, var(--rule) 80%, transparent)); }
+.lid__flask :deep(.fl__cork) { transition: transform .35s cubic-bezier(.3, 0, .2, 1), opacity .35s; transform-box: fill-box; }
+/* сургуч на пробке */
+.lid__wax {
+  position: absolute; left: 50%; top: 2px;
+  width: 50px; height: 22px; margin-left: -25px;
+  border-radius: 40% 45% 50% 50% / 50% 50% 60% 60%;
+  background: color-mix(in srgb, var(--chip) 35%, #6e2618);
+  box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--rule) 30%, transparent);
+  transition: transform .35s cubic-bezier(.3, 0, .2, 1), opacity .35s;
+}
+/* ярлык поверх колбы: бумага с подрезанными углами */
+.lid__label {
+  position: absolute; left: 50%; top: 62%;
+  width: 78%;
+  transform: translate(-50%, -50%) rotate(-2deg);
+  padding: 18px 16px 16px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--rule);
+  clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+}
+.lid--potion .lid__title { color: var(--ink); font-weight: 700; font-size: clamp(1.4rem, 8cqi, 2.1rem); }
+.lid--potion .lid__for { margin-top: 8px; color: var(--ink-soft); }
+.lid--potion .lid__for b { color: var(--ink); }
+/* пробка выскакивает, затем флакон уходит вверх */
+.lid--potion.lid--open { transition-delay: .32s; }
+.lid--potion.lid--open .lid__wax,
+.lid--potion.lid--open .lid__flask :deep(.fl__cork) { transform: translateY(-34px) rotate(-18deg); opacity: 0; }
+
 /* ── Обличье футляра: коробка, перевязанная шёлковой лентой, бирка «Кому» ── */
 .lid--ringbox .lid__face {
   display: grid; place-items: center;
@@ -397,6 +440,6 @@ onUnmounted(() => clearTimeout(timer))
 
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag { transition: none; }
+  .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax { transition: none; }
 }
 </style>

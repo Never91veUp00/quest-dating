@@ -10,6 +10,7 @@
       'task--tarot':    decor === 'tarot',
       'task--map':      decor === 'map',
       'task--ringbox':  decor === 'ringbox',
+      'task--potion':   decor === 'potion',
       [`task--${task.type}`]: true,
     }"
   >
@@ -24,6 +25,7 @@
     <span v-else-if="decor === 'tarot'" class="task__frame" aria-hidden="true"></span>
     <!-- Шёлк подкладки: прострочка по краю -->
     <span v-else-if="decor === 'ringbox'" class="task__stitch" aria-hidden="true"></span>
+    <span v-else-if="decor === 'potion'" class="task__rule" aria-hidden="true"></span>
 
     <!-- Угол карточки: номер клетки и тип задания -->
     <header class="task__head">
@@ -224,6 +226,35 @@ const typeLabel = computed(() => ({
   font-weight: 700;
 }
 .task--metro .task__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* Обличье зельеварни: страница рецепта, номер — на ярлыке флакона с подрезанными углами */
+.task--potion {
+  border: none;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 18px 26px -16px color-mix(in srgb, var(--rule) 90%, transparent);
+  padding: 26px 20px 22px;
+}
+/* шапка страницы рецепта: двойная линейка под заголовком, как в старой книге */
+.task__rule {
+  position: absolute; left: 18px; right: 18px; top: 10px;
+  height: 4px;
+  border-top: 1.5px solid color-mix(in srgb, var(--ink) 55%, var(--paper));
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, var(--paper));
+  pointer-events: none;
+}
+.task--potion .task__no {
+  display: grid; place-items: center;
+  min-width: 40px; height: 30px;
+  padding: 0 6px;
+  border: 1.5px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.task--potion .task__title { font-weight: 700; }
 
 /* Обличье футляра: шёлковая карточка подкладки с прострочкой, номер — на бархатной крышке */
 .task--ringbox {
