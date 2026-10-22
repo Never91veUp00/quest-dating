@@ -324,6 +324,26 @@ describe('GET /api/quests/:slug — прохождение + защита код
 // ─── Сводка перед стартом ───────────────────────────────────────────────────
 // Плеер показывает её до первого блока: факты шаблона + текст автора.
 
+describe('GET /api/quests/:slug — порядок прохождения', () => {
+  it('отдаёт flow = route по умолчанию', async () => {
+    const quest = await makeQuest()
+
+    const res = await request(ctx.app).get(`/api/quests/${quest.slug}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.flow).toBe('route')
+  })
+
+  it('отдаёт flow = board, если автор выбрал доску', async () => {
+    const quest = await makeQuest()
+    await ctx.pool.query("UPDATE created_quests SET flow = 'board' WHERE id = $1", [quest.id])
+
+    const res = await request(ctx.app).get(`/api/quests/${quest.slug}`)
+
+    expect(res.body.data.flow).toBe('board')
+  })
+})
+
 describe('GET /api/quests/:slug — сводка перед стартом', () => {
   it('отдаёт текст автора briefing и факты шаблона (сложность, тип места, длительность)', async () => {
     const quest = await makeQuest({ briefing: 'Удобная обувь, зарядка, 90 минут пешком' })

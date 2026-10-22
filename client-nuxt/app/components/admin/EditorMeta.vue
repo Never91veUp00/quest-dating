@@ -65,6 +65,28 @@
         </div>
       </div>
 
+      <!-- Порядок прохождения -->
+      <div class="qe-field">
+        <label>Порядок прохождения</label>
+        <div class="qe-intro-options">
+          <button class="qe-intro-opt" :class="{ active: form.flow !== 'board' }"
+            @click="form.flow = 'route'">
+            <span class="qe-intro-opt__icon">🛤️</span>
+            <span class="qe-intro-opt__label">По маршруту</span>
+            <span class="qe-intro-opt__sub">Участки открываются по очереди</span>
+          </button>
+          <button class="qe-intro-opt" :class="{ active: form.flow === 'board' }"
+            @click="form.flow = 'board'">
+            <span class="qe-intro-opt__icon">📌</span>
+            <span class="qe-intro-opt__label">Доска</span>
+            <span class="qe-intro-opt__sub">Любой порядок, финал последним</span>
+          </button>
+        </div>
+        <div v-if="form.flow === 'board'" class="qe-hint">
+          Все участки открыты сразу, игрок выбирает сам. Последний участок — финал: он откроется, когда пройдены остальные. Для прогулки, где точки идут друг за другом, лучше маршрут.
+        </div>
+      </div>
+
       <!-- Пол получателя -->
       <div class="qe-field">
         <label>Пол получателя</label>
