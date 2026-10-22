@@ -14,11 +14,22 @@
       <span>Не удалось загрузить фото. Попробуй ещё раз.</span>
       <button class="task__photo-retry" @click="retry">Попробовать снова</button>
     </div>
+    <!-- Видоискатель фронтальной камеры прямо в карточке: снимок как в зеркале -->
+    <div v-else-if="cameraOn" class="task__selfie-cam">
+      <div class="task__selfie-view">
+        <video ref="videoRef" autoplay muted playsinline></video>
+      </div>
+      <div class="task__selfie-controls">
+        <button type="button" class="task__selfie-cancel" @click="stopCamera">Отмена</button>
+        <button type="button" class="task__selfie-shutter" :disabled="!cameraReady" aria-label="Сделать снимок" @click="shoot"></button>
+        <span class="task__selfie-spacer" aria-hidden="true"></span>
+      </div>
+    </div>
     <div v-else-if="!photoPreview" class="task__photo-zone task__photo-zone--selfie"
-      @click="fileInputRef?.click()">
+      @click="openCamera">
       <QuestIcon class="task__photo-zone__icon" name="selfie" :size="32" />
       <div class="task__photo-zone__label">Нажми чтобы сфотографироваться</div>
-      <div class="task__photo-zone__hint">Этот момент останется навсегда</div>
+      <div class="task__photo-zone__hint">{{ cameraDenied ? 'Камера недоступна — выбери готовое фото' : 'Этот момент останется навсегда' }}</div>
     </div>
     <div v-else class="task__photo-preview">
       <img :src="photoPreview" alt="Ваше фото" />
@@ -33,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick, onUnmounted } from 'vue'
 import QuestIcon from '../QuestIcon.vue'
 
 defineProps({
@@ -58,8 +69,67 @@ const onFileChange = (e) => {
 
 const retry = () => {
   photoError.value = false
-  fileInputRef.value?.click()
+  openCamera()
 }
+
+// ─── Фронтальная камера ─────────────────────────────────────────
+// capture="user" у <input type=file> iPhone и многие Android-камеры не слушают
+// и открывают основную камеру, поэтому снимаем сами через getUserMedia.
+// Нет камеры или доступа — прежний выбор файла (с capture="user").
+const videoRef     = ref(null)
+const cameraOn     = ref(false)
+const cameraReady  = ref(false)
+const cameraDenied = ref(false)
+let stream = null
+
+const openCamera = async () => {
+  if (cameraDenied.value || !navigator.mediaDevices?.getUserMedia) { fileInputRef.value?.click(); return }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
+      audio: false,
+    })
+  } catch {
+    // доступ запрещён или камеры нет: сразу выбор файла (где браузер ещё помнит тап),
+    // иначе подсказка в зоне, и следующий тап откроет выбор файла
+    cameraDenied.value = true
+    fileInputRef.value?.click()
+    return
+  }
+  cameraOn.value = true
+  cameraReady.value = false
+  await nextTick()
+  videoRef.value?.closest('.task__selfie-cam')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  const v = videoRef.value
+  if (!v) return stopCamera()
+  v.srcObject = stream
+  v.onloadedmetadata = () => { cameraReady.value = true }
+  v.play?.().catch(() => {})
+}
+
+const stopCamera = () => {
+  stream?.getTracks().forEach(t => t.stop())
+  stream = null
+  cameraOn.value = false
+  cameraReady.value = false
+}
+
+const shoot = () => {
+  const v = videoRef.value
+  if (!v?.videoWidth) return
+  const c = document.createElement('canvas')
+  c.width = v.videoWidth
+  c.height = v.videoHeight
+  const ctx = c.getContext('2d')
+  // как в видоискателе — зеркально
+  ctx.translate(c.width, 0)
+  ctx.scale(-1, 1)
+  ctx.drawImage(v, 0, 0, c.width, c.height)
+  photoPreview.value = c.toDataURL('image/jpeg', 0.9)
+  stopCamera()
+}
+
+onUnmounted(stopCamera)
 </script>
 
 <style scoped>
@@ -88,6 +158,52 @@ const retry = () => {
 .task__photo-zone__icon { font-size: 2.8rem; line-height: 1; margin-bottom: 4px; }
 .task__photo-zone__label { font-size: .95rem; font-weight: 600; color: var(--ink); }
 .task__photo-zone__hint { font-size: .78rem; color: var(--ink-soft); margin-top: 2px; font-style: italic; }
+
+.task__selfie-cam { display: flex; flex-direction: column; gap: 14px; }
+.task__selfie-view {
+  position: relative;
+  /* видоискатель и затвор помещаются в экран вместе с заголовком задания */
+  height: min(46svh, 440px);
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--rule);
+}
+.task__selfie-view video {
+  width: 100%; height: 100%;
+  display: block;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.task__selfie-controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+.task__selfie-cancel {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 4px;
+  background: none; border: none;
+  color: var(--ink-soft);
+  font-size: .95rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+/* затвор: кольцо цвета действия с плотной серединой, у большого пальца */
+.task__selfie-shutter {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 4px solid var(--action);
+  background: var(--action);
+  box-shadow: inset 0 0 0 4px var(--paper);
+  cursor: pointer;
+  transition: transform .12s ease-out, opacity .2s;
+}
+.task__selfie-shutter:active { transform: scale(.94); }
+.task__selfie-shutter:disabled { opacity: .45; cursor: default; }
+.task__selfie-shutter:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 
 .task__photo-preview {
   position: relative; border-radius: 16px; overflow: hidden;
