@@ -85,6 +85,7 @@
 <script setup>
 import { computed, ref, onUnmounted } from 'vue'
 import QuestIcon        from './QuestIcon.vue'
+import { taskIcon }     from './taskIcons.js'
 import QuestMark        from './QuestMark.vue'
 import { pointsWord, roman } from './themes.js'
 import TaskSimple       from './tasks/TaskSimple.vue'
@@ -161,18 +162,7 @@ const shownAnswer = computed(() => {
   return null
 })
 
-const typeIcon = computed(() => ({
-  simple:        'task',
-  riddle:        'riddle',
-  code_physical: 'code',
-  location:      'location',
-  selfie:        'selfie',
-  photo:         'photo',
-  text_answer:   'text',
-  media:         'media',
-  qr:            'qr',
-  mini_game:     'game',
-}[props.task.type] || 'task'))
+const typeIcon = computed(() => taskIcon(props.task.type))
 
 const typeLabel = computed(() => ({
   simple:        'Задание',

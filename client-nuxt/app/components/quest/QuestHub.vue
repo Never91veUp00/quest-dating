@@ -10,6 +10,16 @@
       </p>
     </header>
 
+    <!-- «Детектив»: пробковая доска, улики вразнобой вокруг папки финала -->
+    <QuestCorkboard
+      v-if="theme.world?.decor === 'casefile'"
+      :blocks="blocks"
+      :theme="theme"
+      :completedIds="completedIds"
+      @open="$emit('open', $event)"
+    />
+
+    <template v-else>
     <!-- Улики: все участки, кроме финала -->
     <ol class="hub__grid">
       <li v-for="c in clues" :key="c.i">
@@ -48,12 +58,14 @@
         <b>{{ done }} из {{ total }}</b> — финал откроется, когда пройдены все
       </span>
     </button>
+    </template>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import QuestIcon from './QuestIcon.vue'
+import QuestCorkboard from './QuestCorkboard.vue'
 import { roman } from './themes.js'
 import { isBlockDone, finalIndex, cluesDone, cluesTotal, finalUnlocked } from '~/utils/boardFlow.js'
 
