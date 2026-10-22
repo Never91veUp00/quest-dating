@@ -26,6 +26,13 @@ const QUEST_THEMES = ['detective', 'romantic', 'city', 'mystery', 'treasure', 'p
 const themeValidator = (field = 'theme') =>
   body(field).optional({ values: 'falsy' }).isIn(QUEST_THEMES).withMessage('Неизвестная тема квеста')
 
+// Порядок прохождения: route — участки по очереди, board — доска (все открыты,
+// последний участок — финал). Совпадает с CHECK created_quests_flow_check.
+// Пустой flow → 'route' в роуте.
+const QUEST_FLOWS = ['route', 'board']
+const flowValidator = () =>
+  body('flow').optional({ values: 'falsy' }).isIn(QUEST_FLOWS).withMessage('Неизвестный порядок прохождения')
+
 // ─── GET /api/admin/dashboard ─────────────────────────────────
 // Статистика для дашборда
 router.get('/dashboard', async (req, res, next) => {
@@ -128,7 +135,8 @@ router.post('/quests', [
   body('client_name').trim().notEmpty().withMessage('Имя клиента обязательно'),
   body('slug').trim().notEmpty().withMessage('Slug обязателен'),
   body('blocks').if(body('is_public').equals('true')).isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
-  themeValidator()
+  themeValidator(),
+  flowValidator()
 ], async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -141,7 +149,7 @@ router.post('/quests', [
       final_message, blocks, access_code,
       order_id, template_id, is_public = false,
       expires_at, show_intro = true, player_version = 'v1',
-      recipient_gender = 'f', briefing
+      recipient_gender = 'f', briefing, flow
     } = req.body
 
     // Проверка уникальности slug
@@ -159,8 +167,8 @@ router.post('/quests', [
     const result = await pool.query(`
       INSERT INTO created_quests
         (title, client_name, slug, theme, final_message, blocks,
-         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version, recipient_gender, briefing)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13, $14, $15)
+         access_code, order_id, template_id, is_public, show_intro, expires_at, published_at, player_version, recipient_gender, briefing, flow)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, CASE WHEN $10 THEN NOW() ELSE NULL END, $13, $14, $15, $16)
       RETURNING *
     `, [
       title, client_name, slug, theme, final_message || null,
@@ -170,7 +178,8 @@ router.post('/quests', [
       expires_at || null,
       player_version || 'v1',
       recipient_gender || 'f',
-      toBriefing(briefing)
+      toBriefing(briefing),
+      flow || 'route'
     ])
 
     const quest = result.rows[0]
@@ -194,7 +203,8 @@ router.put('/quests/:id', [
   body('title').trim().notEmpty().withMessage('Название обязательно'),
   body('client_name').trim().notEmpty().withMessage('Имя клиента обязательно'),
   body('blocks').if(body('is_public').equals('true')).isArray({ min: 1 }).withMessage('Нужен хотя бы один блок'),
-  themeValidator()
+  themeValidator(),
+  flowValidator()
 ], async (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -205,7 +215,7 @@ router.put('/quests/:id', [
     const {
       title, client_name, slug, theme, final_message,
       blocks, access_code, is_public, expires_at, show_intro, player_version,
-      recipient_gender = 'f', briefing
+      recipient_gender = 'f', briefing, flow
     } = req.body
 
     const result = await pool.query(`
@@ -223,6 +233,7 @@ router.put('/quests/:id', [
         player_version   = $11,
         recipient_gender = $12,
         briefing         = $13,
+        flow             = $15,
         published_at     = CASE WHEN $8 AND published_at IS NULL THEN NOW() ELSE published_at END,
         updated_at       = NOW()
       WHERE id = $14
@@ -236,7 +247,8 @@ router.put('/quests/:id', [
       player_version || 'v1',
       recipient_gender || 'f',
       toBriefing(briefing),
-      req.params.id
+      req.params.id,
+      flow || 'route'
     ])
 
     if (!result.rows.length) {

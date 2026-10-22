@@ -144,3 +144,59 @@ describe('PUT /api/admin/quests/:id — theme', () => {
     expect(res.status).toBe(400)
   })
 })
+
+// Порядок прохождения: 'route' — участки по очереди (как было), 'board' —
+// «доска»: все участки открыты сразу, последний — финал, открывается последним.
+// Валидатор роута совпадает с CHECK created_quests_flow_check.
+describe('POST /api/admin/quests — flow', () => {
+  it('без flow квест идёт по маршруту', async () => {
+    const res = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody())
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.flow).toBe('route')
+  })
+
+  it('сохраняет режим доски', async () => {
+    const res = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody({ flow: 'board' }))
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.flow).toBe('board')
+  })
+
+  it('неизвестный режим: 400, квест не создаётся', async () => {
+    const res = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody({ flow: 'maze' }))
+
+    expect(res.status).toBe(400)
+    const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM created_quests')
+    expect(rows[0].n).toBe(0)
+  })
+})
+
+describe('PUT /api/admin/quests/:id — flow', () => {
+  it('переключает квест на доску и обратно', async () => {
+    const created = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody())
+    const put = (flow) => auth(request(ctx.app).put(`/api/admin/quests/${created.body.data.id}`))
+      .send(questBody({ slug: created.body.data.slug, flow }))
+
+    expect((await put('board')).body.data.flow).toBe('board')
+    expect((await put('route')).body.data.flow).toBe('route')
+  })
+
+  it('без flow в теле сбрасывает на маршрут, как show_intro', async () => {
+    const created = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody({ flow: 'board' }))
+
+    const res = await auth(request(ctx.app).put(`/api/admin/quests/${created.body.data.id}`))
+      .send(questBody({ slug: created.body.data.slug }))
+
+    expect(res.body.data.flow).toBe('route')
+  })
+
+  it('неизвестный режим: 400, а не 500 от CHECK в БД', async () => {
+    const created = await auth(request(ctx.app).post('/api/admin/quests')).send(questBody())
+
+    const res = await auth(request(ctx.app).put(`/api/admin/quests/${created.body.data.id}`))
+      .send(questBody({ slug: created.body.data.slug, flow: 'maze' }))
+
+    expect(res.status).toBe(400)
+  })
+})

@@ -24,6 +24,7 @@ export const getQuestBySlug = async (req, res, next) => {
         cq.published_at,
         cq.player_version,
         cq.briefing,
+        cq.flow,
         qt.duration_minutes,
         qt.difficulty,
         qt.location_type,

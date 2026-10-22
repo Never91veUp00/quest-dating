@@ -257,6 +257,8 @@ CREATE TABLE public.created_quests (
     player_version character varying(10) DEFAULT 'v1'::character varying NOT NULL,
     recipient_gender character varying(1) DEFAULT 'f'::character varying NOT NULL,
     briefing text,
+    flow character varying(10) DEFAULT 'route'::character varying NOT NULL,
+    CONSTRAINT created_quests_flow_check CHECK (((flow)::text = ANY (ARRAY['route'::text, 'board'::text]))),
     CONSTRAINT created_quests_theme_check CHECK (((theme)::text = ANY (ARRAY['detective'::text, 'romantic'::text, 'city'::text, 'mystery'::text, 'treasure'::text, 'proposal'::text, 'potion'::text, 'halloween'::text])))
 );
 
@@ -287,6 +289,13 @@ COMMENT ON COLUMN public.created_quests.show_intro IS 'Показывать ан
 --
 
 COMMENT ON COLUMN public.created_quests.briefing IS 'Текст автора для сводки перед стартом: что взять, как одеться, куда ехать';
+
+
+--
+-- Name: COLUMN created_quests.flow; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.created_quests.flow IS 'Порядок прохождения: route — по очереди, board — доска, финал последним';
 
 
 --
