@@ -667,6 +667,10 @@ onUnmounted(() => {
 .qp-hud__dropdown-item:hover { background: color-mix(in srgb, var(--paper-edge) 35%, var(--paper)); }
 /* Запас снизу: прилипшая кнопка-глагол не закрывает конец карточки */
 .qp-main { flex: 1; padding: 16px 16px calc(88px + var(--kb, 0px)); max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+/* десктоп: рядом с карточкой стоит доска маршрута (QuestBlock), шапка — по той же ширине */
+@media (min-width: 1100px) {
+  .qp-main, .qp-hud__row, .qp-badge__row { max-width: 1120px; }
+}
 /* Тост ложится поверх шапки и не опускается ниже неё: полоса участка и доска в момент хода остаются видны */
 .qp-badge { position: fixed; top: 0; left: 0; right: 0; height: 62px; z-index: 300; pointer-events: none; background: var(--paper); color: var(--ink); border-bottom: 2px solid var(--paper-edge); box-shadow: 0 10px 18px -12px color-mix(in srgb, var(--rule) 75%, transparent); }
 .qp-badge__row { display: flex; align-items: center; gap: 12px; height: 100%; max-width: 600px; margin: 0 auto; padding: 0 16px; }

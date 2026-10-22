@@ -1,5 +1,5 @@
 <template>
-  <div class="block" :class="theme.world?.decor && `block--${theme.world.decor}`">
+  <div ref="root" class="block" :class="theme.world?.decor && `block--${theme.world.decor}`">
     <!-- Полоса участка: всегда сверху, тап открывает доску -->
     <button
       type="button"
@@ -90,7 +90,7 @@
     </transition>
 
     <!-- Карточка: одна активная клетка -->
-    <transition name="card" mode="out-in">
+    <transition name="card" mode="out-in" @before-leave="thread = null" @after-enter="measureThread">
       <QuestTask
         v-if="activeTask"
         :key="activeTask.id"
@@ -124,6 +124,50 @@
       <QuestIcon name="back" :size="18" />
       Предыдущий участок
     </button>
+
+    <!-- Дело: карточка приколота кнопкой, красная нить тянется к ней от текущей улики -->
+    <svg
+      v-if="thread"
+      class="block__thread"
+      :viewBox="`0 0 ${thread.w} ${thread.h}`"
+      :width="thread.w"
+      :height="thread.h"
+      aria-hidden="true"
+    >
+      <g :key="activeTask?.id" class="block__thread-line">
+        <path pathLength="100" :d="thread.d" />
+        <path class="block__thread-fibre" pathLength="100" :d="thread.d" />
+      </g>
+      <g :key="`pin-${activeTask?.id}`" class="block__thread-pin" :style="{ transformOrigin: `${thread.x2}px ${thread.y2}px` }">
+        <circle :cx="thread.x2" :cy="thread.y2 + 2" r="7.5" class="block__thread-pin-shadow" />
+        <circle :cx="thread.x2" :cy="thread.y2" r="7" class="block__thread-pin-head" />
+        <circle :cx="thread.x2 - 2.2" :cy="thread.y2 - 2.2" r="2" class="block__thread-pin-glint" />
+      </g>
+    </svg>
+
+    <!-- Десктоп: доска всего маршрута стоит рядом с карточкой, полоса не нужна -->
+    <aside v-if="wide" class="block__side" :aria-label="`Доска: ${block.title}`">
+      <div class="block__meta">
+        <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
+        <span v-if="tasks.length > 1" class="block__count">{{ theme.copy.cellForms?.[0] ?? 'клетка' }} <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
+      </div>
+      <h2 class="block__title">{{ block.title }}</h2>
+      <p v-if="block.location" class="block__location">
+        <QuestIcon name="pin" :size="18" />
+        <span>{{ block.location }}</span>
+      </p>
+      <p v-if="block.description" class="block__desc">{{ block.description }}</p>
+      <QuestTrack
+        class="block__side-track"
+        :tasks="route"
+        :completedIds="routeDoneIds(completedIds)"
+        :earnedMap="routeEarned"
+        :decor="theme.world?.decor"
+        :itemWord="theme.copy.blockPrefix"
+        :progress="routeProgress"
+        @open="reviewIdx = $event"
+      />
+    </aside>
 
     <!-- Перечитать пройденную клетку -->
     <teleport to="body">
@@ -264,6 +308,36 @@ watch(() => [...props.completedIds], (now, before = []) => {
   hopTimer = setTimeout(() => { boardCompleted.value = [...now] }, HOP_DELAY)
 })
 
+// ─── Нить дела: от кнопки текущей улики на полосе к кнопке на карточке ──
+// Кнопка на карточке стоит под уликой, но не заходит на скотч по углам листа.
+const root   = ref(null)
+const thread = ref(null)
+const measureThread = () => {
+  const el = root.value
+  if (props.theme.world?.decor !== 'casefile' || !el) { thread.value = null; return }
+  const cell = el.querySelector('.block__mini-cell.is-active')
+  const card = el.querySelector(':scope > .task')
+  const c = cell?.getBoundingClientRect()
+  if (!c?.width || !card) { thread.value = null; return }
+  const b = el.getBoundingClientRect()
+  const k = card.getBoundingClientRect()
+  const x1 = c.left + c.width / 2 - b.left
+  const y1 = c.top - 2 - b.top                     // кнопка на заметке полосы
+  const x2 = Math.min(k.right - b.left - k.width * .3, Math.max(k.left - b.left + k.width * .3, x1))
+  const y2 = k.top - b.top + 13
+  // нить провисает: середина ниже прямой и чуть ближе к карточке
+  const mx = x1 + (x2 - x1) * .55
+  const my = (y1 + y2) / 2 + 12
+  thread.value = { w: Math.ceil(b.width), h: Math.ceil(y2 + 12), x2, y2, d: `M${x1} ${y1} Q${mx} ${my} ${x2} ${y2}` }
+}
+let threadRo = null
+
+// ─── Широкий экран: доска рядом с карточкой ─────────────────────
+const WIDE = '(min-width: 1100px)'
+const wide = ref(false)
+let wideMq = null
+const onWide = () => { wide.value = !!wideMq?.matches; nextTick(measureThread) }
+
 // ─── Клавиатура: кнопка-глагол держится над ней ─────────────────
 const setKeyboardInset = () => {
   const vv = window.visualViewport
@@ -281,13 +355,26 @@ onMounted(() => {
   }
   window.visualViewport?.addEventListener('resize', setKeyboardInset)
   window.visualViewport?.addEventListener('scroll', setKeyboardInset)
+  wideMq = window.matchMedia?.(WIDE) ?? null
+  wideMq?.addEventListener('change', onWide)
+  onWide()
+  if (window.ResizeObserver && root.value) {
+    threadRo = new ResizeObserver(() => { if (thread.value) measureThread() })
+    threadRo.observe(root.value)
+  }
+  document.fonts?.ready.then(measureThread)
 })
 onUnmounted(() => {
   clearTimers()
   window.visualViewport?.removeEventListener('resize', setKeyboardInset)
   window.visualViewport?.removeEventListener('scroll', setKeyboardInset)
   document.documentElement.style.removeProperty('--kb')
+  wideMq?.removeEventListener('change', onWide)
+  threadRo?.disconnect()
 })
+
+// кнопка текущей улики переезжает с ходом и после пройденного участка
+watch(() => [props.index, activeIdx.value], () => nextTick(measureThread))
 
 // Шторка живёт в <body>, поэтому токены темы передаём ей явно
 const cssVars = computed(() => themeToCssVars(props.theme))
@@ -297,10 +384,45 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
 
 <style scoped>
 .block {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
+
+/* ── Нить дела ────────────────────────────────────────────────── */
+.block__thread {
+  position: absolute; left: 0; top: 0;
+  z-index: 4;
+  overflow: visible;
+  pointer-events: none;
+}
+/* та же скрученная нить, что на полосе: основа и волокна поверх */
+.block__thread-line path {
+  fill: none;
+  stroke: var(--chip);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  animation: thread-draw .5s cubic-bezier(.3, .6, .3, 1) .12s both;
+}
+.block__thread-line { filter: drop-shadow(0 2px 1.5px color-mix(in srgb, var(--rule) 45%, transparent)); }
+.block__thread-line .block__thread-fibre {
+  stroke: color-mix(in srgb, var(--chip) 62%, #f4d9cf);
+  stroke-width: 1;
+  stroke-dasharray: 1.2 1.6;
+  animation: fibre-in .2s linear .55s both;
+}
+@keyframes fibre-in { from { opacity: 0; } to { opacity: 1; } }
+.block__thread-pin { animation: pin-press .26s cubic-bezier(.2, .7, .2, 1) .5s both; }
+.block__thread-pin-shadow { fill: color-mix(in srgb, var(--rule) 45%, transparent); }
+.block__thread-pin-head { fill: var(--chip); stroke: var(--rule); stroke-width: 2; }
+.block__thread-pin-glint { fill: color-mix(in srgb, var(--chip) 40%, var(--paper)); }
+@keyframes thread-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+/* кнопку вдавливают в лист: опускается на место, без отскока */
+@keyframes pin-press { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: none; } }
+
+
 
 /* ── Полоса участка ───────────────────────────────────────────── */
 .block__strip {
@@ -592,6 +714,9 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
 /* на новом участке трасса проявляется, когда плашка уходит */
 .block__board--entering .block__board-track { animation: track-in .45s cubic-bezier(.16, 1, .3, 1) 1s both; }
 @keyframes track-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .block__thread-line path, .block__thread-pin { animation: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .block__board--entering .block__board-track,
   .block__board--entering .block__meta, .block__board--entering .block__title,
@@ -930,5 +1055,29 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   .sheet-enter-active, .sheet-leave-active,
   .sheet-enter-active .block__sheet-panel, .sheet-leave-active .block__sheet-panel,
   .board-enter-active, .board-leave-active { transition: none; }
+}
+
+/* ── Десктоп: доска рядом с карточкой ─────────────────────────── */
+.block__side { display: none; }
+@media (min-width: 1100px) {
+  .block {
+    display: grid;
+    grid-template-columns: minmax(0, 600px) minmax(360px, 440px);
+    grid-template-rows: auto 1fr;
+    justify-content: center;
+    align-items: start;
+    column-gap: 48px;
+    row-gap: 14px;
+  }
+  .block > :not(.block__side) { grid-column: 1; }
+  .block__strip { display: none; }
+  .block__side {
+    grid-column: 2; grid-row: 1 / span 2;
+    position: sticky; top: 84px;
+    display: flex; flex-direction: column;
+    color: var(--field-ink);
+  }
+  .block__side .block__title { font-size: 1.9rem; }
+  .block__side-track { margin-top: 20px; height: clamp(220px, 40svh, 340px); }
 }
 </style>
