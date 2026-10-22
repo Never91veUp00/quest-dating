@@ -1,7 +1,22 @@
 <template>
-  <div ref="root" class="block" :class="theme.world?.decor && `block--${theme.world.decor}`">
+  <div ref="root" class="block" :class="[theme.world?.decor && `block--${theme.world.decor}`, { 'block--hub': flow === 'board' }]">
+    <!-- Доска (flow = board): полоса ведёт обратно к доске со всеми участками -->
+    <button
+      v-if="flow === 'board'"
+      type="button"
+      class="block__strip block__strip--hub"
+      :aria-label="`К доске. Сейчас: ${block.title}`"
+      @click="$emit('to-board')"
+    >
+      <QuestIcon name="back" :size="20" />
+      <span class="block__strip-text">
+        <span class="block__count">{{ isLast ? 'Финал' : `${theme.copy.blockPrefix} ${index + 1}` }} · к доске</span>
+        <span class="block__strip-title">{{ block.title }}</span>
+      </span>
+    </button>
     <!-- Полоса участка: всегда сверху, тап открывает доску -->
     <button
+      v-else
       type="button"
       class="block__strip"
       :class="{ 'block__strip--long': route.length > 5 }"
@@ -108,9 +123,13 @@
         <span v-else-if="theme.world?.decor === 'ringbox'" class="block__stitch" aria-hidden="true"></span>
         <span v-else-if="theme.world?.decor === 'potion'" class="block__rule" aria-hidden="true"></span>
         <p class="block__done-text">
-          {{ isLast ? (theme.copy.allDone ?? 'Все клетки пройдены.') : (theme.copy.blockDone ?? 'Участок пройден. Фишка ждёт у выхода.') }}
+          {{ isLast ? (theme.copy.allDone ?? 'Все клетки пройдены.') : flow === 'board' ? 'Участок пройден.' : (theme.copy.blockDone ?? 'Участок пройден. Фишка ждёт у выхода.') }}
         </p>
-        <button v-if="!isLast" class="task__action" @click="$emit('next')">
+        <button v-if="!isLast && flow === 'board'" class="task__action" @click="$emit('to-board')">
+          <QuestIcon name="back" :size="22" />
+          К доске
+        </button>
+        <button v-else-if="!isLast" class="task__action" @click="$emit('next')">
           {{ theme.copy.nextBtn ?? 'Идти дальше' }}
           <QuestIcon name="forward" :size="22" />
         </button>
@@ -120,7 +139,7 @@
       </article>
     </transition>
 
-    <button v-if="index > 0" class="block__back" @click="$emit('prev')">
+    <button v-if="index > 0 && flow !== 'board'" class="block__back" @click="$emit('prev')">
       <QuestIcon name="back" :size="18" />
       Предыдущий участок
     </button>
@@ -146,7 +165,7 @@
     </svg>
 
     <!-- Десктоп: доска всего маршрута стоит рядом с карточкой, полоса не нужна -->
-    <aside v-if="wide" class="block__side" :aria-label="`Доска: ${block.title}`">
+    <aside v-if="wide && flow !== 'board'" class="block__side" :aria-label="`Доска: ${block.title}`">
       <div class="block__meta">
         <span class="block__count">{{ theme.copy.blockPrefix }} <b>{{ index + 1 }}</b> из {{ total }}</span>
         <span v-if="tasks.length > 1" class="block__count">{{ theme.copy.cellForms?.[0] ?? 'клетка' }} <b>{{ cellNo }}</b> из {{ tasks.length }}</span>
@@ -221,9 +240,10 @@ const props = defineProps({
   isLast:       { type: Boolean, default: false },
   blocks:       { type: Array,   default: () => [] },  // весь квест: трасса доски и полосы
   arrived:      { type: Boolean, default: false },     // пришли ходом с прошлого участка — доска уже показана
+  flow:         { type: String,  default: 'route' },   // board — участки открываются с доски, момента хода нет
 })
 
-const emit = defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint', 'skip-task'])
+const emit = defineEmits(['prev', 'next', 'finish', 'complete-task', 'use-hint', 'skip-task', 'to-board'])
 
 const tasks = computed(() => props.block.tasks ?? [])
 
@@ -278,6 +298,8 @@ let hopTimer  = null
 const clearTimers = () => { clearTimeout(autoClose); clearTimeout(hopTimer) }
 // на новом участке доска держится дольше: сначала плашка участка, потом ход фишки
 const ENTER_MS = 2000
+// доска (flow = board): возврат к ней после штампа на последней карточке участка
+const BOARD_RETURN_MS = 1000
 const openBoard = (moment, ms = MOMENT_MS) => {
   clearTimers()
   boardOpen.value = true
@@ -301,6 +323,12 @@ watch(() => [...props.completedIds], (now, before = []) => {
   const inBlock = fresh.some(id => tasks.value.some(t => t.id === id))
   const blockDone = tasks.value.length && tasks.value.every(t => now.includes(t.id))
   if (!inBlock || !blockDone) { boardCompleted.value = [...now]; return }
+  // Доска: участок пройден — штамп на карточке доигрывает, и игрок сам
+  // возвращается к доске. Финал остаётся с кнопкой завершения.
+  if (props.flow === 'board') {
+    if (!props.isLast) hopTimer = setTimeout(() => emit('to-board'), BOARD_RETURN_MS)
+    return
+  }
   stampId.value = `blk-${props.index}`
   advancing.value = !props.isLast
   // Доска открывается в прежнем состоянии, затем штамп и ход фишки
@@ -349,7 +377,7 @@ const setKeyboardInset = () => {
 onMounted(() => {
   // Старт или возврат в квест: доска всего маршрута, фишка заезжает на клетку.
   // Если пришли ходом с прошлого участка, доска только что была — сразу задание
-  if (!props.arrived && !tasks.value.some(t => props.completedIds.includes(t.id))) {
+  if (props.flow !== 'board' && !props.arrived && !tasks.value.some(t => props.completedIds.includes(t.id))) {
     entering.value = true
     openBoard(true, ENTER_MS)
   }
@@ -450,6 +478,10 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Доска: полоса — дорога назад к доске */
+.block__strip--hub { gap: 10px; }
+.block__strip--hub > svg { flex-shrink: 0; color: var(--field-ink-soft); }
 
 /* Мини-трасса: клетки на нитке, как на доске */
 .block__mini { position: relative; display: flex; align-items: center; gap: 9px; flex-shrink: 0; padding: 0 2px; }
@@ -1079,5 +1111,8 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   }
   .block__side .block__title { font-size: 1.9rem; }
   .block__side-track { margin-top: 20px; height: clamp(220px, 40svh, 340px); }
+  /* Доска (flow = board): рядом доски маршрута нет — одна колонка с дорогой назад */
+  .block--hub { grid-template-columns: minmax(0, 600px); grid-template-rows: auto; }
+  .block--hub .block__strip--hub { display: flex; }
 }
 </style>
