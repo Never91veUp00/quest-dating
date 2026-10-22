@@ -265,8 +265,8 @@ watch(reviewBlock, async (t) => {
 // фишка переходит к следующему, и плеер сам открывает его первое задание.
 // Задания внутри участка идут без доски: их видно точками под текущей клеткой.
 // Тап по доске её удерживает, тогда дальше — по кнопке.
-const MOMENT_MS = 2000
-const HOP_DELAY = 700
+const MOMENT_MS = 1400
+const HOP_DELAY = 450
 const boardOpen      = ref(false)
 const boardCompleted = ref([...props.completedIds])
 const stampId        = ref(null)
@@ -277,7 +277,7 @@ let hopTimer  = null
 
 const clearTimers = () => { clearTimeout(autoClose); clearTimeout(hopTimer) }
 // на новом участке доска держится дольше: сначала плашка участка, потом ход фишки
-const ENTER_MS = 3000
+const ENTER_MS = 2000
 const openBoard = (moment, ms = MOMENT_MS) => {
   clearTimers()
   boardOpen.value = true
@@ -712,7 +712,7 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
     var(--field);
 }
 /* на новом участке трасса проявляется, когда плашка уходит */
-.block__board--entering .block__board-track { animation: track-in .45s cubic-bezier(.16, 1, .3, 1) 1s both; }
+.block__board--entering .block__board-track { animation: track-in .4s cubic-bezier(.16, 1, .3, 1) .7s both; }
 @keyframes track-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .block__thread-line path, .block__thread-pin { animation: none; }
@@ -722,7 +722,7 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   .block__board--entering .block__meta, .block__board--entering .block__title,
   .block__board--entering .block__location, .block__board--entering .block__desc { animation: none; }
 }
-/* Плашка начала участка: бумага мира поверх доски, держится ~1 с и уходит */
+/* Плашка начала участка: бумага мира поверх доски, держится ~0,6 с и уходит */
 .block__plate {
   position: absolute; left: 16px; right: 16px; top: 50%;
   z-index: 2;
@@ -736,14 +736,14 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   border-radius: 12px;
   box-shadow: 0 20px 30px -18px color-mix(in srgb, var(--rule) 90%, transparent);
   pointer-events: none;
-  /* после непрозрачной доски: вход доски занимает .3 с */
-  animation: plate-life 1.25s cubic-bezier(.2, .7, .2, 1) .3s both;
+  /* после непрозрачной доски: вход доски занимает .2 с */
+  animation: plate-life .85s cubic-bezier(.2, .7, .2, 1) .2s both;
 }
 /* шапка доски и трасса проявляются, когда плашка уходит — название не печатается дважды */
 .block__board--entering .block__meta,
 .block__board--entering .block__title,
 .block__board--entering .block__location,
-.block__board--entering .block__desc { animation: track-in .45s cubic-bezier(.16, 1, .3, 1) 1.3s both; }
+.block__board--entering .block__desc { animation: track-in .4s cubic-bezier(.16, 1, .3, 1) .85s both; }
 
 /* плашка — предмет своего мира, а не одна карточка на всех */
 .block--casefile .block__plate { border-radius: 2px; }
