@@ -134,12 +134,12 @@ import QuestArcana from './QuestArcana.vue'
 import QuestRingbox from './QuestRingbox.vue'
 import QuestPumpkin from './QuestPumpkin.vue'
 
-// Крышка коробки с игрой: название и имя игрока. Поднимается сама
-// через пару секунд или по тапу и открывает правила (QuestSplash).
+// Крышка коробки с игрой: название и имя игрока. Открывается сама
+// через секунду или по тапу и открывает правила (QuestSplash).
 const props = defineProps({
   theme:     { type: Object, required: true },
   questData: { type: Object, required: true },
-  duration:  { type: Number, default: 2600 },
+  duration:  { type: Number, default: 1000 },
 })
 const emit = defineEmits(['done'])
 
