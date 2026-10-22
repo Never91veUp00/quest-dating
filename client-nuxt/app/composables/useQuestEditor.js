@@ -13,7 +13,7 @@ export function useQuestEditor() {
   const form = ref({
     title: '', client_name: '', slug: '', theme: 'detective',
     show_intro: true, access_code: '', final_message: '', briefing: '',
-    recipient_gender: 'f',
+    recipient_gender: 'f', flow: 'route',
     is_public: false, order_id: null, template_id: null, blocks: [], player_version: 'v1'
   })
 
@@ -42,6 +42,7 @@ export function useQuestEditor() {
           access_code: q.access_code || '', final_message: q.final_message || '',
           briefing: q.briefing || '',
           recipient_gender: q.recipient_gender || 'f',
+          flow: q.flow || 'route',
           is_public: q.is_public, order_id: q.order_id,
           template_id: q.template_id, blocks: q.blocks || []
         }
@@ -282,6 +283,7 @@ if (tpl.default_show_intro !== undefined && tpl.default_show_intro !== null)
       slug: form.value.slug,
       theme: form.value.theme,
       show_intro: form.value.show_intro,
+      flow: form.value.flow,
       final_message: form.value.final_message,
       briefing: form.value.briefing,
       blocks: form.value.blocks,
