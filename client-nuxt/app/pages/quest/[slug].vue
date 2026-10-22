@@ -76,7 +76,18 @@
           <!-- Блок -->
           <main class="qp-main">
             <transition name="slide" mode="out-in">
+              <!-- Доска (flow = board): все участки сразу, финал последним -->
+              <QuestHub
+                v-if="boardFlow && onBoard"
+                key="hub"
+                :blocks="blocks"
+                :theme="themeObj"
+                :title="questData.title"
+                :completedIds="completedIds"
+                @open="openFromBoard"
+              />
               <QuestBlock
+                v-else
                 :key="blockIdx"
                 :block="currentBlock"
                 :theme="themeObj"
@@ -87,6 +98,8 @@
                 :isLast="isLast"
                 :blocks="blocks"
                 :arrived="arrived"
+                :flow="boardFlow ? 'board' : 'route'"
+                @to-board="toBoard"
                 @complete-task="onTaskComplete"
                 @use-hint="onHint"
                 @prev="prev"
@@ -170,6 +183,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars, pointsWord } from '~/components/quest/themes.js'
 import QuestIcon from '../../components/quest/QuestIcon.vue'
+import { isBoardFlow, canOpenBlock } from '~/utils/boardFlow.js'
 
 
 const route = useRoute()
@@ -299,6 +313,9 @@ const totalTasks   = computed(() => blocks.value.reduce((s, b) => s + (b.tasks?.
 const maxPoints    = computed(() => blocks.value.flatMap(b => b.tasks || []).reduce((s, t) => s + (t.points || 0), 0) || 100)
 const currentBlock = computed(() => blocks.value[blockIdx.value] || null)
 const isLast       = computed(() => blockIdx.value === totalBlocks.value - 1)
+// Порядок прохождения «доска»: игрок стоит на доске и сам выбирает участок
+const boardFlow    = computed(() => isBoardFlow(questData.value))
+const onBoard      = ref(false)
 
 const progressPct = computed(() =>
   totalTasks.value ? Math.round((completedIds.value.length / totalTasks.value) * 100) : 0
@@ -329,6 +346,7 @@ const persistState = () => {
       hintsUsed:    hintsUsed.value,
       startTs:      startTs.value,
       started:      started.value,
+      onBoard:      onBoard.value,
       sessionId:    sessionData.value?.session_id || null,
       savedAt:      Date.now()
     }))
@@ -405,10 +423,11 @@ const loadQuest = async () => {
       hintsUsed.value    = saved.hintsUsed    ?? 0
       startTs.value      = saved.startTs      ?? Date.now()
       started.value      = true
+      onBoard.value      = boardFlow.value && (saved.onBoard ?? true)
       showIntro.value    = false
       if (saved.sessionId) sessionData.value = { session_id: saved.sessionId }
       ticker = setInterval(() => { nowTs.value = Date.now() }, 1000)
-      flash('Прогресс восстановлен', `Блок ${(saved.blockIdx ?? 0) + 1}`)
+      flash('Прогресс восстановлен', onBoard.value ? 'Доска' : `Блок ${(saved.blockIdx ?? 0) + 1}`)
     } else {
       showIntro.value = questData.value.show_intro !== false
     }
@@ -441,6 +460,7 @@ const handleStart = async () => {
   } catch { /* оффлайн */ }
 
   started.value = true
+  onBoard.value = boardFlow.value
   startTs.value = Date.now()
   ticker = setInterval(() => { nowTs.value = Date.now() }, 1000)
   flash('Начинаем!', themeObj.value.copy.eyebrow)
@@ -479,7 +499,23 @@ const onSkipTask = (task) => {
 
 // ─── Navigation ───────────────────────────────────────────────
 const next = () => {
-  doNext()
+  if (boardFlow.value) toBoard()
+  else doNext()
+}
+
+// Доска: участок открывается тапом, финал — только после остальных
+const openFromBoard = (i) => {
+  if (!canOpenBlock(i, blocks.value, completedIds.value)) return
+  blockIdx.value = i
+  onBoard.value  = false
+  window.scrollTo({ top: 0 })
+  saveProgress()
+}
+const toBoard = () => {
+  if (!boardFlow.value) return
+  onBoard.value = true
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  saveProgress()
 }
 // участок открыт ходом с доски: новый участок не показывает доску второй раз
 const arrived = ref(false)
@@ -525,6 +561,7 @@ const doRestart = async () => {
   }
 
   blockIdx.value     = 0
+  onBoard.value      = false
   arrived.value      = false
   completedIds.value = []
   points.value       = 0
@@ -581,7 +618,7 @@ watch(points, (now, before) => {
   pointsDelta.value = { n, key: ++pointsDeltaKey }
 })
 
-watch([blockIdx, completedIds, points], () => {
+watch([blockIdx, onBoard, completedIds, points], () => {
   if (started.value) persistState()
 }, { deep: true })
 
