@@ -89,13 +89,16 @@ const retry = () => {
 .task__photo-zone__label { font-size: .95rem; font-weight: 600; color: var(--ink); }
 .task__photo-zone__hint { font-size: .78rem; color: var(--ink-soft); margin-top: 2px; font-style: italic; }
 
+/* снимок показываем целиком в его пропорции: портретное селфи уже, но не обрезано */
 .task__photo-preview {
   position: relative; border-radius: 16px; overflow: hidden;
+  width: fit-content; max-width: 100%; margin-inline: auto;
   box-shadow: 0 12px 18px -12px color-mix(in srgb, var(--rule) 70%, transparent);
 }
 .task__photo-preview img {
-  width: 100%; display: block;
-  aspect-ratio: 4/3; object-fit: cover;
+  display: block;
+  width: auto; max-width: 100%;
+  height: auto; max-height: min(50svh, 520px);
   border-radius: 16px;
 }
 .task__photo-preview__glow {
