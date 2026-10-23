@@ -28,7 +28,7 @@
         :style="at(c.pos)"
         :data-pin="c.tape ? null : c.i"
         :aria-label="`${theme.copy.blockPrefix} ${c.i + 1}: ${c.block.title}. ${c.done ? 'Пройдено' : c.started ? `${c.passed} из ${c.total}` : 'Не начато'}`"
-        @click="$emit('open', c.i)"
+        @click="$emit('open', c.i, $event.currentTarget)"
       >
         <span v-if="c.tape" class="cork__tape" aria-hidden="true"></span>
         <span class="cork__photo">
@@ -41,23 +41,43 @@
         <span class="cork__cap" :style="{ '--len': longest(c.block.title) }">{{ c.block.title }}</span>
       </button>
 
+      <!-- Финал: название под чёрной плашкой цензора, папка на замке.
+           Тап по запертой — замок дёргается; когда улики собраны, замок слетает -->
       <button
         type="button"
         class="cork__final"
-        :class="{ 'is-locked': !unlocked }"
+        :class="{ 'is-locked': locked, 'is-opening': stage === 'opening' }"
         :style="at(layout.final)"
-        :aria-disabled="!unlocked"
-        :aria-label="unlocked ? `Финал: ${final.title}. Открыть` : `Финал: ${final.title}. Заперт: ${done} из ${total}`"
+        :aria-disabled="locked"
+        :aria-label="locked ? `Финал засекречен. Откроется, когда отработаны улики: ${done} из ${total}` : `Финал: ${final.title}. Открыть`"
         data-pin="final"
-        @click="$emit('open', last)"
+        @click="onFinal"
       >
         <span class="cork__final-eyebrow">ФИНАЛ</span>
-        <span class="cork__final-title">{{ final.title }}</span>
-        <span v-if="unlocked" class="cork__final-go">ОТКРЫТЬ</span>
-        <span v-else class="cork__final-count"><b>{{ done }} из {{ total }}</b>улик</span>
+        <span class="cork__final-title"><span class="cork__redact">{{ final.title }}</span></span>
+        <span v-if="locked || stage === 'opening'" :key="shakeKey" class="cork__lock" :class="{ 'is-shaking': shakeKey > 0 && stage !== 'opening' }" aria-hidden="true">
+          <svg viewBox="0 0 40 46">
+            <path class="cork__lock-shackle" d="M12 21v-7a8 8 0 0 1 16 0v7" />
+            <rect class="cork__lock-body" x="6" y="20" width="28" height="23" rx="3" />
+            <path class="cork__lock-hole" d="M20 28.5a2.6 2.6 0 0 0-1.4 4.8L18 37h4l-.6-3.7A2.6 2.6 0 0 0 20 28.5z" />
+          </svg>
+          <span class="cork__lock-count">{{ done }} из {{ total }}</span>
+        </span>
+        <span v-if="!locked" class="cork__final-go">ОТКРЫТЬ</span>
       </button>
 
       <span v-for="p in pins" :key="p.key" class="cork__pin" :style="{ left: `${p.x}px`, top: `${p.y}px` }" aria-hidden="true"></span>
+
+      <!-- Подсказка: игрок замешкался — над каждой нерешённой уликой стучит печатная рука -->
+      <template v-if="hinting">
+        <span
+          v-for="(h, k) in hands"
+          :key="h.key"
+          class="cork__hand"
+          :style="{ left: `${h.x}px`, top: `${h.y}px`, '--d': `${k * .28}s` }"
+          aria-hidden="true"
+        ><span class="cork__hand-ring"></span><span class="cork__hand-tilt"><svg class="cork__hand-svg" viewBox="0 0 44 54"><g><path d="M17.5 24V6.5a4.5 4.5 0 0 1 9 0V24"/><path d="M12 26.5a4 4 0 0 1 4-4h14.5a5.5 5.5 0 0 1 5.5 5.5V36a9 9 0 0 1-9 9h-7a9 9 0 0 1-9-9z"/><path d="M26.5 29.5h9M26.5 34.5h9.3M17.5 24v4"/><path class="cork__hand-cuff" d="M13 44.5h19v8H13z"/><path class="cork__hand-seam" d="M17 44.5v8M21.5 44.5v8M26 44.5v8"/></g></svg></span></span>
+      </template>
     </div>
   </div>
 </template>
@@ -73,8 +93,9 @@ const props = defineProps({
   blocks:       { type: Array,  required: true },
   theme:        { type: Object, required: true },
   completedIds: { type: Array,  default: () => [] },
+  celebrate:    { type: Boolean, default: false },   // финал только что открылся: замок слетает на глазах
 })
-defineEmits(['open'])
+const emit = defineEmits(['open', 'celebrated'])
 
 const last  = computed(() => finalIndex(props.blocks))
 const final = computed(() => props.blocks[last.value])
@@ -98,6 +119,22 @@ const clues = computed(() => props.blocks.slice(0, -1).map((block, i) => {
 const done     = computed(() => cluesDone(props.blocks, props.completedIds))
 const total    = computed(() => cluesTotal(props.blocks))
 const unlocked = computed(() => finalUnlocked(props.blocks, props.completedIds))
+
+// ─── Замок финала ───────────────────────────────────────────────
+// stage: idle — как есть; sealed — финал уже открыт, но замок ещё висит
+// (сцена впереди); opening — замок слетает, плашка цензора стирается
+const stage = ref(props.celebrate && unlocked.value ? 'sealed' : 'idle')
+const locked = computed(() => !unlocked.value || stage.value === 'sealed')
+const shakeKey = ref(0)
+const onFinal = (e) => {
+  if (locked.value) { shakeKey.value++; return }
+  emit('open', last.value, e.currentTarget)
+}
+const sceneTimers = []
+const playOpening = () => {
+  sceneTimers.push(setTimeout(() => { stage.value = 'opening' }, 700))
+  sceneTimers.push(setTimeout(() => { stage.value = 'idle'; emit('celebrated') }, 700 + 1100))
+}
 
 const at = (p) => ({ '--x': `${p.x}%`, '--y': `${p.y}%`, '--r': `${p.r ?? 0}deg` })
 
@@ -128,12 +165,19 @@ const measure = () => {
   const field = root.value?.querySelector('.cork__field')
   if (!field) return
   const f = field.getBoundingClientRect()
-  if (!f.width) return
-  box.value = { w: Math.round(f.width), h: Math.round(f.height) }
+  if (!f.width || !field.offsetWidth) return
+  // доска может быть увеличена влётом: меряем в её собственных пикселях
+  const k = f.width / field.offsetWidth
+  box.value = { w: field.offsetWidth, h: field.offsetHeight }
   // кнопка — по центру верхнего края повёрнутой карточки
   const pinOf = (el) => {
     const r = el.getBoundingClientRect()
-    return { x: Math.round(r.left + r.width / 2 - f.left), y: Math.round(r.top + 7 - f.top) }
+    return { x: Math.round((r.left + r.width / 2 - f.left) / k), y: Math.round((r.top - f.top) / k + 7) }
+  }
+  // кончик пальца — в нижней правой части фото, кисть уходит мимо подписи
+  const tipOf = (el) => {
+    const r = el.getBoundingClientRect()
+    return { x: Math.round((r.left + r.width * .66 - f.left) / k), y: Math.round((r.top + r.height * .7 - f.top) / k) }
   }
   const finalEl = field.querySelector('.cork__final')
   const fp = pinOf(finalEl)
@@ -148,19 +192,47 @@ const measure = () => {
   })
   pins.value = next
   threads.value = lines
+  // руки: над каждой нерешённой уликой, а когда улики собраны — над папкой
+  const tips = []
+  field.querySelectorAll('.cork__clue').forEach((el, i) => {
+    if (!clues.value[i]?.done) tips.push({ key: i, ...tipOf(el.querySelector('.cork__photo')) })
+  })
+  if (!locked.value) tips.push({ key: 'final', ...tipOf(finalEl) })
+  hands.value = tips
 }
+
+// ─── Подсказка-рука: появляется, если пару секунд ничего не нажимали ──
+const HINT_MS = 2000
+const hands   = ref([])
+const hinting = ref(false)
+let hintTimer = null
+const armHint = () => {
+  clearTimeout(hintTimer)
+  hintTimer = setTimeout(() => { measure(); hinting.value = true }, HINT_MS)
+}
+const onTouch = () => { hinting.value = false; armHint() }
 
 let ro = null
 onMounted(() => {
   nextTick(measure)
+  armHint()
+  document.addEventListener('pointerdown', onTouch, true)
+  if (stage.value === 'sealed') playOpening()
   document.fonts?.ready.then(measure)
   if (window.ResizeObserver && root.value) {
     ro = new ResizeObserver(measure)
     ro.observe(root.value)
   }
 })
-onUnmounted(() => ro?.disconnect())
+onUnmounted(() => {
+  ro?.disconnect()
+  clearTimeout(hintTimer)
+  sceneTimers.forEach(clearTimeout)
+  document.removeEventListener('pointerdown', onTouch, true)
+})
 watch(() => props.completedIds.length, () => nextTick(measure))
+// замок слетел — папка стала ниже, её кнопка и нити переезжают
+watch(stage, () => nextTick(measure))
 </script>
 
 <style scoped>
@@ -355,11 +427,100 @@ watch(() => props.completedIds.length, () => nextTick(measure))
   border-radius: 4px 4px 0 0;
 }
 .cork__final.is-locked { background: var(--paper-edge); cursor: default; }
-.cork__final-eyebrow, .cork__final-title, .cork__final-go, .cork__final-count { display: block; }
+.cork__final-eyebrow, .cork__final-title, .cork__final-go { display: block; }
+
+/* Плашка цензора: длина названия видна, само название — нет */
+.cork__redact { transition: background-size .5s cubic-bezier(.65, 0, .35, 1), color .2s .35s; }
+.cork__final.is-locked .cork__redact,
+.cork__final.is-opening .cork__redact {
+  color: transparent;
+  background: linear-gradient(var(--ink), var(--ink)) no-repeat right center / 100% 86%;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  user-select: none;
+}
+.cork__final.is-opening .cork__redact { background-size: 0% 86%; color: var(--ink); }
+
+/* Навесной замок: латунь, висит на папке и изредка покачивается — за ним что-то есть */
+.cork__lock {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  margin-top: 6px;
+  transform-origin: 50% 0;
+  animation: lock-sway 5s ease-in-out 1.5s infinite;
+}
+.cork__lock svg { width: 30px; height: 34px; overflow: visible; }
+.cork__lock-shackle { fill: none; stroke: #6d5a36; stroke-width: 3.5; stroke-linecap: round; transition: transform .2s ease-out; }
+.cork__lock-body { fill: #b8923f; stroke: var(--ink); stroke-width: 1.6; }
+.cork__lock-hole { fill: var(--ink); }
+.cork__lock-count { font-family: var(--font-d); font-size: 11px; color: var(--chip); }
+@keyframes lock-sway {
+  0%, 80%, 100% { transform: rotate(0); }
+  85% { transform: rotate(5deg); }
+  90% { transform: rotate(-4deg); }
+  95% { transform: rotate(2deg); }
+}
+.cork__lock.is-shaking { animation: lock-shake .45s ease-in-out; }
+@keyframes lock-shake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-10deg); }
+  45% { transform: rotate(9deg); }
+  70% { transform: rotate(-5deg); }
+}
+/* Сцена: дужка выскакивает, замок падает с папки, плашка цензора стирается */
+.cork__final.is-opening .cork__lock { animation: lock-drop .7s cubic-bezier(.55, 0, .8, .2) .25s forwards; }
+.cork__final.is-opening .cork__lock-shackle { transform: translateY(-5px); }
+@keyframes lock-drop { to { transform: translateY(60px) rotate(24deg); opacity: 0; } }
+.cork__final-go { animation: go-in .35s ease-out both; }
+/* кнопка — когда замок уже упал */
+.cork__final.is-opening .cork__final-go { animation-delay: .8s; }
+@keyframes go-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* Печатная рука-подсказка */
+.cork__hand {
+  position: absolute; z-index: 4;
+  width: 0; height: 0;
+  pointer-events: none;
+  animation: hand-in .3s ease-out var(--d) both;
+}
+.cork__hand-tilt {
+  position: absolute; left: -24px; top: -2px;
+  width: 48px; height: 59px;
+  transform: rotate(-24deg); transform-origin: 50% 0;
+}
+.cork__hand-svg {
+  display: block; width: 100%; height: 100%;
+  filter: drop-shadow(0 3px 2px color-mix(in srgb, var(--rule) 45%, transparent));
+  animation: hand-tap 2.4s cubic-bezier(.4, 0, .2, 1) calc(var(--d) + .3s) infinite;
+}
+.cork__hand-svg g { fill: var(--paper); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.cork__hand-svg .cork__hand-cuff { fill: var(--paper-edge); }
+.cork__hand-svg .cork__hand-seam { stroke-width: 1.2; }
+.cork__hand-ring {
+  position: absolute; left: -13px; top: -13px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--chip);
+  opacity: 0;
+  animation: hand-ring 2.4s ease-out calc(var(--d) + .3s) infinite;
+}
+@keyframes hand-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes hand-tap {
+  0%, 40%, 100% { transform: translateY(0); }
+  10%, 28% { transform: translateY(-7px); }
+  19% { transform: translateY(0); }
+}
+@keyframes hand-ring {
+  0%, 9% { opacity: 0; transform: scale(.5); }
+  12% { opacity: .9; }
+  30%, 100% { opacity: 0; transform: scale(1.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cork__hand, .cork__hand-svg, .cork__lock, .cork__lock.is-shaking, .cork__final-go { animation: none; }
+  .cork__hand-ring { display: none; }
+  .cork__final.is-opening .cork__lock { animation: none; opacity: 0; }
+  .cork__redact { transition: none; }
+}
 .cork__final-eyebrow { font-family: var(--font-d); font-size: 9px; letter-spacing: .12em; }
 .cork__final-title { margin-top: 6px; font-family: var(--font-d); font-size: 15px; line-height: 1.1; }
-.cork__final-count { margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
-.cork__final-count b { display: block; font-family: var(--font-d); font-weight: 400; font-size: 20px; line-height: 1; color: var(--chip); }
 .cork__final-go {
   margin-top: 8px;
   padding: 9px 4px;
@@ -383,8 +544,9 @@ watch(() => props.completedIds.length, () => nextTick(measure))
   .cork__clip-ph { height: 40px; }
   .cork__final-eyebrow { font-size: 11px; }
   .cork__final-title { font-size: 22px; }
-  .cork__final-count { font-size: 14px; }
-  .cork__final-count b { font-size: 28px; }
+  .cork__lock svg { width: 44px; height: 50px; }
+  .cork__lock-count { font-size: 15px; }
+  .cork__hand-tilt { left: -32px; width: 64px; height: 78px; }
   .cork__final-go { font-size: 14px; }
   .cork__cap { font-size: min(14px, calc(100cqi / (var(--len, 6) * .6))); }
 }
