@@ -74,8 +74,9 @@
           </header>
 
           <!-- Блок -->
-          <main class="qp-main">
-            <transition name="slide" mode="out-in">
+          <main class="qp-main" :style="diveOrigin ? { '--dive-origin': diveOrigin } : null">
+            <!-- Доска: влёт в нажатую карточку и обратно; маршрут — сдвиг вбок -->
+            <transition :name="boardFlow ? 'dive' : 'slide'" mode="out-in" @after-leave="afterLeave">
               <!-- Доска (flow = board): все участки сразу, финал последним -->
               <QuestHub
                 v-if="boardFlow && onBoard"
@@ -84,7 +85,9 @@
                 :theme="themeObj"
                 :title="questData.title"
                 :completedIds="completedIds"
+                :celebrate="finalJustOpened"
                 @open="openFromBoard"
+                @celebrated="finalSeen = true"
               />
               <QuestBlock
                 v-else
@@ -183,7 +186,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { getTheme, themeToCssVars, pointsWord } from '~/components/quest/themes.js'
 import QuestIcon from '../../components/quest/QuestIcon.vue'
-import { isBoardFlow, canOpenBlock } from '~/utils/boardFlow.js'
+import { isBoardFlow, canOpenBlock, finalUnlocked } from '~/utils/boardFlow.js'
 
 
 const route = useRoute()
@@ -316,6 +319,11 @@ const isLast       = computed(() => blockIdx.value === totalBlocks.value - 1)
 // Порядок прохождения «доска»: игрок стоит на доске и сам выбирает участок
 const boardFlow    = computed(() => isBoardFlow(questData.value))
 const onBoard      = ref(false)
+// точка нажатой карточки на доске: отсюда влетаем в участок и сюда возвращаемся
+const diveOrigin   = ref(null)
+// сцену снятия замка с финала показываем один раз
+const finalSeen    = ref(false)
+const finalJustOpened = computed(() => boardFlow.value && !finalSeen.value && finalUnlocked(blocks.value, completedIds.value))
 
 const progressPct = computed(() =>
   totalTasks.value ? Math.round((completedIds.value.length / totalTasks.value) * 100) : 0
@@ -347,6 +355,7 @@ const persistState = () => {
       startTs:      startTs.value,
       started:      started.value,
       onBoard:      onBoard.value,
+      finalSeen:    finalSeen.value,
       sessionId:    sessionData.value?.session_id || null,
       savedAt:      Date.now()
     }))
@@ -424,6 +433,7 @@ const loadQuest = async () => {
       startTs.value      = saved.startTs      ?? Date.now()
       started.value      = true
       onBoard.value      = boardFlow.value && (saved.onBoard ?? true)
+      finalSeen.value    = saved.finalSeen ?? false
       showIntro.value    = false
       if (saved.sessionId) sessionData.value = { session_id: saved.sessionId }
       ticker = setInterval(() => { nowTs.value = Date.now() }, 1000)
@@ -504,18 +514,26 @@ const next = () => {
 }
 
 // Доска: участок открывается тапом, финал — только после остальных
-const openFromBoard = (i) => {
+const openFromBoard = (i, origin) => {
   if (!canOpenBlock(i, blocks.value, completedIds.value)) return
+  diveOrigin.value = origin ?? null
   blockIdx.value = i
   onBoard.value  = false
-  window.scrollTo({ top: 0 })
+  // наверх — когда доска уже улетела, иначе прыжок прокрутки сбивает влёт
+  scrollAfterLeave = true
   saveProgress()
 }
 const toBoard = () => {
   if (!boardFlow.value) return
   onBoard.value = true
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  scrollAfterLeave = true
   saveProgress()
+}
+let scrollAfterLeave = false
+const afterLeave = () => {
+  if (!scrollAfterLeave) return
+  scrollAfterLeave = false
+  window.scrollTo({ top: 0 })
 }
 // участок открыт ходом с доски: новый участок не показывает доску второй раз
 const arrived = ref(false)
@@ -562,6 +580,7 @@ const doRestart = async () => {
 
   blockIdx.value     = 0
   onBoard.value      = false
+  finalSeen.value    = false
   arrived.value      = false
   completedIds.value = []
   points.value       = 0
@@ -738,6 +757,20 @@ onUnmounted(() => {
 .slide-enter-active, .slide-leave-active { transition: opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1); }
 .slide-enter-from { opacity: 0; transform: translateX(48px); }
 .slide-leave-to   { opacity: 0; transform: translateX(-48px); }
+/* Доска: камера влетает в нажатую карточку (доска растёт от её центра и гаснет),
+   участок проявляется; обратно — участок уходит, доска оседает на место */
+.dive-leave-active.hub  { transition: transform .42s cubic-bezier(.55, 0, .8, .2), opacity .42s cubic-bezier(.7, 0, .9, .4); transform-origin: var(--dive-origin, 50% 30%); }
+.dive-leave-to.hub      { transform: scale(2.6); opacity: 0; }
+.dive-enter-active.hub  { transition: transform .5s cubic-bezier(.16, 1, .3, 1), opacity .3s ease-out; transform-origin: var(--dive-origin, 50% 30%); }
+.dive-enter-from.hub    { transform: scale(2.6); opacity: 0; }
+.dive-enter-active.block { transition: transform .34s cubic-bezier(.16, 1, .3, 1), opacity .26s ease-out; transform-origin: 50% 0; }
+.dive-enter-from.block   { transform: scale(.94); opacity: 0; }
+.dive-leave-active.block { transition: transform .26s ease-in, opacity .26s ease-in; transform-origin: 50% 0; }
+.dive-leave-to.block     { transform: scale(.94); opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .dive-leave-active.hub, .dive-enter-active.hub, .dive-enter-active.block, .dive-leave-active.block { transition: opacity .2s linear; }
+  .dive-leave-to.hub, .dive-enter-from.hub, .dive-enter-from.block, .dive-leave-to.block { transform: none; }
+}
 .fade-enter-active { transition: opacity .3s ease; }
 .fade-enter-from { opacity: 0; }
 .fade-leave-active { transition: opacity .2s ease; }

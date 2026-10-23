@@ -1,5 +1,5 @@
 <template>
-  <section class="hub" :aria-label="title">
+  <section ref="root" class="hub" :aria-label="title">
     <header class="hub__head">
       <p class="hub__eyebrow">{{ theme.copy.eyebrow }}</p>
       <h1 class="hub__title">{{ title }}</h1>
@@ -16,7 +16,9 @@
       :blocks="blocks"
       :theme="theme"
       :completedIds="completedIds"
-      @open="$emit('open', $event)"
+      :celebrate="celebrate"
+      @open="openAt"
+      @celebrated="$emit('celebrated')"
     />
 
     <template v-else>
@@ -28,7 +30,7 @@
           class="hub__clue"
           :class="{ 'is-done': c.done }"
           :aria-label="`${theme.copy.blockPrefix} ${c.i + 1}: ${c.block.title}. ${c.done ? 'Пройдено' : c.started ? `${c.passed} из ${c.total}` : 'Не начато'}`"
-          @click="$emit('open', c.i)"
+          @click="openAt(c.i, $event.currentTarget)"
         >
           <span class="hub__no">{{ theme.copy.blockPrefix }} {{ theme.world?.decor === 'tarot' ? roman(c.i + 1) : c.i + 1 }}</span>
           <span class="hub__name" :style="{ '--len': longest(c.block.title) }">{{ c.block.title }}</span>
@@ -47,7 +49,7 @@
       class="hub__final"
       :class="{ 'is-locked': !unlocked }"
       :aria-disabled="!unlocked"
-      @click="$emit('open', last)"
+      @click="openAt(last, $event.currentTarget)"
     >
       <span class="hub__no">Финал</span>
       <span class="hub__name">{{ blocks[last].title }}</span>
@@ -63,7 +65,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestCorkboard from './QuestCorkboard.vue'
 import { roman } from './themes.js'
@@ -74,8 +76,19 @@ const props = defineProps({
   theme:        { type: Object, required: true },
   title:        { type: String, default: '' },
   completedIds: { type: Array,  default: () => [] },
+  celebrate:    { type: Boolean, default: false },   // финал только что открылся: сцена снятия замка
 })
-defineEmits(['open'])
+const emit = defineEmits(['open', 'celebrated'])
+
+// Влёт в карточку: плеер приближает доску к центру нажатой карточки,
+// поэтому вместе с номером отдаём точку относительно доски
+const root = ref(null)
+const openAt = (i, el) => {
+  const box = root.value?.getBoundingClientRect()
+  const r = el?.getBoundingClientRect?.()
+  const origin = box && r ? `${Math.round(r.left + r.width / 2 - box.left)}px ${Math.round(r.top + r.height / 2 - box.top)}px` : null
+  emit('open', i, origin)
+}
 
 const last = computed(() => finalIndex(props.blocks))
 const clues = computed(() => props.blocks.slice(0, -1).map((block, i) => {
