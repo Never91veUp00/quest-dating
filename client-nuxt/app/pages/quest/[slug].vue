@@ -684,7 +684,7 @@ onUnmounted(() => {
 .qp-error__sub { font-family: 'PT Serif', Georgia, serif; color: var(--board-soft); font-size: 1.05rem; max-width: 32ch; }
 .qp-error__link { display: inline-flex; align-items: center; min-height: 48px; margin-top: 8px; padding: 0 20px; border-radius: 10px; background: var(--board-ink); color: var(--board); font-family: 'PT Serif', Georgia, serif; font-weight: 700; text-decoration: none; }
 .qp-error__link:focus-visible { outline: 3px solid var(--note); outline-offset: 3px; }
-.qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 64px 0 40px; background: var(--field); }
+.qp-player { min-height: 100dvh; display: flex; flex-direction: column; padding: 64px 0 env(safe-area-inset-bottom); background: var(--field); }
 .qp-hud { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--field); border-bottom: 2px solid color-mix(in srgb, var(--field-ink) 18%, var(--field)); }
 .qp-hud__row { display: flex; align-items: center; padding: 8px 12px 8px 16px; gap: 10px; max-width: 600px; margin: 0 auto; }
 .qp-hud__pts { font-family: var(--font-d); font-weight: var(--font-d-wt, 400); font-size: 1.15rem; color: var(--field-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -722,7 +722,7 @@ onUnmounted(() => {
 .qp-hud__dropdown-item { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: none; color: var(--ink); font-family: var(--font-b); font-size: 1rem; padding: 12px 14px; cursor: pointer; border-radius: 6px; text-align: left; }
 .qp-hud__dropdown-item:hover { background: color-mix(in srgb, var(--paper-edge) 35%, var(--paper)); }
 /* Запас снизу: прилипшая кнопка-глагол не закрывает конец карточки */
-.qp-main { flex: 1; padding: 16px 16px calc(88px + var(--kb, 0px)); max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
+.qp-main { flex: 1; padding: 16px 16px calc(24px + var(--kb, 0px)); max-width: 600px; margin: 0 auto; width: 100%; position: relative; }
 /* десктоп: рядом с карточкой стоит доска маршрута (QuestBlock), шапка — по той же ширине */
 @media (min-width: 1100px) {
   .qp-main, .qp-hud__row, .qp-badge__row { max-width: 1120px; }
@@ -789,7 +789,7 @@ onUnmounted(() => {
   .qp-menu-sheet__title { font-family: var(--font-d); font-size: 1.25rem; color: var(--ink); margin-bottom: 12px; }
   .qp-menu-sheet__item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; background: color-mix(in srgb, var(--paper-edge) 30%, var(--paper)); border: none; border-radius: 10px; color: var(--ink); font-family: var(--font-b); font-size: 1.05rem; padding: 0 16px; cursor: pointer; text-align: left; margin-bottom: 10px; }
   .qp-menu-sheet__close { display: block; width: 100%; min-height: 52px; background: transparent; border: 2px solid var(--ink); border-radius: 10px; color: var(--ink); font-family: var(--font-d); font-size: 1rem; cursor: pointer; }
-  .qp-main { padding: 14px 12px calc(88px + var(--kb, 0px)); }
+  .qp-main { padding: 14px 12px calc(24px + var(--kb, 0px)); }
   .qp-hud__row { padding: 8px 10px 8px 14px; }
 }
 .sheet-enter-active, .sheet-leave-active { transition: opacity .25s ease; }
