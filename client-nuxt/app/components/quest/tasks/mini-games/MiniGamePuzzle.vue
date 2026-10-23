@@ -53,7 +53,13 @@
             }"
             :style="{ ...slotStyle(slot), ...fuseStyle(slot) }"
             @click="onTap(slot.i)"
-          ></div>
+          >
+            <!-- встал на место: фотоуголок держит кусок, по нему видно, что трогать его больше не надо -->
+            <svg v-if="slot.pieceIdx === slot.i" class="task__puzzle__ok" viewBox="0 0 20 20" aria-hidden="true">
+              <path class="task__puzzle__ok-corner" d="M20 0V20H0Z" />
+              <path class="task__puzzle__ok-tick" d="M9.6 14.4l2.4 2.3 4.6-5.4" />
+            </svg>
+          </div>
         </template>
         <img v-else :src="task.puzzle_image" class="task__puzzle__whole" alt="Собранная фотография" />
       </div>
@@ -435,6 +441,27 @@ const onTap = (slotIdx) => {
   box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--mi-sel, var(--chip)), 0 10px 16px -6px color-mix(in srgb, var(--rule) 80%, transparent);
 }
 .task__puzzle__slot.correct { cursor: default; pointer-events: none; }
+/* стоит верно: тонкий бумажный кант и фотоуголок с галочкой краской мира — не исчезают до конца сборки */
+.task__puzzle__slot.correct::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--paper) 85%, transparent);
+}
+.task__puzzle__ok {
+  position: absolute; right: 0; bottom: 0;
+  width: clamp(14px, 34%, 22px); height: auto; aspect-ratio: 1;
+  pointer-events: none;
+  filter: drop-shadow(-1px -1px 1px color-mix(in srgb, var(--rule) 45%, transparent));
+}
+.task__puzzle__ok-corner { fill: var(--paper); }
+.task__puzzle__ok-tick {
+  fill: none; stroke: var(--mi-sel, var(--chip)); stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.task__puzzle__slot.landed .task__puzzle__ok { animation: piece-ok .32s cubic-bezier(.2, .7, .2, 1) both; transform-origin: 100% 100%; }
+@keyframes piece-ok { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+/* в финале уголки снимаются вместе со швами */
+.task__puzzle__board--fuse .task__puzzle__ok,
+.task__puzzle__board--fuse .task__puzzle__slot.correct::before { opacity: 0; transition: opacity .18s ease; }
 /* только что встал на место: короткая рамка тает */
 .task__puzzle__slot.landed::after {
   content: ""; position: absolute; inset: 0;
@@ -453,6 +480,7 @@ const onTap = (slotIdx) => {
   .task__puzzle__slot.selected,
   .task__puzzle__slot:active { transform: none; }
   .task__puzzle__slot.landed::after { animation: none; opacity: 0; }
+  .task__puzzle__slot.landed .task__puzzle__ok { animation: none; }
   .task__puzzle__board--shuffling .task__puzzle__slot { animation: none; }
   .task__puzzle__board--framed,
   .task__puzzle__board--whole,
