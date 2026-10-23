@@ -69,6 +69,7 @@ export const THEMES = {
       finishEyebrow: 'ДЕЛО ЗАКРЫТО',
       shareBtn:      'Передать в архив',
       blockPrefix:   'Улика',
+      blockForms:    ['улика', 'улики', 'улик'],
       finishBtn:     'Закрыть дело',
       messageLabel:  'Личное послание',
       splashNote:    'Карточки дела открываются по очереди. Подглядывать вперёд не получится — так задумано.',

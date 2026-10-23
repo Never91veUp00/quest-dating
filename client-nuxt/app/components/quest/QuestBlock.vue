@@ -78,8 +78,23 @@
           </p>
           <p v-if="block.description" class="block__desc">{{ block.description }}</p>
 
+          <!-- «Детектив»: аллея в перспективе, след ведёт от улики к улике, впереди туман -->
+          <QuestTrail
+            v-if="theme.world?.decor === 'casefile'"
+            class="block__board-track block__board-track--trail"
+            :tasks="route"
+            :completedIds="routeDoneIds(boardCompleted)"
+            :earnedMap="routeEarned"
+            :enter="entering"
+            :stampId="stampId"
+            :itemWord="theme.copy.blockPrefix"
+            :forms="theme.copy.blockForms"
+            :progress="routeProgress"
+            @open="reviewIdx = $event"
+          />
           <!-- Трасса всего квеста: клетка — участок, задания участка — точки под текущей -->
           <QuestTrack
+            v-else
             class="block__board-track"
             :tasks="route"
             :completedIds="routeDoneIds(boardCompleted)"
@@ -176,7 +191,19 @@
         <span>{{ block.location }}</span>
       </p>
       <p v-if="block.description" class="block__desc">{{ block.description }}</p>
+      <QuestTrail
+        v-if="theme.world?.decor === 'casefile'"
+        class="block__side-track block__side-track--trail"
+        :tasks="route"
+        :completedIds="routeDoneIds(completedIds)"
+        :earnedMap="routeEarned"
+        :itemWord="theme.copy.blockPrefix"
+        :forms="theme.copy.blockForms"
+        :progress="routeProgress"
+        @open="reviewIdx = $event"
+      />
       <QuestTrack
+        v-else
         class="block__side-track"
         :tasks="route"
         :completedIds="routeDoneIds(completedIds)"
@@ -225,6 +252,7 @@
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import QuestTask from './QuestTask.vue'
 import QuestTrack from './QuestTrack.vue'
+import QuestTrail from './QuestTrail.vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestFlask from './QuestFlask.vue'
 import QuestPumpkin from './QuestPumpkin.vue'
@@ -868,6 +896,8 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   display: flex; flex-direction: column;
 }
 .block__board-track { margin-top: 18px; height: clamp(200px, 34svh, 300px); }
+/* аллея «Детектива» — сцена, ей нужна глубина */
+.block__board-track--trail { flex: 1 1 auto; height: auto; min-height: 300px; max-height: 620px; margin-inline: -6px; }
 .block__board-close { margin-top: auto; }
 .block__board-close:focus-visible { outline-color: var(--field-ink); }
 .block__board-back { margin: 8px 0 16px; }
@@ -1111,6 +1141,7 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   }
   .block__side .block__title { font-size: 1.9rem; }
   .block__side-track { margin-top: 20px; height: clamp(220px, 40svh, 340px); }
+  .block__side-track--trail { height: clamp(380px, 62svh, 600px); }
   /* Доска (flow = board): рядом доски маршрута нет — одна колонка с дорогой назад */
   .block--hub { grid-template-columns: minmax(0, 600px); grid-template-rows: auto; }
   .block--hub .block__strip--hub { display: flex; }
