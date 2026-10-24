@@ -92,6 +92,7 @@
             :itemWord="theme.copy.blockPrefix"
             :forms="theme.copy.blockForms"
             :progress="routeProgress"
+            :free="boardBrowse"
             @open="reviewIdx = $event"
           />
           <!-- Трасса всего квеста: клетка — участок, задания участка — точки под текущей -->
@@ -316,8 +317,8 @@ watch(reviewBlock, async (t) => {
 // Задания внутри участка идут без доски: их видно точками под текущей клеткой.
 // Тап по доске её удерживает, тогда дальше — по кнопке.
 const MOMENT_MS = 1400
-// аллея «Детектива»: след шагает снизу к новой улике (~1,4 с) и ещё полсекунды виден
-const TRAIL_MOMENT_MS = 2300
+// аллея «Детектива»: шаги идут к новой улике (1,3 с), камера подтягивается (1 с), пауза прочитать
+const TRAIL_MOMENT_MS = 3300
 const HOP_DELAY = 450
 const boardOpen      = ref(false)
 const boardCompleted = ref([...props.completedIds])
@@ -332,9 +333,12 @@ const clearTimers = () => { clearTimeout(autoClose); clearTimeout(hopTimer) }
 const ENTER_MS = 2000
 // доска (flow = board): возврат к ней после штампа на последней карточке участка
 const BOARD_RETURN_MS = 1000
+// доску открыли сами (тап по полосе), а не момент хода: аллею «Детектива» можно листать
+const boardBrowse = ref(false)
 const openBoard = (moment, ms = MOMENT_MS) => {
   clearTimers()
   boardOpen.value = true
+  boardBrowse.value = !moment
   if (moment) autoClose = setTimeout(closeBoard, ms)
   else nextTick(() => boardClose.value?.focus())
 }

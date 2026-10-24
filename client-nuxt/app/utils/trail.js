@@ -1,13 +1,14 @@
 // Маршрут «Детектива» (flow = route, decor casefile): аллея уходит к горизонту,
-// след ведёт от пройденных улик к текущей, дальше — туман.
+// текущая улика стоит внизу, над ней видны следующие, дальше — туман.
 // Мир меряется в участках: u = 0 — улика I, u = 1 — улика II… Камера стоит так,
-// что текущая улика всегда на одной глубине (NOW_T), пройденные — ближе к зрителю.
+// что текущая улика всегда на одной глубине (NOW_T) у нижнего края, пройденные уходят за край.
 
-export const NOW_T = 0.26   // глубина текущей улики: 0 — у края экрана, 1 — горизонт
-export const STEP_T = 0.14  // глубина одного участка
-export const NEAR_T = -0.08 // ближе этого — уже за спиной камеры
+export const NOW_T = 0.06   // глубина текущей улики: 0 — у края экрана, 1 — горизонт
+export const STEP_T = 0.17  // глубина одного участка
+export const NEAR_T = -0.05 // ближе этого — уже за спиной камеры
 export const HORIZON = 0.12 // горизонт, доля высоты сцены
-const SPREAD = 7            // насколько быстро сходится перспектива
+const SPREAD = 5            // насколько быстро сходится перспектива
+export const AHEAD = 2      // сколько улик впереди видно над текущей
 export const STRIDE = 0.17      // шаг следа, в участках
 export const FOOT_LEN = 0.12    // длина отпечатка, в участках: короче шага, соседние не наезжают
 export const FOOT_SPREAD = 21   // расстояние от середины следа до каждой ноги, px ширины 390
@@ -33,47 +34,38 @@ export const visible = (t) => t > NEAR_T && t < 1
 // Сторона, где стоит табличка улики: по очереди справа и слева от следа
 export const sideOf = (i) => (i % 2 ? -1 : 1)
 
-// Шаги следа от входа в аллею до позиции камеры: [{ u, foot }], u — пятка,
-// foot — левая (−1) или правая (1). Носок последнего отпечатка не заходит за камеру.
-export const steps = (pos, from = -0.6) => {
-  const out = []
-  for (let k = 0; ; k++) {
-    const u = from + k * STRIDE
-    if (u + FOOT_LEN > pos + 1e-6) break
-    out.push({ u, foot: k % 2 ? 1 : -1 })
-  }
-  return out
-}
-
 // След — один на весь путь: шаги лежат на общей сетке от входа в аллею, поэтому
-// каждый ход продолжает его от прошлой улики, а не рисует заново. Ярких отпечатков
-// TRAIL_SHOWN — последние шаги; старые остаются бледным следом.
-export const TRAIL_SHOWN = 3
-export const TRAIL_ORIGIN = -2.45 // вход в аллею: у нижнего края сцены, когда пара на старте
+// каждый ход продолжает его от прошлой улики, а не рисует заново.
+export const TRAIL_ORIGIN = -0.53 // вход в аллею: пара пришла снизу, пара шагов под первой уликой
+export const STOP_GAP = 0.04      // след останавливается чуть перед табличкой
 
-// Шаги от from до камеры to, по порядку: [{ u, foot }], u — пятка
+// Шаги от from до улики to, по порядку: [{ u, foot }], u — пятка,
+// foot — левая (−1) или правая (1). Носок последнего не заходит за табличку.
 export const walkSteps = (from, to) => {
   const out = []
   if (!Number.isFinite(from) || !Number.isFinite(to)) return out
   for (let k = Math.max(0, Math.ceil((from - TRAIL_ORIGIN) / STRIDE - 1e-6)); ; k++) {
     const u = TRAIL_ORIGIN + k * STRIDE
-    if (u + FOOT_LEN > to + 1e-6) break
+    if (u + FOOT_LEN > to - STOP_GAP + 1e-6) break
     out.push({ u, foot: k % 2 ? 1 : -1 })
   }
   return out
 }
 
-// Что видно при прогрессе хода 0…1: шаги до start уже лежали, новые появляются по одному.
-// fresh — яркость: 1 у последних шагов, 0 у старого следа; пока следующий на подходе,
-// старший из ярких уходит в след (1 → 0)
-export const trailWalk = (list, start, progress, size = TRAIL_SHOWN) => {
-  const n = start + progress * (list.length - start)
-  const shown = Math.min(list.length, Math.floor(n + 1e-6))
-  const out = list.slice(0, shown).map((p, i) => ({ ...p, fresh: shown - 1 - i < size ? 1 : 0 }))
-  const frac = n - shown
-  if (frac > 1e-6 && shown >= size && shown < list.length) out[shown - size].fresh = 1 - frac
-  return out
-}
+// Что видно при прогрессе хода 0…1: шаги до start уже лежат, новые появляются по одному
+export const trailWalk = (list, start, progress) =>
+  list.slice(0, Math.min(list.length, start + Math.floor(progress * (list.length - start) + 1e-6)))
+
+// Ниже текущей улики след растворяется к нижнему краю: 1 — выше таблички, 0.12 — у края
+const clamp01 = (v) => Math.max(0, Math.min(1, v))
+export const fadeBelow = (y, yNow, h) => 0.12 + 0.88 * clamp01(1 - (y - yNow - 6) / Math.max(1, h - yNow - 6)) ** 1.4
+
+// Улика впереди тонет в тумане: две ближние видны, дальше гаснут
+export const aheadFade = (i, pos) => clamp01(1.25 - (i - pos - 1) * 0.35)
+
+// Листание аллеи: куда встать, когда палец отпустили (velocity — улик в секунду)
+export const snapTo = (pos, velocity, count) =>
+  Math.max(0, Math.min(count - 1, Math.round(pos + velocity * 0.18)))
 
 // Отпечаток лежит на земле: пятка и носок проецируются отдельно, поэтому вдали он
 // сплющивается вместе с шагом. Матрица SVG переводит стопу в своих координатах
