@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { depthOf, project, visible, steps, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T } from '~/utils/trail.js'
+import { depthOf, project, visible, steps, footMatrix, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN } from '~/utils/trail.js'
 
 const route = [{ id: 'blk-0' }, { id: 'blk-1' }, { id: 'blk-2' }, { id: 'blk-3' }]
 
@@ -38,11 +38,14 @@ describe('visible', () => {
 })
 
 describe('steps', () => {
-  it('след доходит до камеры и не дальше, ноги чередуются', () => {
+  it('носок последнего отпечатка доходит до камеры и не дальше, ноги чередуются', () => {
     const s = steps(1)
-    expect(s.at(-1).u).toBeLessThanOrEqual(1 + 1e-6)
-    expect(s.at(-1).u).toBeGreaterThan(0.9)
+    expect(s.at(-1).u + FOOT_LEN).toBeLessThanOrEqual(1 + 1e-6)
+    expect(s.at(-1).u + FOOT_LEN).toBeGreaterThan(1 - STRIDE)
     expect(s[0].foot).toBe(-s[1].foot)
+  })
+  it('отпечаток короче шага: соседние не наезжают друг на друга', () => {
+    expect(FOOT_LEN).toBeLessThan(STRIDE)
   })
   it('во время хода след удлиняется', () => {
     expect(steps(1.5).length).toBeGreaterThan(steps(1).length)
@@ -70,5 +73,19 @@ describe('tagScale и sideOf', () => {
   })
   it('таблички стоят по очереди справа и слева', () => {
     expect([0, 1, 2].map(sideOf)).toEqual([1, -1, 1])
+  })
+})
+
+describe('footMatrix', () => {
+  // [a b c d e f]: x' = a·x + c·y + e, y' = b·x + d·y + f
+  const apply = (m: number[], x: number, y: number) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]
+  it('пятка (0, 0) ложится на пятку, носок (0, −1) — на носок', () => {
+    const m = footMatrix({ x: 100, y: 300 }, { x: 104, y: 280 }, 12)
+    expect(apply(m, 0, 0)).toEqual([100, 300])
+    expect(apply(m, 0, -1)).toEqual([104, 280])
+  })
+  it('поперёк стопы — заданная ширина; у другой ноги зеркально', () => {
+    expect(apply(footMatrix({ x: 0, y: 0 }, { x: 0, y: -10 }, 12), 1, 0)).toEqual([12, 0])
+    expect(apply(footMatrix({ x: 0, y: 0 }, { x: 0, y: -10 }, -12), 1, 0)).toEqual([-12, 0])
   })
 })

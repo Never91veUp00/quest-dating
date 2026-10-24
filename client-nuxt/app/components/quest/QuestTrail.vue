@@ -28,10 +28,14 @@
         :cx="l.x" :cy="l.y" :rx="7 * l.s" :ry="3.5 * l.s" :fill="l.c"
         :transform="`rotate(${l.r} ${l.x} ${l.y})`"
       />
-      <!-- след: старые отпечатки бледнее -->
-      <g v-for="p in prints" :key="p.k" :transform="p.tf" :fill="`rgba(30,22,16,${p.o})`">
-        <path d="M-5 -13 C-6 -18 6 -18 5 -13 L5.5 -3 C5 1 -5 1 -5.5 -3Z" />
-        <path d="M-4.5 4 C-5 2 5 2 4.5 4 L4 11 C3 14 -3 14 -4 11Z" />
+      <!-- след: влажные отпечатки на плитке, светлый выдавленный край снизу отделяет каждый от соседа; старые бледнее -->
+      <g v-for="p in prints" :key="p.k" :transform="p.tf">
+        <g transform="translate(0 .05)" :fill="`rgba(236,224,203,${p.rim})`">
+          <path :d="SOLE" /><path :d="HEEL" />
+        </g>
+        <g :fill="`rgba(34,25,18,${p.o})`">
+          <path :d="SOLE" /><path :d="HEEL" />
+        </g>
       </g>
       <!-- деревья и фонари — дальние раньше ближних -->
       <g v-for="o in props_" :key="o.k">
@@ -87,7 +91,8 @@
 import { computed, ref, watch, onMounted, onUnmounted, useId } from 'vue'
 import { roman, plural } from './themes.js'
 import {
-  depthOf, project, visible, wander, steps, sideOf, trailStates, cameraAt, tagScale, NOW_T, HORIZON,
+  depthOf, project, visible, wander, steps, footMatrix, sideOf, trailStates, cameraAt, tagScale, NOW_T, HORIZON,
+  FOOT_LEN, FOOT_SPREAD, FOOT_W,
 } from '~/utils/trail.js'
 
 const props = defineProps({
@@ -185,12 +190,18 @@ const leaves = computed(() => {
   return out
 })
 
-const prints = computed(() => steps(pos.value).map((st, k, all) => {
-  const p = at(st.u, st.foot * 9)
-  if (!visible(p.t)) return null
-  const age = 1 - Math.min(1, (pos.value - st.u) / 1.8)
-  // у камеры отпечаток не раздувается: иначе след сливается в полосу
-  return { k, tf: `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${Math.min(1.3, p.s * 2.2).toFixed(3)})`, o: (.14 + .66 * age).toFixed(2) }
+// Подошва и каблук в координатах стопы: x поперёк (−.5….5), y от пятки (0) к носку (−1)
+const SOLE = 'M-.38 -.44 C-.52 -.72 -.4 -1 .02 -1 C.42 -1 .5 -.74 .4 -.5 C.34 -.4 .2 -.36 .02 -.38 C-.14 -.4 -.3 -.38 -.38 -.44Z'
+const HEEL = 'M-.3 -.27 C-.1 -.31 .2 -.31 .34 -.26 L.32 -.05 C.18 .03 -.16 .03 -.3 -.05Z'
+
+const prints = computed(() => steps(pos.value).map((st, k) => {
+  const heel = at(st.u, st.foot * FOOT_SPREAD)
+  // носок чуть наружу — походка, а не рельсы
+  const toe = at(st.u + FOOT_LEN, st.foot * (FOOT_SPREAD + 2))
+  if (!visible(heel.t) || !visible(toe.t)) return null
+  const age = 1 - Math.min(1, (pos.value - st.u) / 2.2)
+  const m = footMatrix(heel, toe, st.foot * FOOT_W * heel.s * size.value.w / 390)
+  return { k, tf: `matrix(${m.map(v => v.toFixed(2)).join(' ')})`, o: (.4 + .5 * age).toFixed(2), rim: (.18 + .3 * age).toFixed(2) }
 }).filter(Boolean))
 
 // деревья через получасток по обе стороны, каждый третий — с фонарём
