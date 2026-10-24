@@ -76,7 +76,7 @@
           <!-- Блок -->
           <main class="qp-main" :style="diveOrigin ? { '--dive-origin': diveOrigin } : null">
             <!-- Доска: влёт в нажатую карточку и обратно; маршрут — сдвиг вбок -->
-            <transition :name="boardFlow ? 'dive' : 'slide'" mode="out-in" @after-leave="afterLeave">
+            <transition :name="boardFlow ? 'dive' : plunge ? 'plunge' : 'slide'" mode="out-in" @after-leave="afterLeave" @after-enter="plunge = false">
               <!-- Доска (flow = board): все участки сразу, финал последним -->
               <QuestHub
                 v-if="boardFlow && onBoard"
@@ -508,9 +508,10 @@ const onSkipTask = (task) => {
 }
 
 // ─── Navigation ───────────────────────────────────────────────
-const next = () => {
+// origin — точка на доске, куда «нырнули»: карточка нового участка вырастает из неё
+const next = (origin) => {
   if (boardFlow.value) toBoard()
-  else doNext()
+  else doNext(typeof origin === 'string' ? origin : null)
 }
 
 // Доска: участок открывается тапом, финал — только после остальных
@@ -537,10 +538,18 @@ const afterLeave = () => {
 }
 // участок открыт ходом с доски: новый участок не показывает доску второй раз
 const arrived = ref(false)
-const doNext = () => {
+const plunge  = ref(false)
+const doNext = (origin = null) => {
   arrived.value = true
+  if (origin) {
+    diveOrigin.value = origin
+    plunge.value = true
+    // доска уже ушла, старый участок исчезает сразу — наверх до появления нового
+    window.scrollTo({ top: 0 })
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   blockIdx.value++
-  window.scrollTo({ top: 0, behavior: 'smooth' })
   saveProgress()
 }
 
@@ -757,6 +766,10 @@ onUnmounted(() => {
 .slide-enter-active, .slide-leave-active { transition: opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1); }
 .slide-enter-from { opacity: 0; transform: translateX(48px); }
 .slide-leave-to   { opacity: 0; transform: translateX(-48px); }
+/* ход с доски: прошлый участок уже скрыт, новый вырастает из клетки, куда нырнули */
+.plunge-leave-active, .plunge-leave-to { transition: none; opacity: 0; }
+.plunge-enter-active { transition: transform .46s cubic-bezier(.16, 1, .3, 1), opacity .24s ease-out; transform-origin: var(--dive-origin, 50% 30%); }
+.plunge-enter-from   { transform: scale(.35); opacity: 0; }
 /* Доска: камера влетает в нажатую карточку (доска растёт от её центра и гаснет),
    участок проявляется; обратно — участок уходит, доска оседает на место */
 .dive-leave-active.hub  { transition: transform .42s cubic-bezier(.55, 0, .8, .2), opacity .42s cubic-bezier(.7, 0, .9, .4); transform-origin: var(--dive-origin, 50% 30%); }
@@ -770,6 +783,8 @@ onUnmounted(() => {
 @media (prefers-reduced-motion: reduce) {
   .dive-leave-active.hub, .dive-enter-active.hub, .dive-enter-active.block, .dive-leave-active.block { transition: opacity .2s linear; }
   .dive-leave-to.hub, .dive-enter-from.hub, .dive-enter-from.block, .dive-leave-to.block { transform: none; }
+  .plunge-enter-active { transition: opacity .2s linear; }
+  .plunge-enter-from { transform: none; }
 }
 .fade-enter-active { transition: opacity .3s ease; }
 .fade-enter-from { opacity: 0; }

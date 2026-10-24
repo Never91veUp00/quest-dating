@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" class="block" :class="[theme.world?.decor && `block--${theme.world.decor}`, { 'block--hub': flow === 'board' }]">
+  <div ref="root" class="block" :class="[theme.world?.decor && `block--${theme.world.decor}`, { 'block--hub': flow === 'board', 'block--plunging': plunging }]">
     <!-- Доска (flow = board): полоса ведёт обратно к доске со всеми участками -->
     <button
       v-if="flow === 'board'"
@@ -50,10 +50,12 @@
     </button>
 
     <!-- Доска: момент хода и обзор участка -->
-    <transition name="board">
+    <transition name="board" @after-leave="onBoardGone">
       <section
         v-if="boardOpen"
+        ref="boardEl"
         class="block__board"
+        :style="boardDive"
         :class="{ 'block__board--entering': entering }"
         role="dialog"
         aria-modal="true"
@@ -335,13 +337,44 @@ const openBoard = (moment, ms = MOMENT_MS) => {
   else nextTick(() => boardClose.value?.focus())
 }
 const entering = ref(false)
+// Нырок: доска уходит, приближаясь к клетке, где стоит фишка (у «Детектива» — к меловому
+// кругу), и карточка задания вырастает из этой же точки. При ходе на новый участок
+// его карточка появляется, когда доска уже ушла; точка передаётся плееру.
+const boardEl   = ref(null)
+const boardDive = ref(null)
+const plunging  = ref(false)
+let plungeTo = null
+const diveTarget = () => {
+  const el = boardEl.value
+  const mark = el?.querySelector('.trail__chalk, .track__chip')?.getBoundingClientRect()
+  if (!el || !mark?.width) return null
+  return { x: mark.left + mark.width / 2, y: mark.top + mark.height / 2 }
+}
 const closeBoard = () => {
   clearTimers()
+  const at = diveTarget()
+  if (at) {
+    const b = boardEl.value.getBoundingClientRect()
+    boardDive.value = { '--dive-x': `${Math.round(at.x - b.left)}px`, '--dive-y': `${Math.round(at.y - b.top)}px` }
+  }
+  if (advancing.value) {
+    advancing.value = false
+    // карточка нового участка встанет там, где сейчас блок, прокрученный к началу
+    const r = root.value?.getBoundingClientRect()
+    plungeTo = at && r ? `${Math.round(at.x - r.left)}px ${Math.round(at.y - r.top - window.scrollY)}px` : '50% 30%'
+    plunging.value = true
+  }
   boardOpen.value = false
   entering.value = false
   boardCompleted.value = [...props.completedIds]
   stampId.value = null
-  if (advancing.value) { advancing.value = false; emit('next') }
+}
+const onBoardGone = () => {
+  boardDive.value = null
+  if (plungeTo === null) return
+  const origin = plungeTo
+  plungeTo = null
+  emit('next', origin)
 }
 const holdBoard = () => { clearTimeout(autoClose) }
 
@@ -903,9 +936,15 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
 .block__board-back { margin: 8px 0 16px; }
 
 .board-enter-active { transition: opacity .3s ease-out, transform .45s cubic-bezier(.16, 1, .3, 1); }
-.board-leave-active { transition: opacity .25s ease-in, transform .3s ease-in; }
 .board-enter-from   { opacity: 0; transform: translateY(-24px); }
-.board-leave-to     { opacity: 0; transform: translateY(-40px); }
+/* нырок в клетку: доска разгоняется к фишке и тает к концу */
+.board-leave-active {
+  transform-origin: var(--dive-x, 50%) var(--dive-y, 40%);
+  transition: transform .5s cubic-bezier(.55, 0, .75, .2), opacity .5s cubic-bezier(.7, 0, .9, .3);
+}
+.board-leave-to     { opacity: 0; transform: scale(3.2); }
+/* на ходе карточку прошлого участка под доской не видно */
+.block--plunging > :not(.block__board) { visibility: hidden; }
 
 .block__meta {
   display: flex;
@@ -1117,6 +1156,7 @@ const finishLabel = computed(() => props.theme.copy.finishBtn ?? 'Заверши
   .sheet-enter-active, .sheet-leave-active,
   .sheet-enter-active .block__sheet-panel, .sheet-leave-active .block__sheet-panel,
   .board-enter-active, .board-leave-active { transition: none; }
+  .board-leave-to { transform: none; }
 }
 
 /* ── Десктоп: доска рядом с карточкой ─────────────────────────── */
