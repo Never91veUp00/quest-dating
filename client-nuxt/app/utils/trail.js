@@ -8,7 +8,10 @@ export const STEP_T = 0.14  // глубина одного участка
 export const NEAR_T = -0.08 // ближе этого — уже за спиной камеры
 export const HORIZON = 0.12 // горизонт, доля высоты сцены
 const SPREAD = 7            // насколько быстро сходится перспектива
-const STRIDE = 0.06         // шаг следа, в участках
+export const STRIDE = 0.17      // шаг следа, в участках
+export const FOOT_LEN = 0.12    // длина отпечатка, в участках: короче шага, соседние не наезжают
+export const FOOT_SPREAD = 21   // расстояние от середины следа до каждой ноги, px ширины 390
+export const FOOT_W = 25        // ширина отпечатка у края экрана, px ширины 390
 
 // глубина точки мира u, когда камера стоит на позиции pos (pos — номер текущей улики, дробный во время хода)
 export const depthOf = (u, pos) => NOW_T + (u - pos) * STEP_T
@@ -30,16 +33,22 @@ export const visible = (t) => t > NEAR_T && t < 1
 // Сторона, где стоит табличка улики: по очереди справа и слева от следа
 export const sideOf = (i) => (i % 2 ? -1 : 1)
 
-// Шаги следа от входа в аллею до позиции камеры: [{ u, foot }], foot — левая (−1) или правая (1)
+// Шаги следа от входа в аллею до позиции камеры: [{ u, foot }], u — пятка,
+// foot — левая (−1) или правая (1). Носок последнего отпечатка не заходит за камеру.
 export const steps = (pos, from = -0.6) => {
   const out = []
   for (let k = 0; ; k++) {
     const u = from + k * STRIDE
-    if (u > pos + 1e-6) break
+    if (u + FOOT_LEN > pos + 1e-6) break
     out.push({ u, foot: k % 2 ? 1 : -1 })
   }
   return out
 }
+
+// Отпечаток лежит на земле: пятка и носок проецируются отдельно, поэтому вдали он
+// сплющивается вместе с шагом. Матрица SVG переводит стопу в своих координатах
+// (x поперёк −.5….5, y от пятки 0 к носку −1) на сцену; width < 0 — зеркально, другая нога.
+export const footMatrix = (heel, toe, width) => [width, 0, heel.x - toe.x, heel.y - toe.y, heel.x, heel.y]
 
 // Состояние улик для подписей: пройдена, пропущена, текущая, впереди
 export const trailStates = (route, doneIds, wrongIds = []) => {
