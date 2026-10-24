@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { depthOf, project, visible, steps, footMatrix, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN } from '~/utils/trail.js'
+import { depthOf, project, visible, steps, footMatrix, walkSteps, trailWindow, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_SHOWN } from '~/utils/trail.js'
 
 const route = [{ id: 'blk-0' }, { id: 'blk-1' }, { id: 'blk-2' }, { id: 'blk-3' }]
 
@@ -87,5 +87,43 @@ describe('footMatrix', () => {
   it('поперёк стопы — заданная ширина; у другой ноги зеркально', () => {
     expect(apply(footMatrix({ x: 0, y: 0 }, { x: 0, y: -10 }, 12), 1, 0)).toEqual([12, 0])
     expect(apply(footMatrix({ x: 0, y: 0 }, { x: 0, y: -10 }, -12), 1, 0)).toEqual([-12, 0])
+  })
+})
+
+describe('walkSteps', () => {
+  it('шаги идут снизу к камере: последний носок у камеры, первый не ниже начала', () => {
+    const s = walkSteps(-1, 2)
+    expect(s.at(-1).u + FOOT_LEN).toBeCloseTo(2)
+    expect(s[0].u).toBeGreaterThanOrEqual(-1)
+    expect(s[1].u - s[0].u).toBeCloseTo(STRIDE)
+    expect(s[0].foot).toBe(-s[1].foot)
+  })
+  it('конец следа один и тот же, откуда бы ни шли: после хода ничего не прыгает', () => {
+    const a = walkSteps(-1, 2).slice(-3)
+    const b = walkSteps(0.5, 2).slice(-3)
+    expect(a).toEqual(b)
+  })
+})
+
+describe('trailWindow', () => {
+  const list = walkSteps(-1, 2)
+  it('видно не больше трёх последних отпечатков', () => {
+    expect(TRAIL_SHOWN).toBe(3)
+    expect(trailWindow(list, 1)).toHaveLength(3)
+    expect(trailWindow(list, 1).map(p => p.u)).toEqual(list.slice(-3).map(p => p.u))
+  })
+  it('сначала появляется первый, потом второй и третий', () => {
+    const n = list.length
+    expect(trailWindow(list, 0)).toHaveLength(0)
+    expect(trailWindow(list, 1 / n).map(p => p.u)).toEqual([list[0].u])
+    expect(trailWindow(list, 2 / n)).toHaveLength(2)
+  })
+  it('четвёртый появляется — первый уходит; пока четвёртый на подходе, первый гаснет', () => {
+    const n = list.length
+    expect(trailWindow(list, 4 / n).map(p => p.u)).toEqual(list.slice(1, 4).map(p => p.u))
+    const mid = trailWindow(list, 3.5 / n)
+    expect(mid[0].u).toBe(list[0].u)
+    expect(mid[0].fade).toBeCloseTo(0.5)
+    expect(mid.at(-1).fade).toBe(1)
   })
 })

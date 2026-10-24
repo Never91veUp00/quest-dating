@@ -314,6 +314,8 @@ watch(reviewBlock, async (t) => {
 // Задания внутри участка идут без доски: их видно точками под текущей клеткой.
 // Тап по доске её удерживает, тогда дальше — по кнопке.
 const MOMENT_MS = 1400
+// аллея «Детектива»: след шагает снизу к новой улике (~1,4 с) и ещё полсекунды виден
+const TRAIL_MOMENT_MS = 2300
 const HOP_DELAY = 450
 const boardOpen      = ref(false)
 const boardCompleted = ref([...props.completedIds])
@@ -360,7 +362,7 @@ watch(() => [...props.completedIds], (now, before = []) => {
   stampId.value = `blk-${props.index}`
   advancing.value = !props.isLast
   // Доска открывается в прежнем состоянии, затем штамп и ход фишки
-  openBoard(true)
+  openBoard(true, props.theme.world?.decor === 'casefile' ? TRAIL_MOMENT_MS : MOMENT_MS)
   hopTimer = setTimeout(() => { boardCompleted.value = [...now] }, HOP_DELAY)
 })
 

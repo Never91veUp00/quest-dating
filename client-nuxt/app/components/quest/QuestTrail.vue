@@ -28,12 +28,13 @@
         :cx="l.x" :cy="l.y" :rx="7 * l.s" :ry="3.5 * l.s" :fill="l.c"
         :transform="`rotate(${l.r} ${l.x} ${l.y})`"
       />
-      <!-- след: влажные отпечатки на плитке, светлый выдавленный край снизу отделяет каждый от соседа; старые бледнее -->
-      <g v-for="p in prints" :key="p.k" :transform="p.tf">
-        <g transform="translate(0 .05)" :fill="`rgba(236,224,203,${p.rim})`">
+      <!-- след: влажные отпечатки на плитке, светлый выдавленный край снизу отделяет каждый от соседа;
+           видно три последних шага — новый появляется впереди, самый старый гаснет -->
+      <g v-for="p in prints" :key="p.k" class="trail__print" :transform="p.tf" :opacity="p.o">
+        <g transform="translate(0 .05)" fill="rgba(236,224,203,.5)">
           <path :d="SOLE" /><path :d="HEEL" />
         </g>
-        <g :fill="`rgba(34,25,18,${p.o})`">
+        <g fill="rgb(34,25,18)">
           <path :d="SOLE" /><path :d="HEEL" />
         </g>
       </g>
@@ -91,7 +92,7 @@
 import { computed, ref, watch, onMounted, onUnmounted, useId } from 'vue'
 import { roman, plural } from './themes.js'
 import {
-  depthOf, project, visible, wander, steps, footMatrix, sideOf, trailStates, cameraAt, tagScale, NOW_T, HORIZON,
+  depthOf, project, visible, wander, walkSteps, trailWindow, footMatrix, sideOf, trailStates, cameraAt, tagScale, NOW_T, HORIZON,
   FOOT_LEN, FOOT_SPREAD, FOOT_W,
 } from '~/utils/trail.js'
 
@@ -121,20 +122,30 @@ const states = computed(() => trailStates(
 ))
 const target = computed(() => cameraAt(props.tasks, props.completedIds))
 
-// ─── Ход: камера идёт по аллее от прошлой улики к новой, след дорисовывается ──
+// ─── Ход: камера идёт по аллее от прошлой улики к новой, а след шагает снизу ──
+// экрана к новой улике: шаг за шагом, видно три последних отпечатка.
 const WALK_MS = 1100
+const STEP_MS = 90    // темп шагов
+const BOTTOM_U = 1.75 // первый шаг — у нижнего края сцены: столько участков до камеры
 const pos = ref(props.enter && target.value === 0 ? -0.7 : target.value)
+const walkFrom = ref(pos.value - BOTTOM_U)
+const walked   = ref(pos.value === target.value ? 1 : 0) // доля пройденных шагов
 let raf = 0
 const walk = (to) => {
   cancelAnimationFrame(raf)
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { pos.value = to; return }
   const from = pos.value
+  walkFrom.value = from - BOTTOM_U
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { pos.value = to; walked.value = 1; return }
+  walked.value = 0
+  const steps = walkSteps(walkFrom.value, to).length
+  const stepsMs = Math.max(WALK_MS, steps * STEP_MS)
   const t0 = performance.now()
   const tick = (now) => {
     const p = Math.min(1, (now - t0) / WALK_MS)
     const e = p < .5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2
     pos.value = from + (to - from) * e
-    if (p < 1) raf = requestAnimationFrame(tick)
+    walked.value = Math.min(1, (now - t0) / stepsMs)
+    if (walked.value < 1) raf = requestAnimationFrame(tick)
   }
   raf = requestAnimationFrame(tick)
 }
@@ -194,14 +205,14 @@ const leaves = computed(() => {
 const SOLE = 'M-.38 -.44 C-.52 -.72 -.4 -1 .02 -1 C.42 -1 .5 -.74 .4 -.5 C.34 -.4 .2 -.36 .02 -.38 C-.14 -.4 -.3 -.38 -.38 -.44Z'
 const HEEL = 'M-.3 -.27 C-.1 -.31 .2 -.31 .34 -.26 L.32 -.05 C.18 .03 -.16 .03 -.3 -.05Z'
 
-const prints = computed(() => steps(pos.value).map((st, k) => {
+const RANK_O = [.9, .72, .55] // новый, средний, старый
+const prints = computed(() => trailWindow(walkSteps(walkFrom.value, target.value), walked.value).reverse().map((st, rank) => {
   const heel = at(st.u, st.foot * FOOT_SPREAD)
   // носок чуть наружу — походка, а не рельсы
   const toe = at(st.u + FOOT_LEN, st.foot * (FOOT_SPREAD + 2))
   if (!visible(heel.t) || !visible(toe.t)) return null
-  const age = 1 - Math.min(1, (pos.value - st.u) / 2.2)
   const m = footMatrix(heel, toe, st.foot * FOOT_W * heel.s * size.value.w / 390)
-  return { k, tf: `matrix(${m.map(v => v.toFixed(2)).join(' ')})`, o: (.4 + .5 * age).toFixed(2), rim: (.18 + .3 * age).toFixed(2) }
+  return { k: st.u.toFixed(3), tf: `matrix(${m.map(v => v.toFixed(2)).join(' ')})`, o: (RANK_O[rank] * st.fade).toFixed(2) }
 }).filter(Boolean))
 
 // деревья через получасток по обе стороны, каждый третий — с фонарём
@@ -288,6 +299,9 @@ onUnmounted(() => { cancelAnimationFrame(raf); ro?.disconnect() })
   box-shadow: 0 8px 18px rgba(20, 12, 8, .45);
 }
 .trail__scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* шаг ложится на плитку */
+.trail__print { animation: print-in .16s ease-out both; }
+@keyframes print-in { from { opacity: 0; } }
 .trail__no { font-family: var(--font-d); font-size: 15px; fill: #1d1814; }
 .trail__chalk { fill: none; stroke: rgba(245, 240, 230, .85); stroke-width: 2; stroke-dasharray: 5 4; }
 
@@ -341,5 +355,6 @@ onUnmounted(() => { cancelAnimationFrame(raf); ro?.disconnect() })
 @keyframes trail-stamp { from { opacity: 0; transform: scale(1.6); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .trail__tag.is-fresh small { animation: none; }
+  .trail__print { animation: none; }
 }
 </style>

@@ -45,6 +45,34 @@ export const steps = (pos, from = -0.6) => {
   return out
 }
 
+// След идёт шагами снизу к текущей улике, и видно только последние TRAIL_SHOWN отпечатков:
+// появился четвёртый — первый ушёл. Шаги отсчитываются от камеры назад, поэтому конец
+// следа один и тот же, откуда бы ни шли: после хода ничего не прыгает.
+export const TRAIL_SHOWN = 3
+
+// Шаги от from до камеры to, по порядку: [{ u, foot }], u — пятка
+export const walkSteps = (from, to) => {
+  const out = []
+  for (let k = 0; ; k++) {
+    const u = to - FOOT_LEN - k * STRIDE
+    if (u < from - 1e-6) break
+    out.unshift({ u, foot: k % 2 ? -1 : 1 })
+  }
+  return out
+}
+
+// Что видно при прогрессе хода 0…1: последние появившиеся отпечатки; пока следующий
+// на подходе, самый старый гаснет (fade 1 → 0)
+export const trailWindow = (list, progress, size = TRAIL_SHOWN) => {
+  const n = progress * list.length
+  const shown = Math.min(list.length, Math.floor(n + 1e-6))
+  if (!shown) return []
+  const frac = Math.max(0, n - shown)
+  const out = list.slice(Math.max(0, shown - size), shown).map(p => ({ ...p, fade: 1 }))
+  if (shown >= size && shown < list.length) out[0].fade = 1 - frac
+  return out
+}
+
 // Отпечаток лежит на земле: пятка и носок проецируются отдельно, поэтому вдали он
 // сплющивается вместе с шагом. Матрица SVG переводит стопу в своих координатах
 // (x поперёк −.5….5, y от пятки 0 к носку −1) на сцену; width < 0 — зеркально, другая нога.
