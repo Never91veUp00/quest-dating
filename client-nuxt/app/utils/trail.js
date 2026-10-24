@@ -45,31 +45,33 @@ export const steps = (pos, from = -0.6) => {
   return out
 }
 
-// След идёт шагами снизу к текущей улике, и видно только последние TRAIL_SHOWN отпечатков:
-// появился четвёртый — первый ушёл. Шаги отсчитываются от камеры назад, поэтому конец
-// следа один и тот же, откуда бы ни шли: после хода ничего не прыгает.
+// След — один на весь путь: шаги лежат на общей сетке от входа в аллею, поэтому
+// каждый ход продолжает его от прошлой улики, а не рисует заново. Ярких отпечатков
+// TRAIL_SHOWN — последние шаги; старые остаются бледным следом.
 export const TRAIL_SHOWN = 3
+export const TRAIL_ORIGIN = -2.45 // вход в аллею: у нижнего края сцены, когда пара на старте
 
 // Шаги от from до камеры to, по порядку: [{ u, foot }], u — пятка
 export const walkSteps = (from, to) => {
   const out = []
-  for (let k = 0; ; k++) {
-    const u = to - FOOT_LEN - k * STRIDE
-    if (u < from - 1e-6) break
-    out.unshift({ u, foot: k % 2 ? -1 : 1 })
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return out
+  for (let k = Math.max(0, Math.ceil((from - TRAIL_ORIGIN) / STRIDE - 1e-6)); ; k++) {
+    const u = TRAIL_ORIGIN + k * STRIDE
+    if (u + FOOT_LEN > to + 1e-6) break
+    out.push({ u, foot: k % 2 ? 1 : -1 })
   }
   return out
 }
 
-// Что видно при прогрессе хода 0…1: последние появившиеся отпечатки; пока следующий
-// на подходе, самый старый гаснет (fade 1 → 0)
-export const trailWindow = (list, progress, size = TRAIL_SHOWN) => {
-  const n = progress * list.length
+// Что видно при прогрессе хода 0…1: шаги до start уже лежали, новые появляются по одному.
+// fresh — яркость: 1 у последних шагов, 0 у старого следа; пока следующий на подходе,
+// старший из ярких уходит в след (1 → 0)
+export const trailWalk = (list, start, progress, size = TRAIL_SHOWN) => {
+  const n = start + progress * (list.length - start)
   const shown = Math.min(list.length, Math.floor(n + 1e-6))
-  if (!shown) return []
-  const frac = Math.max(0, n - shown)
-  const out = list.slice(Math.max(0, shown - size), shown).map(p => ({ ...p, fade: 1 }))
-  if (shown >= size && shown < list.length) out[0].fade = 1 - frac
+  const out = list.slice(0, shown).map((p, i) => ({ ...p, fresh: shown - 1 - i < size ? 1 : 0 }))
+  const frac = n - shown
+  if (frac > 1e-6 && shown >= size && shown < list.length) out[shown - size].fresh = 1 - frac
   return out
 }
 

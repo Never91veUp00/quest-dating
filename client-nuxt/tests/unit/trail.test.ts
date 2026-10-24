@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { depthOf, project, visible, steps, footMatrix, walkSteps, trailWindow, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_SHOWN } from '~/utils/trail.js'
+import { depthOf, project, visible, steps, footMatrix, walkSteps, trailWalk, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_SHOWN, TRAIL_ORIGIN } from '~/utils/trail.js'
 
 const route = [{ id: 'blk-0' }, { id: 'blk-1' }, { id: 'blk-2' }, { id: 'blk-3' }]
 
@@ -91,39 +91,42 @@ describe('footMatrix', () => {
 })
 
 describe('walkSteps', () => {
-  it('шаги идут снизу к камере: последний носок у камеры, первый не ниже начала', () => {
-    const s = walkSteps(-1, 2)
-    expect(s.at(-1).u + FOOT_LEN).toBeCloseTo(2)
-    expect(s[0].u).toBeGreaterThanOrEqual(-1)
+  it('шаги на одной сетке от входа в аллею: следующий ход продолжает след, а не рисует заново', () => {
+    const a = walkSteps(TRAIL_ORIGIN, 1)
+    const b = walkSteps(TRAIL_ORIGIN, 2)
+    expect(b.slice(0, a.length)).toEqual(a)
+    expect(b.length).toBeGreaterThan(a.length)
+  })
+  it('носок последнего отпечатка не заходит за камеру и отстаёт меньше чем на шаг', () => {
+    const s = walkSteps(TRAIL_ORIGIN, 2)
+    expect(s.at(-1).u + FOOT_LEN).toBeLessThanOrEqual(2 + 1e-6)
+    expect(s.at(-1).u + FOOT_LEN).toBeGreaterThan(2 - STRIDE)
     expect(s[1].u - s[0].u).toBeCloseTo(STRIDE)
     expect(s[0].foot).toBe(-s[1].foot)
   })
-  it('конец следа один и тот же, откуда бы ни шли: после хода ничего не прыгает', () => {
-    const a = walkSteps(-1, 2).slice(-3)
-    const b = walkSteps(0.5, 2).slice(-3)
-    expect(a).toEqual(b)
-  })
 })
 
-describe('trailWindow', () => {
-  const list = walkSteps(-1, 2)
-  it('видно не больше трёх последних отпечатков', () => {
+describe('trailWalk', () => {
+  const list = walkSteps(TRAIL_ORIGIN, 2)
+  const start = list.findIndex(p => p.u >= 1) // ход начинается от прошлой улики
+  const fresh = (w: { fresh: number }[]) => w.filter(p => p.fresh > 0).length
+  it('в покое виден весь след, ярких — три последних', () => {
+    const w = trailWalk(list, start, 1)
+    expect(w).toHaveLength(list.length)
     expect(TRAIL_SHOWN).toBe(3)
-    expect(trailWindow(list, 1)).toHaveLength(3)
-    expect(trailWindow(list, 1).map(p => p.u)).toEqual(list.slice(-3).map(p => p.u))
+    expect(fresh(w)).toBe(3)
+    expect(w.slice(-3).every(p => p.fresh === 1)).toBe(true)
   })
-  it('сначала появляется первый, потом второй и третий', () => {
-    const n = list.length
-    expect(trailWindow(list, 0)).toHaveLength(0)
-    expect(trailWindow(list, 1 / n).map(p => p.u)).toEqual([list[0].u])
-    expect(trailWindow(list, 2 / n)).toHaveLength(2)
+  it('на старте хода след до прошлой улики уже лежит, новые шаги — от неё', () => {
+    expect(trailWalk(list, start, 0)).toHaveLength(start)
+    expect(trailWalk(list, start, 1 / (list.length - start))).toHaveLength(start + 1)
   })
-  it('четвёртый появляется — первый уходит; пока четвёртый на подходе, первый гаснет', () => {
-    const n = list.length
-    expect(trailWindow(list, 4 / n).map(p => p.u)).toEqual(list.slice(1, 4).map(p => p.u))
-    const mid = trailWindow(list, 3.5 / n)
-    expect(mid[0].u).toBe(list[0].u)
-    expect(mid[0].fade).toBeCloseTo(0.5)
-    expect(mid.at(-1).fade).toBe(1)
+  it('новый шаг ярче, старые уходят в общий след; пока следующий на подходе, старший из ярких гаснет', () => {
+    const n = list.length - start
+    const mid = trailWalk(list, start, 3.5 / n)
+    expect(fresh(mid)).toBe(3)
+    expect(mid.at(-3).fresh).toBeCloseTo(0.5)
+    expect(mid.at(-1).fresh).toBe(1)
+    expect(mid.at(-4).fresh).toBe(0)
   })
 })
