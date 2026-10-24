@@ -36,12 +36,8 @@
         </div>
         <span class="lid__stamp" aria-hidden="true">Секретно</span>
       </div>
-      <!-- завязка: две пуговицы и красная нить восьмёркой между ними -->
-      <svg class="case__tie" viewBox="0 0 60 120" aria-hidden="true">
-        <path class="case__thread" pathLength="100" d="M30 28 C52 40 52 70 30 92 C8 70 8 40 30 28 C46 22 50 12 42 6" />
-        <circle class="case__button" cx="30" cy="28" r="9" />
-        <circle class="case__button" cx="30" cy="92" r="9" />
-      </svg>
+      <!-- завязка: две пуговицы и витой шнурок восьмёркой; кончик живой — намёк, что его можно сорвать -->
+      <CaseTie class="case__tie" :pulled="stage >= 1" />
     </div>
 
     <div v-else class="lid__face">
@@ -122,7 +118,8 @@
       <!-- Проездной: линия маршрута со станциями вдоль нижнего края -->
       <span v-if="decor === 'metro'" class="lid__route" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
     </div>
-    <p class="lid__hint">{{ hint }}</p>
+    <!-- у «Дела» подсказку даёт сама нить -->
+    <p v-if="decor !== 'casefile'" class="lid__hint">{{ hint }}</p>
   </div>
 </template>
 
@@ -132,6 +129,7 @@ import QuestSeal from './QuestSeal.vue'
 import QuestFlask from './QuestFlask.vue'
 import QuestArcana from './QuestArcana.vue'
 import QuestRingbox from './QuestRingbox.vue'
+import CaseTie from './CaseTie.vue'
 import QuestPumpkin from './QuestPumpkin.vue'
 
 // Крышка коробки с игрой: название и имя игрока. Открывается сама
@@ -151,13 +149,13 @@ let timer = null
 
 // Церемония открытия по стадиям (мс от тапа); последняя — крышка растворяется,
 // под ней уже экран старта. Мир без церемонии поднимает крышку целиком, как раньше.
-// Дело: нить сматывается, обложка раскрывается, лист выходит. Переписка: сургуч ломается,
+// Дело: нить срывают с пуговиц, обложка раскрывается, лист выходит. Переписка: сургуч ломается,
 // клапан откидывается, письмо выходит. Схема: компостер, турникет, проезд. Колода: бандероль,
 // переворот карты, карта поднимается. Карта: печать, свиток разворачивается, крест. Футляр:
 // бант, лента, футляр открывается. Зельеварня: сургуч, пробка, зелье поднимается.
 // Вырубка: приглашение наклоняется, раскрывается, на тыкве прорезается лицо.
 const CEREMONY = {
-  casefile: [0, 420, 1050, 1500],
+  casefile: [0, 480, 1080, 1530],
   letters:  [0, 320, 900, 1550],
   metro:    [0, 450, 900, 1450],
   tarot:    [0, 420, 1100, 1600],
@@ -366,28 +364,14 @@ onUnmounted(() => { clearTimeout(timer); stageTimers.forEach(clearTimeout) })
   backface-visibility: hidden;
 }
 
-/* завязка на правом краю: пуговицы и красная нить */
+/* завязка у правого края: пуговицы и витой шнурок */
 .case__tie {
-  position: absolute; right: -3cqi; top: 50%;
-  width: 15cqi; height: 30cqi;
-  margin-top: -15cqi;
+  position: absolute; right: 1cqi; top: 50%;
+  width: 19cqi; height: 38cqi;
+  margin-top: -19cqi;
   overflow: visible;
-  transition: opacity .2s .25s;
+  transition: opacity .35s .2s;
 }
-.case__button { fill: color-mix(in srgb, var(--rule) 30%, var(--paper-edge)); stroke: var(--rule); stroke-width: 2; }
-.case__thread {
-  fill: none;
-  stroke: var(--chip);
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 100;
-  stroke-dashoffset: 0;
-  filter: drop-shadow(0 1.5px 0 color-mix(in srgb, var(--rule) 45%, transparent));
-  transition: stroke-dashoffset .42s cubic-bezier(.5, 0, .7, .4);
-}
-
-/* 1 — нить сматывается с пуговиц */
-.lid--s1 .case__thread, .lid--s2 .case__thread, .lid--s3 .case__thread, .lid--s4 .case__thread { stroke-dashoffset: -100; }
 .lid--s2 .case__tie, .lid--s3 .case__tie, .lid--s4 .case__tie { opacity: 0; }
 /* 2 — обложка раскрывается */
 .lid--s2 .case__cover, .lid--s3 .case__cover, .lid--s4 .case__cover { transform: rotateY(-158deg); }
@@ -851,7 +835,7 @@ onUnmounted(() => { clearTimeout(timer); stageTimers.forEach(clearTimeout) })
 
 @media (prefers-reduced-motion: reduce) {
   .lid { transition: none; }
-  .case__cover, .case__sheet, .case__thread, .case__tie { transition: none; }
+  .case__cover, .case__sheet, .case__tie { transition: none; }
   .case__sheet-stamp { animation: none; }
   .lid__letter, .lid__holes i, .lid__lamp, .tc, .lid__chart, .lid__chart-x, .lid__ribbons, .lid__ring, .inv { transition: none; }
   .lid__flap, .lid--metro .lid__face, .lid__band, .lid__seal--map, .lid__tag, .lid__wax,
