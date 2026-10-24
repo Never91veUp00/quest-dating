@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { depthOf, project, visible, steps, footMatrix, walkSteps, trailWalk, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_SHOWN, TRAIL_ORIGIN } from '~/utils/trail.js'
+import { depthOf, project, visible, footMatrix, walkSteps, trailWalk, fadeBelow, aheadFade, snapTo, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_ORIGIN, STOP_GAP, AHEAD } from '~/utils/trail.js'
 
 const route = [{ id: 'blk-0' }, { id: 'blk-1' }, { id: 'blk-2' }, { id: 'blk-3' }]
 
@@ -37,18 +37,14 @@ describe('visible', () => {
   })
 })
 
-describe('steps', () => {
-  it('носок последнего отпечатка доходит до камеры и не дальше, ноги чередуются', () => {
-    const s = steps(1)
-    expect(s.at(-1).u + FOOT_LEN).toBeLessThanOrEqual(1 + 1e-6)
-    expect(s.at(-1).u + FOOT_LEN).toBeGreaterThan(1 - STRIDE)
-    expect(s[0].foot).toBe(-s[1].foot)
+describe('камера', () => {
+  it('текущая улика у нижнего края, две следующие ещё до тумана', () => {
+    const h = 470
+    expect(project(depthOf(3, 3), 0, 390, h).y).toBeGreaterThan(h * 0.72)
+    expect(depthOf(3 + AHEAD, 3)).toBeLessThan(0.5)
   })
-  it('отпечаток короче шага: соседние не наезжают друг на друга', () => {
-    expect(FOOT_LEN).toBeLessThan(STRIDE)
-  })
-  it('во время хода след удлиняется', () => {
-    expect(steps(1.5).length).toBeGreaterThan(steps(1).length)
+  it('прошлая улика уже за нижним краем', () => {
+    expect(project(depthOf(2, 3), 0, 390, 470).y).toBeGreaterThan(470)
   })
 })
 
@@ -97,36 +93,53 @@ describe('walkSteps', () => {
     expect(b.slice(0, a.length)).toEqual(a)
     expect(b.length).toBeGreaterThan(a.length)
   })
-  it('носок последнего отпечатка не заходит за камеру и отстаёт меньше чем на шаг', () => {
+  it('носок последнего отпечатка останавливается перед табличкой и отстаёт меньше чем на шаг', () => {
     const s = walkSteps(TRAIL_ORIGIN, 2)
-    expect(s.at(-1).u + FOOT_LEN).toBeLessThanOrEqual(2 + 1e-6)
-    expect(s.at(-1).u + FOOT_LEN).toBeGreaterThan(2 - STRIDE)
+    expect(s.at(-1).u + FOOT_LEN).toBeLessThanOrEqual(2 - STOP_GAP + 1e-6)
+    expect(s.at(-1).u + FOOT_LEN).toBeGreaterThan(2 - STOP_GAP - STRIDE)
     expect(s[1].u - s[0].u).toBeCloseTo(STRIDE)
     expect(s[0].foot).toBe(-s[1].foot)
+  })
+  it('на старте под первой уликой уже есть пара шагов: пара пришла снизу', () => {
+    expect(walkSteps(TRAIL_ORIGIN, 0).length).toBeGreaterThanOrEqual(2)
   })
 })
 
 describe('trailWalk', () => {
   const list = walkSteps(TRAIL_ORIGIN, 2)
   const start = list.findIndex(p => p.u >= 1) // ход начинается от прошлой улики
-  const fresh = (w: { fresh: number }[]) => w.filter(p => p.fresh > 0).length
-  it('в покое виден весь след, ярких — три последних', () => {
-    const w = trailWalk(list, start, 1)
-    expect(w).toHaveLength(list.length)
-    expect(TRAIL_SHOWN).toBe(3)
-    expect(fresh(w)).toBe(3)
-    expect(w.slice(-3).every(p => p.fresh === 1)).toBe(true)
+  it('в покое виден весь след', () => {
+    expect(trailWalk(list, start, 1)).toHaveLength(list.length)
   })
-  it('на старте хода след до прошлой улики уже лежит, новые шаги — от неё', () => {
+  it('на старте хода след до прошлой улики уже лежит, новые шаги — по одному от неё', () => {
     expect(trailWalk(list, start, 0)).toHaveLength(start)
     expect(trailWalk(list, start, 1 / (list.length - start))).toHaveLength(start + 1)
   })
-  it('новый шаг ярче, старые уходят в общий след; пока следующий на подходе, старший из ярких гаснет', () => {
-    const n = list.length - start
-    const mid = trailWalk(list, start, 3.5 / n)
-    expect(fresh(mid)).toBe(3)
-    expect(mid.at(-3).fresh).toBeCloseTo(0.5)
-    expect(mid.at(-1).fresh).toBe(1)
-    expect(mid.at(-4).fresh).toBe(0)
+})
+
+describe('fadeBelow', () => {
+  it('выше текущей таблички след полный, к нижнему краю растворяется', () => {
+    expect(fadeBelow(200, 380, 470)).toBe(1)
+    expect(fadeBelow(470, 380, 470)).toBeCloseTo(0.12)
+    const mid = fadeBelow(425, 380, 470)
+    expect(mid).toBeGreaterThan(0.12)
+    expect(mid).toBeLessThan(1)
+  })
+})
+
+describe('aheadFade', () => {
+  it('две ближние улики видны, дальние тонут в тумане', () => {
+    expect(aheadFade(4, 3)).toBe(1)
+    expect(aheadFade(5, 3)).toBeCloseTo(0.9)
+    expect(aheadFade(8, 3)).toBe(0)
+  })
+})
+
+describe('snapTo', () => {
+  it('встаёт на ближайшую улику, бросок пальцем уносит дальше, края не переходит', () => {
+    expect(snapTo(2.4, 0, 9)).toBe(2)
+    expect(snapTo(2.4, 4, 9)).toBe(3)
+    expect(snapTo(-0.3, -5, 9)).toBe(0)
+    expect(snapTo(8.4, 5, 9)).toBe(8)
   })
 })
