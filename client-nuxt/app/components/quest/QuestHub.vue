@@ -5,14 +5,25 @@
       <h1 class="hub__title">{{ title }}</h1>
       <p class="hub__lead">
         {{ unlocked
-          ? 'Всё пройдено. Финал открыт.'
-          : 'Проходи участки в любом порядке. Финал откроется, когда пройдены остальные.' }}
+          ? (theme.copy.hubDone ?? 'Всё пройдено. Финал открыт.')
+          : (theme.copy.hubLead ?? 'Проходи участки в любом порядке. Финал откроется, когда пройдены остальные.') }}
       </p>
     </header>
 
     <!-- «Детектив»: пробковая доска, улики вразнобой вокруг папки финала -->
     <QuestCorkboard
       v-if="theme.world?.decor === 'casefile'"
+      :blocks="blocks"
+      :theme="theme"
+      :completedIds="completedIds"
+      :celebrate="celebrate"
+      @open="openAt"
+      @celebrated="$emit('celebrated')"
+    />
+
+    <!-- «Романтик»: вечерний стол, записки вразбежку вокруг связки последних писем -->
+    <QuestDesk
+      v-else-if="theme.world?.decor === 'letters'"
       :blocks="blocks"
       :theme="theme"
       :completedIds="completedIds"
@@ -68,6 +79,7 @@
 import { computed, ref } from 'vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestCorkboard from './QuestCorkboard.vue'
+import QuestDesk from './QuestDesk.vue'
 import { roman } from './themes.js'
 import { isBlockDone, finalIndex, cluesDone, cluesTotal, finalUnlocked } from '~/utils/boardFlow.js'
 
