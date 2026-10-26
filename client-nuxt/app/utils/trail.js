@@ -21,10 +21,10 @@ export const depthOf = (u, pos) => NOW_T + (u - pos) * STEP_T
 export const wander = (u) => Math.sin(u * 1.7 + 0.4) * 46
 
 // Проекция точки (глубина t, сдвиг от середины аллеи off) на сцену w × h.
-// Возвращает x, y и масштаб s (1 — у края экрана).
-export const project = (t, off, w, h) => {
+// Возвращает x, y и масштаб s (1 — у края экрана). horizon — у каждой сцены свой.
+export const project = (t, off, w, h, horizon = HORIZON) => {
   const z = 1 + t * SPREAD
-  const hz = h * HORIZON
+  const hz = h * horizon
   const k = w / 390
   return { x: w / 2 + (off * k) / z, y: hz + (h - hz) / z, s: 1 / z }
 }
@@ -62,6 +62,22 @@ export const fadeBelow = (y, yNow, h) => 0.12 + 0.88 * clamp01(1 - (y - yNow - 6
 
 // Улика впереди тонет в тумане: две ближние видны, дальше гаснут
 export const aheadFade = (i, pos) => clamp01(1.25 - (i - pos - 1) * 0.35)
+
+// Набережная «Романтика»: вместо следов — дорожка лепестков. Лежат вразброс у середины,
+// на общей сетке от входа, поэтому каждый ход продолжает дорожку. До участка to не доходят.
+export const PETAL_STEP = 0.09
+const PETAL_ORIGIN = -0.5
+const noise = (i, k) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v) }
+export const petalTrail = (to) => {
+  const out = []
+  if (!Number.isFinite(to)) return out
+  for (let k = 0; ; k++) {
+    const u = PETAL_ORIGIN + k * PETAL_STEP
+    if (u > to - 0.1 + 1e-6) break
+    out.push({ k, u, off: (noise(k, 5) - 0.5) * 60, rot: Math.round(noise(k, 6) * 360), tone: k % 4, size: 1.3 + noise(k, 7) * 0.7 })
+  }
+  return out
+}
 
 // Листание аллеи: куда встать, когда палец отпустили (velocity — улик в секунду)
 export const snapTo = (pos, velocity, count) =>

@@ -80,9 +80,10 @@
           </p>
           <p v-if="block.description" class="block__desc">{{ block.description }}</p>
 
-          <!-- «Детектив»: аллея в перспективе, след ведёт от улики к улике, впереди туман -->
-          <QuestTrail
-            v-if="theme.world?.decor === 'casefile'"
+          <!-- Маршрут в перспективе: у «Детектива» аллея со следом, у «Романтика» набережная с лепестками -->
+          <component
+            :is="routeScene"
+            v-if="routeScene"
             class="block__board-track block__board-track--trail"
             :tasks="route"
             :completedIds="routeDoneIds(boardCompleted)"
@@ -194,8 +195,9 @@
         <span>{{ block.location }}</span>
       </p>
       <p v-if="block.description" class="block__desc">{{ block.description }}</p>
-      <QuestTrail
-        v-if="theme.world?.decor === 'casefile'"
+      <component
+        :is="routeScene"
+        v-if="routeScene"
         class="block__side-track block__side-track--trail"
         :tasks="route"
         :completedIds="routeDoneIds(completedIds)"
@@ -256,6 +258,7 @@ import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import QuestTask from './QuestTask.vue'
 import QuestTrack from './QuestTrack.vue'
 import QuestTrail from './QuestTrail.vue'
+import QuestEmbankment from './QuestEmbankment.vue'
 import QuestIcon from './QuestIcon.vue'
 import QuestFlask from './QuestFlask.vue'
 import QuestPumpkin from './QuestPumpkin.vue'
@@ -317,8 +320,11 @@ watch(reviewBlock, async (t) => {
 // Задания внутри участка идут без доски: их видно точками под текущей клеткой.
 // Тап по доске её удерживает, тогда дальше — по кнопке.
 const MOMENT_MS = 1400
-// аллея «Детектива»: шаги идут к новой улике (1,3 с), камера подтягивается (1 с), пауза прочитать
+// маршрут в перспективе: путь идёт к новой улике (1,3 с), камера подтягивается (1 с), пауза прочитать
 const TRAIL_MOMENT_MS = 3300
+// сцена маршрута в перспективе по обличью темы; у остальных — трасса клеток
+const ROUTE_SCENES = { casefile: QuestTrail, letters: QuestEmbankment }
+const routeScene = computed(() => ROUTE_SCENES[props.theme.world?.decor] ?? null)
 const HOP_DELAY = 450
 const boardOpen      = ref(false)
 const boardCompleted = ref([...props.completedIds])
@@ -399,7 +405,7 @@ watch(() => [...props.completedIds], (now, before = []) => {
   stampId.value = `blk-${props.index}`
   advancing.value = !props.isLast
   // Доска открывается в прежнем состоянии, затем штамп и ход фишки
-  openBoard(true, props.theme.world?.decor === 'casefile' ? TRAIL_MOMENT_MS : MOMENT_MS)
+  openBoard(true, routeScene.value ? TRAIL_MOMENT_MS : MOMENT_MS)
   hopTimer = setTimeout(() => { boardCompleted.value = [...now] }, HOP_DELAY)
 })
 

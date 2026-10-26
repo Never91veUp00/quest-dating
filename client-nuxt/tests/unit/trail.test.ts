@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { depthOf, project, visible, footMatrix, walkSteps, trailWalk, fadeBelow, aheadFade, snapTo, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_ORIGIN, STOP_GAP, AHEAD } from '~/utils/trail.js'
+import { depthOf, project, visible, footMatrix, walkSteps, trailWalk, fadeBelow, aheadFade, snapTo, petalTrail, PETAL_STEP, trailStates, cameraAt, tagScale, sideOf, NOW_T, STEP_T, STRIDE, FOOT_LEN, TRAIL_ORIGIN, STOP_GAP, AHEAD } from '~/utils/trail.js'
 
 const route = [{ id: 'blk-0' }, { id: 'blk-1' }, { id: 'blk-2' }, { id: 'blk-3' }]
 
@@ -141,5 +141,20 @@ describe('snapTo', () => {
     expect(snapTo(2.4, 4, 9)).toBe(3)
     expect(snapTo(-0.3, -5, 9)).toBe(0)
     expect(snapTo(8.4, 5, 9)).toBe(8)
+  })
+})
+
+describe('petalTrail', () => {
+  it('дорожка продолжается, а не рисуется заново, и не доходит до участка', () => {
+    const a = petalTrail(1), b = petalTrail(2)
+    expect(b.slice(0, a.length)).toEqual(a)
+    expect(b.at(-1).u).toBeLessThanOrEqual(2 - 0.1 + 1e-6)
+    expect(b[1].u - b[0].u).toBeCloseTo(PETAL_STEP)
+  })
+  it('под первым участком уже лежат лепестки', () => {
+    expect(petalTrail(0).length).toBeGreaterThanOrEqual(3)
+  })
+  it('лепестки у середины дороги', () => {
+    expect(petalTrail(3).every(p => Math.abs(p.off) <= 30)).toBe(true)
   })
 })

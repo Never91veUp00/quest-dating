@@ -113,12 +113,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted, useId } from 'vue'
+import { computed, useId } from 'vue'
 import { roman, plural } from './themes.js'
-import {
-  depthOf, project, visible, wander, walkSteps, trailWalk, footMatrix, sideOf, trailStates, cameraAt, tagScale,
-  fadeBelow, aheadFade, snapTo, NOW_T, HORIZON, AHEAD, FOOT_LEN, FOOT_SPREAD, FOOT_W, TRAIL_ORIGIN,
-} from '~/utils/trail.js'
+import { visible, walkSteps, trailWalk, footMatrix, tagScale, FOOT_LEN, FOOT_SPREAD, FOOT_W, TRAIL_ORIGIN } from '~/utils/trail.js'
+import { useRouteCamera } from '~/composables/useRouteCamera.js'
 
 const props = defineProps({
   tasks:        { type: Array,  required: true },             // участки маршрута: { id, title }
@@ -134,111 +132,18 @@ const props = defineProps({
 defineEmits(['open'])
 
 const uid = useId()
-const root = ref(null)
-const size = ref({ w: 390, h: 480 })
+
+// аллея петляет: боковой сдвиг середины в мире, в пикселях ширины 390
+const wander = (u) => Math.sin(u * 1.7 + 0.4) * 46
+const {
+  root, size, target, last, pos, stepsFrom, walked, arrived, states,
+  glideTo, dragStart, dragMove, dragEnd, eatClick, onWheel,
+  horizonY, at, fade, clues, clueFade, placeTag, aheadCount, allDone,
+} = useRouteCamera(props, { wander, words: { now: 'вы здесь', done: 'отработано', ahead: 'впереди' } })
 
 // детерминированный «шум»: аллея одна и та же при каждом открытии
 const rnd = (i, k) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v) }
 
-const states = computed(() => trailStates(
-  props.tasks,
-  props.completedIds,
-  props.tasks.filter(t => props.earnedMap?.[t.id]?.wrong).map(t => t.id),
-))
-const target = computed(() => cameraAt(props.tasks, props.completedIds))
-const last = computed(() => Math.max(0, props.tasks.length - 1))
-const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-
-// ─── Ход: сначала пара идёт от нижней улики к следующей (камера стоит), потом
-// камера подтягивается — следующая улика опускается вниз, прошлая уходит за край.
-// На старте пара входит в аллею: камера подъезжает к первой улике снизу.
-const STEPS_MS = 1300
-const GLIDE_MS = 1000
-const pos = ref(props.enter && target.value === 0 ? -0.7 : target.value)
-const stepsFrom = ref(target.value)  // докуда след лежал до хода
-const walked = ref(1)                // доля новых шагов
-const arrived = ref(true)            // камера дошла: новая улика внизу и стала «вы здесь»
-let raf = 0
-const run = (ms, fn) => new Promise((done) => {
-  const t0 = performance.now()
-  const tick = (now) => {
-    const p = Math.min(1, (now - t0) / ms)
-    fn(p)
-    if (p < 1) raf = requestAnimationFrame(tick); else done()
-  }
-  raf = requestAnimationFrame(tick)
-})
-const easeInOut = (p) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2)
-const walk = async (to, from) => {
-  cancelAnimationFrame(raf)
-  const start = pos.value
-  if (reduced()) { pos.value = to; walked.value = 1; arrived.value = true; stepsFrom.value = to; return }
-  if (from >= 0 && to > from) {
-    stepsFrom.value = from
-    arrived.value = false
-    walked.value = 0
-    await run(STEPS_MS, (p) => { walked.value = p })
-  }
-  await run(GLIDE_MS, (p) => { pos.value = start + (to - start) * easeInOut(p) })
-  arrived.value = true
-  stepsFrom.value = to
-}
-watch(target, (to, from) => walk(to, from))
-
-// ─── Листание: доску открыли сами — аллею можно тянуть пальцем ─────────
-const PX_PER = 150 // столько пикселей пальцем — одна улика
-let drag = null
-let dragged = false
-const glideTo = (to) => {
-  cancelAnimationFrame(raf)
-  const start = pos.value
-  if (reduced()) { pos.value = to; return }
-  run(Math.min(900, 380 + Math.abs(to - start) * 160), (p) => { pos.value = start + (to - start) * (1 - (1 - p) ** 3) })
-}
-const dragStart = (e) => {
-  if (!props.free || !arrived.value) return
-  cancelAnimationFrame(raf)
-  drag = { y: e.clientY, pos: pos.value, t: performance.now(), v: 0, id: e.pointerId }
-  dragged = false
-}
-const dragMove = (e) => {
-  if (!drag) return
-  const dy = e.clientY - drag.y
-  if (!dragged && Math.abs(dy) < 6) return
-  if (!dragged) { dragged = true; root.value?.setPointerCapture?.(drag.id) }
-  const now = performance.now()
-  const np = Math.max(-0.15, Math.min(last.value + 0.15, drag.pos + dy / PX_PER))
-  drag.v = (np - pos.value) / Math.max(1, now - drag.t) * 1000
-  drag.t = now
-  pos.value = np
-}
-const dragEnd = () => {
-  if (!drag) return
-  const v = drag.v
-  drag = null
-  if (dragged) glideTo(snapTo(pos.value, v, props.tasks.length))
-}
-// после протяжки бирка под пальцем не открывается
-const eatClick = (e) => { if (dragged) { e.stopPropagation(); e.preventDefault(); dragged = false } }
-let wheelT = 0
-const onWheel = (e) => {
-  if (!props.free || !arrived.value) return
-  e.preventDefault()
-  cancelAnimationFrame(raf)
-  pos.value = Math.max(0, Math.min(last.value, pos.value - e.deltaY / PX_PER))
-  clearTimeout(wheelT)
-  wheelT = setTimeout(() => glideTo(Math.round(pos.value)), 160)
-}
-// доску закрыли и открыли снова — камера на текущей улике
-watch(() => props.free, (f) => { if (!f && arrived.value) glideTo(target.value) })
-
-// ─── Сцена ───────────────────────────────────────────────────────
-const horizonY = computed(() => size.value.h * HORIZON)
-const at = (u, off) => {
-  const t = depthOf(u, pos.value)
-  return { t, ...project(t, wander(u) + off, size.value.w, size.value.h) }
-}
-const yNow = computed(() => project(NOW_T, 0, size.value.w, size.value.h).y)
 // мир от нижнего края до горизонта
 const range = computed(() => [Math.floor(pos.value - 1.2), Math.ceil(pos.value + 5.6)])
 
@@ -291,14 +196,14 @@ const PRINT_O = .72
 const prints = computed(() => {
   const list = walkSteps(TRAIL_ORIGIN, target.value)
   const start = walkSteps(TRAIL_ORIGIN, stepsFrom.value).length
-  const { w, h } = size.value
+  const { w } = size.value
   return trailWalk(list, start, walked.value).map((st) => {
     const heel = at(st.u, st.foot * FOOT_SPREAD)
     // носок чуть наружу — походка, а не рельсы
     const toe = at(st.u + FOOT_LEN, st.foot * (FOOT_SPREAD + 2))
     if (!visible(heel.t) || !visible(toe.t)) return null
     const m = footMatrix(heel, toe, st.foot * FOOT_W * heel.s * w / 390)
-    const o = PRINT_O * fadeBelow(heel.y, yNow.value, h)
+    const o = PRINT_O * fade(heel.y)
     return { k: st.u.toFixed(3), tf: `matrix(${m.map(v => v.toFixed(2)).join(' ')})`, o: o.toFixed(2) }
   }).filter(Boolean)
 })
@@ -329,66 +234,30 @@ const chalk = computed(() => {
 })
 
 // ─── Улики: таблички у следа и бирки на шпагате ─────────────────
-// view: done — пройдена (можно перечитать), now — вы здесь, ahead — впереди, только номер.
-// Пока пара идёт к новой улике, она ещё «впереди»: «вы здесь» — когда камера дошла.
 const PLATE = { now: '#f0c040', done: '#d9ab3a', ahead: '#c9a24a' }
 const TAG_W = { now: 156, done: 132, ahead: 64 }
-const marks = computed(() => {
-  const { w, h } = size.value
-  const reach = Math.max(target.value, Math.ceil(pos.value)) + AHEAD
-  return states.value
-    .filter(s => s.index <= reach)
-    .map((s) => {
-      const view = s.state === 'ahead' || (s.state === 'now' && !arrived.value) ? 'ahead' : s.state === 'now' ? 'now' : 'done'
-      let side = sideOf(s.index)
-      const p = at(s.index, side * 50)
-      if (!visible(p.t) || p.y > h + 30) return null
-      const o = view === 'ahead' ? aheadFade(s.index, pos.value) : view === 'done' ? fadeBelow(p.y - 8, yNow.value, h) : 1
-      if (o < 0.03) return null
-      const k = tagScale(p.s, view === 'now') * 1.1
-      const tw = TAG_W[view]
-      // бирке не хватает места с этой стороны — вешаем с другой, табличку не закрываем
-      if (side < 0 && p.x - 34 * k - tw < 6) side = 1
-      else if (side > 0 && p.x + 34 * k + tw > w - 6) side = -1
-      const ax = side > 0
-        ? Math.min(p.x + 34 * k, w - tw - 6)
-        : Math.max(p.x - 34 * k, tw + 6)
-      const pr = props.progress?.[s.id]
-      const note = view === 'now'
-        ? (pr?.total > 1 ? `вы здесь · ${pr.done} из ${pr.total}` : 'вы здесь')
-        : view === 'ahead' ? 'впереди' : s.state === 'wrong' ? 'пропущено' : 'отработано'
-      return {
-        ...s, view, side, x: p.x, y: p.y, k, note, o: +o.toFixed(2), title: props.tasks[s.index]?.title || props.itemWord,
-        tagX: ax, tagY: p.y - 4 * k,
-        // шпагат от верха таблички к дырочке бирки (координаты таблички)
-        twine: `M10 -28 Q${((ax - p.x) / k) * .6} -30 ${(ax - p.x) / k} -4`,
-      }
-    })
-    .filter(Boolean)
-})
+const marks = computed(() => clues.value
+  .map((c) => {
+    const p = at(c.index, c.side * 50)
+    if (!visible(p.t) || p.y > size.value.h + 30) return null
+    const o = clueFade(c, p.y - 8)
+    if (o < 0.03) return null
+    const k = tagScale(p.s, c.view === 'now') * 1.1
+    const tag = placeTag(p.x, 34 * k, TAG_W[c.view], c.side)
+    return {
+      ...c, side: tag.side, x: p.x, y: p.y, k, o: +o.toFixed(2),
+      tagX: tag.x, tagY: p.y - 4 * k,
+      // шпагат от верха таблички к дырочке бирки (координаты таблички)
+      twine: `M10 -28 Q${((tag.x - p.x) / k) * .6} -30 ${(tag.x - p.x) / k} -4`,
+    }
+  })
+  .filter(Boolean))
 
 const fogY = computed(() => at(pos.value + 2.6, 0).y)
-const ahead = computed(() => props.tasks.length - 1 - Math.max(target.value, Math.round(pos.value)) - AHEAD)
 const aheadText = computed(() => {
-  if (ahead.value > 0) return `дальше в тумане ещё ${ahead.value} ${plural(ahead.value, ...props.forms)}`
-  return states.value.every(s => s.state !== 'ahead') ? 'след привёл к развязке' : ''
+  if (aheadCount.value > 0) return `дальше в тумане ещё ${aheadCount.value} ${plural(aheadCount.value, ...props.forms)}`
+  return allDone.value ? 'след привёл к развязке' : ''
 })
-
-// ─── Размер сцены ────────────────────────────────────────────────
-let ro = null
-const measure = () => {
-  const r = root.value?.getBoundingClientRect()
-  // во время влёта/анимаций экран масштабирован: меряем по offset-размерам
-  const w = root.value?.offsetWidth || r?.width
-  const h = root.value?.offsetHeight || r?.height
-  if (w && h) size.value = { w: Math.round(w), h: Math.round(h) }
-}
-onMounted(() => {
-  measure()
-  if (window.ResizeObserver && root.value) { ro = new ResizeObserver(measure); ro.observe(root.value) }
-  if (pos.value !== target.value) walk(target.value, -1)
-})
-onUnmounted(() => { cancelAnimationFrame(raf); clearTimeout(wheelT); ro?.disconnect() })
 </script>
 
 <style scoped>
